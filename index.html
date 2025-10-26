@@ -850,7 +850,7 @@
     document.getElementById('exportJsonBtn').onclick = () => checkTermsAccepted(() => {
         playSound('saving');
         const exportData = {
-            version: 25,
+            version: 25, // Updated to reflect Version 25
             locations: locations,
             customCategories: customCategories
         };
@@ -920,7 +920,7 @@
                             lat: loc.lat,
                             lng: loc.lng,
                             icon: loc.icon || categoryIcons[loc.category] || '📝',
-                            addedTime: loc.addedTime || Date.now()
+                            addedTime: Date.now() // Always set to current time for imported locations
                         };
                     });
                 let customCategoriesUpdated = false;
@@ -1023,8 +1023,7 @@
         saveLocations();
         itemModal.style.display = 'none';
         document.body.classList.remove('modal-open');
-        // Retain the current category filter as set by the user
-        loadData(combinedSearch.value, categoryFilter.value); // Reload with the current filter
+        loadData(combinedSearch.value, categoryFilter.value);
     });
     deleteBtn.onclick = () => checkTermsAccepted(() => {
         if (currentIndex < 0) return;
@@ -1229,7 +1228,6 @@
                     loc.addedTime = Date.now();
                     saveLocations();
                     playSound('saving');
-                    // Retain the current category filter as set by the user
                     loadData(combinedSearch.value, categoryFilter.value);
                 } else {
                     marker.setLatLng(originalLatLng);
@@ -1319,7 +1317,7 @@
     updateCategoryDropdowns();
     renderCategoryToggles();
     loadData();
-    window.addEventListener('resize', refreshUIState); // Add resize listener for dynamic updates
+    window.addEventListener('resize', refreshUIState);
 })();
     /* --------------------------------------------------------------------------
    Fallout 76 Item Finder Map Version 25 - Disclaimer and Terms of Use
