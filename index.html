@@ -515,14 +515,20 @@
         renderCategoryToggles();
         updateCategoryDropdowns();
     }
-    if (!localStorage.getItem('termsAccepted')) {
-        termsModal.style.display = 'block';
-        document.body.classList.add('terms-not-accepted');
-    } else if (!localStorage.getItem('welcomeShown')) {
-        welcomeModal.style.display = 'block';
-    } else if (!localStorage.getItem('updateNotificationShown')) {
-        updateNotificationModal.style.display = 'block';
+    function initializeApp() {
+        if (!localStorage.getItem('termsAccepted')) {
+            termsModal.style.display = 'block';
+            document.body.classList.add('terms-not-accepted');
+        } else if (!localStorage.getItem('welcomeShown')) {
+            welcomeModal.style.display = 'block';
+        } else if (!localStorage.getItem('updateNotificationShown')) {
+            updateNotificationModal.style.display = 'block';
+        }
+        refreshUIState();
+        // Fallback for mobile: call refreshUIState again after a short delay
+        setTimeout(refreshUIState, 100);
     }
+    document.addEventListener('DOMContentLoaded', initializeApp);
     acceptTermsBtn.addEventListener('click', () => {
         playSound('click');
         localStorage.setItem('termsAccepted', 'true');
