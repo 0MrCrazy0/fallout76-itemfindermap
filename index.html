@@ -539,7 +539,7 @@
             loadData(transcript, categoryFilter.value);
             voiceSearchBtn.textContent = 'Voice Search';
             showTempMessage(`Heard: "${transcript}"`, 4000);
-            playSound('type');
+            playSound('selectcategory');
         };
 
         recognition.onerror = () => {
@@ -555,28 +555,55 @@
         voiceSearchBtn.style.display = 'none';
     }
 
-    // === CLEAR SEARCH BUTTON ===
-    combinedSearch.addEventListener('input', () => {
-        clearSearchBtn.style.display = combinedSearch.value ? 'block' : 'none';
-        const val = combinedSearch.value.trim();
-        localStorage.setItem('currentSearch', val);
-        if (!val) {
-            loadData('', categoryFilter.value);
-        } else {
-            const gridMatch = val.toUpperCase().match(/^([A-J])(\d+)$/);
-            if (gridMatch) {
-                highlightSearchBar('grid');
-                const coords = getLatLngFromGrid(val.toUpperCase());
-                if (coords) {
-                    map.flyTo([coords.lat, coords.lng], 2);
-                    showGridNotification(val.toUpperCase());
-                }
-            } else if (val.length > 0) {
-                highlightSearchBar('item');
-            }
-            loadData(val, categoryFilter.value);
-        }
+// ---------------------------------------------------------------
+//  SEARCH INPUT – now with “found” sound (same as voice search)
+// ---------------------------------------------------------------
+let typingTimeout;                 // debounce for the typing *thip*
+let lastFilteredCount = -1;        // remember how many markers were shown last time
+
+combinedSearch.addEventListener('input', () => {
+    // ----- existing UI stuff -----
+    clearSearchBtn.style.display = combinedSearch.value ? 'block' : 'none';
+    const val = combinedSearch.value.trim();
+    localStorage.setItem('currentSearch', val);
+
+    // ----- debounce typing sound -----
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => playSound('type'), 150);
+
+    // ----- do the actual filtering -----
+    const filtered = locations.filter(loc => {
+        if (!activeCategories.has(loc.category)) return false;
+        if (categoryFilter.value && loc.category !== categoryFilter.value) return false;
+        if (!val) return true;
+        return normalizeString(loc.desc + loc.category).includes(normalizeString(val));
     });
+
+    // ----- NEW: play “found” sound when the result count changes -----
+    if (lastFilteredCount !== -1 && filtered.length !== lastFilteredCount) {
+        // same sound you already use for voice-search success
+        playSound('selectcategory');
+    }
+    lastFilteredCount = filtered.length;   // remember for next keystroke
+
+    // ----- grid handling (unchanged) -----
+    if (!val) {
+        loadData('', categoryFilter.value);
+    } else {
+        const gridMatch = val.toUpperCase().match(/^([A-J])(\d+)$/);
+        if (gridMatch) {
+            highlightSearchBar('grid');
+            const coords = getLatLngFromGrid(val.toUpperCase());
+            if (coords) {
+                map.flyTo([coords.lat, coords.lng], 2);
+                showGridNotification(val.toUpperCase());
+            }
+        } else if (val.length > 0) {
+            highlightSearchBar('item');
+        }
+        loadData(val, categoryFilter.value);
+    }
+});
 
     clearSearchBtn.onclick = () => {
         combinedSearch.value = '';
@@ -584,7 +611,7 @@
         localStorage.setItem('currentSearch', '');
         loadData('', categoryFilter.value);
         combinedSearch.focus();
-        playSound('click');
+        playSound('modalClose');
     };
 
     // === FETCH NUKE CODES ===
@@ -1478,6 +1505,7 @@ window.editMarkerFromPopup = function(index) {
         const val = categoryFilter.value;
         localStorage.setItem('currentCategoryFilter', val);
         loadData(combinedSearch.value, val);
+		playSound('selectcategory');
     });
 
     map.on('click', e => {
