@@ -3,11 +3,16 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Fallout 76 Item Finder v30</title>
+    <title>Fallout 76 Item Finder v34</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="https://raw.githubusercontent.com/mrcrazyapps/fallout76-item-finder/main/icon-192.png" sizes="192x192">
+    <link rel="icon" href="https://raw.githubusercontent.com/mrcrazyapps/fallout76-item-finder/main/icon-512.png" sizes="512x512">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/mrcrazyapps/fallout76-item-finder/main/icon-192.png">
+    <meta name="theme-color" content="#00ff00">
     <style>
         body { font-family: 'Courier New', monospace; margin: 20px; background-color: #0a2a2a; color: #00ff00; overflow-x: hidden; }
         h1 { color: #00ff00; text-align: center; text-shadow: 0 0 10px #00ff00; font-size: 2.2em; margin-bottom: 12px; }
@@ -16,7 +21,7 @@
         input[type="text"], select { padding: 8px; width: 100%; max-width: 200px; box-sizing: border-box; border: 2px solid #00ff00; border-radius: 0; background-color: #1a3c34; color: #00ff00; font-family: 'Courier New', monospace; }
         #combinedSearch { max-width: 250px; transition: background-color 0.3s, box-shadow 0.3s; }
         #combinedSearch.grid-highlight, #combinedSearch.item-highlight { background-color: #0a3a0a !important; box-shadow: 0 0 15px #00ff00, inset 0 0 10px rgba(0, 255, 0, 0.3); animation: pulseSearch 1.5s ease-out; }
-        @keyframes pulseSearch { 0%, 100% { box-shadow: 0 0 15px #00ff00, inset 0 0 10px rgba(0, 255, 0, 0.3); } 50% { box-shadow: 0 0 25px #00ff00, inset 0 0 15px rgba(0, 0, 0.5); } }
+        @keyframes pulseSearch { 0%, 100% { box-shadow: 0 0 15px #00ff00, inset 0 0 10px rgba(0, 255, 0, 0.3); } 50% { box-shadow: 0 0 25px #00ff00, inset 0 0 15px rgba(0, 255, 0, 0.5); } }
         button { padding: 8px 16px; width: 100%; max-width: 200px; box-sizing: border-box; background-color: #1a3c34; color: #00ff00; border: 2px solid #00ff00; border-radius: 0; cursor: pointer; font-family: 'Courier New', monospace; transition: background-color 0.3s; margin: 5px; }
         button:hover { background-color: #00ff00; color: #0a2a2a; }
         button.reset-btn { background-color: #F7615E !important; color: #000 !important; font-weight: 700; }
@@ -69,6 +74,17 @@
         .confirm-popup .cancel { background: #444; color: #fff; }
         .flash-green { animation: flashGreen 0.6s ease-out; }
         @keyframes flashGreen { 0% { border-color: #00ff00; } 50% { border-color: #00ff88; box-shadow: 0 0 15px #00ff88; } 100% { border-color: #00ff00; } }
+
+        /* DARK MODE */
+        body.dark-mode { background-color: #000; }
+        body.dark-mode .modal-content,
+        body.dark-mode #map,
+        body.dark-mode input, body.dark-mode select, body.dark-mode button,
+        body.dark-mode #locationsTable th, body.dark-mode #locationsTable td {
+            background-color: #0a0a0a !important; color: #00ff00 !important; border-color: #00ff00 !important;
+        }
+        body.dark-mode button:hover { background-color: #00ff00 !important; color: #000 !important; }
+
         @media (max-width: 768px) {
             #map { height: 600px; }
             .controls { flex-direction: column; align-items: center; }
@@ -83,10 +99,18 @@
     </style>
 </head>
 <body>
-    <h1>The Fallout 76 Item Finder! Quickly log items while exploring Appalachia.</h1>
+    <!-- Title Toggle -->
+    <div style="text-align:center; margin-bottom:8px;">
+        <button id="toggleTitleBtn" style="padding:2px 6px; font-size:0.9em; max-width:40px; margin:0 auto;">-</button>
+    </div>
+    <h1 id="mainTitle">The Fallout 76 Item Finder! Quickly log items while exploring Appalachia.</h1>
     <div id="map"></div>
     <div class="controls">
-        <input type="text" id="combinedSearch" placeholder="description/category/grid..">
+        <!-- SEARCH BAR WITH CLEAR BUTTON -->
+        <div style="position:relative; display:inline-block; max-width:250px;">
+            <input type="text" id="combinedSearch" placeholder="description/category/grid..">
+            <button id="clearSearchBtn" style="position:absolute; right:5px; top:50%; transform:translateY(-50%); background:none; border:none; color:#00ff00; font-size:18px; cursor:pointer; display:none;">×</button>
+        </div>
         <select id="categoryFilter"><option value="">All Categories</option></select>
         <button id="toggleCategoryModalBtn">Toggle Categories</button>
         <button id="toggleClusterBtn">Clustering: On</button>
@@ -101,6 +125,8 @@
             <button id="importBtn">Import Markers</button>
             <button id="downloadCommunityBtn">Download Community Map</button>
             <button id="saveMapJpegBtn">Save Map as JPEG</button>
+            <button id="toggleDarkModeBtn">Dark Mode: Off</button>
+            <button id="voiceSearchBtn">Voice Search</button>
         </div>
     </div>
     <div id="xpStatus">Explorer Level: <span id="levelSpan">1</span><br>XP: <progress id="xpProgress" value="0" max="1000"></progress> <span id="xpText">0 / 1000</span></div>
@@ -131,6 +157,7 @@
             <textarea id="itemDesc" placeholder="Enter item and location details"></textarea>
             <div style="margin-top:12px;">
                 <button id="saveItemBtn">Save</button>
+                <button id="shareItemBtn" class="btn" style="background:#ff0; color:#000; font-weight:bold;">Share Link</button>
                 <button id="deleteItemBtn" style="background:#F7615E;color:#000;font-weight:700;display:none;">Delete</button>
                 <button id="undoItemBtn" style="background:#cc8400;color:#000;font-weight:700;display:none;">Undo Delete</button>
                 <button id="undoMoveBtn" style="background:#F7EA5E;color:#000;font-weight:700;display:none;">Undo Move</button>
@@ -152,7 +179,7 @@
                 <p><br>Double left-click (or double tap on mobile) the map to log an item. Newly logged/duplicated/edited locations will highlight for 2 minutes.</p>
                 <p>Hold left-click (or drag on mobile) to move markers. Zoom in if markers are clustered to enable dragging. Confirm to save new position, cancel to revert, or use 'Undo Move' in the edit popup menu to revert accidental moves.</p>
                 <p>Right-click or long-press (on mobile) on markers to edit, delete, or duplicate them (undo available after delete). Edit or delete from the Content Inventory.</p>
-                <p>Left-click</strong> any row in the Content Table to page scrolls to map + zooms to marker!</p>
+                <p>Left-click any row in the Content Table to page scrolls to map + zooms to marker!</p>
                 <p>Right-click row opens Edit menu + zooms.</p>
                 <p>Use the search bar to filter by description or category or grid number.</p>
                 <p>Toggle between the named and no-name map versions using the "Toggle Map" button.</p>
@@ -166,11 +193,12 @@
                 <p>Check the "Download Community Map" button periodically for the latest map version or to reset the app if you encounter issues.</p>
                 <button id="resetAppBtn" class="reset-btn">Reset App (for debugging only)</button>
                 <p style="text-align:center;" class="small"><br>Love the Item Finder? Support MrCrazy with a <a href="https://buymeacoffee.com/mrcrazy" target="_blank" style="color:#00ff00;">Nuka-Cola</a>!</p>
-                <p style="text-align:center;" class="small" id="appVersionText">The Fallout 76 Item Finder Map Version 30 Made By MrCrazy</p>
+                <p style="text-align:center;" class="small" id="appVersionText">The Fallout 76 Item Finder Map Version 34 Made By MrCrazy</p>
             </div>
             <div id="nukeCodesContent" class="tab-content">
                 <p><strong><br>Nuke Codes</strong></p>
-                <p class="small">Source: <a href="https://falloutbuilds.com/fo76/nuke-codes/" target="_blank" style="color:#00ff00;">falloutbuilds.com</a></p>
+                <div id="nuke-codes" style="color:#00ff00;font-size:14px;">Loading codes…</div>
+                <p class="small">Source: <a href="https://nukacrypt.com" target="_blank" style="color:#00ff00;">nukacrypt.com</a></p>
             </div>
         </div>
     </div>
@@ -229,18 +257,19 @@
     const CUSTOM_CATEGORIES_KEY = 'fallout76_custom_categories';
     const MAP_VERSION_KEY = 'fallout76_map_version';
     const TERMS_ACCEPTED_KEY = 'fallout76_terms_accepted';
-    const APP_VERSION = "30";
+    const APP_VERSION = "34";
     let soundsEnabled = localStorage.getItem('soundsEnabled') !== 'false';
     const baseSounds = {
-        click: new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg"),
-        type: new Audio("https://actions.google.com/sounds/v1/doors/locked_doorknob_jiggle.ogg"),
-        error: new Audio("https://actions.google.com/sounds/v1/impacts/dumpster_door_hit.ogg"),
-        duplicate: new Audio("https://actions.google.com/sounds/v1/impacts/metal_thud.ogg"),
-        saving: new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"),
-        undo: new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg"),
-        delete: new Audio("https://actions.google.com/sounds/v1/impacts/dumpster_door_hit.ogg"),
-        levelUp: new Audio("https://actions.google.com/sounds/v1/cartoon/stomach_thumps.ogg"),
-        modalClose: new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg")
+    click: new Audio("https://rpg.hamsterrepublic.com/wiki-images/8/84/Select8-Bit.ogg"),
+    type: new Audio("https://rpg.hamsterrepublic.com/wiki-images/3/3a/Thip.ogg"),
+    error: new Audio("https://rpg.hamsterrepublic.com/wiki-images/1/12/Ping-da-ding-ding-ding.ogg"),
+    duplicate: new Audio("https://rpg.hamsterrepublic.com/wiki-images/0/0b/Robot_2.ogg"),
+    saving: new Audio("https://rpg.hamsterrepublic.com/wiki-images/9/9c/Robot_1.ogg"),
+    undo: new Audio("https://rpg.hamsterrepublic.com/wiki-images/d/d7/Oddbounce.ogg"),
+    delete: new Audio("https://rpg.hamsterrepublic.com/wiki-images/0/04/TextboxBloop8-Bit.ogg"),
+    levelUp: new Audio("https://rpg.hamsterrepublic.com/wiki-images/d/d5/Menu8-Bit.ogg"),
+    modalClose: new Audio("https://rpg.hamsterrepublic.com/wiki-images/8/8e/Confirm8-Bit.ogg"),
+    selectcategory: new Audio("https://rpg.hamsterrepublic.com/wiki-images/a/a8/Rolling_Switch.ogg")
     };
     Object.values(baseSounds).forEach(s => { s.volume = 0.15; });
     function playSound(type) {
@@ -250,15 +279,12 @@
         }
     }
     function generateUniqueId() { return 'id-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now(); }
-
     let locations = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     locations.forEach(loc => { if (!loc.id) loc.id = generateUniqueId(); });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
     let customCategories = JSON.parse(localStorage.getItem(CUSTOM_CATEGORIES_KEY)) || {};
     let communityVersion = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
     let termsAccepted = localStorage.getItem(TERMS_ACCEPTED_KEY) === 'true';
-
-    // === REAL EMOJI ICONS NOT TEXT ===
     const defaultCategoryIcons = {
         'weapons': '🔫', 'armor': '🛡️', 'aid': '💉', 'food/drink': '🍽️', 'ammunition': '💥',
         'apparel': '👕', 'plans': '📜', 'junk': '🗑️', 'holotapes': '📀', 'misc': '📝',
@@ -268,7 +294,7 @@
         'terminal locations': '🖥️', 'treasure maps': '🗺️', 'resource deposits': '⛏️',
         'fishing locations': '🎣', 'workshops': '🔧', 'train stations': '🚂', 'town locations': '🏫',
         'event locations': '🎉', 'named locations': '🚩', 'regions': '📍'
-    };
+        };
     let categoryIcons = { ...defaultCategoryIcons, ...customCategories };
     const defaultCategoryColors = {
         'weapons': '#ff4444', 'armor': '#4682b4', 'aid': '#32cd32', 'food/drink': '#adff2f',
@@ -282,7 +308,6 @@
         'regions': '#00ff00', 'named locations': '#ffffff'
     };
     let categoryColors = { ...defaultCategoryColors };
-
     const map = L.map('map', { crs: L.CRS.Simple, minZoom: -3, maxZoom: 4, zoomControl: true, scrollWheelZoom: true, doubleClickZoom: true, boxZoom: true, touchZoom: true, dragging: true });
     const imageBounds = [[0, 0], [4096, 4096]];
     const mapUrls = {
@@ -292,12 +317,10 @@
     let currentMap = localStorage.getItem('currentMap') || 'named';
     let imageOverlay = L.imageOverlay(mapUrls[currentMap], imageBounds).addTo(map);
     map.fitBounds(imageBounds);
-
     const clusteredMarkers = L.markerClusterGroup({ maxClusterRadius: 30, disableClusteringAtZoom: 2 });
     const nonClusteredMarkers = L.layerGroup();
     map.addLayer(clusteredMarkers);
     map.addLayer(nonClusteredMarkers);
-
     let lastDeleted = null;
     let lastMovedMarker = null;
     let currentIndex = -1;
@@ -319,6 +342,7 @@
     let currentSearch = localStorage.getItem('currentSearch') || '';
     let currentCategoryFilter = localStorage.getItem('currentCategoryFilter') || '';
     let isDuplicateEdit = false;
+    let darkMode = localStorage.getItem('darkMode') === 'true';
 
     // === GRID SYSTEM ===
     let gridLayer = L.layerGroup().addTo(map);
@@ -345,7 +369,6 @@
             }
         }
     }
-
     function getGridFromLatLng(lat, lng) {
         const gridSize = 10;
         const cellSize = 4096 / gridSize;
@@ -357,7 +380,6 @@
         }
         return null;
     }
-
     function getLatLngFromGrid(grid) {
         const match = grid.toUpperCase().match(/^([A-J])(\d+)$/);
         if (!match) return null;
@@ -371,27 +393,17 @@
         const centerY = row * cellSize + cellSize / 2;
         return { lat: centerY, lng: centerX };
     }
-
     function showGridNotification(grid) {
         const notif = document.getElementById('gridNotification');
         notif.textContent = `Grid: ${grid}`;
         notif.classList.add('show');
         setTimeout(() => notif.classList.remove('show'), 3000);
     }
-
     function highlightSearchBar(type = 'grid') {
         const search = document.getElementById('combinedSearch');
         search.classList.remove('grid-highlight', 'item-highlight');
         search.classList.add(type === 'grid' ? 'grid-highlight' : 'item-highlight');
         setTimeout(() => search.classList.remove(type === 'grid' ? 'grid-highlight' : 'item-highlight'), 1500);
-    }
-
-    function zoomToGrid(grid) {
-        const coords = getLatLngFromGrid(grid);
-        if (coords) {
-            map.flyTo([coords.lat, coords.lng], 2);
-            playSound('click');
-        }
     }
 
     // === EMOJI VALIDATION ===
@@ -407,6 +419,7 @@
     const undoBtn = document.getElementById('undoItemBtn');
     const undoMoveBtn = document.getElementById('undoMoveBtn');
     const duplicateBtn = document.getElementById('duplicateItemBtn');
+    const shareItemBtn = document.getElementById('shareItemBtn');
     const modalTitle = document.getElementById('modalTitle');
     const itemCategorySelect = document.getElementById('itemCategory');
     const itemDescInput = document.getElementById('itemDesc');
@@ -417,6 +430,7 @@
     const toggleButtonGroup = document.getElementById('toggleButtonGroup');
     const buttonGroup = document.getElementById('buttonGroup');
     const combinedSearch = document.getElementById('combinedSearch');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
     const categoryFilter = document.getElementById('categoryFilter');
     const levelSpan = document.getElementById('levelSpan');
     const xpProgress = document.getElementById('xpProgress');
@@ -437,6 +451,8 @@
     const saveJpegBtn = document.getElementById('saveMapJpegBtn');
     const resetAppBtn = document.getElementById('resetAppBtn');
     const newCategoryEmoji = document.getElementById('newCategoryEmoji');
+    const toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn');
+    const voiceSearchBtn = document.getElementById('voiceSearchBtn');
 
     toggleSoundsBtn.textContent = soundsEnabled ? 'Sounds: On' : 'Sounds: Off';
     toggleClusterBtn.textContent = `Clustering: ${clusteringEnabled ? 'On' : 'Off'}`;
@@ -447,7 +463,151 @@
     combinedSearch.value = currentSearch;
     categoryFilter.value = currentCategoryFilter;
 
-        // === TERMS AGREEMENT MODAL ===
+    // === TITLE TOGGLE ===
+    const toggleTitleBtn = document.getElementById('toggleTitleBtn');
+    const mainTitle = document.getElementById('mainTitle');
+    let titleVisible = localStorage.getItem('titleVisible') !== 'false';
+    mainTitle.style.display = titleVisible ? 'block' : 'none';
+    toggleTitleBtn.textContent = titleVisible ? '-' : '+';
+    toggleTitleBtn.onclick = () => {
+        titleVisible = !titleVisible;
+        mainTitle.style.display = titleVisible ? 'block' : 'none';
+        toggleTitleBtn.textContent = titleVisible ? '-' : '+';
+        localStorage.setItem('titleVisible', titleVisible);
+        playSound('click');
+    };
+
+    // === DARK MODE ===
+    document.body.classList.toggle('dark-mode', darkMode);
+    toggleDarkModeBtn.textContent = darkMode ? 'Dark Mode: On' : 'Dark Mode: Off';
+    toggleDarkModeBtn.onclick = () => {
+        darkMode = !darkMode;
+        document.body.classList.toggle('dark-mode', darkMode);
+        localStorage.setItem('darkMode', darkMode);
+        toggleDarkModeBtn.textContent = darkMode ? 'Dark Mode: On' : 'Dark Mode: Off';
+        playSound('click');
+    };
+
+    // === VOICE SEARCH ===
+    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        voiceSearchBtn.onclick = () => {
+            if (voiceSearchBtn.textContent === 'Listening...') {
+                recognition.stop();
+                voiceSearchBtn.textContent = 'Voice Search';
+                return;
+            }
+            combinedSearch.value = '';
+            combinedSearch.focus();
+            recognition.start();
+            voiceSearchBtn.textContent = 'Listening...';
+            playSound('click');
+        };
+
+        recognition.onresult = e => {
+            const transcript = e.results[0][0].transcript.trim();
+            combinedSearch.value = transcript;
+            loadData(transcript, categoryFilter.value);
+            voiceSearchBtn.textContent = 'Voice Search';
+            showTempMessage(`Heard: "${transcript}"`, 4000);
+            playSound('type');
+        };
+
+        recognition.onerror = () => {
+            voiceSearchBtn.textContent = 'Voice Search';
+            showTempMessage('Voice failed. Try again.', 3000);
+            playSound('error');
+        };
+
+        recognition.onend = () => {
+            voiceSearchBtn.textContent = 'Voice Search';
+        };
+    } else {
+        voiceSearchBtn.style.display = 'none';
+    }
+
+    // === CLEAR SEARCH BUTTON ===
+    combinedSearch.addEventListener('input', () => {
+        clearSearchBtn.style.display = combinedSearch.value ? 'block' : 'none';
+        const val = combinedSearch.value.trim();
+        localStorage.setItem('currentSearch', val);
+        if (!val) {
+            loadData('', categoryFilter.value);
+        } else {
+            const gridMatch = val.toUpperCase().match(/^([A-J])(\d+)$/);
+            if (gridMatch) {
+                highlightSearchBar('grid');
+                const coords = getLatLngFromGrid(val.toUpperCase());
+                if (coords) {
+                    map.flyTo([coords.lat, coords.lng], 2);
+                    showGridNotification(val.toUpperCase());
+                }
+            } else if (val.length > 0) {
+                highlightSearchBar('item');
+            }
+            loadData(val, categoryFilter.value);
+        }
+    });
+
+    clearSearchBtn.onclick = () => {
+        combinedSearch.value = '';
+        clearSearchBtn.style.display = 'none';
+        localStorage.setItem('currentSearch', '');
+        loadData('', categoryFilter.value);
+        combinedSearch.focus();
+        playSound('click');
+    };
+
+    // === FETCH NUKE CODES ===
+    function fetchNukeCodes() {
+        const codesDiv = document.getElementById('nuke-codes');
+        if (!codesDiv) return;
+        const isLocal = window.location.protocol === 'file:' || !window.location.protocol.startsWith('http');
+        if (isLocal) {
+            codesDiv.innerHTML = `
+                <strong>Alpha:</strong> ?????<br>
+                <strong>Bravo:</strong> ?????<br>
+                <strong>Charlie:</strong> ?????<br>
+                <em><a href="https://nukacrypt.com" target="_blank" style="color:#00ff00;">Click for live codes</a></em>
+            `;
+            return;
+        }
+        fetch('https://nukacrypt.com/json')
+            .then(response => {
+                if (!response.ok) throw new Error('Failed');
+                return response.json();
+            })
+            .then(data => {
+                const codes = data?.codes || {};
+                const reset = data?.time?.reset || 'Unknown';
+                codesDiv.innerHTML = `
+                    <strong>Alpha:</strong> ${codes.alpha || 'N/A'}<br>
+                    <strong>Bravo:</strong> ${codes.bravo || 'N/A'}<br>
+                    <strong>Charlie:</strong> ${codes.charlie || 'N/A'}<br>
+                    <em>Reset in: ${reset}</em>
+                `;
+            })
+            .catch(() => {
+                codesDiv.innerHTML = `
+                    <strong>Alpha:</strong> 54403282<br>
+                    <strong>Bravo:</strong> 06979747<br>
+                    <strong>Charlie:</strong> 41185730<br>
+                    <em>Week: Oct 28 - Nov 3, 2025<br>
+                    <a href="https://nukacrypt.com" target="_blank" style="color:#00ff00;">Check nukacrypt.com</a></em>
+                `;
+            });
+    }
+    fetchNukeCodes();
+    if (window.location.protocol.startsWith('http')) {
+        setInterval(fetchNukeCodes, 5 * 60 * 1000);
+    }
+
+    // === TERMS MODAL ===
     const termsModal = document.createElement('div');
     termsModal.className = 'modal';
     termsModal.style.display = 'block';
@@ -460,12 +620,10 @@
                 <li>Stay Updated!</li>
                 <li>Check the "Download Community Map" button periodically for the latest map version or to reset the app if you encounter issues. Find this tip in the "How to Use" section.</li>
             </ul>
-            <p>Log and Track items in Appalachia with ease. Created by MrCrazy. Enjoy, and consider supporting with a <a href="https://buymeacoffee.com/mrcrazy" target="_blank" style="color:#00ff00;">Nuka-Cola ☕</a>!</p>
+            <p>Log and Track items in Appalachia with ease. Created by MrCrazy. Enjoy, and consider supporting with a <a href="https://buymeacoffee.com/mrcrazy" target="_blank" style="color:#00ff00;">Nuka-Cola</a>!</p>
             <button id="acceptTermsBtn" style="background:#00ff00;color:#000;font-weight:700;">I Accept Terms</button>
         </div>
     `;
-
-    // === DISABLE ALL BUTTONS UNTIL TERMS ACCEPTED ===
     const allButtons = document.querySelectorAll('button, input, select');
     function setButtonsEnabled(enabled) {
         allButtons.forEach(btn => {
@@ -476,12 +634,10 @@
             }
         });
     }
-
     if (!termsAccepted) {
         document.body.appendChild(termsModal);
         document.body.classList.add('modal-open');
         setButtonsEnabled(false);
-
         document.getElementById('acceptTermsBtn').onclick = () => {
             localStorage.setItem(TERMS_ACCEPTED_KEY, 'true');
             termsModal.style.display = 'none';
@@ -493,7 +649,6 @@
         setButtonsEnabled(true);
     }
 
-    // === RESET APP BUTTON ===
     resetAppBtn.onclick = () => {
         if (confirm("WARNING: This will DELETE ALL markers, categories, and settings. Are you sure?")) {
             localStorage.clear();
@@ -501,32 +656,27 @@
         }
     };
 
-    // === EMOJI-ONLY INPUT + FLASH ON INVALID ===
     newCategoryEmoji.addEventListener('input', function(e) {
         const val = e.target.value;
         const clean = val.replace(/[^\p{Emoji}]/gu, '');
         if (val !== clean) e.target.value = clean;
     });
 
-    // === CREATE CATEGORY WITH FLASH VALIDATION ===
     document.getElementById('saveCategoryBtn').onclick = () => {
         const nameInput = document.getElementById('newCategoryName');
         const emojiInput = document.getElementById('newCategoryEmoji');
         const name = nameInput.value.trim();
         const emoji = emojiInput.value.trim();
-
         if (!name || categoryIcons[name]) {
             nameInput.classList.add('flash-green');
             setTimeout(() => nameInput.classList.remove('flash-green'), 600);
             return;
         }
-
         if (!isValidEmoji(emoji)) {
             emojiInput.classList.add('flash-green');
             setTimeout(() => emojiInput.classList.remove('flash-green'), 600);
             return;
         }
-
         customCategories[name] = emoji;
         categoryIcons[name] = emoji;
         categoryColors[name] = '#f0e68c';
@@ -567,6 +717,7 @@
                 else activeCategories.delete(val);
                 localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
                 loadData(combinedSearch.value, categoryFilter.value);
+				playSound('selectcategory');
             });
         });
     }
@@ -610,18 +761,15 @@
         }
     }
 
-    // === TEMP MESSAGE QUEUE - PREVENTS OVERLAP & DRAG INTERFERENCE ===
     const messageQueue = [];
     let activeMessageControl = null;
     function showTempMessage(html, ms = 3000) {
         messageQueue.push({ html, ms });
         if (!activeMessageControl) processMessageQueue();
     }
-
     function processMessageQueue() {
         if (messageQueue.length === 0 || activeMessageControl) return;
         const { html, ms } = messageQueue.shift();
-
         activeMessageControl = L.control({ position: 'bottomright' });
         activeMessageControl.onAdd = function() {
             const div = L.DomUtil.create('div', 'temp-message');
@@ -631,7 +779,6 @@
             return div;
         };
         activeMessageControl.addTo(map);
-
         setTimeout(() => {
             if (activeMessageControl) {
                 map.removeControl(activeMessageControl);
@@ -641,15 +788,18 @@
         }, ms);
     }
 
-    // === UNIFIED DRAG HANDLER - SUPPORTS PC & MOBILE EMOJI ICONS ===
-function attachDragHandler(marker, loc) {
+    // === EDIT FROM POPUP ===
+    window.editMarkerFromPopup = function(index) {
+        map.closePopup();
+        openModal('Edit Item', index);
+    };
+
+    function attachDragHandler(marker, loc) {
     let originalLatLng = null;
     let isDragging = false;
 
-    // A single, unified function for handling drag movement
     const onDragging = (e) => {
         if (!isDragging) return;
-        
         let clientX, clientY;
         if (e.touches && e.touches.length > 0) {
             clientX = e.touches[0].clientX;
@@ -658,24 +808,19 @@ function attachDragHandler(marker, loc) {
             clientX = e.clientX;
             clientY = e.clientY;
         }
-        
         const latlng = map.mouseEventToLatLng({ clientX: clientX, clientY: clientY });
         marker.setLatLng(latlng);
     };
 
-    // A single, unified function for handling the end of a drag
     const onDragEnd = () => {
         if (!isDragging) return;
         isDragging = false;
         map.dragging.enable();
         L.DomUtil.removeClass(marker._icon, 'dragging');
-
-        // Clean up both mouse and touch listeners from the document
         L.DomEvent.off(document, 'mousemove', onDragging);
         L.DomEvent.off(document, 'mouseup', onDragEnd);
         L.DomEvent.off(document, 'touchmove', onDragging);
         L.DomEvent.off(document, 'touchend', onDragEnd);
-
         const newLatLng = marker.getLatLng();
         showConfirmPopup('Save new position?', () => {
             loc.lat = newLatLng.lat;
@@ -695,40 +840,52 @@ function attachDragHandler(marker, loc) {
         });
     };
 
-    // Use a unified drag start handler for both mouse and touch
     const onDragStart = (e) => {
-        // Prevent default browser behavior (like scrolling) for touch events
-        // This is critical for preventing scroll on mobile devices
-        if (e.touches) {
-            L.DomEvent.preventDefault(e);
-        }
-
+        if (e.touches) L.DomEvent.preventDefault(e);
         originalLatLng = marker.getLatLng();
         isDragging = true;
         map.dragging.disable();
         L.DomUtil.addClass(marker._icon, 'dragging');
-
         if (activeMessageControl) {
             map.removeControl(activeMessageControl);
             activeMessageControl = null;
         }
-        
-        // Attach touch and mouse move/end listeners to the document
         L.DomEvent.on(document, 'mousemove', onDragging);
         L.DomEvent.on(document, 'mouseup', onDragEnd);
         L.DomEvent.on(document, 'touchmove', onDragging);
         L.DomEvent.on(document, 'touchend', onDragEnd);
     };
-    
-    // Listen for Leaflet's 'dragstart' event, which is triggered by both mouse and touch
+
+    // === DRAG START ===
     marker.on('dragstart', onDragStart);
 
-        marker.on('contextmenu', e => {
-            L.DomEvent.stopPropagation(e);
-            openModal('Edit Item', locations.findIndex(l => l.id === loc.id));
-        });
-        marker.bindPopup(`<b>${loc.icon} ${loc.category.toUpperCase()}</b><br>${escapeHtml(loc.desc)}`, { maxWidth: 300 });
-    }
+    // === RIGHT-CLICK → EDIT MODAL ===
+    marker.on('contextmenu', (e) => {
+        L.DomEvent.stopPropagation(e);
+        const index = locations.findIndex(l => l.id === marker.options.id);
+        if (index !== -1) {
+            map.closePopup();
+            openModal('Edit Item', index);
+            playSound('click');
+        }
+    });
+
+    // === POPUP: INFO + EDIT BUTTON ===
+    marker.bindPopup(`
+        <b>${loc.icon} ${loc.category.toUpperCase()}</b><br>
+        ${escapeHtml(loc.desc)}<br>
+        <button onclick="editMarkerFromPopup(${locations.indexOf(loc)})" 
+                style="margin-top:8px; padding:4px 8px; background:#00ff00; color:#000; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">
+            Edit
+        </button>
+    `, { maxWidth: 300 });
+}
+
+// === EDIT FROM POPUP BUTTON ===
+window.editMarkerFromPopup = function(index) {
+    map.closePopup();
+    openModal('Edit Item', index);
+};
 
     function addMarkerToMap(loc) {
         const marker = L.marker([loc.lat, loc.lng], {
@@ -736,7 +893,6 @@ function attachDragHandler(marker, loc) {
             id: loc.id,
             draggable: true
         });
-
         attachDragHandler(marker, loc);
 
         const isTextOnly = ['named locations', 'regions'].includes(loc.category);
@@ -758,14 +914,12 @@ function attachDragHandler(marker, loc) {
             return normalizeString(loc.desc).includes(normalizeString(search)) ||
                    normalizeString(loc.category).includes(normalizeString(search));
         });
-
         const glowing = filtered.filter(isGlowing).sort((a, b) => b.addedTime - a.addedTime);
         const normal = filtered.filter(loc => !isGlowing(loc)).sort((a, b) => {
             const catDiff = a.category.localeCompare(b.category);
             return catDiff !== 0 ? catDiff : a.desc.localeCompare(b.desc);
         });
         const sorted = [...glowing, ...normal];
-
         const start = (tablePage - 1) * pageSize;
         const pageItems = sorted.slice(start, start + pageSize);
         pageItems.forEach(loc => {
@@ -780,7 +934,6 @@ function attachDragHandler(marker, loc) {
                 <td>${escapeHtml(loc.category)} ${loc.icon}</td>
                 <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(shortDesc)}</td>
             `;
-
             tr.onclick = (e) => {
                 e.preventDefault();
                 const mapEl = document.getElementById('map');
@@ -790,7 +943,6 @@ function attachDragHandler(marker, loc) {
                     playSound('click');
                 }, 300);
             };
-
             tr.oncontextmenu = (e) => {
                 e.preventDefault();
                 const mapEl = document.getElementById('map');
@@ -800,10 +952,8 @@ function attachDragHandler(marker, loc) {
                     openModal('Edit Item', locations.findIndex(l => l.id === loc.id));
                 }, 300);
             };
-
             tbody.appendChild(tr);
         });
-
         const totalPages = Math.ceil(sorted.length / pageSize);
         tablePage = Math.min(tablePage, totalPages || 1);
         pageInfo.textContent = `Page ${tablePage} of ${totalPages || 1}`;
@@ -843,7 +993,6 @@ function attachDragHandler(marker, loc) {
             </div>
         `;
         document.body.appendChild(popup);
-
         popup.querySelector('.ok').onclick = () => {
             document.body.removeChild(popup);
             onConfirm();
@@ -860,9 +1009,7 @@ function attachDragHandler(marker, loc) {
         modalTitle.textContent = title;
         currentIndex = index;
         isDuplicateEdit = isDupe;
-
         document.getElementById('saveItemBtn').style.display = 'inline-block';
-
         if (index >= 0 && !isDupe) {
             const loc = locations[index];
             itemCategorySelect.value = loc.category || 'misc';
@@ -871,6 +1018,7 @@ function attachDragHandler(marker, loc) {
             duplicateBtn.style.display = 'inline-block';
             undoBtn.style.display = lastDeleted ? 'inline-block' : 'none';
             undoMoveBtn.style.display = (lastMovedMarker && lastMovedMarker.index === index) ? 'inline-block' : 'none';
+            shareItemBtn.style.display = 'inline-block';
         } else {
             itemCategorySelect.value = 'misc';
             itemDescInput.value = '';
@@ -878,6 +1026,7 @@ function attachDragHandler(marker, loc) {
             duplicateBtn.style.display = 'none';
             undoBtn.style.display = 'none';
             undoMoveBtn.style.display = 'none';
+            shareItemBtn.style.display = 'none';
         }
         itemModal.style.display = 'block';
         document.body.classList.add('modal-open');
@@ -955,10 +1104,8 @@ function attachDragHandler(marker, loc) {
     function normalizeString(s) { return (s || '').toString().trim().toLowerCase(); }
     function escapeHtml(unsafe) { return (unsafe || '').toString().replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[m]); }
 
-    // === BUTTONS & EVENTS ===
     howToUseBtn.onclick = () => { document.getElementById('instructionsModal').style.display = 'block'; document.getElementById('showInstructionsTab').click(); playSound('click'); };
     nukeCodesBtn.onclick = () => { document.getElementById('instructionsModal').style.display = 'block'; document.getElementById('showNukeCodesTab').click(); playSound('click'); };
-
     document.getElementById('showInstructionsTab').onclick = () => {
         document.getElementById('instructionsContent').classList.add('active');
         document.getElementById('nukeCodesContent').classList.remove('active');
@@ -971,15 +1118,13 @@ function attachDragHandler(marker, loc) {
         document.getElementById('instructionsContent').classList.remove('active');
         document.getElementById('showNukeCodesTab').classList.add('active');
         document.getElementById('showInstructionsTab').classList.remove('active');
+        fetchNukeCodes();
         playSound('click');
     };
 
     exportBtn.onclick = () => {
         playSound('saving');
-        const wantsAll = confirm(
-            'Click **OK** to export **ALL** locations + custom categories.\n\n' +
-            'Click **Cancel** to export **USER-LOGGED** locations only (excludes any community marker you never edited).'
-        );
+        const wantsAll = confirm('Click **OK** to export **ALL** locations + custom categories.\n\nClick **Cancel** to export **USER-LOGGED** locations only.');
         const exportData = {
             version: 1.0,
             communityVersion: communityVersion,
@@ -1010,6 +1155,7 @@ function attachDragHandler(marker, loc) {
         input.accept = '.json';
         input.onchange = e => {
             const file = e.target.files[0];
+            if (!file) return;
             const reader = new FileReader();
             reader.onload = ev => {
                 try {
@@ -1022,28 +1168,23 @@ function attachDragHandler(marker, loc) {
                     let skippedUnchanged = 0;
                     let skippedCount = 0;
                     let customCategoriesUpdated = false;
-
                     imported.forEach(loc => {
                         loc.id = generateUniqueId();
                         loc.addedTime = Date.now();
-
                         if (!data.note || !data.note.includes('USER-ONLY')) {
                             loc.userEdited = false;
                         } else {
                             loc.userEdited = true;
                         }
-
                         const existingById = locations.find(l => l.id === loc.id);
-                        const existingByCoords = locations.find(l => 
+                        const existingByCoords = locations.find(l =>
                             Math.abs(l.lat - loc.lat) < 1 && Math.abs(l.lng - loc.lng) < 1
                         );
-
                         if (existingByCoords && existingByCoords.userEdited) {
                             skippedCount++;
                             skippedUserEdited++;
                             return;
                         }
-
                         if (existingById || existingByCoords) {
                             skippedCount++;
                             if (existingById) skippedDuplicateIds++;
@@ -1051,13 +1192,10 @@ function attachDragHandler(marker, loc) {
                             if (existingById && JSON.stringify(loc) === JSON.stringify(existingById)) skippedUnchanged++;
                             return;
                         }
-
                         newLocations.push(loc);
                     });
-
                     locations = [...locations, ...newLocations];
                     recalculateXP();
-
                     if (data.customCategories && typeof data.customCategories === 'object') {
                         Object.entries(data.customCategories).forEach(([name, emoji]) => {
                             if (!customCategories[name] && !defaultCategoryIcons[name] && isValidEmoji(emoji) && !Object.values(categoryIcons).includes(emoji)) {
@@ -1076,18 +1214,19 @@ function attachDragHandler(marker, loc) {
                     localStorage.setItem('activeCategories', JSON.stringify(Array.from(activeCategories)));
                     forceReload();
                     let message = `Imported ${newLocations.length} new locations successfully!`;
-                    if (skippedUserEdited > 0) message += `\nSkipped ${skippedUserEdited} user-edited locations. Delete these markers and re-import to update them.`;
-                    if (skippedCount > 0) message += `\nSkipped ${skippedCount} locations (${skippedDuplicateIds} duplicate IDs, ${skippedDuplicateCoords} duplicate coordinates, ${skippedUnchanged} unchanged).`;
+                    if (skippedUserEdited > 0) message += `\nSkipped ${skippedUserEdited} user-edited locations.`;
+                    if (skippedCount > 0) message += `\nSkipped ${skippedCount} duplicates.`;
                     if (customCategoriesUpdated) message += `\nUpdated custom categories.`;
-                    message += `\nTotal of ${locations.length} locations logged.`;
+                    message += `\nTotal: ${locations.length} locations.`;
                     alert(message);
                     playSound('saving');
                 } catch (err) {
                     console.error('Import error:', err);
-                    alert(`Error importing file: ${err.message || 'Invalid JSON format.'}`);
+                    alert(`Error: ${err.message || 'Invalid JSON'}`);
                     playSound('error');
+                } finally {
+                    if (e.target) e.target.value = '';
                 }
-                e.target.value = '';
             };
             reader.readAsText(file);
         };
@@ -1122,75 +1261,84 @@ function attachDragHandler(marker, loc) {
     toggleClusterBtn.onclick = () => { clusteringEnabled = !clusteringEnabled; localStorage.setItem('clusteringEnabled', clusteringEnabled); toggleClusterBtn.textContent = `Clustering: ${clusteringEnabled ? 'On' : 'Off'}`; playSound('click'); loadData(combinedSearch.value, categoryFilter.value); };
     toggleMapBtn.onclick = () => { currentMap = currentMap === 'named' ? 'noName' : 'named'; localStorage.setItem('currentMap', currentMap); toggleMapBtn.textContent = currentMap === 'named' ? 'Show No-Name Map' : 'Show Named Map'; map.removeLayer(imageOverlay); imageOverlay = L.imageOverlay(mapUrls[currentMap], imageBounds).addTo(map); playSound('saving'); };
     toggleGridBtn.onclick = () => { gridEnabled = !gridEnabled; localStorage.setItem('gridEnabled', gridEnabled); toggleGridBtn.textContent = `Grid: ${gridEnabled ? 'On' : 'Off'}`; drawGrid(); playSound('click'); };
-    toggleButtonGroup.onclick = () => { const willShow = buttonGroup.style.display === 'none'; buttonGroup.style.display = willShow ? 'block' : 'none'; toggleButtonGroup.textContent = willShow ? 'Hide Tools' : 'Show Tools'; playSound('click'); };
-    toggleCategoryModalBtn.onclick = () => { categoryToggleModal.style.display = 'block'; document.body.classList.add('modal-open'); renderCategoryToggles(); playSound('click'); };
+    toggleButtonGroup.onclick = () => {
+        const isHidden = buttonGroup.style.display === 'none';
+        buttonGroup.style.display = isHidden ? 'block' : 'none';
+        toggleButtonGroup.textContent = isHidden ? 'Hide Tools' : 'Show Tools';
+        playSound('click');
+    };
 
-    categoryFilter.addEventListener('change', () => { playSound('click'); loadData(combinedSearch.value, categoryFilter.value); });
-    combinedSearch.addEventListener('input', () => {
-        const val = combinedSearch.value.trim();
-        let hasGrid = false;
-        let hasItem = false;
-
-        if (val.length === 2 || val.length === 3) {
-            const gridMatch = val.toUpperCase().match(/^([A-J])(\d+)$/);
-            if (gridMatch) {
-                hasGrid = true;
-                zoomToGrid(val);
-            }
-        }
-
-        if (val.length >= 2) {
-            const lowerVal = val.toLowerCase();
-            hasItem = locations.some(loc => 
-                activeCategories.has(loc.category) &&
-                (normalizeString(loc.desc).includes(lowerVal) || normalizeString(loc.category).includes(lowerVal))
-            );
-        }
-
-        if (hasGrid) {
-            highlightSearchBar('grid');
-        } else if (hasItem) {
-            highlightSearchBar('item');
-        }
-
-        loadData(val, categoryFilter.value);
-    });
-
-    map.on('click', e => {
-        const grid = getGridFromLatLng(e.latlng.lat, e.latlng.lng);
-        if (grid) {
-            showGridNotification(grid);
-            playSound('click');
-        }
-    });
-
-    map.on('dblclick', e => {
-    // If user hasn’t accepted terms yet, show the agreement popup instead
-    if (!localStorage.getItem(TERMS_ACCEPTED_KEY) || localStorage.getItem(TERMS_ACCEPTED_KEY) !== 'true') {
-        // Prevent map from logging items
-        L.DomEvent.stopPropagation(e);
-
-        // If the terms modal isn’t already showing, show it
-        if (!document.body.contains(termsModal)) {
-            document.body.appendChild(termsModal);
-        }
-        termsModal.style.display = 'block';
+    toggleCategoryModalBtn.onclick = () => {
+        categoryToggleModal.style.display = 'block';
         document.body.classList.add('modal-open');
-        setButtonsEnabled(false);
-        playSound('error');
-        return; // stop here until user agrees
-    }
+        renderCategoryToggles();
+        playSound('selectcategory');
+    };
 
-    // Otherwise proceed normally
-    tempLatLng = e.latlng;
-    const grid = getGridFromLatLng(tempLatLng.lat, tempLatLng.lng);
-    const x = Math.round(tempLatLng.lng);
-    const y = Math.round(tempLatLng.lat);
-    const defaultDesc = grid ? `Grid ${grid} (X: ${x}, Y: ${y})` : `X: ${x}, Y: ${y}`;
-    itemDescInput.value = defaultDesc;
-    openModal('Log Item', -1);
-    L.DomEvent.stopPropagation(e);
-});
+    document.getElementById('selectAllBtn').onclick = () => {
+        activeCategories = new Set(Object.keys(categoryIcons));
+        localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
+        renderCategoryToggles();
+        loadData(combinedSearch.value, categoryFilter.value);
+        playSound('click');
+    };
+
+    document.getElementById('deselectAllBtn').onclick = () => {
+        activeCategories = new Set();
+        localStorage.setItem('activeCategories', JSON.stringify([]));
+        renderCategoryToggles();
+        loadData(combinedSearch.value, categoryFilter.value);
+        playSound('click');
+    };
+
+    document.getElementById('createCategoryBtn').onclick = () => {
+        document.getElementById('newCategoryName').value = '';
+        document.getElementById('newCategoryEmoji').value = '';
+        document.getElementById('createCategoryModal').style.display = 'block';
+        playSound('click');
+    };
+
+    document.getElementById('deleteCategoryBtn').onclick = () => {
+        const select = document.getElementById('deleteCategorySelect');
+        select.innerHTML = '<option value="">Select a custom category</option>';
+        Object.keys(customCategories).sort().forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = `${name} ${customCategories[name]}`;
+            select.appendChild(opt);
+        });
+        document.getElementById('deleteCategoryModal').style.display = 'block';
+        playSound('click');
+    };
+
+    document.getElementById('confirmDeleteCategoryBtn').onclick = () => {
+        const select = document.getElementById('deleteCategorySelect');
+        const name = select.value;
+        if (!name || !customCategories[name]) return;
+        if (confirm(`Delete category "${name}"? All markers will be reassigned to "misc".`)) {
+            locations.forEach(loc => {
+                if (loc.category === name) loc.category = 'misc';
+            });
+            delete customCategories[name];
+            delete categoryIcons[name];
+            delete categoryColors[name];
+            activeCategories.delete(name);
+            localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+            localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
+            saveLocations();
+            forceReload();
+            document.getElementById('deleteCategoryModal').style.display = 'none';
+            playSound('delete');
+        }
+    };
+
+    document.getElementById('closeCategoryToggleBtn').onclick = () => {
+        closeModal(categoryToggleModal);
+    };
+
+    document.querySelectorAll('#createCategoryModal .close, #deleteCategoryModal .close').forEach(closeBtn => {
+        closeBtn.onclick = () => closeModal(closeBtn.closest('.modal'));
+    });
 
     document.getElementById('saveItemBtn').onclick = () => {
         const category = itemCategorySelect.value;
@@ -1309,82 +1457,80 @@ function attachDragHandler(marker, loc) {
         }
     };
 
-    document.getElementById('selectAllBtn').onclick = () => {
-        document.querySelectorAll('#categoryCheckboxes input[type="checkbox"]').forEach(cb => cb.checked = true);
-        activeCategories = new Set(Object.keys(categoryIcons));
-        localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
-        loadData();
-    };
-    document.getElementById('deselectAllBtn').onclick = () => {
-        document.querySelectorAll('#categoryCheckboxes input[type="checkbox"]').forEach(cb => cb.checked = false);
-        activeCategories = new Set();
-        localStorage.setItem('activeCategories', JSON.stringify([]));
-        loadData();
-    };
-    document.getElementById('createCategoryBtn').onclick = () => {
-        document.getElementById('createCategoryModal').style.display = 'block';
-    };
-    document.getElementById('deleteCategoryBtn').onclick = () => {
-        const select = document.getElementById('deleteCategorySelect');
-        select.innerHTML = '<option value="">Select...</option>';
-        Object.keys(customCategories).forEach(cat => {
-            const opt = document.createElement('option');
-            opt.value = cat;
-            opt.textContent = cat;
-            select.appendChild(opt);
+    shareItemBtn.onclick = () => {
+        const loc = locations[currentIndex];
+        const lat = loc.lat.toFixed(0);
+        const lng = loc.lng.toFixed(0);
+        const grid = getGridFromLatLng(lat, lng);
+        const desc = loc.desc.split('\n')[0].trim();
+        const url = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}&grid=${grid}&desc=${encodeURIComponent(desc)}`;
+
+        navigator.clipboard.writeText(url).then(() => {
+            showTempMessage('Share link copied!', 3000);
+            playSound('click');
+        }).catch(() => {
+            prompt('Copy this link:', url);
         });
-        document.getElementById('deleteCategoryModal').style.display = 'block';
-    };
-    document.getElementById('confirmDeleteCategoryBtn').onclick = () => {
-        const name = document.getElementById('deleteCategorySelect').value;
-        if (name && customCategories[name]) {
-            delete customCategories[name];
-            delete categoryIcons[name];
-            locations.forEach(l => { if (l.category === name) l.category = 'misc'; });
-            activeCategories.delete(name);
-            localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-            localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
-            document.getElementById('deleteCategoryModal').style.display = 'none';
-            renderCategoryToggles();
-            updateCategoryDropdowns();
-            loadData();
-            playSound('delete');
-        }
     };
 
-    document.querySelectorAll('#createCategoryModal .close, #deleteCategoryModal .close, #categoryToggleModal .close, #closeCategoryToggleBtn').forEach(btn => {
-        btn.onclick = () => {
-            btn.closest('.modal').style.display = 'none';
-            document.body.classList.remove('modal-open');
-            playSound('modalClose');
-        };
+    categoryFilter.addEventListener('change', () => {
+        const val = categoryFilter.value;
+        localStorage.setItem('currentCategoryFilter', val);
+        loadData(combinedSearch.value, val);
     });
 
-    renderCategoryToggles();
-    updateCategoryDropdowns();
-    loadData();
-    refreshTableVisibility();
-    window.addEventListener('resize', refreshTableVisibility);
+    map.on('click', e => {
+        const grid = getGridFromLatLng(e.latlng.lat, e.latlng.lng);
+        if (grid) showGridNotification(grid);
+        playSound('click');
+    });
 
-    setInterval(() => {
-        fetch('https://falloutbuilds.com/fo76/nuke-codes/')
-            .then(r => r.text())
-            .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const codes = doc.querySelectorAll('.nuke-code');
-                if (codes.length >= 3) {
-                    document.querySelector('#nukeCodesContent p:last-child').innerHTML = 
-                        `<strong>Alpha:</strong> ${codes[0].textContent}<br>` +
-                        `<strong>Bravo:</strong> ${codes[1].textContent}<br>` +
-                        `<strong>Charlie:</strong> ${codes[2].textContent}`;
-                }
-            }).catch(() => {});
-    }, 3600000);
+    map.on('dblclick', e => {
+        L.DomEvent.stopPropagation(e);
+        tempLatLng = { lat: e.latlng.lat, lng: e.latlng.lng };
+        openModal('Log Item');
+        playSound('click');
+    });
+
+    // === URL PARAMS PARSER ===
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('lat') && urlParams.has('lng')) {
+        const lat = parseFloat(urlParams.get('lat'));
+        const lng = parseFloat(urlParams.get('lng'));
+        const grid = urlParams.get('grid') || getGridFromLatLng(lat, lng);
+        const desc = urlParams.get('desc') ? decodeURIComponent(urlParams.get('desc')) : '';
+        setTimeout(() => {
+            map.flyTo([lat, lng], 3);
+            showTempMessage(`Shared: ${desc || grid}`, 5000);
+            playSound('click');
+        }, 1000);
+    }
+
+    // === PWA SERVICE WORKER (SAFE FOR file://) ===
+    if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('SW registered'))
+                .catch(err => console.warn('SW registration failed (normal on localhost):', err));
+        });
+    }
+
+    // === INITIAL LOAD ===
+    updateCategoryDropdowns();
+    renderCategoryToggles();
+    loadData(currentSearch, currentCategoryFilter);
+    refreshTableVisibility();
+    drawGrid();
+    updateXPBar();
+
+    // === RESPONSIVE TABLE TOGGLE ===
+    window.addEventListener('resize', refreshTableVisibility);
+    refreshTableVisibility();
 
 })();
+
     /* --------------------------------------------------------------------------
-   Fallout 76 Item Finder Map Version 30 - Disclaimer and Terms of Use
+   Fallout 76 Item Finder Map Version 34 - Disclaimer and Terms of Use
    --------------------------------------------------------------------------
    Copyright (c) 2025 MrCrazy. All rights reserved.
 
