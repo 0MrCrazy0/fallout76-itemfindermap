@@ -567,92 +567,14 @@
     const codesDiv = document.getElementById('nuke-codes');
     if (!codesDiv) return;
 
-    const isLocal = window.location.protocol === 'file:' || !window.location.protocol.startsWith('http');
-    if (isLocal) {
-        codesDiv.innerHTML = `
-            <strong>Alpha:</strong> ?????<br>
-            <strong>Bravo:</strong> ?????<br>
-            <strong>Charlie:</strong> ?????<br>
-            <em><a href="https://nukacrypt.com" target="_blank" style="color:#00ff00;">Click for live codes</a></em>
-        `;
-        console.warn('Nuke codes: running in local file mode; live fetch skipped');
-        return;
-    }
-
-    // Show loading message
-    codesDiv.innerHTML = `<em>Loading live Nuke Codes...</em>`;
-
-    const url = 'https://nukacrypt.com/json';
-    const proxy1 = 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
-    const proxy2 = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url); // backup proxy
-
-    function tryFetch(proxyUrl, fallback = null) {
-        return fetch(proxyUrl)
-            .then(res => {
-                if (!res.ok) throw new Error('Network response was not ok: ' + res.status);
-                return res.json();
-            })
-            .then(data => {
-                // For AllOrigins, actual JSON is in data.contents
-                let text = data.contents || data;
-                if (typeof text === 'object') {
-                    // Already parsed JSON
-                    return text;
-                }
-                if (typeof text === 'string' && text.trim().startsWith('<')) {
-                    throw new Error('Proxy returned HTML instead of JSON');
-                }
-                try {
-                    return JSON.parse(text);
-                } catch (err) {
-                    throw new Error('Failed to parse nukacrypt JSON: ' + err.message);
-                }
-            })
-            .catch(err => {
-                if (fallback) {
-                    console.warn('Primary proxy failed, trying backup:', err.message);
-                    return tryFetch(fallback);
-                } else {
-                    throw err;
-                }
-            });
-    }
-
-    tryFetch(proxy1, proxy2)
-        .then(nukacrypt => {
-            if (!nukacrypt.codes || !nukacrypt.codes.alpha) {
-                throw new Error('Invalid nukacrypt response structure');
-            }
-
-            const resetTime = (nukacrypt.time && nukacrypt.time.reset) ? nukacrypt.time.reset : 'Unknown';
-
-            codesDiv.innerHTML = `
-                <strong>Alpha:</strong> ${nukacrypt.codes.alpha}<br>
-                <strong>Bravo:</strong> ${nukacrypt.codes.bravo}<br>
-                <strong>Charlie:</strong> ${nukacrypt.codes.charlie}<br>
-                <em>Reset in: ${resetTime}</em><br>
-                <em>Source: <a href="https://nukacrypt.com" target="_blank" style="color:#00ff00;">nukacrypt.com</a></em>
-            `;
-            console.log('✅ Nuke codes updated successfully:', nukacrypt);
-        })
-        .catch(err => {
-            console.error('❌ Failed to fetch nukacrypt codes:', err);
-            codesDiv.innerHTML = `
-                <strong>Live codes unavailable</strong><br>
-                <em>${err && err.message ? err.message : 'Unknown error'}</em><br>
-                <em>Check <a href="https://nukacrypt.com" target="_blank" style="color:#00ff00;">nukacrypt.com</a></em><br><br>
-                <strong>Last known codes:</strong><br>
-                Alpha: 54403282<br>
-                Bravo: 06979747<br>
-                Charlie: 41185730<br>
-                <em>Week: Oct 28 - Nov 3, 2025</em>
-            `;
-        });
-}
-
-// Auto-refresh every 5 minutes
-if (window.location.protocol.startsWith('http')) {
-    setInterval(fetchNukeCodes, 5 * 60 * 1000);
+    codesDiv.innerHTML = `
+        <strong>Nuke Codes</strong><br><br>
+        <em>Weekly launch codes are always up to date at:</em><br>
+        <a href="https://www.falloutbuilds.com/fo76/nuke-codes/" target="_blank" style="color:#00ff00; font-weight:bold;">
+            https://www.falloutbuilds.com/fo76/nuke-codes/
+        </a><br><br>
+        <em>Visit the site to view Alpha, Bravo, and Charlie codes for this week.</em>
+    `;
 }
 
     // === TERMS MODAL ===
