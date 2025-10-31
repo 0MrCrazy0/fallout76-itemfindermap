@@ -565,47 +565,78 @@
 
     // === FETCH NUKE CODES ===
     function fetchNukeCodes() {
-        const codesDiv = document.getElementById('nuke-codes');
-        if (!codesDiv) return;
-        const isLocal = window.location.protocol === 'file:' || !window.location.protocol.startsWith('http');
-        if (isLocal) {
+    const codesDiv = document.getElementById('nuke-codes');
+    if (!codesDiv) return;
+    const isLocal = window.location.protocol === 'file:' || !window.location.protocol.startsWith('http');
+    if (isLocal) {
+        codesDiv.innerHTML = `
+            <strong>Alpha:</strong> ?????<br>
+            <strong>Bravo:</strong> ?????<br>
+            <strong>Charlie:</strong> ?????<br>
+            <em><a href="https://nukacrypt.com" target="_blank" style="color:#00ff00;">Click for live codes</a></em>
+        `;
+        console.warn('Nuke codes: running in local file mode; live fetch skipped');
+        return;
+    }
+
+    // show a loading state
+    codesDiv.textContent = 'Loading live codes...';
+
+    fetch('https://nukacrypt.com/json', { mode: 'cors' })
+    .then(response => {
+        if (!response.ok) {
+            const err = new Error('HTTP status ' + response.status);
+            err.status = response.status;
+            throw err;
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.debug('nukacrypt response:', data);
+        // Accept multiple shapes (data.codes OR data.data.codes OR top-level fields)
+        const codes = data?.codes || data?.data?.codes || {
+            alpha: data?.alpha,
+            bravo: data?.bravo,
+            charlie: data?.charlie
+        } || {};
+        const reset = data?.time?.reset || data?.reset || data?.time || 'Unknown';
+        if (!codes.alpha && !codes.bravo && !codes.charlie) {
+            console.warn('Nukacrypt: no codes found in response, falling back to friendly message', data);
             codesDiv.innerHTML = `
-                <strong>Alpha:</strong> ?????<br>
-                <strong>Bravo:</strong> ?????<br>
-                <strong>Charlie:</strong> ?????<br>
-                <em><a href="https://nukacrypt.com" target="_blank" style="color:#00ff00;">Click for live codes</a></em>
+              <strong>Live codes not found</strong><br>
+              <em>Data received but format unexpected. Check console for details.</em><br>
+              <a href="https://nukacrypt.com" target="_blank" style="color:#00ff00;">Visit nukacrypt.com</a>
             `;
             return;
         }
-        fetch('https://nukacrypt.com/json')
-            .then(response => {
-                if (!response.ok) throw new Error('Failed');
-                return response.json();
-            })
-            .then(data => {
-                const codes = data?.codes || {};
-                const reset = data?.time?.reset || 'Unknown';
-                codesDiv.innerHTML = `
-                    <strong>Alpha:</strong> ${codes.alpha || 'N/A'}<br>
-                    <strong>Bravo:</strong> ${codes.bravo || 'N/A'}<br>
-                    <strong>Charlie:</strong> ${codes.charlie || 'N/A'}<br>
-                    <em>Reset in: ${reset}</em>
-                `;
-            })
-            .catch(() => {
-                codesDiv.innerHTML = `
-                    <strong>Alpha:</strong> 54403282<br>
-                    <strong>Bravo:</strong> 06979747<br>
-                    <strong>Charlie:</strong> 41185730<br>
-                    <em>Week: Oct 28 - Nov 3, 2025<br>
-                    <a href="https://nukacrypt.com" target="_blank" style="color:#00ff00;">Check nukacrypt.com</a></em>
-                `;
-            });
-    }
-    fetchNukeCodes();
-    if (window.location.protocol.startsWith('http')) {
-        setInterval(fetchNukeCodes, 5 * 60 * 1000);
-    }
+        codesDiv.innerHTML = `
+            <strong>Alpha:</strong> ${codes.alpha || 'N/A'}<br>
+            <strong>Bravo:</strong> ${codes.bravo || 'N/A'}<br>
+            <strong>Charlie:</strong> ${codes.charlie || 'N/A'}<br>
+            <em>Reset in: ${reset}</em>
+        `;
+    })
+    .catch(err => {
+        console.error('Failed to fetch nukacrypt codes:', err);
+        // friendly informative fallback (not the hardcoded old codes) + link
+        codesDiv.innerHTML = `
+            <strong>Live codes failed to load</strong><br>
+            <em>Reason: ${err && err.message ? escapeHtml(err.message) : 'unknown'}. Open console for details.</em><br>
+            <a href="https://nukacrypt.com" target="_blank" style="color:#00ff00;">Check nukacrypt.com</a>
+        `;
+        // last-resort hardcoded fallback (kept for compatibility)
+        // If you still want the old static codes shown as a fallback uncomment below:
+        /*
+        codesDiv.innerHTML += `
+            <hr>
+            <strong>Alpha:</strong> 54403282<br>
+            <strong>Bravo:</strong> 06979747<br>
+            <strong>Charlie:</strong> 41185730<br>
+            <em>Week: Oct 28 - Nov 3, 2025</em>
+        `;
+        */
+    });
+}
 
     // === TERMS MODAL ===
     const termsModal = document.createElement('div');
