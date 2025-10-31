@@ -95,6 +95,32 @@
             #gridNotification { bottom: 10px; right: 10px; font-size: 13px; padding: 10px 16px; box-shadow: 0 0 15px #00ff00; }
             .confirm-popup { padding: 12px 16px; font-size: 14px; max-width: 90%; }
         }
+		
+		.nuke-emoji-wrapper {
+        text-align: center;          /* centers the button */
+        margin: 12px 0;
+    }
+    .nuke-emoji-btn {
+        display: inline-block;
+        padding: 14px 18px;          /* space around the emoji */
+        background: #001100;         /* very dark green */
+        color: #00ff00 !important;
+        font-size: 3.2em;            /* big rocket */
+        text-decoration: none;
+        border: 3px solid #00ff00;
+        border-radius: 50%;          /* perfect circle */
+        box-shadow: 0 0 14px #00ff00;
+        transition: all 0.25s ease;
+        cursor: pointer;
+    }
+    .nuke-emoji-btn:hover {
+        background: #002200;
+        transform: scale(1.12) rotate(8deg);
+        box-shadow: 0 0 22px #00ff00, 0 0 34px #00ff00;
+    }
+    .nuke-emoji-btn:active {
+        transform: scale(0.96);
+    }
     </style>
 </head>
 <body>
@@ -197,7 +223,6 @@
             <div id="nukeCodesContent" class="tab-content">
                 <p><strong><br>Nuke Codes</strong></p>
                 <div id="nuke-codes" style="color:#00ff00;font-size:14px;">Loading codes…</div>
-                <p class="small">Source: <a href="https://nukacrypt.com" target="_blank" style="color:#00ff00;">nukacrypt.com</a></p>
             </div>
         </div>
     </div>
@@ -568,13 +593,19 @@
     if (!codesDiv) return;
 
     codesDiv.innerHTML = `
-        <strong>Nuke Codes</strong><br><br>
-        <em>Weekly launch codes are always up to date at:</em><br>
-        <a href="https://www.falloutbuilds.com/fo76/nuke-codes/" target="_blank" style="color:#00ff00; font-weight:bold;">
-            https://www.falloutbuilds.com/fo76/nuke-codes/
-        </a><br><br>
-        <em>Visit the site to view Alpha, Bravo, and Charlie codes for this week.</em>
-    `;
+    <em>Visit the site to view Alpha, Bravo, and Charlie codes for this week. 
+    Weekly launch codes are always up to date!</em><br>
+    
+    <div class="nuke-emoji-wrapper">
+        <a href="https://www.falloutbuilds.com/fo76/nuke-codes/"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="nuke-emoji-btn"
+           title="Launch codes – click the rocket">
+           🚀
+        </a>
+    </div>
+`;
 }
 
     // === TERMS MODAL ===
