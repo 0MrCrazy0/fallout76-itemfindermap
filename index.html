@@ -566,6 +566,7 @@
     function fetchNukeCodes() {
     const codesDiv = document.getElementById('nuke-codes');
     if (!codesDiv) return;
+
     const isLocal = window.location.protocol === 'file:' || !window.location.protocol.startsWith('http');
     if (isLocal) {
         codesDiv.innerHTML = `
@@ -578,63 +579,58 @@
         return;
     }
 
-    // show a loading state
-    codesDiv.textContent = 'Loading live codes...';
+    // Show loading message
+    codesDiv.innerHTML = `<em>Loading live Nuke Codes...</em>`;
 
-    fetch('https://api.allorigins.win/raw?url=https://nukacrypt.com/json')
-    .then(response => {
-        if (!response.ok) {
-            const err = new Error('HTTP status ' + response.status);
-            err.status = response.status;
-            throw err;
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.debug('nukacrypt response:', data);
-        // Accept multiple shapes (data.codes OR data.data.codes OR top-level fields)
-        const codes = data?.codes || data?.data?.codes || {
-            alpha: data?.alpha,
-            bravo: data?.bravo,
-            charlie: data?.charlie
-        } || {};
-        const reset = data?.time?.reset || data?.reset || data?.time || 'Unknown';
-        if (!codes.alpha && !codes.bravo && !codes.charlie) {
-            console.warn('Nukacrypt: no codes found in response, falling back to friendly message', data);
+    // Use AllOrigins proxy to bypass CORS safely
+    const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://nukacrypt.com/json');
+
+    fetch(proxyUrl)
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok: ' + response.status);
+            return response.json();
+        })
+        .then(data => {
+            // Parse the JSON inside .contents
+            let nukacrypt;
+            try {
+                nukacrypt = JSON.parse(data.contents);
+            } catch (parseErr) {
+                throw new Error('Failed to parse nukacrypt JSON: ' + parseErr.message);
+            }
+
+            // Validate and display
+            if (!nukacrypt.codes || !nukacrypt.codes.alpha) {
+                throw new Error('Invalid nukacrypt response structure');
+            }
+
             codesDiv.innerHTML = `
-              <strong>Live codes not found</strong><br>
-              <em>Data received but format unexpected. Check console for details.</em><br>
-              <a href="https://nukacrypt.com" target="_blank" style="color:#00ff00;">Visit nukacrypt.com</a>
+                <strong>Alpha:</strong> ${nukacrypt.codes.alpha}<br>
+                <strong>Bravo:</strong> ${nukacrypt.codes.bravo}<br>
+                <strong>Charlie:</strong> ${nukacrypt.codes.charlie}<br>
+                <em>Reset in: ${nukacrypt.time && nukacrypt.time.reset ? nukacrypt.time.reset : 'Unknown'}</em><br>
+                <em>Source: <a href="https://nukacrypt.com" target="_blank" style="color:#00ff00;">nukacrypt.com</a></em>
             `;
-            return;
-        }
-        codesDiv.innerHTML = `
-            <strong>Alpha:</strong> ${codes.alpha || 'N/A'}<br>
-            <strong>Bravo:</strong> ${codes.bravo || 'N/A'}<br>
-            <strong>Charlie:</strong> ${codes.charlie || 'N/A'}<br>
-            <em>Reset in: ${reset}</em>
-        `;
-    })
-    .catch(err => {
-        console.error('Failed to fetch nukacrypt codes:', err);
-        // friendly informative fallback (not the hardcoded old codes) + link
-        codesDiv.innerHTML = `
-            <strong>Live codes failed to load</strong><br>
-            <em>Reason: ${err && err.message ? escapeHtml(err.message) : 'unknown'}. Open console for details.</em><br>
-            <a href="https://nukacrypt.com" target="_blank" style="color:#00ff00;">Check nukacrypt.com</a>
-        `;
-        // last-resort hardcoded fallback (kept for compatibility)
-        // If you still want the old static codes shown as a fallback uncomment below:
-        /*
-        codesDiv.innerHTML += `
-            <hr>
-            <strong>Alpha:</strong> 54403282<br>
-            <strong>Bravo:</strong> 06979747<br>
-            <strong>Charlie:</strong> 41185730<br>
-            <em>Week: Oct 28 - Nov 3, 2025</em>
-        `;
-        */
-    });
+            console.log('Nuke codes updated successfully:', nukacrypt);
+        })
+        .catch(err => {
+            console.error('Failed to fetch nukacrypt codes:', err);
+            codesDiv.innerHTML = `
+                <strong>Live codes unavailable</strong><br>
+                <em>Reason: ${err && err.message ? err.message : 'Unknown error'}</em><br>
+                <em>Check <a href="https://nukacrypt.com" target="_blank" style="color:#00ff00;">nukacrypt.com</a></em><br><br>
+                <strong>Last known codes:</strong><br>
+                Alpha: 54403282<br>
+                Bravo: 06979747<br>
+                Charlie: 41185730<br>
+                <em>Week: Oct 28 - Nov 3, 2025</em>
+            `;
+        });
+}
+
+// Refresh every 5 minutes (like your original)
+if (window.location.protocol.startsWith('http')) {
+    setInterval(fetchNukeCodes, 5 * 60 * 1000);
 }
 
     // === TERMS MODAL ===
@@ -1539,7 +1535,7 @@ window.editMarkerFromPopup = function(index) {
     // === PWA SERVICE WORKER (SAFE FOR file://) ===
     if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js')
+            // navigator.serviceWorker.register('sw.js');
                 .then(reg => console.log('SW registered'))
                 .catch(err => console.warn('SW registration failed (normal on localhost):', err));
         });
