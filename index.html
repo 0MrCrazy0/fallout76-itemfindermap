@@ -591,7 +591,6 @@
             return response.json();
         })
         .then(data => {
-            // Parse the JSON inside .contents
             let nukacrypt;
             try {
                 nukacrypt = JSON.parse(data.contents);
@@ -599,16 +598,17 @@
                 throw new Error('Failed to parse nukacrypt JSON: ' + parseErr.message);
             }
 
-            // Validate and display
             if (!nukacrypt.codes || !nukacrypt.codes.alpha) {
                 throw new Error('Invalid nukacrypt response structure');
             }
+
+            const resetTime = (nukacrypt.time && nukacrypt.time.reset) ? nukacrypt.time.reset : 'Unknown';
 
             codesDiv.innerHTML = `
                 <strong>Alpha:</strong> ${nukacrypt.codes.alpha}<br>
                 <strong>Bravo:</strong> ${nukacrypt.codes.bravo}<br>
                 <strong>Charlie:</strong> ${nukacrypt.codes.charlie}<br>
-                <em>Reset in: ${nukacrypt.time && nukacrypt.time.reset ? nukacrypt.time.reset : 'Unknown'}</em><br>
+                <em>Reset in: ${resetTime}</em><br>
                 <em>Source: <a href="https://nukacrypt.com" target="_blank" style="color:#00ff00;">nukacrypt.com</a></em>
             `;
             console.log('Nuke codes updated successfully:', nukacrypt);
@@ -628,10 +628,8 @@
         });
 }
 
-// Refresh every 5 minutes (like your original)
 if (window.location.protocol.startsWith('http')) {
     setInterval(fetchNukeCodes, 5 * 60 * 1000);
-}
 
     // === TERMS MODAL ===
     const termsModal = document.createElement('div');
