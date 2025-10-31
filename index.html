@@ -1531,15 +1531,6 @@ window.editMarkerFromPopup = function(index) {
         }, 1000);
     }
 
-    // === PWA SERVICE WORKER (SAFE FOR file://) ===
-    if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
-        window.addEventListener('load', () => {
-            // navigator.serviceWorker.register('sw.js');
-                .then(reg => console.log('SW registered'))
-                .catch(err => console.warn('SW registration failed (normal on localhost):', err));
-        });
-    }
-
     // === INITIAL LOAD ===
     updateCategoryDropdowns();
     renderCategoryToggles();
