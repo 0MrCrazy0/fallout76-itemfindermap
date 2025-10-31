@@ -513,47 +513,57 @@
     };
 
     // === VOICE SEARCH ===
-    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = 'en-US';
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (SpeechRecognition) {
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
 
-        voiceSearchBtn.onclick = () => {
-            if (voiceSearchBtn.textContent === 'Listening...') {
-                recognition.stop();
-                voiceSearchBtn.textContent = 'Voice Search';
-                return;
-            }
-            combinedSearch.value = '';
-            combinedSearch.focus();
-            recognition.start();
-            voiceSearchBtn.textContent = 'Listening...';
-            playSound('click');
-        };
-
-        recognition.onresult = e => {
-            const transcript = e.results[0][0].transcript.trim();
-            combinedSearch.value = transcript;
-            loadData(transcript, categoryFilter.value);
+    voiceSearchBtn.onclick = () => {
+        if (voiceSearchBtn.textContent === 'Listening...') {
+            recognition.stop();
             voiceSearchBtn.textContent = 'Voice Search';
-            showTempMessage(`Heard: "${transcript}"`, 4000);
-            playSound('selectcategory');
-        };
+            return;
+        }
+        combinedSearch.value = '';
+        combinedSearch.focus();
+        recognition.start();
+        voiceSearchBtn.textContent = 'Listening...';
+        playSound('click');
+    };
 
-        recognition.onerror = () => {
-            voiceSearchBtn.textContent = 'Voice Search';
-            showTempMessage('Voice failed. Try again.', 3000);
-            playSound('error');
-        };
+    recognition.onresult = e => {
+        const transcript = e.results[0][0].transcript.trim();
+        combinedSearch.value = transcript;
+        loadData(transcript, categoryFilter.value);
+        voiceSearchBtn.textContent = 'Voice Search';
+        showTempMessage(`Heard: "${transcript}"`, 4000);
+        playSound('selectcategory');
+    };
 
-        recognition.onend = () => {
-            voiceSearchBtn.textContent = 'Voice Search';
-        };
-    } else {
-        voiceSearchBtn.style.display = 'none';
-    }
+    recognition.onerror = () => {
+        voiceSearchBtn.textContent = 'Voice Search';
+        showTempMessage('Voice failed. Try again or type.', 3000);
+        playSound('error');
+    };
+
+    recognition.onend = () => {
+        voiceSearchBtn.textContent = 'Voice Search';
+    };
+} else {
+    // STILL SHOW BUTTON — but make it educational
+    voiceSearchBtn.style.display = 'inline-block';
+    voiceSearchBtn.textContent = 'Voice (Chrome only)';
+    voiceSearchBtn.title = 'Voice Search requires Google Chrome';
+    voiceSearchBtn.style.opacity = '0.6';
+    voiceSearchBtn.style.cursor = 'help';
+
+    voiceSearchBtn.onclick = () => {
+        showTempMessage('Voice Search only works in Google Chrome', 4000);
+        playSound('error');
+    };
+}
 
 // ---------------------------------------------------------------
 //  SEARCH INPUT – now with “found” sound (same as voice search)
