@@ -13,9 +13,29 @@
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/mrcrazyapps/fallout76-item-finder/main/icon-192.png">
     <meta name="theme-color" content="#00ff00">
     <style>
-        body { font-family: 'Courier New', monospace; margin: 20px; background-color: #0a2a2a; color: #00ff00; overflow-x: hidden; }
+        /* GLOBAL FIXES */
+        html, body { overflow-x: hidden; width: 100%; margin: 0; padding: 0; }
+        body { font-family: 'Courier New', monospace; margin: 20px; background-color: #0a2a2a; color: #00ff00; }
+        /* RESPONSIVE MAP — NO SIDE SCROLL */
+        #map {
+            height: 668px;
+            max-width: 100%;
+            width: 100%;
+            border: 2px solid #00ff00;
+            margin: 0 auto 20px auto;
+            box-shadow: 0 0 15px #00ff00;
+            background-color: #000000;
+            position: relative;
+            box-sizing: border-box;
+        }
+        @media (min-width: 768px) {
+            #map {
+                height: 768px;
+                max-width: 1768px;
+                margin: 0 auto 20px auto;
+            }
+        }
         h1 { color: #00ff00; text-align: center; text-shadow: 0 0 10px #00ff00; font-size: 2.2em; margin-bottom: 12px; }
-        #map { height: 750px; border: 2px solid #00ff00; margin-bottom: 20px; box-shadow: 0 0 15px #00ff00; background-color: #000000; position: relative; }
         .controls { margin-bottom: 20px; text-align: center; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
         input[type="text"], select { padding: 8px; width: 100%; max-width: 200px; box-sizing: border-box; border: 2px solid #00ff00; border-radius: 0; background-color: #1a3c34; color: #00ff00; font-family: 'Courier New', monospace; }
         #combinedSearch { max-width: 250px; transition: background-color 0.3s, box-shadow 0.3s; }
@@ -36,12 +56,12 @@
         .close { color: #00ff00; float: right; font-size: 24px; font-weight: bold; line-height: 1; cursor: pointer; }
         .close:hover { color: #0a2a2a; }
         label { display: block; margin: 8px 0 4px; }
-        textarea, input[type="text"] { width: 100%; padding: 8px; border: 2px solid #00ff00; border-radius: 0; background-color: #0a2a2a; color: #00ff00; font-family: 'Courier New', monospace; box-sizing: border-box; }
+        textarea, input[type="text"] { width: 100%; padding: 16px; border: 2px solid #00ff00; border-radius: 0; background-color: #0a2a2a; color: #00ff00; font-family: 'Courier New', monospace; box-sizing: border-box; }
         textarea { height: 120px; }
         body.modal-open { overflow: hidden; position: fixed; width: 100%; height: 100%; }
         .custom-icon { display: flex; align-items: center; justify-content: center; }
         .marker-background { width: 30px; height: 30px; border-radius: 50%; opacity: 0.9; display: flex; align-items: center; justify-content: center; background-color: #808080; }
-        .custom-icon.glowing { box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00; }
+        .custom-icon.glowing { z-index: 10000 !important; filter: drop-shadow(0 0 10px #00ff00) !important; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .tab-button { display: inline-block; margin: 0 5px; padding: 5px 10px; }
@@ -49,7 +69,7 @@
         .small { font-size: 0.9em; color: #aaf0a0; }
         .marker-cluster div { width: 30px; height: 30px; margin-left: 5px; margin-top: 5px; text-align: center; border-radius: 15px; font: bold 12px/30px "Helvetica Neue", Arial, Helvetica, sans-serif; background-color: #ffff00; color: #000000; }
         #xpStatus { text-align: center; margin-bottom: 20px; }
-        progress { accent-color: #00ff00; width: 200px; }
+        progress { accent-color: #00ff00; width: 200px; display: block; margin: 0 auto; }
         #categoryCheckboxes label { display: flex; align-items: center; margin: 5px 0; }
         #categoryCheckboxes input[type="checkbox"] { margin-right: 10px; }
         #buttonGroup { display: inline-block; }
@@ -73,7 +93,6 @@
         .confirm-popup .cancel { background: #444; color: #fff; }
         .flash-green { animation: flashGreen 0.6s ease-out; }
         @keyframes flashGreen { 0% { border-color: #00ff00; } 50% { border-color: #00ff88; box-shadow: 0 0 15px #00ff88; } 100% { border-color: #00ff00; } }
-        /* DARK MODE */
         body.dark-mode { background-color: #000; }
         body.dark-mode .modal-content,
         body.dark-mode #map,
@@ -110,7 +129,7 @@
     <div class="controls">
         <!-- SEARCH BAR WITH CLEAR BUTTON -->
         <div style="position:relative; display:inline-block; max-width:250px;">
-            <input type="text" id="combinedSearch" placeholder="description/category/grid..">
+            <input type="text" id="combinedSearch" placeholder="item name or grid..">
             <button id="clearSearchBtn" style="position:absolute; right:5px; top:50%; transform:translateY(-50%); background:none; border:none; color:#00ff00; font-size:18px; cursor:pointer; display:none;">×</button>
         </div>
         <select id="categoryFilter"><option value="">All Categories</option></select>
@@ -126,7 +145,6 @@
             <button id="exportJsonBtn">Export Markers</button>
             <button id="importBtn">Import Markers</button>
             <button id="downloadCommunityBtn" style="background:#00ff88; color:#000; font-weight:700;">Update Community Map</button>
-            <!-- UNDO IMPORT BUTTON -->
             <button id="undoImportBtn" style="display:none; background:#cc8400; color:#000; font-weight:700;">UNDO IMPORT</button>
             <button id="saveMapJpegBtn">Save Map as JPEG</button>
             <button id="toggleDarkModeBtn">Dark Mode: Off</button>
@@ -470,8 +488,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const newCategoryEmoji = document.getElementById('newCategoryEmoji');
         const toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn');
         const voiceSearchBtn = document.getElementById('voiceSearchBtn');
-        const undoImportBtn = document.getElementById('undoImportBtn'); // NOW EXISTS!
-
+        const undoImportBtn = document.getElementById('undoImportBtn');
         toggleSoundsBtn.textContent = soundsEnabled ? 'Sounds: On' : 'Sounds: Off';
         toggleClusterBtn.textContent = `Clustering: ${clusteringEnabled ? 'On' : 'Off'}`;
         toggleMapBtn.textContent = currentMap === 'named' ? 'Show No-Name Map' : 'Show Named Map';
@@ -609,7 +626,7 @@ document.addEventListener('DOMContentLoaded', function() {
             codesDiv.innerHTML = `
             <em>Visit the site to view Alpha, Bravo, and Charlie codes for this week.
             Weekly launch codes are always up to date!</em><br>
-          
+       
             <div class="nuke-emoji-wrapper">
                 <a href="https://www.falloutbuilds.com/fo76/nuke-codes/"
                    target="_blank"
@@ -829,10 +846,10 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('createCategoryModal').style.display = 'none';
             renderCategoryToggles();
             updateCategoryDropdowns();
+            syncCategoryFilterWithToggles();
             loadData();
             playSound('saving');
         };
-
         function refreshTableVisibility() {
             const isMobile = window.innerWidth <= 768;
             toggleTableBtn.style.display = isMobile ? 'block' : 'none';
@@ -841,7 +858,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 toggleTableBtn.textContent = tableVisible ? 'Hide Content Table' : 'Show Content Table';
             }
         }
-
         function renderCategoryToggles() {
             const container = document.getElementById('categoryCheckboxes');
             if (!container) return;
@@ -861,18 +877,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
                     loadData(combinedSearch.value, categoryFilter.value);
                     playSound('selectcategory');
+                    syncCategoryFilterWithToggles();
                 });
             });
         }
-
         function updateCategoryDropdowns() {
+            const currentFilter = categoryFilter.value;
             const categories = [...Object.keys(defaultCategoryIcons), ...Object.keys(customCategories)].sort();
             const makeOption = cat => `<option value="${cat}">${cat} ${categoryIcons[cat] || ''}</option>`;
             categoryFilter.innerHTML = '<option value="">All Categories</option>' + categories.map(makeOption).join('');
             itemCategorySelect.innerHTML = categories.map(makeOption).join('');
-            if (currentCategoryFilter && categories.includes(currentCategoryFilter)) {
-                categoryFilter.value = currentCategoryFilter;
+            categoryFilter.value = (currentFilter === '' || categories.includes(currentFilter)) ? currentFilter : '';
+        }
+        function syncCategoryFilterWithToggles() {
+            const activeCount = activeCategories.size;
+            const totalCount = Object.keys(categoryIcons).length;
+            if (activeCount === totalCount) {
+                categoryFilter.value = '';
+            } else if (activeCount === 1) {
+                const [cat] = activeCategories;
+                categoryFilter.value = cat;
+            } else {
+                categoryFilter.value = '';
             }
+            loadData(combinedSearch.value, categoryFilter.value);
         }
 
         /* SECTION 13: MARKER RENDERING */
@@ -903,7 +931,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
         }
-
         const messageQueue = [];
         let activeMessageControl = null;
         function showTempMessage(html, ms = 3000) {
@@ -930,11 +957,54 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }, ms);
         }
-
         window.editMarkerFromPopup = function(index) {
             map.closePopup();
             openModal('Edit Item', index);
         };
+
+        /* CONFIRM POPUP FOR MARKER MOVE */
+        function showConfirmPopup(message, onConfirm, onCancel) {
+            const popup = document.createElement('div');
+            popup.className = 'confirm-popup';
+            popup.innerHTML = `
+                <div>${message}</div>
+                <div class="buttons">
+                    <button class="ok">OK</button>
+                    <button class="cancel">Cancel</button>
+                </div>
+            `;
+            document.body.appendChild(popup);
+
+            const okBtn = popup.querySelector('.ok');
+            const cancelBtn = popup.querySelector('.cancel');
+
+            const cleanup = () => {
+                if (popup && popup.parentNode) {
+                    popup.parentNode.removeChild(popup);
+                }
+            };
+
+            okBtn.onclick = () => {
+                cleanup();
+                if (onConfirm) onConfirm();
+            };
+
+            cancelBtn.onclick = () => {
+                cleanup();
+                if (onCancel) onCancel();
+            };
+
+            setTimeout(() => {
+                const closeOnClickOutside = (e) => {
+                    if (!popup.contains(e.target)) {
+                        cleanup();
+                        document.removeEventListener('click', closeOnClickOutside);
+                        if (onCancel) onCancel();
+                    }
+                };
+                document.addEventListener('click', closeOnClickOutside);
+            }, 0);
+        }
 
         function attachDragHandler(marker, loc) {
             let originalLatLng = null;
@@ -1019,7 +1089,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const marker = L.marker([loc.lat, loc.lng], {
                 icon: createMarkerIcon(loc),
                 id: loc.id,
-                draggable: true
+                draggable: true,
+                zIndexOffset: isGlowing(loc) ? 10000 : 0
             });
             attachDragHandler(marker, loc);
             const isTextOnly = ['named locations', 'regions'].includes(loc.category);
@@ -1027,6 +1098,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 clusteredMarkers.addLayer(marker);
             } else {
                 nonClusteredMarkers.addLayer(marker);
+            }
+            if (isGlowing(loc)) {
+                setTimeout(() => {
+                    marker.setZIndexOffset(10000);
+                    marker.setIcon(createMarkerIcon(loc));
+                }, 100);
             }
         }
 
@@ -1037,7 +1114,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const pageItems = locations.filter(l => activeCategories.has(l.category)).slice((tablePage - 1) * pageSize, tablePage * pageSize).length;
             counter.innerHTML = `<strong>Map Version ${latestVersion}</strong> - <strong>${totalFiltered}</strong> logged locations - <strong>${pageItems}</strong> showing.`;
         }
-
         function refreshTable(search = '', catFilter = '') {
             const tbody = document.querySelector('#locationsTable tbody');
             if (!tbody) return;
@@ -1096,7 +1172,6 @@ document.addEventListener('DOMContentLoaded', function() {
             nextPageBtn.disabled = tablePage >= totalPages;
             updateCounterDisplay();
         }
-
         setInterval(() => {
             if (document.visibilityState === 'visible') {
                 [clusteredMarkers, nonClusteredMarkers].forEach(group => {
@@ -1107,8 +1182,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             const currentIcon = marker.getIcon();
                             if (shouldGlow && !currentIcon.options.className.includes('glowing')) {
                                 marker.setIcon(createMarkerIcon(loc));
+                                marker.setZIndexOffset(10000);
                             } else if (!shouldGlow && currentIcon.options.className.includes('glowing')) {
                                 marker.setIcon(createMarkerIcon(loc));
+                                marker.setZIndexOffset(0);
                             }
                         }
                     });
@@ -1117,30 +1194,43 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 1000);
 
-                /* SECTION 15: MODALS & CONFIRM */
-        function showConfirmPopup(message, onConfirm, onCancel) {
+        /* SECTION 15: MODALS & CONFIRM */
+        function showRedirectPopup() {
+            if (document.getElementById('redirectPopup')) return;
             const popup = document.createElement('div');
-            popup.className = 'confirm-popup';
+            popup.id = 'redirectPopup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: #0a2a2a; color: #00ff00; padding: 24px; border: 3px solid #00ff00;
+                font-family: 'Courier New', monospace; text-align: center; z-index: 99999;
+                max-width: 90%; width: 380px; box-shadow: 0 0 40px #00ff00;
+            `;
             popup.innerHTML = `
-                <b>${escapeHtml(message)}</b>
-                <div class="buttons">
-                    <button class="ok">OK</button>
-                    <button class="cancel">CANCEL</button>
-                </div>
+                <h2 style="margin:0 0 16px; font-size:1.7em; text-shadow:0 0 12px #00ff00;">
+                    Player Shared a Location!
+                </h2>
+                <p style="margin:10px 0; font-size:1.15em; line-height:1.4;">
+                    Use the <strong>OFFICIAL APP</strong> to save markers:
+                </p>
+                <a href="https://0mrcrazy0.github.io/fallout76-itemfindermap/"
+                   id="officialAppBtn"
+                   style="display:inline-block; background:#00ff00; color:#000; padding:12px 28px;
+                          font-weight:bold; text-decoration:none; margin:16px 0; font-size:1.2em;
+                          border:2px solid #000;">
+                   Open Official App
+                </a>
+                <p style="color:#aaf0a0; font-size:0.95em; margin-top:16px; line-height:1.4;">
+                    Shared links are <strong>view-only</strong>.<br>
+                    You can explore, but cannot save.
+                </p>
             `;
             document.body.appendChild(popup);
-            popup.querySelector('.ok').onclick = () => {
-                document.body.removeChild(popup);
-                onConfirm();
-                playSound('click');
+            document.getElementById('officialAppBtn').onclick = (e) => {
+                e.stopPropagation();
+                window.location.href = 'https://0mrcrazy0.github.io/fallout76-itemfindermap/';
             };
-            popup.querySelector('.cancel').onclick = () => {
-                document.body.removeChild(popup);
-                if (onCancel) onCancel();
-                playSound('error');
-            };
+            popup.onclick = (e) => e.stopPropagation();
         }
-
         function openModal(title, index = -1, isDupe = false) {
             modalTitle.textContent = title;
             currentIndex = index;
@@ -1168,21 +1258,16 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.classList.add('modal-open');
             playSound('click');
         }
-
         function closeModal(modal) {
             modal.style.display = 'none';
             document.body.classList.remove('modal-open');
             playSound('modalClose');
         }
-
         document.querySelectorAll('.modal .close').forEach(closeBtn => {
-            closeBtn.onclick = () => closeModal(closeBtn.closest('.modal'));
+            closeBtn.onclick = () => {
+                closeModal(closeBtn.closest('.modal'));
+            };
         });
-        window.onclick = e => {
-            if (e.target.classList.contains('modal')) {
-                closeModal(e.target);
-            }
-        };
 
         /* SECTION 16: XP */
         function recalculateXP() {
@@ -1212,7 +1297,6 @@ document.addEventListener('DOMContentLoaded', function() {
             drawGrid();
             saveAppState();
         }
-
         function forceReload() {
             saveAppState();
             loadData(combinedSearch.value, categoryFilter.value);
@@ -1220,7 +1304,6 @@ document.addEventListener('DOMContentLoaded', function() {
             updateCategoryDropdowns();
             refreshTableVisibility();
         }
-
         function saveAppState() {
             localStorage.setItem('currentSearch', combinedSearch.value);
             localStorage.setItem('currentCategoryFilter', categoryFilter.value);
@@ -1231,12 +1314,10 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.setItem('currentMap', currentMap);
             localStorage.setItem(MAP_VERSION_KEY, communityVersion);
         }
-
         function saveLocations() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
             saveAppState();
         }
-
         function normalizeString(s) { return (s || '').toString().trim().toLowerCase(); }
         function escapeHtml(unsafe) { return (unsafe || '').toString().replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[m]); }
         function safeFlyTo(lat, lng, zoom = 2) {
@@ -1272,8 +1353,6 @@ document.addEventListener('DOMContentLoaded', function() {
             URL.revokeObjectURL(url);
             alert(wantsAll ? 'Exported **ALL** logged locations!' : 'Exported **USER-ONLY** locations!');
         };
-
-        // === FIXED IMPORT WITH PRESERVE/RESET LOGIC + UNDO ===
         importBtn.onclick = () => {
             const input = document.createElement('input');
             input.type = 'file';
@@ -1283,17 +1362,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!file) return;
                 const reader = new FileReader();
                 reader.onload = ev => {
-                    backupBeforeImport(); // BACKUP BEFORE ANY CHANGES
+                    backupBeforeImport();
                     try {
                         const data = JSON.parse(ev.target.result);
                         const incoming = data.locations || [];
-
-                        // === BUILD EXISTING MAP BY CID OR FALLBACK KEY ===
                         const existingByCid = new Map();
                         const existingByKey = new Map();
                         const userEditedCids = new Set();
                         const userEditedKeys = new Set();
-
                         locations.forEach(l => {
                             if (l.cid) {
                                 existingByCid.set(l.cid, l);
@@ -1304,8 +1380,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 if (l.userEdited) userEditedKeys.add(key);
                             }
                         });
-
-                        // === VALIDATE NO DUPLICATE CIDS IN IMPORT ===
                         const seenCids = new Set();
                         for (const imp of incoming) {
                             if (imp.cid && seenCids.has(imp.cid)) {
@@ -1313,24 +1387,19 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                             if (imp.cid) seenCids.add(imp.cid);
                         }
-
                         const preserveEdits = confirm(
                             `IMPORT OPTIONS:\n\n` +
                             `• OK = PRESERVE your edits/moves\n` +
                             `• CANCEL = RESET ALL community markers to original\n\n` +
                             `Choose wisely.`
                         );
-
                         const toAdd = [];
                         const toReplace = [];
                         let skippedUserEdited = 0;
                         let resetCount = 0;
-
                         incoming.forEach(imp => {
                             const newId = generateUniqueId();
                             const candidate = { ...imp, id: newId, addedTime: Date.now() };
-
-                            // === PRIORITY 1: MATCH BY CID ===
                             if (imp.cid) {
                                 const existing = existingByCid.get(imp.cid);
                                 if (!preserveEdits) {
@@ -1360,11 +1429,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 }
                                 return;
                             }
-
-                            // === PRIORITY 2: FALLBACK — MATCH BY DESC + COORDS ===
                             const fallbackKey = `${imp.desc}|${Math.round(imp.lat)}|${Math.round(imp.lng)}`;
                             const existingFallback = existingByKey.get(fallbackKey);
-
                             if (!preserveEdits) {
                                 if (existingFallback) {
                                     candidate.id = existingFallback.id;
@@ -1376,7 +1442,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 }
                                 return;
                             }
-
                             if (existingFallback && userEditedKeys.has(fallbackKey)) {
                                 existingFallback.category = imp.category || existingFallback.category;
                                 existingFallback.icon = imp.icon || existingFallback.icon;
@@ -1384,7 +1449,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 skippedUserEdited++;
                                 return;
                             }
-
                             if (existingFallback) {
                                 candidate.id = existingFallback.id;
                                 toReplace.push(candidate);
@@ -1393,13 +1457,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 toAdd.push(candidate);
                             }
                         });
-
-                        // === APPLY CHANGES ===
                         const replaceIds = toReplace.map(r => r.id);
                         locations = locations.filter(l => !replaceIds.includes(l.id));
                         locations = [...locations, ...toAdd, ...toReplace];
-
-                        // === CUSTOM CATEGORIES ===
                         if (data.customCategories && typeof data.customCategories === 'object') {
                             Object.entries(data.customCategories).forEach(([name, emoji]) => {
                                 if (!customCategories[name] && !defaultCategoryIcons[name] && isValidEmoji(emoji)) {
@@ -1410,19 +1470,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                 }
                             });
                         }
-
                         communityVersion = data.communityVersion || communityVersion;
                         localStorage.setItem(MAP_VERSION_KEY, communityVersion);
                         localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
                         localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
                         recalculateXP();
                         saveLocations();
-
                         setTimeout(() => {
                             forceReload();
                             updateCounterDisplay();
                         }, 100);
-
                         let report = `Imported ${toAdd.length} new`;
                         if (toReplace.length) report += ` | Updated ${toReplace.length}`;
                         if (skippedUserEdited) report += ` | Preserved ${skippedUserEdited} edits`;
@@ -1442,8 +1499,6 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             input.click();
         };
-
-        // === FIXED COMMUNITY UPDATE + UNDO ===
         downloadCommunityBtn.onclick = () => {
             playSound('click');
             if (!confirm(
@@ -1453,28 +1508,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 `• YOUR edits & personal markers are 100% SAFE\n\n` +
                 `Continue?`
             )) return;
-
             downloadCommunityBtn.disabled = true;
             downloadCommunityBtn.textContent = 'Updating...';
-
             const url = `https://raw.githubusercontent.com/0mrcrazy0/fallout76-itemfindermap-beta/main/communitymap.json`;
-
             fetchWithTimeout(url)
                 .then(r => {
                     if (!r.ok) throw new Error(`HTTP ${r.status}`);
                     return r.text();
                 })
                 .then(text => {
-                    backupBeforeImport(); // BACKUP BEFORE ANY CHANGES
+                    backupBeforeImport();
                     try {
                         const data = JSON.parse(text);
                         const incoming = data.locations || [];
-
                         const existingByCid = new Map();
                         const existingByKey = new Map();
                         const userEditedCids = new Set();
                         const userEditedKeys = new Set();
-
                         locations.forEach(l => {
                             if (l.cid) {
                                 existingByCid.set(l.cid, l);
@@ -1485,7 +1535,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 if (l.userEdited) userEditedKeys.add(key);
                             }
                         });
-
                         const seenCids = new Set();
                         for (const imp of incoming) {
                             if (imp.cid && seenCids.has(imp.cid)) {
@@ -1493,17 +1542,13 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                             if (imp.cid) seenCids.add(imp.cid);
                         }
-
                         const preserveEdits = true;
-
                         const toAdd = [];
                         const toReplace = [];
                         let skippedUserEdited = 0;
-
                         incoming.forEach(imp => {
                             const newId = generateUniqueId();
                             const candidate = { ...imp, id: newId, addedTime: Date.now() };
-
                             if (imp.cid) {
                                 const existing = existingByCid.get(imp.cid);
                                 if (existing && userEditedCids.has(imp.cid)) {
@@ -1522,10 +1567,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 }
                                 return;
                             }
-
                             const fallbackKey = `${imp.desc}|${Math.round(imp.lat)}|${Math.round(imp.lng)}`;
                             const existingFallback = existingByKey.get(fallbackKey);
-
                             if (existingFallback && userEditedKeys.has(fallbackKey)) {
                                 existingFallback.category = imp.category || existingFallback.category;
                                 existingFallback.icon = imp.icon || existingFallback.icon;
@@ -1533,7 +1576,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 skippedUserEdited++;
                                 return;
                             }
-
                             if (existingFallback) {
                                 candidate.id = existingFallback.id;
                                 toReplace.push(candidate);
@@ -1542,11 +1584,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 toAdd.push(candidate);
                             }
                         });
-
                         const replaceIds = toReplace.map(r => r.id);
                         locations = locations.filter(l => !replaceIds.includes(l.id));
                         locations = [...locations, ...toAdd, ...toReplace];
-
                         if (data.customCategories && typeof data.customCategories === 'object') {
                             Object.entries(data.customCategories).forEach(([name, emoji]) => {
                                 if (!customCategories[name] && !defaultCategoryIcons[name] && isValidEmoji(emoji)) {
@@ -1557,19 +1597,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                 }
                             });
                         }
-
                         communityVersion = data.communityVersion || communityVersion;
                         localStorage.setItem(MAP_VERSION_KEY, communityVersion);
                         localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
                         localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
                         recalculateXP();
                         saveLocations();
-
                         setTimeout(() => {
                             forceReload();
                             updateCounterDisplay();
                         }, 100);
-
                         alert(`Community Map Updated!\nVersion: ${communityVersion}`);
                         playSound('saving');
                     } catch (err) {
@@ -1587,8 +1624,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     downloadCommunityBtn.textContent = 'Update Community Map';
                 });
         };
-
-        // === UNDO IMPORT LOGIC ===
         function backupBeforeImport() {
             lastImportBackup = {
                 locations: JSON.parse(JSON.stringify(locations)),
@@ -1599,38 +1634,29 @@ document.addEventListener('DOMContentLoaded', function() {
             undoImportBtn.style.display = 'inline-block';
             showTempMessage('Import backup saved. Use "Undo Import" if needed.', 4000);
         }
-
         function undoLastImport() {
             if (!lastImportBackup) {
                 alert("No import to undo.");
                 return;
             }
             if (!confirm("Undo last import? This will restore your previous state.")) return;
-
             locations = lastImportBackup.locations;
             customCategories = lastImportBackup.customCategories;
             communityVersion = lastImportBackup.communityVersion;
             activeCategories = lastImportBackup.activeCategories;
-
             localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
             localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
             localStorage.setItem(MAP_VERSION_KEY, communityVersion);
             localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
-
             lastImportBackup = null;
             undoImportBtn.style.display = 'none';
-
             recalculateXP();
             forceReload();
             updateCounterDisplay();
-
             showTempMessage('Import undone! Previous state restored.', 4000);
             playSound('undo');
         }
-
         undoImportBtn.onclick = undoLastImport;
-
-        /* SECTION 19: JPEG SAVE & PAGINATION */
         saveJpegBtn.onclick = () => {
             playSound('saving');
             html2canvas(document.getElementById('map'), { useCORS: true, scale: 2 }).then(canvas => {
@@ -1645,7 +1671,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 playSound('error');
             });
         };
-
         prevPageBtn.onclick = () => {
             if (tablePage > 1) {
                 tablePage--;
@@ -1663,8 +1688,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 playSound('click');
             }
         };
-
-        /* SECTION 20: TOGGLE BUTTONS */
         toggleTableBtn.onclick = () => {
             tableVisible = !tableVisible;
             localStorage.setItem('tableVisible', tableVisible);
@@ -1705,8 +1728,6 @@ document.addEventListener('DOMContentLoaded', function() {
             toggleButtonGroup.textContent = isHidden ? 'Hide Tools' : 'Show Tools';
             playSound('click');
         };
-
-        /* SECTION 21: CATEGORY TOGGLE MODAL BUTTONS */
         toggleCategoryModalBtn.onclick = () => {
             categoryToggleModal.style.display = 'block';
             document.body.classList.add('modal-open');
@@ -1717,6 +1738,7 @@ document.addEventListener('DOMContentLoaded', function() {
             activeCategories = new Set(Object.keys(categoryIcons));
             localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
             renderCategoryToggles();
+            syncCategoryFilterWithToggles();
             loadData(combinedSearch.value, categoryFilter.value);
             playSound('click');
         };
@@ -1724,6 +1746,7 @@ document.addEventListener('DOMContentLoaded', function() {
             activeCategories = new Set();
             localStorage.setItem('activeCategories', JSON.stringify([]));
             renderCategoryToggles();
+            syncCategoryFilterWithToggles();
             loadData(combinedSearch.value, categoryFilter.value);
             playSound('click');
         };
@@ -1771,9 +1794,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('#createCategoryModal .close, #deleteCategoryModal .close').forEach(closeBtn => {
             closeBtn.onclick = () => closeModal(closeBtn.closest('.modal'));
         });
-
-        /* SECTION 22: ITEM MODAL — SAVE, DELETE, UNDO, DUPLICATE, SHARE */
-        document.getElementById('saveItemBtn').onclick = () => {
+                document.getElementById('saveItemBtn').onclick = () => {
             const category = itemCategorySelect.value;
             let desc = itemDescInput.value.trim();
             if (!desc) {
@@ -1786,6 +1807,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 itemDescInput.value = desc;
             }
             if (!desc) return;
+            const wasNewLog = currentIndex < 0;
             if (currentIndex >= 0) {
                 const loc = locations[currentIndex];
                 const wasCommunity = !!loc.cid;
@@ -1817,6 +1839,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const finalLoc = currentIndex >= 0 ? locations[currentIndex] : locations[locations.length - 1];
             safeFlyTo(finalLoc.lat, finalLoc.lng, 2);
             forceReload();
+            if (wasNewLog) {
+                categoryFilter.value = '';
+            }
         };
 
         deleteBtn.onclick = () => {
@@ -1834,6 +1859,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 playSound('delete');
             }
         };
+
         undoBtn.onclick = () => {
             if (lastDeleted) {
                 locations.push(lastDeleted);
@@ -1843,11 +1869,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 forceReload();
                 undoBtn.style.display = 'none';
                 closeModal(itemModal);
-                safeFlyTo(locations[locations.length-1].lat, locations[locations.length-1].lng, map.getZoom() + 1);
+                safeFlyTo(locations[locations.length - 1].lat, locations[locations.length - 1].lng, map.getZoom() + 1);
                 showTempMessage('Undo successful!', 3000);
                 playSound('undo');
             }
         };
+
         undoMoveBtn.onclick = () => {
             if (lastMovedMarker && lastMovedMarker.index >= 0) {
                 const loc = locations[lastMovedMarker.index];
@@ -1864,53 +1891,60 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         };
 
-        // FIXED DUPLICATE: NEW CID, NO CONFLICTS
+        // FIXED DUPLICATE: NEW CID + AUTO GRID + X:Y
         duplicateBtn.onclick = () => {
             if (currentIndex >= 0) {
                 const loc = locations[currentIndex];
                 const offset = 30 / Math.pow(2, map.getZoom());
-
+                const newLat = loc.lat + offset;
+                const newLng = loc.lng + offset;
+                const grid = getGridFromLatLng(newLat, newLng);
+                const x = Math.round(newLng);
+                const y = Math.round(newLat);
+                const newDesc = grid ? `Grid ${grid} (X: ${x}, Y: ${y})` : `X: ${x}, Y: ${y}`;
                 const newCid = generateCid({
                     category: loc.category,
-                    desc: loc.desc,
-                    lat: loc.lat + offset,
-                    lng: loc.lng + offset
+                    desc: newDesc,
+                    lat: newLat,
+                    lng: newLng
                 });
-
                 const newLoc = {
                     ...loc,
                     id: generateUniqueId(),
-                    lat: loc.lat + offset,
-                    lng: loc.lng + offset,
+                    lat: newLat,
+                    lng: newLng,
+                    desc: newDesc,
                     addedTime: Date.now(),
                     userEdited: true,
                     cid: newCid
                 };
-
                 locations.push(newLoc);
                 recalculateXP();
                 saveLocations();
                 forceReload();
                 closeModal(itemModal);
                 const newIndex = locations.findIndex(l => l.id === newLoc.id);
-                safeFlyTo(newLoc.lat, newLoc.lng, map.getZoom());
-                showTempMessage('Duplicated with new ID!', 3000);
+                safeFlyTo(newLat, newLng, map.getZoom());
+                showTempMessage('Duplicated + Grid updated!', 3000);
                 playSound('duplicate');
+                categoryFilter.value = ''; // Reset to "All"
             }
         };
 
         shareItemBtn.onclick = () => {
             const loc = locations[currentIndex];
-            const lat = loc.lat.toFixed(0);
-            const lng = loc.lng.toFixed(0);
+            const lat = Math.round(loc.lat);
+            const lng = Math.round(loc.lng);
             const grid = getGridFromLatLng(lat, lng);
             const desc = loc.desc.split('\n')[0].trim();
             const url = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}&grid=${grid}&desc=${encodeURIComponent(desc)}`;
             navigator.clipboard.writeText(url).then(() => {
                 showTempMessage('Share link copied!', 3000);
                 playSound('click');
+                closeModal(itemModal);
             }).catch(() => {
                 prompt('Copy this link:', url);
+                closeModal(itemModal);
             });
         };
 
@@ -1921,14 +1955,17 @@ document.addEventListener('DOMContentLoaded', function() {
             loadData(combinedSearch.value, val);
             playSound('selectcategory');
         });
+
         map.on('click', e => {
             const grid = getGridFromLatLng(e.latlng.lat, e.latlng.lng);
             if (grid) showGridNotification(grid);
             playSound('click');
         });
+
         map.on('dblclick', e => {
             L.DomEvent.stopPropagation(e);
             tempLatLng = { lat: e.latlng.lat, lng: e.latlng.lng };
+            categoryFilter.value = '';
             openModal('Log Item');
             playSound('click');
         });
@@ -1940,21 +1977,244 @@ document.addEventListener('DOMContentLoaded', function() {
             const lng = parseFloat(urlParams.get('lng'));
             const grid = urlParams.get('grid') || getGridFromLatLng(lat, lng);
             const desc = urlParams.get('desc') ? decodeURIComponent(urlParams.get('desc')) : '';
-            setTimeout(() => {
-                safeFlyTo(lat, lng, 3);
-                showTempMessage(`Shared: ${desc || grid}`, 5000);
-                playSound('click');
-            }, 1000);
+            map.whenReady(() => {
+                setTimeout(() => {
+                    safeFlyTo(lat, lng, 3);
+                    showTempMessage(`Shared: ${desc || grid}`, 5000);
+                    playSound('click');
+                }, 800);
+            });
         }
 
-        updateCategoryDropdowns();
-        renderCategoryToggles();
-        loadData(currentSearch, currentCategoryFilter);
-        refreshTableVisibility();
-        drawGrid();
-        updateXPBar();
-        window.addEventListener('resize', refreshTableVisibility);
-        refreshTableVisibility();
+        /* SECTION 25: FLY MODE — CLEAN & STABLE */
+        let flyModeInterval = null;
+        const FLY_SPEED = 180;
+        const EDGE_THRESHOLD = 45;
+        let flyModeActive = false;
+        function startFlyMode(e) {
+            const container = map.getContainer();
+            if (!container.contains(e.target)) {
+                if (flyModeActive) stopFlyMode();
+                return;
+            }
+            const rect = container.getBoundingClientRect();
+            const clientX = e.clientX || (e.touches?.[0]?.clientX);
+            const clientY = e.clientY || (e.touches?.[0]?.clientY);
+            if (!clientX || !clientY) return;
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
+            const width = rect.width;
+            const height = rect.height;
+            let dx = 0, dy = 0;
+            if (x < EDGE_THRESHOLD) dx = -1;
+            else if (x > width - EDGE_THRESHOLD) dx = 1;
+            if (y < EDGE_THRESHOLD) dy = -1;
+            else if (y > height - EDGE_THRESHOLD) dy = 1;
+            if (dx === 0 && dy === 0) {
+                if (flyModeActive) stopFlyMode();
+                return;
+            }
+            if (e.type === 'touchmove') e.preventDefault();
+            if (!flyModeActive) {
+                flyModeActive = true;
+                showTempMessage('Fly Mode Active', 1500);
+            }
+            if (flyModeInterval) return;
+            flyModeInterval = setInterval(() => {
+                const center = map.getCenter();
+                const point = map.latLngToContainerPoint(center);
+                point.x += dx * FLY_SPEED / 16;
+                point.y += dy * FLY_SPEED / 16;
+                let newLatLng = map.containerPointToLatLng(point);
+                newLatLng.lat = Math.max(0, Math.min(4096, newLatLng.lat));
+                newLatLng.lng = Math.max(0, Math.min(4096, newLatLng.lng));
+                map.panTo(newLatLng, { animate: true, duration: 0.08 });
+            }, 60);
+        }
+        function stopFlyMode() {
+            if (!flyModeActive) return;
+            if (flyModeInterval) {
+                clearInterval(flyModeInterval);
+                flyModeInterval = null;
+            }
+            flyModeActive = false;
+            showTempMessage('Fly Mode Off', 1000);
+        }
+        map.getContainer().addEventListener('mousemove', startFlyMode);
+        map.getContainer().addEventListener('mouseleave', stopFlyMode);
+        map.getContainer().addEventListener('touchmove', startFlyMode, { passive: false });
+        map.getContainer().addEventListener('touchend', stopFlyMode);
+        map.getContainer().addEventListener('touchcancel', stopFlyMode);
+
+        /* FINAL INITIALIZATION — AFTER MAP IS READY */
+        map.whenReady(() => {
+            const isSharedLink = window.location.search.includes('lat=');
+
+            if (isSharedLink) {
+                // === SHARED MODE: VIEW-ONLY ===
+                const urlParams = new URLSearchParams(window.location.search);
+                const lat = parseFloat(urlParams.get('lat'));
+                const lng = parseFloat(urlParams.get('lng'));
+                const grid = urlParams.get('grid') || getGridFromLatLng(lat, lng);
+                const desc = urlParams.get('desc') ? decodeURIComponent(urlParams.get('desc')) : '';
+
+                setTimeout(() => {
+                    safeFlyTo(lat, lng, 3);
+                    showTempMessage(`Player shared: ${desc || grid}`, 5000);
+                    playSound('click');
+                }, 800);
+
+                // ALLOW ONLY 2 BUTTONS
+                const allowedButtons = [
+                    document.getElementById('toggleMapBtn'),
+                    document.getElementById('toggleGridBtn')
+                ];
+
+                // HIDE ALL NON-ESSENTIAL UI
+                const elementsToHide = [
+                    document.getElementById('categoryFilter'),
+                    document.getElementById('toggleCategoryModalBtn'),
+                    document.getElementById('toggleClusterBtn'),
+                    document.getElementById('toggleButtonGroup'),
+                    document.getElementById('buttonGroup'),
+                    document.querySelector('.controls > div[style*="position:relative"]'),
+                    document.getElementById('tableContainer'),
+                    document.getElementById('toggleTableBtn'),
+                    document.getElementById('counter'),
+                    document.querySelector('h2')
+                ];
+                elementsToHide.forEach(el => { if (el) el.style.display = 'none'; });
+
+                // DISABLE ALL BUTTONS EXCEPT ALLOWED
+                document.querySelectorAll('button, input, select').forEach(el => {
+                    if (!allowedButtons.includes(el)) {
+                        el.disabled = true;
+                        el.style.opacity = '0.3';
+                        el.style.pointerEvents = 'none';
+                    }
+                });
+
+                // ENABLE ONLY ALLOWED BUTTONS
+                allowedButtons.forEach(btn => {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                        btn.style.pointerEvents = 'auto';
+                    }
+                });
+
+                // BLOCK DOUBLE-CLICK (LOG ITEM)
+                map.off('dblclick');
+                map.on('dblclick', (e) => {
+                    L.DomEvent.stopPropagation(e);
+                    showRedirectPopup();
+                });
+
+                // BLOCK RIGHT-CLICK (SHARE)
+                map.off('contextmenu');
+                map.on('contextmenu', (e) => {
+                    L.DomEvent.stopPropagation(e);
+                    L.DomEvent.preventDefault(e);
+                    showRedirectPopup();
+                });
+
+                // BLOCK MARKER DRAG
+                map.eachLayer(layer => {
+                    if (layer instanceof L.Marker && layer.dragging) {
+                        layer.dragging.disable();
+                    }
+                });
+                map.on('layeradd', (e) => {
+                    const layer = e.layer;
+                    if (layer instanceof L.Marker) {
+                        layer.dragging.disable();
+                        layer.off('dragstart drag dragend');
+                    }
+                });
+
+                // VIEW-ONLY BANNER
+                const banner = document.createElement('div');
+                banner.id = 'viewOnlyBanner';
+                banner.style.cssText = `
+                    position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+                    background: #0a3a0a; color: #00ff00; padding: 8px 18px;
+                    border: 2px solid #00ff00; font-weight: bold; font-size: 15px;
+                    font-family: 'Courier New', monospace; z-index: 10000;
+                    box-shadow: 0 0 20px #00ff00; pointer-events: none;
+                    white-space: nowrap; border-radius: 0;
+                `;
+                banner.textContent = 'VIEW-ONLY: Player shared a location! Refresh the Page to zoom in again on the location!';
+                document.body.appendChild(banner);
+
+                // LEFT-CLICK CLOSES REDIRECT POPUP
+                let redirectPopupOpen = false;
+                const originalShowRedirect = showRedirectPopup;
+                showRedirectPopup = function() {
+                    if (redirectPopupOpen) return;
+                    redirectPopupOpen = true;
+                    originalShowRedirect();
+                };
+                map.on('click', () => {
+                    if (redirectPopupOpen) {
+                        const popup = document.getElementById('redirectPopup');
+                        if (popup) {
+                            document.body.removeChild(popup);
+                            redirectPopupOpen = false;
+                        }
+                    }
+                });
+
+                return; // STOP NORMAL LOAD
+            }
+
+            // === MAIN APP: FULL FEATURES ===
+            updateCategoryDropdowns();
+            renderCategoryToggles();
+            syncCategoryFilterWithToggles();
+            loadData(currentSearch, categoryFilter.value);
+            refreshTableVisibility();
+            drawGrid();
+            updateXPBar();
+            window.addEventListener('resize', refreshTableVisibility);
+            refreshTableVisibility();
+
+            // === MAIN APP: RIGHT-CLICK = SHARE LOCATION ===
+            map.off('contextmenu');
+            map.on('contextmenu', function(e) {
+                L.DomEvent.stopPropagation(e);
+                const latlng = e.latlng;
+                const grid = getGridFromLatLng(latlng.lat, latlng.lng);
+                const lat = Math.round(latlng.lat);
+                const lng = Math.round(latlng.lng);
+                const desc = grid ? `Player at Grid ${grid}` : `Player at X:${lng}, Y:${lat}`;
+                const popup = L.popup()
+                    .setLatLng(latlng)
+                    .setContent(`
+                        <div style="background:#0a2a2a; color:#00ff00; padding:10px; border:2px solid #00ff00; font-family:'Courier New',monospace; font-size:13px; min-width:180px; max-width:220px; text-align:center;">
+                            <b>Share This Location</b><br>
+                            <small style="color:#aaf0a0; display:block; margin:6px 0; font-size:12px;">${desc}</small>
+                            <button id="shareLocationBtn" style="background:#00ff00; color:#000; border:none; padding:6px 12px; font-weight:bold; cursor:pointer; font-size:14px; margin:4px auto; display:block; width:auto; min-width:120px;">Copy Link</button>
+                        </div>
+                    `)
+                    .openOn(map);
+                setTimeout(() => {
+                    const btn = document.getElementById('shareLocationBtn');
+                    if (btn) {
+                        btn.onclick = () => {
+                            const url = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}&grid=${grid || ''}&desc=${encodeURIComponent(desc)}`;
+                            navigator.clipboard.writeText(url).then(() => {
+                                showTempMessage('Location link copied!', 3000);
+                                map.closePopup();
+                                playSound('click');
+                            }).catch(() => {
+                                prompt('Copy this link:', url);
+                            });
+                        };
+                    }
+                }, 50);
+            });
+        });
+
     })();
 });
  /* --------------------------------------------------------------------------
