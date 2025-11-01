@@ -1048,6 +1048,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, () => {
                     marker.setLatLng(originalLatLng);
                     safeFlyTo(originalLatLng.lat, originalLatLng.lng, 2);
+					playSound('undo');
                 });
             };
             const onDragStart = (e) => {
