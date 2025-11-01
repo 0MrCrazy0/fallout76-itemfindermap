@@ -1047,9 +1047,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     forceReload();
                 }, () => {
                     marker.setLatLng(originalLatLng);
-                    safeFlyTo(originalLatLng.lat, originalLatLng.lng, 2);
-					playSound('undo');
-                });
+    safeFlyTo(originalLatLng.lat, originalLatLng.lng, 2);
+    playSound('undo');
+
+    // STORE GLOBALLY SO UNDO WORKS ANYWHERE
+    lastMovedMarker = { marker, original: originalLatLng, index: locations.indexOf(loc) };
+    undoMoveBtn.style.display = 'inline-block';
+});
             };
             const onDragStart = (e) => {
                 if (e.touches) L.DomEvent.preventDefault(e);
@@ -1077,13 +1081,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             marker.bindPopup(`
-                <b>${loc.icon} ${loc.category.toUpperCase()}</b><br>
-                ${escapeHtml(loc.desc)}<br>
-                <button onclick="editMarkerFromPopup(${locations.indexOf(loc)})"
-                        style="margin-top:8px; padding:4px 8px; background:#00ff00; color:#000; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">
-                    Edit
-                </button>
-            `, { maxWidth: 300 });
+    <b>${loc.icon} ${loc.category.toUpperCase()}</b><br>
+    <div style="max-height:80px; overflow-y:auto; margin:4px 0; padding-right:8px;">
+        ${escapeHtml(loc.desc)}
+    </div>
+    <button onclick="editMarkerFromPopup(${locations.indexOf(loc)})"
+            style="margin-top:6px; padding:4px 10px; background:#00ff00; color:#000; border:none; border-radius:4px; cursor:pointer; font-weight:bold; font-size:12px;">
+        Edit
+    </button>
+`, { maxWidth: 260, autoPan: true });
         }
 
         function addMarkerToMap(loc) {
@@ -1233,32 +1239,38 @@ document.addEventListener('DOMContentLoaded', function() {
             popup.onclick = (e) => e.stopPropagation();
         }
         function openModal(title, index = -1, isDupe = false) {
-            modalTitle.textContent = title;
-            currentIndex = index;
-            isDuplicateEdit = isDupe;
-            document.getElementById('saveItemBtn').style.display = 'inline-block';
-            if (index >= 0 && !isDupe) {
-                const loc = locations[index];
-                itemCategorySelect.value = loc.category || 'misc';
-                itemDescInput.value = loc.desc || '';
-                deleteBtn.style.display = 'inline-block';
-                duplicateBtn.style.display = 'inline-block';
-                undoBtn.style.display = lastDeleted ? 'inline-block' : 'none';
-                undoMoveBtn.style.display = (lastMovedMarker && lastMovedMarker.index === index) ? 'inline-block' : 'none';
-                shareItemBtn.style.display = 'inline-block';
-            } else {
-                itemCategorySelect.value = 'misc';
-                itemDescInput.value = '';
-                deleteBtn.style.display = 'none';
-                duplicateBtn.style.display = 'none';
-                undoBtn.style.display = 'none';
-                undoMoveBtn.style.display = 'none';
-                shareItemBtn.style.display = 'none';
-            }
-            itemModal.style.display = 'block';
-            document.body.classList.add('modal-open');
-            playSound('click');
-        }
+    modalTitle.textContent = title;
+    currentIndex = index;
+    isDuplicateEdit = isDupe;
+    document.getElementById('saveItemBtn').style.display = 'inline-block';
+    if (index >= 0 && !isDupe) {
+        const loc = locations[index];
+        itemCategorySelect.value = loc.category || 'misc';
+        itemDescInput.value = loc.desc || '';
+        deleteBtn.style.display = 'inline-block';
+        duplicateBtn.style.display = 'inline-block';
+        undoBtn.style.display = lastDeleted ? 'inline-block' : 'none';
+        undoMoveBtn.style.display = lastMovedMarker ? 'inline-block' : 'none';
+        undoMoveBtn.style.backgroundColor = '#c8a2f8'; // LIGHT PURPLE
+        undoMoveBtn.style.color = '#000';
+        undoMoveBtn.style.fontWeight = '700';
+        shareItemBtn.style.display = 'inline-block';
+    } else {
+        itemCategorySelect.value = 'misc';
+        itemDescInput.value = '';
+        deleteBtn.style.display = 'none';
+        duplicateBtn.style.display = 'none';
+        undoBtn.style.display = 'none';
+        undoMoveBtn.style.display = lastMovedMarker ? 'inline-block' : 'none';
+        undoMoveBtn.style.backgroundColor = '#c8a2f8'; // LIGHT PURPLE
+        undoMoveBtn.style.color = '#000';
+        undoMoveBtn.style.fontWeight = '700';
+        shareItemBtn.style.display = 'none';
+    }
+    itemModal.style.display = 'block';
+    document.body.classList.add('modal-open');
+    playSound('click');
+}
         function closeModal(modal) {
             modal.style.display = 'none';
             document.body.classList.remove('modal-open');
@@ -1877,20 +1889,21 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         undoMoveBtn.onclick = () => {
-            if (lastMovedMarker && lastMovedMarker.index >= 0) {
-                const loc = locations[lastMovedMarker.index];
-                loc.lat = lastMovedMarker.original.lat;
-                loc.lng = lastMovedMarker.original.lng;
-                lastMovedMarker = null;
-                undoMoveBtn.style.display = 'none';
-                saveLocations();
-                forceReload();
-                closeModal(itemModal);
-                safeFlyTo(loc.lat, loc.lng, map.getZoom() + 1);
-                showTempMessage('Move undone!', 3000);
-                playSound('undo');
-            }
-        };
+    if (lastMovedMarker && lastMovedMarker.index >= 0) {
+        const loc = locations[lastMovedMarker.index];
+        loc.lat = lastMovedMarker.original.lat;
+        loc.lng = lastMovedMarker.original.lng;
+        lastMovedMarker.marker.setLatLng(lastMovedMarker.original);
+        lastMovedMarker = null;
+        undoMoveBtn.style.display = 'none';
+        saveLocations();
+        forceReload();
+        closeModal(itemModal);
+        safeFlyTo(loc.lat, loc.lng, map.getZoom() + 1);
+        showTempMessage('Move undone!', 3000);
+        playSound('undo');
+    }
+};
 
         // FIXED DUPLICATE: NEW CID + AUTO GRID + X:Y
         duplicateBtn.onclick = () => {
