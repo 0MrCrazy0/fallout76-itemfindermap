@@ -1809,7 +1809,8 @@ document.addEventListener('DOMContentLoaded', function() {
         playSound('modalClose');
     }
 
-    /* DEV NOTE: XP SYSTEM */
+            /* V38 — CONFETTI EVERY LEVEL 10 (10, 20, 30... 100) */
+    // 1. Define the ORIGINAL recalculateXP
     function recalculateXP() {
         xp = locations.length * xpPerMarker;
         level = 1 + Math.floor(xp / xpPerLevel);
@@ -1818,8 +1819,50 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('fo76_level', level);
         localStorage.setItem('fo76_xp', xp);
     }
+
+    // 2. Wrap it with confetti
+    const oldXP = recalculateXP;
+    recalculateXP = function() {
+        oldXP(); // ← runs the original
+        if (level % 1 === 0 && xp === 0) {
+            // GREEN FALLOUT FIREWORKS
+            const c = document.createElement('canvas');
+            c.style.position='fixed'; c.style.top=0; c.style.left=0; c.style.pointerEvents='none'; c.style.zIndex=9999;
+            c.width = innerWidth; c.height = innerHeight;
+            document.body.appendChild(c);
+            const ctx = c.getContext('2d');
+            let particles = [];
+            for(let i=0;i<300;i++){
+                particles.push({
+                    x:Math.random()*c.width,
+                    y:Math.random()*c.height,
+                    vx:(Math.random()-0.5)*6,
+                    vy:(Math.random()-0.5)*6,
+                    color:['#00ff00','#00cc00','#ffff00','#ff4500'][i%4],
+                    life:120
+                });
+            }
+            const anim = () => {
+                ctx.clearRect(0,0,c.width,c.height);
+                particles.forEach(p=>{
+                    ctx.fillStyle=p.color; ctx.globalAlpha=p.life/120;
+                    ctx.fillRect(p.x,p.y,10,10);
+                    p.x+=p.vx; p.y+=p.vy; p.life--;
+                });
+                particles = particles.filter(p=>p.life>0);
+                if(particles.length) requestAnimationFrame(anim);
+                else c.remove();
+            };
+            anim();
+            showTempMessage(`LEVEL ${level} ACHIEVED! LEGEND!`, 8000);
+            playSound('levelUp');
+        }
+    };
+
+    // 3. Run it once on load
     recalculateXP();
 
+    // 4. XP bar update (unchanged)
     function updateXPBar() {
         if (levelSpan) levelSpan.textContent = level;
         if (xpProgress) {
