@@ -609,6 +609,26 @@ body.dark-mode .leaflet-popup-content button:hover,
 body.dark-mode .leaflet-popup-content-wrapper button:hover {
     background: #00cc00 !important;
 }
+#itemDesc, #itemModal textarea {
+    height: 160px !important;
+    width: 100% !important;
+    max-width: none !important;
+    resize: none !important;
+    overflow-y: auto !important;
+    scrollbar-width: thin;
+    scrollbar-color: #00ff00 #000;
+}
+#itemDesc::-webkit-scrollbar, #itemModal textarea::-webkit-scrollbar {
+    width: 8px;
+}
+#itemDesc::-webkit-scrollbar-track, #itemModal textarea::-webkit-scrollbar-track {
+    background: #000;
+    border-left: 1px solid #00ff00;
+}
+#itemDesc::-webkit-scrollbar-thumb, #itemModal textarea::-webkit-scrollbar-thumb {
+    background: #00ff00;
+    border-radius: 0;
+}
     </style>
 </head>
 <body>
