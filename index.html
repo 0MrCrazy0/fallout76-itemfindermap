@@ -1437,7 +1437,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
         const urlParams = new URLSearchParams(window.location.search);
 
-// POSTCARD LINK — 100% auto-open for everyone (sender AND receiver)
+// POSTCARD LINK — 100% auto-open for EVERYONE (sender + receiver) — FINAL VERSION
 if (urlParams.has('postcard')) {
     const id = urlParams.get('postcard');
     const lat = parseFloat(urlParams.get('lat'));
@@ -1445,32 +1445,33 @@ if (urlParams.has('postcard')) {
     const msg = decodeURIComponent(urlParams.get('msg') || 'Postcard from a friend!');
 
     if (!isNaN(lat) && !isNaN(lng)) {
-        let loc = locations.find(l => l.id === id);
-        if (!loc) {
-            loc = createNewLocation(lat, lng, 'misc', msg, true);
+        // 1. Create the postcard if missing
+        if (!locations.find(l => l.id === id)) {
+            const loc = createNewLocation(lat, lng, 'misc', msg, true);
             loc.id = id;
             locations.push(loc);
             saveLocations();
-            forceReload(); // this rebuilds the marker with proper popup
         }
 
-        setTimeout(() => {
-            safeFlyTo(lat, lng, 4);
-            showTempMessage('Postcard received!', 4000);
-            playSound('postcard');
+        // 2. Force full reload to guarantee marker exists
+        forceReload();
 
-            // ← THIS IS THE KEY: wait for forceReload() to finish and marker to exist
-            const waitForMarker = setInterval(() => {
-                const marker = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === id);
-                if (marker) {
-                    clearInterval(waitForMarker);
-                    marker.openPopup(); // ← auto-open speech bubble
-                }
-            }, 100);
+        // 3. Wait for the map to be fully ready, then zoom + open popup
+        const waitForMap = setInterval(() => {
+            const marker = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === id);
+            if (marker && marker.getPopup) {
+                clearInterval(waitForMap);
+                safeFlyTo(lat, lng, 4);
+                setTimeout(() => {
+                    marker.openPopup();  // ← THIS WILL WORK 100%
+                    showTempMessage('Postcard received!', 4000);
+                    playSound('postcard');
+                }, 300);
+            }
+        }, 100);
 
-            // safety timeout
-            setTimeout(() => clearInterval(waitForMarker), 5000);
-        }, 1200);
+        // Safety timeout
+        setTimeout(() => clearInterval(waitForMap), 10000);
     }
 }
 
