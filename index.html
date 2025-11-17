@@ -1431,15 +1431,33 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         const urlParams = new URLSearchParams(window.location.search);
 
+// POSTCARD LINK — works even if the postcard doesn't exist yet
 if (urlParams.has('postcard')) {
-    const id = urlParams.get('postcard');
-    setTimeout(() => {
-        const loc = locations.find(l => l.id === id);
-        if (loc && loc.isPostcard) {
-            safeFlyTo(loc.lat, loc.lng, 3);
-            setTimeout(() => showPostcardMarker(loc), 1800);
-        }
-    }, 1500);
+    const postcardId = urlParams.get('postcard');
+
+    // Try to find it immediately (in case it already exists)
+    const existingLoc = locations.find(l => l.id === postcardId);
+    if (existingLoc && existingLoc.isPostcard) {
+        setTimeout(() => {
+            safeFlyTo(existingLoc.lat, existingLoc.lng, 4);
+            setTimeout(() => showPostcardMarker(existingLoc), 800);
+        }, 1200);
+    } else {
+        // Wait for the marker to be created (e.g. from sync or paste)
+        const checkInterval = setInterval(() => {
+            const loc = locations.find(l => l.id === postcardId);
+            if (loc && loc.isPostcard) {
+                clearInterval(checkInterval);
+                safeFlyTo(loc.lat, loc.lng, 4);
+                setTimeout(() => showPostcardMarker(loc), 800);
+                showTempMessage('Postcard received from friend!', 4000);
+                playSound('postcard');
+            }
+        }, 500);
+
+        // Safety: stop checking after 15 seconds
+        setTimeout(() => clearInterval(checkInterval), 15000);
+    }
 }
 
 // NEW: SHARE VIEW — zoom to shared marker
