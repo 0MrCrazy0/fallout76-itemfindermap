@@ -1421,41 +1421,50 @@ document.addEventListener('DOMContentLoaded', function() {
             saveLocations();
             forceReload();
             postcardModal.style.display = 'none';
-            const url = `${window.location.origin}${window.location.pathname}?postcard=${loc.id}&lat=${Math.round(loc.lat)}&lng=${Math.round(loc.lng)}`;
-            navigator.clipboard.writeText(url).then(() => {
-                showTempMessage('Postcard link copied!', 4000);
-                playSound('postcard');
+            // Encode the message safely in the URL
+const message = encodeURIComponent(loc.desc.trim() || 'Check this spot!');
+const url = `${window.location.origin}${window.location.pathname}?postcard=${loc.id}&lat=${Math.round(loc.lat)}&lng=${Math.round(loc.lng)}&msg=${message}`;
+navigator.clipboard.writeText(url);
+showTempMessage('Postcard link with your message copied!', 4000);
+playSound('postcard');
             });
             setTimeout(() => showPostcardMarker(loc), 500);
             startPostcardTicker();
         });
         const urlParams = new URLSearchParams(window.location.search);
 
-// POSTCARD LINK — works 100% for anyone, even if marker doesn't exist
+// POSTCARD LINK — works 100% for anyone, keeps the real message + auto-opens popup
 if (urlParams.has('postcard')) {
     const id = urlParams.get('postcard');
     const lat = parseFloat(urlParams.get('lat'));
     const lng = parseFloat(urlParams.get('lng'));
+    const msg = decodeURIComponent(urlParams.get('msg') || 'Postcard from a friend!');
 
     if (!isNaN(lat) && !isNaN(lng)) {
-        // Look for existing, or create new postcard
+        // Look for existing postcard
         let loc = locations.find(l => l.id === id);
+
+        // If not found — create it with the real message
         if (!loc) {
-            loc = createNewLocation(lat, lng, 'misc', 'Postcard from friend!', true);
-            loc.id = id; // force the ID from URL
+            loc = createNewLocation(lat, lng, 'misc', msg, true);
+            loc.id = id; // force the original ID
             locations.push(loc);
             saveLocations();
             forceReload();
         }
 
+        // Zoom + open the postcard popup
         setTimeout(() => {
             safeFlyTo(lat, lng, 4);
+            showTempMessage('Postcard received!', 4000);
+            playSound('postcard');
+
             setTimeout(() => {
                 const marker = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === id);
-                if (marker) marker.openPopup();
-            }, 800);
-            showTempMessage('Postcard received & loaded!', 5000);
-            playSound('postcard');
+                if (marker) {
+                    marker.openPopup();  // This opens the speech bubble!
+                }
+            }, 1000);
         }, 1200);
     }
 }
