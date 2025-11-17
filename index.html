@@ -1422,8 +1422,6 @@ document.addEventListener('DOMContentLoaded', function() {
     saveLocations();
     forceReload();
     postcardModal.style.display = 'none';
-
-    // ← THIS LINE WAS BROKEN BEFORE — now fixed
     const encodedMsg = encodeURIComponent(msg);
     const url = `${window.location.origin}${window.location.pathname}?postcard=${loc.id}&lat=${Math.round(loc.lat)}&lng=${Math.round(loc.lng)}&msg=${encodedMsg}`;
     
@@ -1437,42 +1435,42 @@ document.addEventListener('DOMContentLoaded', function() {
 });
         const urlParams = new URLSearchParams(window.location.search);
 
-// POSTCARD LINK — 100% auto-open for EVERYONE (sender + receiver) — FINAL VERSION
+// POSTCARD LINK — FINAL VERSION: message preserved + auto zoom + auto popup for everyone
 if (urlParams.has('postcard')) {
-    const id = urlParams.get('postcard');
+    const id  = urlParams.get('postcard');
     const lat = parseFloat(urlParams.get('lat'));
     const lng = parseFloat(urlParams.get('lng'));
-    const msg = decodeURIComponent(urlParams.get('msg') || 'Postcard from a friend!');
+    const msg = urlParams.has('msg') 
+        ? decodeURIComponent(urlParams.get('msg').replace(/\+/g, ' ')) 
+        : 'Postcard from a friend!';
 
-    if (!isNaN(lat) && !isNaN(lng)) {
-        // 1. Create the postcard if missing
-        if (!locations.find(l => l.id === id)) {
-            const loc = createNewLocation(lat, lng, 'misc', msg, true);
-            loc.id = id;
-            locations.push(loc);
-            saveLocations();
-        }
+    if (isNaN(lat) || isNaN(lng)) return;
 
-        // 2. Force full reload to guarantee marker exists
-        forceReload();
-
-        // 3. Wait for the map to be fully ready, then zoom + open popup
-        const waitForMap = setInterval(() => {
-            const marker = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === id);
-            if (marker && marker.getPopup) {
-                clearInterval(waitForMap);
-                safeFlyTo(lat, lng, 4);
-                setTimeout(() => {
-                    marker.openPopup();  // ← THIS WILL WORK 100%
-                    showTempMessage('Postcard received!', 4000);
-                    playSound('postcard');
-                }, 300);
-            }
-        }, 100);
-
-        // Safety timeout
-        setTimeout(() => clearInterval(waitForMap), 10000);
+    // Create postcard if missing — with the REAL message
+    if (!locations.find(l => l.id === id)) {
+        const loc = createNewLocation(lat, lng, 'misc', msg, true);
+        loc.id = id;
+        locations.push(loc);
+        saveLocations();
     }
+
+    // Wait for map to be ready, then zoom + open popup
+    const waitForReady = setInterval(() => {
+        if (document.body.classList.contains('map-ready')) {
+            clearInterval(waitForReady);
+
+            safeFlyTo(lat, lng, 4);
+            showTempMessage('Postcard received!', 4000);
+            playSound('postcard');
+
+            setTimeout(() => {
+                const marker = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === id);
+                if (marker) marker.openPopup();
+            }, 600);
+        }
+    }, 100);
+
+    setTimeout(() => clearInterval(waitForReady), 12000);
 }
 
 // NEW: SHARE VIEW — zoom to shared marker
