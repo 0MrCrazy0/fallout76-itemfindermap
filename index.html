@@ -1421,7 +1421,7 @@ document.addEventListener('DOMContentLoaded', function() {
             saveLocations();
             forceReload();
             postcardModal.style.display = 'none';
-            const url = `${window.location.origin}${window.location.pathname}?postcard=${loc.id}`;
+            const url = `${window.location.origin}${window.location.pathname}?postcard=${loc.id}&lat=${Math.round(loc.lat)}&lng=${Math.round(loc.lng)}`;
             navigator.clipboard.writeText(url).then(() => {
                 showTempMessage('Postcard link copied!', 4000);
                 playSound('postcard');
@@ -1431,32 +1431,32 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         const urlParams = new URLSearchParams(window.location.search);
 
-// POSTCARD LINK — works even if the postcard doesn't exist yet
+// POSTCARD LINK — works 100% for anyone, even if marker doesn't exist
 if (urlParams.has('postcard')) {
-    const postcardId = urlParams.get('postcard');
+    const id = urlParams.get('postcard');
+    const lat = parseFloat(urlParams.get('lat'));
+    const lng = parseFloat(urlParams.get('lng'));
 
-    // Try to find it immediately (in case it already exists)
-    const existingLoc = locations.find(l => l.id === postcardId);
-    if (existingLoc && existingLoc.isPostcard) {
+    if (!isNaN(lat) && !isNaN(lng)) {
+        // Look for existing, or create new postcard
+        let loc = locations.find(l => l.id === id);
+        if (!loc) {
+            loc = createNewLocation(lat, lng, 'misc', 'Postcard from friend!', true);
+            loc.id = id; // force the ID from URL
+            locations.push(loc);
+            saveLocations();
+            forceReload();
+        }
+
         setTimeout(() => {
-            safeFlyTo(existingLoc.lat, existingLoc.lng, 4);
-            setTimeout(() => showPostcardMarker(existingLoc), 800);
+            safeFlyTo(lat, lng, 4);
+            setTimeout(() => {
+                const marker = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === id);
+                if (marker) marker.openPopup();
+            }, 800);
+            showTempMessage('Postcard received & loaded!', 5000);
+            playSound('postcard');
         }, 1200);
-    } else {
-        // Wait for the marker to be created (e.g. from sync or paste)
-        const checkInterval = setInterval(() => {
-            const loc = locations.find(l => l.id === postcardId);
-            if (loc && loc.isPostcard) {
-                clearInterval(checkInterval);
-                safeFlyTo(loc.lat, loc.lng, 4);
-                setTimeout(() => showPostcardMarker(loc), 800);
-                showTempMessage('Postcard received from friend!', 4000);
-                playSound('postcard');
-            }
-        }, 500);
-
-        // Safety: stop checking after 15 seconds
-        setTimeout(() => clearInterval(checkInterval), 15000);
     }
 }
 
