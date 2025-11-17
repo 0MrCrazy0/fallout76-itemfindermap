@@ -1180,15 +1180,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(() => combinedSearch.style.boxShadow = '', 1500);
             }
             refreshTable(val, categoryFilter.value);
-			updateMapVisibility();
+			loadData(combinedSearch.value, categoryFilter.value);
 			playSound('selectcategory');
         });
 		
 		categoryFilter.onchange = () => {
-    currentCategoryFilter = categoryFilter.value;
-    localStorage.setItem('currentCategoryFilter', currentCategoryFilter);
-    refreshTable(combinedSearch.value, categoryFilter.value);
-    updateMapVisibility();
+    loadData(combinedSearch.value, categoryFilter.value);
     playSound('selectcategory');
 };
 
@@ -1851,7 +1848,7 @@ else if (urlParams.has('lat') && urlParams.has('lng')) {
         }
     });
     if (!popupIsOpen) {
-        updateMapVisibility();   // Only update map when NO popup is open
+        loadData(combinedSearch.value, categoryFilter.value);   // Only update map when NO popup is open
     }
 
     // Still update glow + dragging + table every second
@@ -2244,12 +2241,23 @@ function triggerNuke() {
             playSound('click');
         };
         toggleClusterBtn.onclick = () => {
-            clusteringEnabled = !clusteringEnabled;
-            localStorage.setItem('clusteringEnabled', clusteringEnabled);
-            toggleClusterBtn.textContent = `Clustering: ${clusteringEnabled ? 'On' : 'Off'}`;
-            forceReload();
-            playSound('click');
-        };
+    clusteringEnabled = !clusteringEnabled;
+    localStorage.setItem('clusteringEnabled', clusteringEnabled);
+    toggleClusterBtn.textContent = `Clustering: ${clusteringEnabled ? 'On' : 'Off'}`;
+
+    // ← SAVE current category before reload
+    const currentCat = categoryFilter.value;
+
+    forceReload();
+
+    // ← Restore it instantly after reload
+    setTimeout(() => {
+        if (categoryFilter.querySelector(`option[value="${currentCat}"]`)) {
+            categoryFilter.value = currentCat;
+        }
+        playSound('click');
+    }, 100);
+};
         toggleMapBtn.onclick = () => {
             currentMap = currentMap === 'named' ? 'noName' : 'named';
             localStorage.setItem('currentMap', currentMap);
@@ -2430,56 +2438,12 @@ function triggerNuke() {
             openModal('Log Item');
             playSound('click');
         });
-		
-		function updateMapVisibility() {
-    const selectedCat = categoryFilter.value || '';
-
-    // 1. Find which marker currently has an open popup
-    let openMarkerId = null;
-    let openLatLng = null;
-    map.eachLayer(layer => {
-        if (layer.getPopup && layer.getPopup() && layer.getPopup().isOpen()) {
-            openMarkerId = layer.options.id;
-            openLatLng = layer.getLatLng();
-        }
-    });
-
-    // 2. DON'T clearLayers() — just hide/show individual markers
-    [clusteredMarkers, nonClusteredMarkers].forEach(group => {
-        group.eachLayer(marker => {
-            const loc = locations.find(l => l.id === marker.options.id);
-            if (!loc) return;
-
-            const shouldShow = activeCategories.has(loc.category) &&
-                              (!selectedCat || loc.category === selectedCat);
-
-            if (shouldShow && !map.hasLayer(marker)) {
-                map.addLayer(marker);
-            } else if (!shouldShow && map.hasLayer(marker)) {
-                map.removeLayer(marker);
-            }
-        });
-    });
-
-    // 3. Re-open popup instantly — no flash because marker never died
-    if (openMarkerId && openLatLng) {
-        setTimeout(() => {
-            const marker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
-                .find(m => m.options.id === openMarkerId);
-            if (marker && marker.getPopup()) {
-                marker.openPopup();
-                map.panTo(openLatLng, { animate: false }); // keep exact position
-            }
-        }, 0);
-    }
-}
 
         updateCategoryDropdowns();
         renderCategoryToggles();
         loadData(currentSearch, currentCategoryFilter);
         drawGrid();
         updateXPBar();
-		updateMapVisibility();
 		playSound('selectcategory');
         setTimeout(() => document.body.classList.add('map-ready'), 1000);
 
