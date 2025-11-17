@@ -1437,7 +1437,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
         const urlParams = new URLSearchParams(window.location.search);
 
-// POSTCARD LINK — works 100% for anyone, keeps the real message + auto-opens popup
+// POSTCARD LINK — 100% auto-open for everyone (sender AND receiver)
 if (urlParams.has('postcard')) {
     const id = urlParams.get('postcard');
     const lat = parseFloat(urlParams.get('lat'));
@@ -1445,30 +1445,31 @@ if (urlParams.has('postcard')) {
     const msg = decodeURIComponent(urlParams.get('msg') || 'Postcard from a friend!');
 
     if (!isNaN(lat) && !isNaN(lng)) {
-        // Look for existing postcard
         let loc = locations.find(l => l.id === id);
-
-        // If not found — create it with the real message
         if (!loc) {
             loc = createNewLocation(lat, lng, 'misc', msg, true);
-            loc.id = id; // force the original ID
+            loc.id = id;
             locations.push(loc);
             saveLocations();
-            forceReload();
+            forceReload(); // this rebuilds the marker with proper popup
         }
 
-        // Zoom + open the postcard popup
         setTimeout(() => {
             safeFlyTo(lat, lng, 4);
             showTempMessage('Postcard received!', 4000);
             playSound('postcard');
 
-            setTimeout(() => {
+            // ← THIS IS THE KEY: wait for forceReload() to finish and marker to exist
+            const waitForMarker = setInterval(() => {
                 const marker = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === id);
                 if (marker) {
-                    marker.openPopup();  // This opens the speech bubble!
+                    clearInterval(waitForMarker);
+                    marker.openPopup(); // ← auto-open speech bubble
                 }
-            }, 1000);
+            }, 100);
+
+            // safety timeout
+            setTimeout(() => clearInterval(waitForMarker), 5000);
         }, 1200);
     }
 }
