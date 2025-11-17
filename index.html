@@ -1466,7 +1466,7 @@ if (urlParams.has('postcard')) {
             setTimeout(() => {
                 const marker = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === id);
                 if (marker) marker.openPopup();
-            }, 6000);
+            }, 15000);
         }
     }, 100);
 
