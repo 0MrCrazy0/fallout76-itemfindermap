@@ -1435,7 +1435,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
         const urlParams = new URLSearchParams(window.location.search);
 
-// POSTCARD LINK — FINAL VERSION: message preserved + auto zoom + auto popup for everyone
+// POSTCARD LINK — FINAL VERSION THAT WORKS 100% FOR YOUR FRIEND (popup forced open)
 if (urlParams.has('postcard')) {
     const id  = urlParams.get('postcard');
     const lat = parseFloat(urlParams.get('lat'));
@@ -1446,7 +1446,7 @@ if (urlParams.has('postcard')) {
 
     if (isNaN(lat) || isNaN(lng)) return;
 
-    // Create postcard if missing — with the REAL message
+    // 1. Create postcard if missing
     if (!locations.find(l => l.id === id)) {
         const loc = createNewLocation(lat, lng, 'misc', msg, true);
         loc.id = id;
@@ -1454,10 +1454,13 @@ if (urlParams.has('postcard')) {
         saveLocations();
     }
 
-    // Wait for map to be ready, then zoom + open popup
-    const waitForReady = setInterval(() => {
+    // 2. Full reload to rebuild everything
+    forceReload();
+
+    // 3. Wait for map ready, then FORCE the popup open with fresh content
+    const check = setInterval(() => {
         if (document.body.classList.contains('map-ready')) {
-            clearInterval(waitForReady);
+            clearInterval(check);
 
             safeFlyTo(lat, lng, 4);
             showTempMessage('Postcard received!', 4000);
@@ -1465,12 +1468,17 @@ if (urlParams.has('postcard')) {
 
             setTimeout(() => {
                 const marker = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === id);
-                if (marker) marker.openPopup();
-            }, 50);
+                if (marker) {
+                    // FORCE REBUILD the popup content
+                    marker.unbindPopup();
+                    marker.bindPopup(createPopupContent(marker._loc || {desc: msg, id: id}), { maxWidth: 320, offset: [0, -20] });
+                    marker.openPopup();
+                }
+            }, 800);
         }
     }, 100);
 
-    setTimeout(() => clearInterval(waitForReady), 12000);
+    setTimeout(() => clearInterval(check), 12000);
 }
 
 // NEW: SHARE VIEW — zoom to shared marker
@@ -1772,6 +1780,7 @@ else if (urlParams.has('lat') && urlParams.has('lng')) {
                 draggable: !loc.locked && !loc.isPostcard
             });
             attachDragHandler(marker, loc);
+			marker._loc = loc;
             const textOnly = ['named locations', 'regions'].includes(loc.category);
             (clusteringEnabled && !textOnly ? clusteredMarkers : nonClusteredMarkers).addLayer(marker);
             if (isGlowing(loc)) {
