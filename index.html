@@ -1414,23 +1414,27 @@ document.addEventListener('DOMContentLoaded', function() {
             playSound('click');
         });
         document.getElementById('createPostcardBtn')?.addEventListener('click', () => {
-            const msg = document.getElementById('postcardMessage')?.value.trim();
-            if (!msg || !currentPostcardLatLng) return;
-            const loc = createNewLocation(currentPostcardLatLng.lat, currentPostcardLatLng.lng, 'misc', msg, true);
-            locations.push(loc);
-            saveLocations();
-            forceReload();
-            postcardModal.style.display = 'none';
-            // Encode the message safely in the URL
-const message = encodeURIComponent(loc.desc.trim() || 'Check this spot!');
-const url = `${window.location.origin}${window.location.pathname}?postcard=${loc.id}&lat=${Math.round(loc.lat)}&lng=${Math.round(loc.lng)}&msg=${message}`;
-navigator.clipboard.writeText(url);
-showTempMessage('Postcard link with your message copied!', 4000);
-playSound('postcard');
-            });
-            setTimeout(() => showPostcardMarker(loc), 500);
-            startPostcardTicker();
-        });
+    const msg = document.getElementById('postcardMessage')?.value.trim() || 'Check this spot!';
+    if (!currentPostcardLatLng) return;
+
+    const loc = createNewLocation(currentPostcardLatLng.lat, currentPostcardLatLng.lng, 'misc', msg, true);
+    locations.push(loc);
+    saveLocations();
+    forceReload();
+    postcardModal.style.display = 'none';
+
+    // ← THIS LINE WAS BROKEN BEFORE — now fixed
+    const encodedMsg = encodeURIComponent(msg);
+    const url = `${window.location.origin}${window.location.pathname}?postcard=${loc.id}&lat=${Math.round(loc.lat)}&lng=${Math.round(loc.lng)}&msg=${encodedMsg}`;
+    
+    navigator.clipboard.writeText(url).then(() => {
+        showTempMessage('Postcard link with your message copied!', 4000);
+        playSound('postcard');
+    });
+
+    setTimeout(() => showPostcardMarker(loc), 500);
+    startPostcardTicker();
+});
         const urlParams = new URLSearchParams(window.location.search);
 
 // POSTCARD LINK — works 100% for anyone, keeps the real message + auto-opens popup
