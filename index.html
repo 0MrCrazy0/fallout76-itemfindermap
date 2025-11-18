@@ -745,6 +745,14 @@
     }
 .leaflet-control-attribution.leaflet-control {
     display: none;
+    }
+	#resetAppBtn {
+    color: #000 !important;
+    }
+	#confirmModalBtn,
+    #updateGotIt {
+    color: #000 !important;
+    background: #00ff00 !important;
 }
     </style>
 </head>
@@ -2066,11 +2074,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         function forceReload() {
-            saveAppState();
-            loadData(combinedSearch?.value || '', categoryFilter?.value || '');
-            renderCategoryToggles();
-            updateCategoryDropdowns();
-        }
+    // Save the currently selected category in the modal (if modal is open)
+    const modalOpen = itemModal.style.display === 'block';
+    const currentModalCategory = modalOpen ? (locations[currentIndex]?.category || itemCategorySelect.value) : null;
+
+    saveAppState();
+    loadData(combinedSearch?.value || '', categoryFilter?.value || '');
+    renderCategoryToggles();
+    updateCategoryDropdowns();
+
+    // CRITICAL: Restore the category AFTER dropdown rebuild
+    if (modalOpen && currentModalCategory) {
+        setTimeout(() => {
+            itemCategorySelect.value = currentModalCategory;
+        }, 50);
+    }
+}
 
         function saveAppState() {
             localStorage.setItem('currentSearch', combinedSearch?.value || '');
@@ -2277,7 +2296,7 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleSoundsBtn.onclick = () => {
             soundsEnabled = !soundsEnabled;
             localStorage.setItem('soundsEnabled', soundsEnabled);
-            toggleSoundsBtn.textContent = soundsEnabled ? 'SOUNDS ON' : 'SOUNDS OFF';
+            toggleSoundsBtn.textContent = soundsEnabled ? 'Sounds: On' : 'Sounds: Off';
             playSound('click');
         };
 
@@ -2589,7 +2608,7 @@ document.addEventListener('DOMContentLoaded', function() {
             darkMode = !darkMode;
             document.body.classList.toggle('dark-mode', darkMode);
             localStorage.setItem('darkMode', darkMode);
-            toggleDarkModeBtn.textContent = darkMode ? 'DARK MODE ON' : 'DARK MODE OFF';
+            toggleDarkModeBtn.textContent = darkMode ? 'Dark mode: On' : 'Dark mode: Off';
             resetAppBtn.style.color = '#000';
             playSound('click');
         };
