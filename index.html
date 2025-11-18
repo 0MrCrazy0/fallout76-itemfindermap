@@ -857,7 +857,7 @@
             <div style="text-align:center; margin:15px 0;">
                 <button id="resetAppBtn" class="reset-btn">Reset App (for debugging only)</button>
             </div>
-            <p class="small"><br>Love the Item Finder? Support MrCrazy with a <a href="https://buymeacoffee.com/mrcrazy" target="_blank">Nuka-Cola</a>!</p>
+            <p class="small"><br>❤️ the Item Finder? Support MrCrazy with a <a href="https://buymeacoffee.com/mrcrazy" target="_blank">Nuka-Cola</a>!</p>
             <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version v76.1.0 Made By MrCrazy</p>
         </div>
     </div>
@@ -868,7 +868,7 @@
             <span class="close">X</span>
             <h1>Nuke Codes</h1>
             <div class="nuke-emoji-wrapper">
-                <a href="https://www.falloutbuilds.com/fo76/nuke-codes/" target="_blank" rel="noopener noreferrer" class="nuke-emoji-btn" title="Launch codes – click the rocket">Launch</a>
+                <a href="https://www.falloutbuilds.com/fo76/nuke-codes/" target="_blank" rel="noopener noreferrer" class="nuke-emoji-btn" title="Launch codes – click the rocket">🚀</a>
             </div>
             <p style="text-align:center; margin-top:20px;">
                 <strong>Weekly launch codes — always up to date!</strong>
@@ -932,7 +932,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const MAP_VERSION_KEY = 'fallout76_map_version';
         const CURRENT_UPDATE_VERSION = 'v76.1.0';
         const APP_VERSION = "v76.1.0";
-
         let soundsEnabled = localStorage.getItem('soundsEnabled') !== 'false';
         const baseSounds = {
             click: new Audio("https://rpg.hamsterrepublic.com/wiki-images/8/84/Select8-Bit.ogg"),
@@ -955,7 +954,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 baseSounds[type].play().catch(() => {});
             }
         }
-
         function generateUniqueId() { return 'id-' + crypto.randomUUID(); }
         function generateCid(loc) {
             const desc = (loc.desc || '').toString().toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '_');
@@ -963,7 +961,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const lng = Math.round(loc.lng);
             return `${loc.category}_${desc}_${lat}_${lng}`;
         }
-
         let locations = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
         locations.forEach(loc => {
             if (!loc.id) loc.id = generateUniqueId();
@@ -976,7 +973,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (loc.keepBtnBound === undefined) loc.keepBtnBound = false;
         });
         localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
-
         let postcardTicker = null;
         function startPostcardTicker() {
             if (postcardTicker) return;
@@ -1003,10 +999,8 @@ document.addEventListener('DOMContentLoaded', function() {
         function stopPostcardTicker() {
             if (postcardTicker) { clearInterval(postcardTicker); postcardTicker = null; }
         }
-
         let customCategories = JSON.parse(localStorage.getItem(CUSTOM_CATEGORIES_KEY)) || {};
         let communityVersion = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
-
         const defaultCategoryIcons = {
         'weapons': '🔫', 'armor': '🛡️', 'aid': '💉', 'food/drink': '🍽️', 'ammunition': '💥',
         'apparel': '👕', 'plans': '📜', 'junk': '🗑️', 'holotapes': '📀', 'misc': '📝',
@@ -1018,7 +1012,6 @@ document.addEventListener('DOMContentLoaded', function() {
         'event locations': '🎉', 'named locations': '🚩', 'regions': '📍'
         };
         let categoryIcons = { ...defaultCategoryIcons, ...customCategories };
-
         const defaultCategoryColors = {
             'weapons': '#ff4444', 'armor': '#4682b4', 'aid': '#32cd32', 'food/drink': '#adff2f',
             'ammunition': '#ff8c00', 'apparel': '#dda0dd', 'plans': '#a0522d', 'junk': '#808080',
@@ -1031,7 +1024,6 @@ document.addEventListener('DOMContentLoaded', function() {
             'regions': '#00ff00', 'named locations': '#ffffff'
         };
         let categoryColors = { ...defaultCategoryColors };
-
         const map = L.map('map', {
             crs: L.CRS.Simple,
             minZoom: -3,
@@ -1050,12 +1042,10 @@ document.addEventListener('DOMContentLoaded', function() {
         let imageOverlay = L.imageOverlay(mapUrls[currentMap], imageBounds).addTo(map);
         map.fitBounds(imageBounds);
         L.control.zoom({ position: 'topleft' }).addTo(map);
-
         const clusteredMarkers = L.markerClusterGroup({ maxClusterRadius: 30, disableClusteringAtZoom: 2, animate: true, spiderfyOnMaxZoom: true });
         const nonClusteredMarkers = L.layerGroup();
         map.addLayer(clusteredMarkers);
         map.addLayer(nonClusteredMarkers);
-
         let lastDeleted = null;
         let currentIndex = -1;
         let tempLatLng = { lat: 0, lng: 0 };
@@ -1081,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let toolsVisible = localStorage.getItem('toolsVisible') !== 'false';
         let currentPostcardLatLng = null;
         let lastMovedMarker = null;
-		let lastLevel = level;
+        let lastLevel = level;
 
         const itemModal = document.getElementById('itemModal');
         const deleteBtn = document.getElementById('deleteItemBtn');
@@ -1141,7 +1131,6 @@ document.addEventListener('DOMContentLoaded', function() {
         combinedSearch.style.cssText += 'width:260px;height:42px;font-size:16px;padding-right:40px;box-sizing:border-box;';
         categoryFilter.style.cssText += 'height:42px;font-size:16px;min-width:160px;';
         toggleCategoryModalBtn.style.cssText += 'height:42px;min-width:150px;padding:0 8px;font 14px;white-space:nowrap;';
-
         clearBtn.onclick = () => {
             combinedSearch.value = '';
             combinedSearch.focus();
@@ -1180,14 +1169,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(() => combinedSearch.style.boxShadow = '', 1500);
             }
             refreshTable(val, categoryFilter.value);
-			loadData(combinedSearch.value, categoryFilter.value);
-			playSound('selectcategory');
+            loadData(combinedSearch.value, categoryFilter.value);
+            playSound('selectcategory');
         });
-		
-		categoryFilter.onchange = () => {
-    loadData(combinedSearch.value, categoryFilter.value);
-    playSound('selectcategory');
-};
+        categoryFilter.onchange = () => {
+            loadData(combinedSearch.value, categoryFilter.value);
+            playSound('selectcategory');
+        };
 
         function updateLockAllBtn() {
             const hasUnlocked = locations.some(l => !l.locked && !l.isPostcard);
@@ -1246,7 +1234,7 @@ document.addEventListener('DOMContentLoaded', function() {
             saveLocations();
             forceReload();
             map.closePopup();
-            showTempMessage(loc.locked ? 'LOCKED' : 'UNLOCKED', 3000);
+            showTempMessage(loc.locked ? '🔐':'🔓', 3000);
             playSound('click');
         };
 
@@ -1299,7 +1287,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        function getGridFromLatLng(lat, lng) {
+                function getGridFromLatLng(lat, lng) {
             const gridSize = 10;
             const cellSize = 4096 / gridSize;
             const col = Math.floor(lng / cellSize);
@@ -1403,6 +1391,7 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         document.body.appendChild(postcardModal);
         postcardModal.querySelector('.close').onclick = () => postcardModal.style.display = 'none';
+
         map.on('contextmenu', e => {
             L.DomEvent.preventDefault(e);
             const clickedOnMarker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
@@ -1413,86 +1402,75 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('postcardMessage')?.focus();
             playSound('click');
         });
+
         document.getElementById('createPostcardBtn')?.addEventListener('click', () => {
-    const msg = document.getElementById('postcardMessage')?.value.trim() || 'Check this spot!';
-    if (!currentPostcardLatLng) return;
+            const msg = document.getElementById('postcardMessage')?.value.trim() || 'Check this spot!';
+            if (!currentPostcardLatLng) return;
+            const loc = createNewLocation(currentPostcardLatLng.lat, currentPostcardLatLng.lng, 'misc', msg, true);
+            locations.push(loc);
+            saveLocations();
+            forceReload();
+            postcardModal.style.display = 'none';
+            const encodedMsg = encodeURIComponent(msg);
+            const url = `${window.location.origin}${window.location.pathname}?postcard=${loc.id}&lat=${Math.round(loc.lat)}&lng=${Math.round(loc.lng)}&msg=${encodedMsg}`;
+            navigator.clipboard.writeText(url).then(() => {
+                showTempMessage('Postcard link with your message copied!', 4000);
+                playSound('postcard');
+            });
+            setTimeout(() => showPostcardMarker(loc), 500);
+            startPostcardTicker();
+        });
 
-    const loc = createNewLocation(currentPostcardLatLng.lat, currentPostcardLatLng.lng, 'misc', msg, true);
-    locations.push(loc);
-    saveLocations();
-    forceReload();
-    postcardModal.style.display = 'none';
-    const encodedMsg = encodeURIComponent(msg);
-    const url = `${window.location.origin}${window.location.pathname}?postcard=${loc.id}&lat=${Math.round(loc.lat)}&lng=${Math.round(loc.lng)}&msg=${encodedMsg}`;
-    
-    navigator.clipboard.writeText(url).then(() => {
-        showTempMessage('Postcard link with your message copied!', 4000);
-        playSound('postcard');
-    });
-
-    setTimeout(() => showPostcardMarker(loc), 500);
-    startPostcardTicker();
-});
-        const urlParams = new URLSearchParams(window.location.search);
-
-// POSTCARD LINK — FINAL VERSION THAT WORKS 100% FOR YOUR FRIEND (popup forced open)
-if (urlParams.has('postcard')) {
-    const id  = urlParams.get('postcard');
-    const lat = parseFloat(urlParams.get('lat'));
-    const lng = parseFloat(urlParams.get('lng'));
-    const msg = urlParams.has('msg') 
-        ? decodeURIComponent(urlParams.get('msg').replace(/\+/g, ' ')) 
-        : 'Postcard from a friend!';
-
-    if (isNaN(lat) || isNaN(lng)) return;
-
-    // 1. Create postcard if missing
-    if (!locations.find(l => l.id === id)) {
-        const loc = createNewLocation(lat, lng, 'misc', msg, true);
-        loc.id = id;
-        locations.push(loc);
-        saveLocations();
-    }
-
-    // 2. Full reload to rebuild everything
-    forceReload();
-
-    // 3. Wait for map ready, then FORCE the popup open with fresh content
-    const check = setInterval(() => {
-        if (document.body.classList.contains('map-ready')) {
-            clearInterval(check);
-
-            safeFlyTo(lat, lng, 4);
-            showTempMessage('Postcard received!', 4000);
-            playSound('postcard');
-
-            setTimeout(() => {
-                const marker = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === id);
-                if (marker) {
-                    // FORCE REBUILD the popup content
-                    marker.unbindPopup();
-                    marker.bindPopup(createPopupContent(marker._loc || {desc: msg, id: id}), { maxWidth: 320, offset: [0, -20] });
-                    marker.openPopup();
+                const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('postcard')) {
+            const id = urlParams.get('postcard');
+            const lat = parseFloat(urlParams.get('lat'));
+            const lng = parseFloat(urlParams.get('lng'));
+            const msg = urlParams.has('msg')
+                ? decodeURIComponent(urlParams.get('msg').replace(/\+/g, ' '))
+                : 'Postcard from a friend!';
+            if (isNaN(lat) || isNaN(lng)) return;
+            if (!locations.find(l => l.id === id)) {
+                const loc = createNewLocation(lat, lng, 'misc', msg, true);
+                loc.id = id;
+                locations.push(loc);
+                saveLocations();
+            }
+            forceReload();
+            const check = setInterval(() => {
+                if (document.body.classList.contains('map-ready')) {
+                    clearInterval(check);
+                    safeFlyTo(lat, lng, 1);
+                    showTempMessage('Postcard received!', 5000);
+                    playSound('postcard');
+                    setTimeout(() => {
+                        let marker = nonClusteredMarkers.getLayers().find(m => m.options.id === id);
+                        if (!marker && clusteringEnabled) {
+                            marker = clusteredMarkers.getLayers().find(m => m.options.id === id);
+                        }
+                        if (marker) {
+                            marker.unbindPopup();
+                            marker.bindPopup(createPopupContent({ desc: msg, id: id }), { maxWidth: 320, offset: [0, -20] });
+                            marker.openPopup();
+                        }
+                    }, 1600);
                 }
-            }, 800);
+            }, 200);
+        } else if (urlParams.has('lat') && urlParams.has('lng')) {
+            const lat = parseFloat(urlParams.get('lat'));
+            const lng = parseFloat(urlParams.get('lng'));
+            if (!isNaN(lat) && !isNaN(lng)) {
+                setTimeout(() => {
+                    safeFlyTo(lat, lng, 4);
+                    showTempMessage('Shared view loaded!', 3000);
+                    playSound('click');
+                }, 1200);
+            }
         }
-    }, 100);
 
-    setTimeout(() => clearInterval(check), 12000);
-}
-
-// NEW: SHARE VIEW — zoom to shared marker
-else if (urlParams.has('lat') && urlParams.has('lng')) {
-    const lat = parseFloat(urlParams.get('lat'));
-    const lng = parseFloat(urlParams.get('lng'));
-    if (!isNaN(lat) && !isNaN(lng)) {
-        setTimeout(() => {
-            safeFlyTo(lat, lng, 4);  // Zoom level 4 = perfect close-up
-            showTempMessage('Shared view loaded!', 3000);
-            playSound('click');
-        }, 1200);
-    }
-}
+        // FIXED: SINGLE EXPORT BUTTON VISIBLE
+        exportOneBtn.style.display = 'inline-block';
+        exportOneBtn.textContent = 'Export Marker';
 
         function createPopupContent(loc) {
             const start = loc.startTime || Date.now();
@@ -1512,11 +1490,11 @@ else if (urlParams.has('lat') && urlParams.has('lng')) {
             const existing = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === loc.id);
             if (existing) existing.remove();
             const marker = L.marker([loc.lat, loc.lng], {
-                icon: L.divIcon({ 
-                    className: 'custom-icon glowing', 
-                    html: `<div class="marker-background" style="background-color:#f0e68c;"><span style="font-size:18px;">NOTE</span></div>`, 
-                    iconSize: [30, 30], 
-                    iconAnchor: [15, 15] 
+                icon: L.divIcon({
+                    className: 'custom-icon glowing',
+                    html: `<div class="marker-background" style="background-color:#f0e68c;"><span style="font-size:18px;">NOTE</span></div>`,
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
                 })
             }).addTo(nonClusteredMarkers);
             marker.options.id = loc.id;
@@ -1692,95 +1670,130 @@ else if (urlParams.has('lat') && urlParams.has('lng')) {
             openModal('Edit Item', index);
         };
 
+        // FIXED: SMOOTH DRAGGING — NO DROP
         function attachDragHandler(marker, loc) {
-            marker.on('add', () => {
-                const icon = marker._icon;
-                if (!icon) return;
-                let isDragging = false;
-                const onDragging = e => {
-                    if (!isDragging) return;
-                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                    const latlng = map.mouseEventToLatLng({ clientX, clientY });
-                    marker.setLatLng(latlng);
-                };
-                const onDragEnd = () => {
-                    if (!isDragging) return;
-                    isDragging = false;
-                    isDraggingAny = false;
-                    map.dragging.enable();
-                    L.DomUtil.removeClass(icon, 'dragging');
-                    L.DomEvent.off(document, 'mousemove touchmove', onDragging);
-                    L.DomEvent.off(document, 'mouseup touchend', onDragEnd);
-                    const { lat, lng } = marker.getLatLng();
-                    loc.lat = lat; loc.lng = lng;
-                    loc.desc = updateDescWithGrid(loc.desc, lat, lng);
-                    loc.addedTime = Date.now();
-                    loc.userEdited = true;
-                    loc.locked = true;
-                    lastMovedMarker = marker;
-                    saveLocations();
-                    playSound('saving');
-                    showTempMessage(`Moved + saved + LOCKED! ${loc.icon} ${loc.category}`, 4000);
-                    safeFlyTo(lat, lng);
-                    forceReload();
-                };
-                const onDragStart = e => {
-                    if (loc.locked || isDraggingAny || loc.isPostcard) return;
-                    L.DomEvent.preventDefault(e);
-                    isDragging = true;
-                    isDraggingAny = true;
-                    map.dragging.disable();
-                    L.DomUtil.addClass(icon, 'dragging');
-                    L.DomEvent.on(document, 'mousemove touchmove', onDragging);
-                    L.DomEvent.on(document, 'mouseup touchend', onDragEnd);
-                };
-                if (!loc.locked && !loc.isPostcard) marker.on('dragstart', onDragStart);
-                marker.on('click', () => {
-                    icon.classList.add('marker-flash');
-                    setTimeout(() => icon.classList.remove('marker-flash'), 3000);
-                });
-                icon.addEventListener('mouseenter', () => icon.classList.add('marker-hover'));
-                icon.addEventListener('mouseleave', () => icon.classList.remove('marker-hover'));
-                if (loc.isPostcard) {
-                    marker.bindPopup(() => createPopupContent(loc), { maxWidth: 320, offset: [0, -20] });
-                    marker.on('popupopen', () => {
-                        const popup = marker.getPopup();
-                        if (popup) {
-                            popup.setContent(createPopupContent(loc));
-                            setTimeout(() => bindKeepButton(loc), 50);
-                            const timerEl = document.getElementById(`postcardTimer_${loc.id}`);
-                            if (timerEl) {
-                                const start = loc.startTime || Date.now();
-                                const timeLeft = Math.max(0, 300000 - (Date.now() - start));
-                                const mins = Math.floor(timeLeft / 60000);
-                                const secs = Math.floor((timeLeft % 60000) / 1000).toString().padStart(2, '0');
-                                timerEl.textContent = `${mins}:${secs}`;
-                            }
-                            startPostcardTicker();
-                        }
-                    });
+    marker.on('add', () => {
+        const icon = marker._icon;
+        if (!icon) return;
+        let isDragging = true;
+            const onDragging = (e) => {
+                if (!isDragging) return;
+                let clientX, clientY;
+                if (e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
                 } else {
-                    marker.bindPopup(`
-                        <b>${loc.icon} ${loc.category.toUpperCase()}</b><br>
-                        <div style="max-height:80px;overflow-y:auto;margin:4px 0;padding-right:8px;">${escapeHtml(loc.desc)}</div>
-                        <div style="margin:6px 0;text-align:center;">
-                            <span class="popup-lock-toggle" onclick="toggleLockFromPopup(${locations.indexOf(loc)})">${loc.locked?'🔐':'🔓'}</span>
-                        </div>
-                        <button onclick="editMarkerFromPopup(${locations.indexOf(loc)})">Edit</button>
-                    `, { maxWidth: 260, offset: [0, -20] });
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                const latlng = map.mouseEventToLatLng({ clientX: clientX, clientY: clientY });
+                marker.setLatLng(latlng);
+            };
+                    const onDragEnd = () => {
+            if (!isDragging) return;
+            isDragging = true;
+            isDraggingAny = true;
+            map.dragging.enable();
+
+            // Reset to normal Leaflet positioning
+            icon.style.left = '';
+            icon.style.top = '';
+            icon.style.marginLeft = '';
+            icon.style.marginTop = '';
+            icon.style.position = '';
+            icon.style.zIndex = '';
+            L.DomUtil.removeClass(icon, 'dragging');
+
+            L.DomEvent.off(document, 'mousemove touchmove', onDragging);
+            L.DomEvent.off(document, 'mouseup touchend', onDragEnd);
+
+            const { lat, lng } = marker.getLatLng();
+            loc.lat = lat;
+            loc.lng = lng;
+            loc.desc = updateDescWithGrid(loc.desc, lat, lng);
+            loc.addedTime = Date.now();
+            loc.userEdited = true;
+            loc.locked = true;
+            lastMovedMarker = marker;
+            saveLocations();
+            playSound('saving');
+            showTempMessage(`Moved + saved + LOCKED! ${loc.icon}`, 4000);
+            safeFlyTo(lat, lng);
+            forceReload();
+        };
+
+        const onDragStart = (e) => {
+            if (loc.locked || isDraggingAny) return;
+            if (e.touches) L.DomEvent.preventDefault(e);
+            isDragging = true;
+            isDraggingAny = true;
+            map.dragging.disable();
+            L.DomUtil.addClass(marker._icon, 'dragging');
+            if (activeMessageControl) {
+                map.removeControl(activeMessageControl);
+                activeMessageControl = null;
+            }
+            L.DomEvent.on(document, 'mousemove', onDragging);
+            L.DomEvent.on(document, 'mouseup', onDragEnd);
+            L.DomEvent.on(document, 'touchmove', onDragging);
+            L.DomEvent.on(document, 'touchend', onDragEnd);
+        };
+
+        if (!loc.locked && !loc.isPostcard) {
+            marker.on('dragstart', onDragStart);
+        }
+
+        marker.on('click', e => {
+            if (isDragging) {
+                isDragging = true;
+                return;
+            }
+            icon.classList.add('marker-flash');
+            setTimeout(() => icon.classList.remove('marker-flash'), 3000);
+        });
+
+        icon.addEventListener('mouseenter', () => icon.classList.add('marker-hover'));
+        icon.addEventListener('mouseleave', () => icon.classList.remove('marker-hover'));
+
+        // Postcard popup (unchanged)
+        if (loc.isPostcard) {
+            marker.bindPopup(() => createPopupContent(loc), { maxWidth: 320, offset: [0, -20] });
+            marker.on('popupopen', () => {
+                const popup = marker.getPopup();
+                if (popup) {
+                    popup.setContent(createPopupContent(loc));
+                    setTimeout(() => bindKeepButton(loc), 50);
+                    const timerEl = document.getElementById(`postcardTimer_${loc.id}`);
+                    if (timerEl) {
+                        const start = loc.startTime || Date.now();
+                        const timeLeft = Math.max(0, 300000 - (Date.now() - start));
+                        const mins = Math.floor(timeLeft / 60000);
+                        const secs = Math.floor((timeLeft % 60000) / 1000).toString().padStart(2, '0');
+                        timerEl.textContent = `${mins}:${secs}`;
+                    }
+                    startPostcardTicker();
                 }
             });
+        } else {
+            marker.bindPopup(`
+                <b>${loc.icon} ${loc.category.toUpperCase()}</b><br>
+                <div style="max-height:80px;overflow-y:auto;margin:4px 0;padding-right:8px;">${escapeHtml(loc.desc)}</div>
+                <div style="margin:6px 0;text-align:center;">
+                    <span class="popup-lock-toggle" onclick="toggleLockFromPopup(${locations.indexOf(loc)})">${loc.locked?'🔐':'🔓'}</span>
+                </div>
+                <button onclick="editMarkerFromPopup(${locations.indexOf(loc)})">Edit</button>
+            `, { maxWidth: 260, offset: [0, -20] });
         }
+    });
+}
 
         function addMarkerToMap(loc) {
             const marker = L.marker([loc.lat, loc.lng], {
                 icon: createMarkerIcon(loc),
                 id: loc.id,
-                draggable: !loc.locked && !loc.isPostcard
+                draggable: false
             });
             attachDragHandler(marker, loc);
-			marker._loc = loc;
             const textOnly = ['named locations', 'regions'].includes(loc.category);
             (clusteringEnabled && !textOnly ? clusteredMarkers : nonClusteredMarkers).addLayer(marker);
             if (isGlowing(loc)) {
@@ -1839,7 +1852,7 @@ else if (urlParams.has('lat') && urlParams.has('lng')) {
                     <td>${escapeHtml(short)}</td>
                 `;
                 tr.onclick = e => {
-                    if (e.target.tagName==='SPAN' && !loc.isPostcard) return;
+                    if (e.target.tagName === 'SPAN' && !loc.isPostcard) return;
                     document.getElementById('map').scrollIntoView({behavior:'smooth'});
                     const targetLatLng = [loc.lat, loc.lng];
                     const duration = map.getZoom() < 2 ? 2.5 : 1.5;
@@ -1878,38 +1891,33 @@ else if (urlParams.has('lat') && urlParams.has('lng')) {
         };
 
         setInterval(() => {
-    if (document.visibilityState !== 'visible') return;
-
-    // ← THIS IS THE KEY: don't refresh map when any popup is open
-    let popupIsOpen = false;
-    map.eachLayer(layer => {
-        if (layer.getPopup && layer.getPopup() && layer.getPopup().isOpen()) {
-            popupIsOpen = true;
-        }
-    });
-    if (!popupIsOpen) {
-        loadData(combinedSearch.value, categoryFilter.value);   // Only update map when NO popup is open
-    }
-
-    // Still update glow + dragging + table every second
-    [clusteredMarkers, nonClusteredMarkers].forEach(g => g.eachLayer(m => {
-        const loc = locations.find(l => l.id === m.options.id);
-        if (!loc) return;
-        const glow = isGlowing(loc);
-        const icon = m.getIcon();
-        if (glow && !icon.options.className?.includes('glowing')) {
-            m.setIcon(createMarkerIcon(loc));
-            m.setZIndexOffset(10000);
-        } else if (!glow && icon.options.className?.includes('glowing')) {
-            m.setIcon(createMarkerIcon(loc));
-            m.setZIndexOffset(0);
-        }
-        loc.locked || loc.isPostcard ? m.dragging?.disable() : m.dragging?.enable();
-    }));
-
-    refreshTable(combinedSearch?.value || '', categoryFilter?.value || '');
-    updateLockAllBtn();
-}, 1000);
+            if (document.visibilityState !== 'visible') return;
+            let popupIsOpen = false;
+            map.eachLayer(layer => {
+                if (layer.getPopup && layer.getPopup() && layer.getPopup().isOpen()) {
+                    popupIsOpen = true;
+                }
+            });
+            if (!popupIsOpen) {
+                loadData(combinedSearch.value, categoryFilter.value);
+            }
+            [clusteredMarkers, nonClusteredMarkers].forEach(g => g.eachLayer(m => {
+                const loc = locations.find(l => l.id === m.options.id);
+                if (!loc) return;
+                const glow = isGlowing(loc);
+                const icon = m.getIcon();
+                if (glow && !icon.options.className?.includes('glowing')) {
+                    m.setIcon(createMarkerIcon(loc));
+                    m.setZIndexOffset(10000);
+                } else if (!glow && icon.options.className?.includes('glowing')) {
+                    m.setIcon(createMarkerIcon(loc));
+                    m.setZIndexOffset(0);
+                }
+                loc.locked || loc.isPostcard ? m.dragging?.disable() : m.dragging?.enable();
+            }));
+            refreshTable(combinedSearch?.value || '', categoryFilter?.value || '');
+            updateLockAllBtn();
+        }, 1000);
 
         function renderCategoryToggles() {
             const box = document.getElementById('categoryCheckboxes');
@@ -1936,40 +1944,37 @@ else if (urlParams.has('lat') && urlParams.has('lng')) {
         }
 
         function openModal(title, idx = -1) {
-    const loc = idx >= 0 ? locations[idx] : null;
-
-    const isCurrentlyLocked = loc ? loc.locked : false;
-
-    modalTitle.innerHTML = `${title} <span id="modalLockToggle" style="font-size:22px;cursor:pointer;margin-left:10px;">${isCurrentlyLocked ? 'LOCKED' : 'UNLOCKED'}</span>`;
-    currentIndex = idx;
-    itemCategorySelect.value = loc?.category || 'misc';
-    itemDescInput.value = loc?.desc || '';
-    itemCategorySelect.disabled = isCurrentlyLocked;
-    itemDescInput.disabled = isCurrentlyLocked;
-    deleteBtn.style.display = isCurrentlyLocked ? 'none' : 'inline-block';
-    duplicateBtn.style.display = isCurrentlyLocked ? 'none' : 'inline-block';
-
-    const modalToggle = document.getElementById('modalLockToggle');
-    if (modalToggle && loc) {
-        modalToggle.onclick = (e) => {
-            e.stopPropagation();
-            loc.locked = !loc.locked;                     
-            modalToggle.textContent = loc.locked ? '🔐':'🔓';
-            itemCategorySelect.disabled = loc.locked;
-            itemDescInput.disabled = loc.locked;
-            deleteBtn.style.display = loc.locked ? 'none' : 'inline-block';
-            duplicateBtn.style.display = loc.locked ? 'none' : 'inline-block';
-            saveLocations();
-            forceReload();
-            showTempMessage(loc.locked ? '🔐':'🔓', 2000);
+            const loc = idx >= 0 ? locations[idx] : null;
+            const isCurrentlyLocked = loc ? loc.locked : false;
+            modalTitle.innerHTML = `${title} <span id="modalLockToggle" style="font-size:22px;cursor:pointer;margin-left:10px;">${isCurrentlyLocked ? '🔐':'🔓'}</span>`;
+            currentIndex = idx;
+            itemCategorySelect.value = loc?.category || 'misc';
+            itemDescInput.value = loc?.desc || '';
+            itemCategorySelect.disabled = isCurrentlyLocked;
+            itemDescInput.disabled = isCurrentlyLocked;
+            deleteBtn.style.display = isCurrentlyLocked ? 'none' : 'inline-block';
+            duplicateBtn.style.display = isCurrentlyLocked ? 'none' : 'inline-block';
+            exportOneBtn.style.display = 'inline-block';
+            const modalToggle = document.getElementById('modalLockToggle');
+            if (modalToggle && loc) {
+                modalToggle.onclick = (e) => {
+                    e.stopPropagation();
+                    loc.locked = !loc.locked;
+                    modalToggle.textContent = loc.locked ? '🔐':'🔓';
+                    itemCategorySelect.disabled = loc.locked;
+                    itemDescInput.disabled = loc.locked;
+                    deleteBtn.style.display = loc.locked ? 'none' : 'inline-block';
+                    duplicateBtn.style.display = loc.locked ? 'none' : 'inline-block';
+                    saveLocations();
+                    forceReload();
+                    showTempMessage(loc.locked ? '🔐':'🔓', 2000);
+                    playSound('click');
+                };
+            }
+            itemModal.style.display = 'block';
+            document.body.classList.add('modal-open');
             playSound('click');
-        };
-    }
-
-    itemModal.style.display = 'block';
-    document.body.classList.add('modal-open');
-    playSound('click');
-}
+        }
 
         function closeModal(m) {
             m.style.display = 'none';
@@ -1978,71 +1983,62 @@ else if (urlParams.has('lat') && urlParams.has('lng')) {
         }
 
         function recalculateXP() {
-    const oldLevel = lastLevel;
-    xp = locations.filter(l => !l.isPostcard).length * xpPerMarker;
-    level = 1 + Math.floor(xp / xpPerLevel);
-    xp = xp % xpPerLevel;
-
-    // LEVEL UP DETECTED!
-    if (level > oldLevel) {
-        playSound('levelUp');
-        triggerConfetti();                    // every level
-        showTempMessage(`LEVEL UP → ${level}!`, 5000);
-
-        if (level % 10 === 0) {               // every 10 levels
-            triggerNuke();
+            const oldLevel = lastLevel;
+            xp = locations.filter(l => !l.isPostcard).length * xpPerMarker;
+            level = 1 + Math.floor(xp / xpPerLevel);
+            xp = xp % xpPerLevel;
+            if (level > oldLevel) {
+                playSound('levelUp');
+                triggerConfetti();
+                showTempMessage(`LEVEL UP → ${level}!`, 5000);
+                if (level % 10 === 0) triggerNuke();
+            }
+            localStorage.setItem('fo76_level', level);
+            localStorage.setItem('fo76_xp', xp);
+            lastLevel = level;
+            updateXPBar();
         }
-    }
 
-    localStorage.setItem('fo76_level', level);
-    localStorage.setItem('fo76_xp', xp);
-    lastLevel = level;   // update for next time
-    updateXPBar();
-}
+        function triggerConfetti() {
+            const fire = () => {
+                confetti({
+                    particleCount: 200,
+                    spread: 500,
+                    origin: { y: 0.60 },
+                    colors: ['#00ff00', '#00cc00', '#33ff33', '#00ff99'],
+                    ticks: 360,
+                    gravity: 0.5,
+                    scalar: 2.3
+                });
+            };
+            if (window.confettiReady) {
+                fire();
+            } else {
+                const start = Date.now();
+                const wait = setInterval(() => {
+                    if (window.confettiReady || Date.now() - start > 10000) {
+                        clearInterval(wait);
+                        if (typeof confetti === 'function') fire();
+                    }
+                }, 100);
+            }
+        }
 
-// GREEN GLOWING CONFETTI RAIN
-function triggerConfetti() {
-    const fire = () => {
-        confetti({
-            particleCount: 200,
-            spread: 500,
-            origin: { y: 0.60 },
-            colors: ['#00ff00', '#00cc00', '#33ff33', '#00ff99'],
-            ticks: 360,
-            gravity: 0.5,
-            scalar: 2.3
-        });
-    };
-    if (window.confettiReady) {
-        fire();
-    } else {
-        // Wait max 3 seconds for confetti to load, then fire anyway
-        const start = Date.now();
-        const wait = setInterval(() => {
-            if (window.confettiReady || Date.now() - start > 10000) {
-                clearInterval(wait);
-                if (typeof confetti === 'function') fire();
-            }
-        }, 100);
-    }
-}
-
-// NUKE EFFECT — map explodes, then back in 2 seconds
-function triggerNuke() {
-    const nuke = document.createElement('div');
-    nuke.style.cssText = `
-        position:fixed;top:0;left:0;width:100%;height:100%;background:#000;
-        z-index:99999;display:flex;align-items:center;justify-content:center;
-        flex-direction:column;pointer-events:none;
-    `;
-    nuke.innerHTML = `
-        <h1 style="color:#0f0;font-size:80px;animation:pulse 0.8s infinite;">☢ NUKE DETONATED ☢</h1>
-        <p style="color:#0f0;font-size:30px;">LEVEL ${level} ACHIEVED!</p>
-    `;
-    document.body.appendChild(nuke);
-    playSound('levelUp');
-    setTimeout(() => nuke.remove(), 2200);
-}
+        function triggerNuke() {
+            const nuke = document.createElement('div');
+            nuke.style.cssText = `
+                position:fixed;top:0;left:0;width:100%;height:100%;background:#000;
+                z-index:99999;display:flex;align-items:center;justify-content:center;
+                flex-direction:column;pointer-events:none;
+            `;
+            nuke.innerHTML = `
+                <h1 style="color:#0f0;font-size:80px;animation:pulse 0.8s infinite;">NUKE DETONATED</h1>
+                <p style="color:#0f0;font-size:30px;">LEVEL ${level} ACHIEVED!</p>
+            `;
+            document.body.appendChild(nuke);
+            playSound('levelUp');
+            setTimeout(() => nuke.remove(), 2200);
+        }
 
         function updateXPBar() {
             levelSpan.textContent = level;
@@ -2264,6 +2260,7 @@ function triggerNuke() {
                 playSound('click');
             }
         };
+
         nextPageBtn.onclick = () => {
             const max = Math.ceil(locations.filter(l => activeCategories.has(l.category)).length / pageSize);
             if (tablePage < max) {
@@ -2280,24 +2277,21 @@ function triggerNuke() {
             toggleSoundsBtn.textContent = soundsEnabled ? 'SOUNDS ON' : 'SOUNDS OFF';
             playSound('click');
         };
+
         toggleClusterBtn.onclick = () => {
-    clusteringEnabled = !clusteringEnabled;
-    localStorage.setItem('clusteringEnabled', clusteringEnabled);
-    toggleClusterBtn.textContent = `Clustering: ${clusteringEnabled ? 'On' : 'Off'}`;
+            clusteringEnabled = !clusteringEnabled;
+            localStorage.setItem('clusteringEnabled', clusteringEnabled);
+            toggleClusterBtn.textContent = `Clustering: ${clusteringEnabled ? 'On' : 'Off'}`;
+            const currentCat = categoryFilter.value;
+            forceReload();
+            setTimeout(() => {
+                if (categoryFilter.querySelector(`option[value="${currentCat}"]`)) {
+                    categoryFilter.value = currentCat;
+                }
+                playSound('click');
+            }, 100);
+        };
 
-    // ← SAVE current category before reload
-    const currentCat = categoryFilter.value;
-
-    forceReload();
-
-    // ← Restore it instantly after reload
-    setTimeout(() => {
-        if (categoryFilter.querySelector(`option[value="${currentCat}"]`)) {
-            categoryFilter.value = currentCat;
-        }
-        playSound('click');
-    }, 100);
-};
         toggleMapBtn.onclick = () => {
             currentMap = currentMap === 'named' ? 'noName' : 'named';
             localStorage.setItem('currentMap', currentMap);
@@ -2306,6 +2300,7 @@ function triggerNuke() {
             imageOverlay = L.imageOverlay(mapUrls[currentMap], imageBounds).addTo(map);
             playSound('saving');
         };
+
         toggleGridBtn.onclick = () => {
             gridEnabled = !gridEnabled;
             localStorage.setItem('gridEnabled', gridEnabled);
@@ -2313,6 +2308,7 @@ function triggerNuke() {
             drawGrid();
             playSound('click');
         };
+
         toggleCategoryModalBtn.onclick = () => {
             categoryToggleModal.style.display = 'block';
             document.body.classList.add('modal-open');
@@ -2327,6 +2323,7 @@ function triggerNuke() {
             forceReload();
             playSound('click');
         };
+
         document.getElementById('deselectAllBtn').onclick = () => {
             activeCategories = new Set();
             localStorage.setItem('activeCategories', '[]');
@@ -2334,10 +2331,12 @@ function triggerNuke() {
             forceReload();
             playSound('click');
         };
+
         document.getElementById('createCategoryBtn').onclick = () => {
             document.getElementById('createCategoryModal').style.display = 'block';
             playSound('click');
         };
+
         document.getElementById('deleteCategoryBtn').onclick = () => {
             const sel = document.getElementById('deleteCategorySelect');
             sel.innerHTML = '<option value="">Select custom</option>' +
@@ -2345,6 +2344,7 @@ function triggerNuke() {
             document.getElementById('deleteCategoryModal').style.display = 'block';
             playSound('click');
         };
+
         document.getElementById('saveCategoryBtn').onclick = () => {
             const name = document.getElementById('newCategoryName').value.trim();
             const emoji = document.getElementById('newCategoryEmoji').value.trim();
@@ -2364,6 +2364,7 @@ function triggerNuke() {
             showTempMessage('Category created!', 3000);
             playSound('saving');
         };
+
         document.getElementById('confirmDeleteCategoryBtn').onclick = () => {
             const name = document.getElementById('deleteCategorySelect').value;
             if (!name || !customCategories[name]) return;
@@ -2379,14 +2380,35 @@ function triggerNuke() {
             showTempMessage('Category deleted', 3000);
             playSound('delete');
         };
+
         document.getElementById('closeCategoryToggleBtn').onclick = () => closeModal(categoryToggleModal);
 
         saveItemBtn.onclick = () => {
             const cat = itemCategorySelect.value;
             let desc = itemDescInput.value.trim();
             const isNew = currentIndex < 0;
-            const lat = isNew ? tempLatLng.lat : locations[currentIndex].lat;
-            const lng = isNew ? tempLatLng.lng : locations[currentIndex].lng;
+            let lat, lng;
+
+            if (isNew) {
+                if (tempLatLng && typeof tempLatLng.lat === 'number' && typeof tempLatLng.lng === 'number') {
+                    lat = tempLatLng.lat;
+                    lng = tempLatLng.lng;
+                } else {
+                    showTempMessage('No location selected! Double-click map first.', 4000);
+                    playSound('error');
+                    return;
+                }
+            } else {
+                const loc = locations[currentIndex];
+                if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number') {
+                    showTempMessage('Invalid location data!', 4000);
+                    playSound('error');
+                    return;
+                }
+                lat = loc.lat;
+                lng = loc.lng;
+            }
+
             if (!desc) {
                 const grid = getGridFromLatLng(lat, lng);
                 const x = Math.round(lng);
@@ -2396,6 +2418,7 @@ function triggerNuke() {
             } else {
                 desc = updateDescWithGrid(desc, lat, lng);
             }
+
             if (currentIndex >= 0) {
                 const loc = locations[currentIndex];
                 if (loc.locked) {
@@ -2415,6 +2438,7 @@ function triggerNuke() {
                 locations.push(newLoc);
                 recalculateXP();
             }
+
             closeModal(itemModal);
             saveLocations();
             playSound('saving');
@@ -2440,6 +2464,7 @@ function triggerNuke() {
             showTempMessage('Deleted – Undo ready', 4000);
             playSound('delete');
         };
+
         undoBtn.onclick = () => {
             if (!lastDeleted) return;
             locations.push(lastDeleted);
@@ -2466,25 +2491,95 @@ function triggerNuke() {
             playSound('saving');
         };
 
-        map.on('click', e => {
-            if (isDraggingAny) { isDraggingAny = false; return; }
+        /* DEV NOTE: MAP INTERACTIONS */
+    map.on('dragstart', () => { isDraggingAny = true; });
+    map.on('dragend', () => { setTimeout(() => { isDraggingAny = false; }, 400); });
+    map.on('movestart', () => { isDraggingAny = true; });
+    map.on('moveend', () => { setTimeout(() => { isDraggingAny = false; }, 400); });
+
+    const coordHoverControl = L.control({ position: 'bottomleft' });
+    coordHoverControl.onAdd = function() {
+        const div = L.DomUtil.create('div', 'coord-hover');
+        div.innerHTML = '';
+        return div;
+    };
+    coordHoverControl.addTo(map);
+    const hoverCoordsHandler = (e) => {
+        if (isDraggingAny) return;
+        let lat, lng;
+        if (e.touches) {
+            const touch = e.touches[0];
+            lat = map.mouseEventToLatLng({ clientX: touch.clientX, clientY: touch.clientY }).lat;
+            lng = map.mouseEventToLatLng({ clientX: touch.clientX, clientY: touch.clientY }).lng;
+        } else {
+            lat = e.latlng.lat;
+            lng = e.latlng.lng;
+        }
+        const grid = getGridFromLatLng(lat, lng);
+        const x = Math.round(lng);
+        const y = Math.round(lat);
+        coordHoverControl.getContainer().innerHTML = `Grid: ${grid || 'N/A'} (X: ${x}, Y: ${y})`;
+        coordHoverControl.getContainer().classList.add('show');
+    };
+    map.on('mousemove', hoverCoordsHandler);
+    map.on('touchmove', hoverCoordsHandler);
+    map.getContainer().addEventListener('mouseleave', () => {
+        coordHoverControl.getContainer().classList.remove('show');
+    });
+
+    map.on('click', e => {
+        if (isDraggingAny) {
+            isDraggingAny = false;
+            return;
+        }
+        if (!gridEnabled) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            const grid = getGridFromLatLng(lat, lng);
+            const x = Math.round(lng);
+            const y = Math.round(lat);
+            coordHoverControl.getContainer().innerHTML = `Grid: ${grid || 'N/A'} (X: ${x}, Y: ${y})`;
+            coordHoverControl.getContainer().classList.add('show');
+            setTimeout(() => coordHoverControl.getContainer().classList.remove('show'), 3000);
+        }
+        if (gridEnabled) {
             const grid = getGridFromLatLng(e.latlng.lat, e.latlng.lng);
-            if (gridEnabled && grid) showGridNotification(grid);
+            if (grid) showGridNotification(grid);
+        }
+        playSound('click');
+    });
+
+    map.on('contextmenu', e => {
+        L.DomEvent.preventDefault(e);
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        const grid = getGridFromLatLng(lat, lng);
+        const x = Math.round(lng);
+        const y = Math.round(lat);
+        const desc = grid ? `Grid ${grid} (X: ${x}, Y: ${y})` : `X: ${x}, Y: ${y}`;
+        const url = `${window.location.origin}${window.location.pathname}?lat=${y}&lng=${x}&grid=${grid}&desc=${encodeURIComponent(desc)}`;
+        navigator.clipboard.writeText(url).then(() => {
+            showTempMessage('Right-click location copied!', 3000);
             playSound('click');
+        }).catch(() => {
+            prompt('Copy this link:', url);
         });
-        map.on('dblclick', e => {
-            L.DomEvent.stopPropagation(e);
-            tempLatLng = e.latlng;
-            openModal('Log Item');
-            playSound('click');
-        });
+        if (grid) showGridNotification(grid);
+    });
+
+    map.on('dblclick', e => {
+        L.DomEvent.stopPropagation(e);
+        tempLatLng = { lat: e.latlng.lat, lng: e.latlng.lng };
+        openModal('Log Item');
+        playSound('click');
+    });
 
         updateCategoryDropdowns();
         renderCategoryToggles();
         loadData(currentSearch, currentCategoryFilter);
         drawGrid();
         updateXPBar();
-		playSound('selectcategory');
+        playSound('selectcategory');
         setTimeout(() => document.body.classList.add('map-ready'), 1000);
 
         toggleDarkModeBtn.onclick = () => {
@@ -2503,6 +2598,7 @@ function triggerNuke() {
                 playSound('click');
             };
         }
+
         if (nukeCodesBtn) {
             nukeCodesBtn.onclick = () => {
                 nukeCodesModal.style.display = 'block';
@@ -2510,6 +2606,7 @@ function triggerNuke() {
                 playSound('click');
             };
         }
+
         document.querySelectorAll('.modal .close').forEach(closeBtn => {
             closeBtn.onclick = (e) => {
                 e.stopPropagation();
@@ -2565,7 +2662,6 @@ function triggerNuke() {
         }
 
         resetAppBtn.style.color = '#000';
-
         function addTypeSound(input) {
             input.addEventListener('input', () => playSound('type'));
         }
@@ -2575,12 +2671,10 @@ function triggerNuke() {
         const confettiScript = document.createElement('script');
         confettiScript.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
         confettiScript.onload = () => { window.confettiReady = true; };
-		document.head.appendChild(confettiScript);
-		
-		        // WELCOME & UPDATE MODALS — the final polish
+        document.head.appendChild(confettiScript);
+
         const WELCOME_KEY = 'fo76_welcome_accepted_v38';
         const LAST_VERSION_KEY = 'fo76_last_seen_version';
-
         function showWelcomeModal() {
             const welcomeModal = document.createElement('div');
             welcomeModal.className = 'modal';
@@ -2602,7 +2696,6 @@ function triggerNuke() {
             `;
             document.body.appendChild(welcomeModal);
             document.body.classList.add('modal-open');
-
             document.getElementById('agreeBtn').onclick = () => {
                 localStorage.setItem(WELCOME_KEY, 'true');
                 welcomeModal.remove();
@@ -2624,8 +2717,8 @@ function triggerNuke() {
                         <p style="text-align:left;">What’s new:</p>
                         <ul style="text-align:left;">
                             <li>Welcome To Version 76.1.0</li>
-							<li>This is The Latest Update Reset Your App. Find this tip in the "How to Use" section.</li>
-							<li>Made With ❤️</li>
+                            <li>This is The Latest Update Reset Your App. Find this tip in the "How to Use" section.</li>
+                            <li>Made With ❤️</li>
                         </ul>
                         <div style="text-align:center;margin-top:20px;">
                             <button id="updateGotIt" style="background:#00ff00;color:#000;padding:10px 30px;font-size:18px;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">GOT IT — LET'S GO!</button>
@@ -2634,7 +2727,6 @@ function triggerNuke() {
                 `;
                 document.body.appendChild(updateModal);
                 document.body.classList.add('modal-open');
-
                 document.getElementById('updateGotIt').onclick = () => {
                     localStorage.setItem(LAST_VERSION_KEY, CURRENT_UPDATE_VERSION);
                     updateModal.remove();
@@ -2644,7 +2736,6 @@ function triggerNuke() {
             }
         }
 
-        // Show modals on load (welcome first, then update if needed)
         if (!localStorage.getItem(WELCOME_KEY)) {
             setTimeout(showWelcomeModal, 800);
         } else {
