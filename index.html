@@ -2590,11 +2590,21 @@ map.on('popupclose', () => {
         };
 
         toggleCategoryModalBtn.onclick = () => {
-            categoryToggleModal.style.display = 'block';
-            document.body.classList.add('modal-open');
-            renderCategoryToggles();
-            playSound('selectcategory');
+    categoryToggleModal.style.display = 'block';
+    document.body.classList.add('modal-open');
+    renderCategoryToggles();
+    
+    const closeBtn = document.getElementById('closeCategoryToggleBtn');
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            categoryToggleModal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+            playSound('modalClose');
         };
+    }
+    
+    playSound('selectcategory');
+};
 
         document.getElementById('selectAllBtn').onclick = () => {
             activeCategories = new Set(Object.keys(categoryIcons));
