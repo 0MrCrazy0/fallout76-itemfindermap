@@ -1066,8 +1066,9 @@ document.head.appendChild(nukeStyle);
 document.addEventListener('DOMContentLoaded', function() {
     (function() {
         const STORAGE_KEY = 'fo76_locations';
-        const CUSTOM_CATEGORIES_KEY = 'fallout76_custom_categories';
-        const MAP_VERSION_KEY = 'fallout76_map_version';
+        const CUSTOM_CATEGORIES_KEY = '76_custom_categories';
+        const MAP_VERSION_KEY = 'fo76_map_version';
+		const COMMUNITY_MAP_VERSION_KEY = 'fo76_community_map_version';
         const CURRENT_UPDATE_VERSION = 'v76.1.0';
         const APP_VERSION = "v76.1.0";
         let soundsEnabled = localStorage.getItem('soundsEnabled') !== 'false';
@@ -1990,12 +1991,18 @@ map.on('popupclose', () => {
         }
 
         function updateCounterDisplay() {
-            const ver = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
-            const total = locations.filter(l => activeCategories.has(l.category)).length;
-            const showing = locations.filter(l => activeCategories.has(l.category))
-                .slice((tablePage-1)*pageSize, tablePage*pageSize).length;
-            counter.innerHTML = `<strong>Map v${ver}</strong> - <strong>${total}</strong> logged - <strong>${showing}</strong> showing`;
-        }
+    const appVersion = "76.1.0";
+    let communityVer = "1.0";
+    try {
+        communityVer = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
+    } catch (e) {}
+    
+    const total = locations.filter(l => activeCategories.has(l.category)).length;
+    const showing = locations.filter(l => activeCategories.has(l.category))
+        .slice((tablePage-1)*pageSize, tablePage*pageSize).length;
+    
+    counter.innerHTML = `<strong>Fallout 76 Item Finder v${appVersion}</strong> — <strong>Community Map v${communityVer}</strong> — <strong>${total}</strong> logged — <strong>${showing}</strong> showing`;
+}
 
         function refreshTable(search = '', cat = '') {
     const tbody = document.querySelector('#locationsTable tbody');
@@ -2394,54 +2401,65 @@ map.on('popupclose', () => {
         };
 
         importBtn.onclick = () => {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            input.onchange = e => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const r = new FileReader();
-                r.onload = ev => {
-                    try {
-                        const data = JSON.parse(ev.target.result);
-                        const incoming = data.locations || (Array.isArray(data) ? data : []);
-                        let added = 0, updated = 0, skipped = 0;
-                        incoming.forEach(imp => {
-                            const existing = locations.find(l => l.cid === imp.cid);
-                            if (existing && existing.userEdited) {
-                                skipped++;
-                                return;
-                            }
-                            if (existing) {
-                                Object.assign(existing, imp);
-                                updated++;
-                            } else {
-                                locations.push({ ...imp, id: generateUniqueId(), addedTime: Date.now(), locked: true, isPostcard: false, isTemp: false });
-                                added++;
-                            }
-                        });
-                        if (data.customCategories) customCategories = { ...customCategories, ...data.customCategories };
-                        communityVersion = data.communityVersion || communityVersion;
-                        localStorage.setItem(MAP_VERSION_KEY, communityVersion);
-                        localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-                        recalculateXP();
-                        saveLocations();
-                        forceReload();
-                        showConfirmModal(
-                            'Import Complete',
-                            `Added: <strong>${added}</strong> markers<br>Updated: <strong>${updated}</strong> markers<br>Skipped (user-edited): <strong>${skipped}</strong> markers`,
-                            null
-                        );
-                        playSound('saving');
-                    } catch (err) {
-                        showTempMessage('Invalid file', 4000);
-                        playSound('error');
-                    }
-                };
-                r.readAsText(file);
-            };
-            input.click();
-        };
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const r = new FileReader();
+        r.onload = ev => {
+    try {
+        const data = JSON.parse(ev.target.result);
+        const incoming = data.locations || (Array.isArray(data) ? data : []);
+        let added = 0, updated = 0, skipped = 0;
+        
+        incoming.forEach(imp => {
+            const existing = locations.find(l => l.cid === imp.cid);
+            if (existing && existing.userEdited) {
+                skipped++;
+                return;
+            }
+            if (existing) {
+                Object.assign(existing, imp);
+                updated++;
+            } else {
+                locations.push({ ...imp, id: generateUniqueId(), addedTime: Date.now(), locked: true, isPostcard: false, isTemp: false });
+                added++;
+            }
+        });
+        
+        if (data.customCategories) {
+            customCategories = { ...customCategories, ...data.customCategories };
+            localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+        }
+
+        const newVersion = data.communityVersion || "1.0";
+        localStorage.setItem(MAP_VERSION_KEY, String(data.communityVersion || data.version || "1.0"));
+        showTempMessage(`Community Map v${newVersion} loaded!`, 5000);
+
+        updateCounterDisplay();
+
+        recalculateXP();
+        forceReload();
+		saveLocations();
+
+        showConfirmModal(
+            'Import Complete',
+            `Added: <strong>${added}</strong> markers<br>Updated: <strong>${updated}</strong> markers<br>Skipped (user-edited): <strong>${skipped}</strong> markers`,
+            null
+        );
+        playSound('saving');
+    } catch (err) {
+        console.error("Import failed:", err);
+        showTempMessage('Invalid file', 4000);
+        playSound('error');
+    }
+};
+        r.readAsText(file);
+    };
+    input.click();
+};
 
         downloadCommunityBtn.onclick = () => {
             playSound('click');
@@ -2469,7 +2487,8 @@ map.on('popupclose', () => {
                     });
                     if (data.customCategories) customCategories = { ...customCategories, ...data.customCategories };
                     communityVersion = data.communityVersion || 'latest';
-                    localStorage.setItem(MAP_VERSION_KEY, communityVersion);
+                    localStorage.setItem(COMMUNITY_MAP_VERSION_KEY, data.communityVersion || "1.0");
+showTempMessage(`Community Map v${data.communityVersion || "1.0"} loaded!`, 5000);
                     localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
                     recalculateXP();
                     saveLocations();
