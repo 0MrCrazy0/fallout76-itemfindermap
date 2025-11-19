@@ -1068,7 +1068,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const STORAGE_KEY = 'fo76_locations';
         const CUSTOM_CATEGORIES_KEY = '76_custom_categories';
         const MAP_VERSION_KEY = 'fo76_map_version';
-		const COMMUNITY_MAP_VERSION_KEY = 'fo76_community_map_version';
         const CURRENT_UPDATE_VERSION = 'v76.1.0';
         const APP_VERSION = "v76.1.0";
         let soundsEnabled = localStorage.getItem('soundsEnabled') !== 'false';
@@ -1139,7 +1138,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (postcardTicker) { clearInterval(postcardTicker); postcardTicker = null; }
         }
         let customCategories = JSON.parse(localStorage.getItem(CUSTOM_CATEGORIES_KEY)) || {};
-        let communityVersion = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
+        let communityVersion = "1.0";  // default fallback only
+function getCurrentCommunityVersion() {
+    return localStorage.getItem(MAP_VERSION_KEY) || "1.0";
+}
+communityVersion = getCurrentCommunityVersion();  // set it correctly on load
         const defaultCategoryIcons = {
         'weapons': '🔫', 'armor': '🛡️', 'aid': '💉', 'food/drink': '🍽️', 'ammunition': '💥',
         'apparel': '👕', 'plans': '📜', 'junk': '🗑️', 'holotapes': '📀', 'misc': '📝',
@@ -1992,15 +1995,12 @@ map.on('popupclose', () => {
 
         function updateCounterDisplay() {
     const appVersion = "76.1.0";
-    let communityVer = "1.0";
-    try {
-        communityVer = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
-    } catch (e) {}
-    
+    const communityVer = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
+
     const total = locations.filter(l => activeCategories.has(l.category)).length;
     const showing = locations.filter(l => activeCategories.has(l.category))
         .slice((tablePage-1)*pageSize, tablePage*pageSize).length;
-    
+
     counter.innerHTML = `<strong>Fallout 76 Item Finder v${appVersion}</strong> — <strong>Community Map v${communityVer}</strong> — <strong>${total}</strong> logged — <strong>${showing}</strong> showing`;
 }
 
@@ -2462,53 +2462,64 @@ map.on('popupclose', () => {
 };
 
         downloadCommunityBtn.onclick = () => {
-            playSound('click');
-            if (!confirm('Update Community Map? Your edits are SAFE.')) return;
-            downloadCommunityBtn.disabled = true;
-            downloadCommunityBtn.textContent = 'Updating...';
-            fetchWithTimeout('https://raw.githubusercontent.com/0mrcrazy0/fallout76-itemfindermap-beta/main/communitymap.json', 12000)
-                .then(r => r.ok ? r.json() : Promise.reject('Bad response'))
-                .then(data => {
-                    const incoming = data.locations || [];
-                    let added = 0, updated = 0, skipped = 0;
-                    incoming.forEach(imp => {
-                        const existing = locations.find(l => l.cid === imp.cid);
-                        if (existing && existing.userEdited) {
-                            skipped++;
-                            return;
-                        }
-                        if (existing) {
-                            Object.assign(existing, imp);
-                            updated++;
-                        } else {
-                            locations.push({ ...imp, id: generateUniqueId(), addedTime: Date.now(), locked: true, isPostcard: false, isTemp: false });
-                            added++;
-                        }
-                    });
-                    if (data.customCategories) customCategories = { ...customCategories, ...data.customCategories };
-                    communityVersion = data.communityVersion || 'latest';
-                    localStorage.setItem(COMMUNITY_MAP_VERSION_KEY, data.communityVersion || "1.0");
-showTempMessage(`Community Map v${data.communityVersion || "1.0"} loaded!`, 5000);
-                    localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-                    recalculateXP();
-                    saveLocations();
-                    forceReload();
-                    showConfirmModal(
-                        'Community Map Updated',
-                        `Added: <strong>${added}</strong> markers<br>Updated: <strong>${updated}</strong> markers<br>Skipped (user-edited): <strong>${skipped}</strong> markers`,
-                        null
-                    );
-                    playSound('saving');
-                })
-                .catch(() => {
-                    showTempMessage('Update failed – check internet', 5000);
-                    playSound('error');
-                })
-                .finally(() => {
-                    downloadCommunityBtn.disabled = false;
-                    downloadCommunityBtn.textContent = 'Update Community Map';
-                });
-        };
+    playSound('click');
+    if (!confirm('Update Community Map? Your edits are SAFE.')) return;
+    downloadCommunityBtn.disabled = true;
+    downloadCommunityBtn.textContent = 'Updating...';
+
+    fetchWithTimeout('https://raw.githubusercontent.com/0mrcrazy0/fallout76-itemfindermap-beta/main/communitymap.json', 12000)
+        .then(r => r.ok ? r.json() : Promise.reject('Bad response'))
+        .then(data => {
+            const newVersion = String(data.communityVersion || "1.0");
+            localStorage.setItem(MAP_VERSION_KEY, newVersion);
+            communityVersion = newVersion;
+
+            const incoming = data.locations || [];
+            let added = 0, updated = 0, skipped = 0;
+
+            incoming.forEach(imp => {
+                const existing = locations.find(l => l.cid === imp.cid);
+                if (existing && existing.userEdited) {
+                    skipped++;
+                    return;
+                }
+                if (existing) {
+                    Object.assign(existing, imp);
+                    updated++;
+                } else {
+                    locations.push({ ...imp, id: generateUniqueId(), addedTime: Date.now(), locked: true, isPostcard: false, isTemp: false });
+                    added++;
+                }
+            });
+
+            if (data.customCategories) {
+                customCategories = { ...customCategories, ...data.customCategories };
+            }
+
+            showTempMessage(`Community Map v${newVersion} loaded!`, 5000);
+
+            localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+            recalculateXP();
+            forceReload();
+            saveLocations();
+			updateCounterDisplay();
+
+            showConfirmModal(
+                'Community Map Updated',
+                `Added: <strong>${added}</strong> markers<br>Updated: <strong>${updated}</strong> markers<br>Skipped (user-edited): <strong>${skipped}</strong> markers`,
+                null
+            );
+            playSound('saving');
+        })
+        .catch(() => {
+            showTempMessage('Update failed – check internet', 5000);
+            playSound('error');
+        })
+        .finally(() => {
+            downloadCommunityBtn.disabled = false;
+            downloadCommunityBtn.textContent = 'Update Community Map';
+        });
+};
 
         saveJpegBtn.onclick = () => {
             playSound('saving');
