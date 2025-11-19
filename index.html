@@ -753,7 +753,128 @@
     #updateGotIt {
     color: #000 !important;
     background: #00ff00 !important;
+    }
+	.leaflet-marker-icon::before {
+    content: '';
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border: 2px solid rgba(0, 255, 0, 0.3);
+    border-radius: 50%;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
 }
+
+.leaflet-marker-icon:hover::before {
+    opacity: 1;
+}
+
+const nukeStyle = document.createElement('style');
+nukeStyle.textContent = `
+    @keyframes nukeFlash {
+        0% { opacity: 0; }
+        10% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+    @keyframes mushroomCloud {
+        0% { font-size: 0; opacity: 0; }
+        50% { font-size: 400px; opacity: 1; }
+        100% { font-size: 600px; opacity: 0; }
+    }
+    @keyframes textAppear {
+        to { opacity: 1; }
+    }
+`;
+document.head.appendChild(nukeStyle);
+}
+@keyframes quickFlash {
+    0%   { opacity: 0; }
+    10%  { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.nuke-symbol {
+    font-size: clamp(80px, 28vw, 300px);
+    color: #0f0;
+    animation: symbolDrop 1.2s ease-out forwards;
+    text-shadow: 0 0 60px #0f0;
+}
+
+.nuke-title {
+    font-size: clamp(32px, 8vw, 80px);
+    color: #0f0;
+    margin: 0;
+    animation: textFadeIn 1.2s forwards;
+    text-shadow: 0 0 35px #0f0;
+    letter-spacing: 6px;
+}
+
+.nuke-subtitle {
+    font-size: clamp(24px, 6vw, 60px);
+    color: #0f0;
+    margin: 0;
+    font-weight: bold;
+    animation: textFadeIn 1.2s 0.3s forwards;
+    text-shadow: 0 0 30px #0f0;
+}
+
+@keyframes symbolDrop {
+    0%   { opacity: 0; transform: translateY(-60px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes textFadeIn {
+    0%   { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+/* SOFT GLOW WHEN POPUP IS OPEN */
+.popup-glow {
+    filter: drop-shadow(0 0 12px #00ff00) brightness(1.4) !important;
+    z-index: 10000 !important;
+    animation: pulse-glow 2s infinite alternate;
+}
+
+.table-row-popup-glow {
+    background: rgba(0, 255, 0, 0.15) !important;
+    box-shadow: 0 0 12px #00ff00 !important;
+    animation: pulse-glow 2s infinite alternate;
+}
+
+@keyframes pulse-glow {
+    from { filter: drop-shadow(0 0 12px #00ff00) brightness(1.4); }
+    to { filter: drop-shadow(0 0 18px #00ff80) brightness(1.5); }
+}
+/* AUTO-COMPLETE DROPDOWN */
+#searchSuggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 300px;
+    overflow-y: auto;
+    background: #0a2a2a;
+    border: 2px solid #00ff00;
+    z-index: 10000;
+    display: none;
+    box-shadow: 0 0 15px #00ff00;
+}
+#searchSuggestions div {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #00ff22;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+}
+#searchSuggestions div:hover {
+    background: #00ff00;
+    color: #000;
+}
+#searchSuggestions .category-match { font-weight: bold; color: #aaffaa; }
+#searchSuggestions .desc-match { opacity: 0.9; }
     </style>
 </head>
 <body>
@@ -767,12 +888,17 @@
     <div id="map"></div>
 
     <!-- DEV NOTE: SEARCH BAR — NOW UNDER MAP -->
-    <div id="searchBar">
+    <div style="position:relative; display:block; margin:15px auto; max-width:600px;">
+    <div id="searchBar" style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; align-items:center;">
         <input type="text" id="combinedSearch" placeholder="desc/cate/grid.." style="flex:1; min-width:200px; padding:8px; background:#000; color:#0f0; border:1px solid #0f0; border-radius:4px;">
         <button id="clearSearchBtn" style="background:none; border:none; color:#00ff00; font-size:18px; cursor:pointer; display:none; padding:0 8px;">X</button>
         <select id="categoryFilter" style="padding:8px; background:#000; color:#0f0; border:1px solid #0f0; border-radius:4px;"><option value="">All Categories</option></select>
         <button id="toggleCategoryModalBtn" style="padding:8px 12px; background:#1a3c34; color:#0f0; border:1px solid #0f0; border-radius:4px;">Toggle Categories</button>
     </div>
+
+    <!-- AUTOCOMPLETE DROPDOWN — NOW PERFECTLY UNDER THE BAR -->
+    <div id="searchSuggestions"></div>
+</div>
 
     <!-- DEV NOTE: TOOLS TOGGLE — OUTSIDE TOOLS PANEL -->
     <div id="toolsToggleRow">
@@ -846,25 +972,26 @@
         <div class="modal-content">
             <span class="close">X</span>
             <h1>Fallout 76 Item Finder Info</h1>
-            <p><strong>Double-tap</strong> (mobile) or <strong>double-click</strong> the map to log an item.</p>
-            <p><strong>New markers</strong> are <strong>LOCKED</strong> and <strong>glow for 2 minutes</strong>.</p>
-            <p><strong>Unlock</strong> to drag — drop auto-saves + glows again!</p>
-            <p><strong>Lock</strong> to protect from accidental moves.</p>
-            <p><strong>Right-click</strong> or <strong>long-press</strong> markers to <strong>edit, delete, or duplicate</strong> (undo available).</p>
-            <p><strong>Left-click</strong> any row in the <strong>Content Inventory</strong> to zoom to marker.</p>
-            <p><strong>Right-click</strong> row to open <strong>Edit menu + zoom</strong>.</p>
-            <p>Use the <strong>search bar</strong> to filter by description, category, or grid.</p>
-            <p>Toggle between <strong>named</strong> and <strong>no-name</strong> maps with the button.</p>
-            <p>Click anywhere to see <strong>grid coordinate</strong> (e.g., C4) in a green popup.</p>
-            <p>Toggle <strong>grid overlay</strong> with the Grid button.</p>
-            <p>Create <strong>custom categories</strong> in the Toggle Categories menu.</p>
-            <p><strong>Export</strong> your markers or <strong>import</strong> others (duplicates skipped).</p>
-            <p><strong>Save a JPEG</strong> of your current map view.</p>
-            <p><strong>Gain XP</strong> for logging items — level up like in Fallout 76!</p>
-            <p><strong>Lose XP</strong> when deleting items.</p>
-            <p>For <strong>offline use</strong>: Save locally and open in Chrome/Firefox/Safari.</p>
-            <p>Internet needed <strong>only on first load</strong> for map & libraries.</p>
-            <p><strong>Update Community Map</strong> regularly for latest version.</p>
+            <p><strong>Double-Left-Click</strong> the map (or <strong>Double-Tap</strong> on mobile) to log a new permanent marker.</p>
+    <p><strong>Right-Click</strong> the map (or <strong>Long-Press</strong> on mobile) to open the <strong>Postcard</strong> menu → type a message → click <strong>Copy Link</strong> to share a temporary postcard (expires in 5 minutes).</p>
+    <p>New markers are automatically <strong>LOCKED</strong> and <strong>Glow Green for 2 Minutes</strong>.</p>
+    <p><strong>Unlock</strong> a marker in its popup or edit modal to allow dragging.</p>
+    <p><strong>Drag any unlocked marker</strong> — drop to auto-save new position (it will glow & lock again for safety).</p>
+    <p><strong>Left-Click / Single-Tap</strong> any marker → opens <strong>Edit Item</strong> menu.</p>
+    <p><strong>Left-Click</strong> a row in the Content Inventory → instantly zooms to that marker.</p>
+    <p><strong>Right-Click</strong> a row → opens Edit modal + zooms.</p>
+    <p>Use the <strong>Search Bar</strong> to filter by description, category, or grid (e.g. C4).</p>
+    <p><strong>Toggle Map</strong> button switches between named and clean map.</p>
+    <p>Click anywhere on the map → shows current <strong>grid coordinate</strong> in a green popup.</p>
+    <p><strong>Grid button</strong> toggles the 10×10 grid overlay.</p>
+    <p>Create and manage <strong>Custom Categories</strong> in the Toggle Categories menu.</p>
+    <p><strong>Export / Import</strong> your markers — duplicates are skipped automatically.</p>
+    <p><strong>Save Map As JPEG</strong> captures your current view with all markers.</p>
+    <p>Earn <strong>XP</strong> for every marker you place — level up like in the game!</p>
+    <p>Lose <strong>XP</strong> when deleting markers.</p>
+    <p>Works fully <strong>Offline</strong> after first load (perfect for no-signal vaults).</p>
+    <p>Hit <strong>Download Community Map</strong> occasionally to get the latest community updates.</p>
+    <p style="margin-top:20px;"><strong>Enjoy Appalachia — & Happy Exploring!</strong></p>
             <div style="text-align:center; margin:15px 0;">
                 <button id="resetAppBtn" class="reset-btn">Reset App (for debugging only)</button>
             </div>
@@ -1078,11 +1205,49 @@ document.addEventListener('DOMContentLoaded', function() {
         let darkMode = localStorage.getItem('darkMode') === 'true';
         let gridLayer = L.layerGroup().addTo(map);
         let isDraggingAny = false;
+		let isDraggingAnyMarker = false;
         let titleVisible = localStorage.getItem('titleVisible') !== 'false';
         let toolsVisible = localStorage.getItem('toolsVisible') !== 'false';
         let currentPostcardLatLng = null;
         let lastMovedMarker = null;
         let lastLevel = level;
+		
+let currentPopupMarkerId = null;
+
+map.on('popupopen', e => {
+    const marker = e.popup._source;
+    if (!marker || !marker.options.id) return;
+
+    if (marker._icon) {
+        marker._icon.classList.add('popup-glow');
+    }
+
+    currentPopupMarkerId = marker.options.id;
+
+    document.querySelectorAll('#locationsTable tbody tr').forEach(row => {
+        row.classList.remove('table-row-popup-glow');
+        const onclick = row.getAttribute('onclick') || '';
+        if (onclick.includes(`'${marker.options.id}'`) || onclick.includes(`"${marker.options.id}"`)) {
+            row.classList.add('table-row-popup-glow');
+        }
+    });
+});
+
+map.on('popupclose', () => {
+    if (currentPopupMarkerId) {
+        const marker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
+            .find(m => m.options.id === currentPopupMarkerId);
+        if (marker && marker._icon) {
+            marker._icon.classList.remove('popup-glow');
+        }
+    }
+
+    document.querySelectorAll('.table-row-popup-glow').forEach(row => {
+        row.classList.remove('table-row-popup-glow');
+    });
+
+    currentPopupMarkerId = null;
+});
 
         const itemModal = document.getElementById('itemModal');
         const deleteBtn = document.getElementById('deleteItemBtn');
@@ -1120,7 +1285,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const toolsToggleBtn = document.getElementById('toggleButtonGroup');
         const buttonGroup = document.getElementById('buttonGroup');
 
-        // SEARCH ROW — centered + Toggle button full text
         const searchRow = document.createElement('div');
         searchRow.style.cssText = `
             display: flex;
@@ -1372,7 +1536,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 id: generateUniqueId(),
                 lat, lng,
                 category, desc,
-                icon: categoryIcons[category] || 'NOTE',
+                icon: isTemp ? '📬' : (categoryIcons[category] || '📝'),
                 addedTime: isTemp ? null : now,
                 userEdited: !isTemp,
                 locked: !isTemp,
@@ -1479,7 +1643,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // FIXED: SINGLE EXPORT BUTTON VISIBLE
         exportOneBtn.style.display = 'inline-block';
         exportOneBtn.textContent = 'Export Marker';
 
@@ -1503,7 +1666,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const marker = L.marker([loc.lat, loc.lng], {
                 icon: L.divIcon({
                     className: 'custom-icon glowing',
-                    html: `<div class="marker-background" style="background-color:#f0e68c;"><span style="font-size:18px;">NOTE</span></div>`,
+                    html: `<div class="marker-background" style="background-color:#f0e68c;"><span style="font-size:18px;">📬</span></div>`,
                     iconSize: [30, 30],
                     iconAnchor: [15, 15]
                 })
@@ -1541,6 +1704,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 locations[index].postcardExpire = null;
                 locations[index].addedTime = Date.now();
                 locations[index].startTime = null;
+				locations[index].postcardExpire = null;
+                locations[index].startTime = null;
+				locations[index].icon = '📝';
                 saveLocations();
                 recalculateXP();
                 forceReload();
@@ -1596,6 +1762,7 @@ document.addEventListener('DOMContentLoaded', function() {
         function createMarkerIcon(loc) {
             const isTextOnly = ['named locations', 'regions'].includes(loc.category);
             if (isTextOnly) {
+			    const iconToUse = loc.icon || categoryIcons[loc.category] || '📝';
                 const words = loc.desc.split('\n')[0].trim().split(' ');
                 const shortText = words.slice(0, 3).join(' ') + (words.length > 3 ? '...' : '');
                 const width = Math.min(120, Math.max(60, shortText.length * 9));
@@ -1603,7 +1770,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const html = `<div class="${glowClass}" style="background:#000;color:#fff;padding:3px 6px;border:2px solid #0f0;border-radius:4px;font-weight:bold;font-size:11px;white-space:nowrap;width:${width}px;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(shortText)}</div>`;
                 return L.divIcon({ className: 'text-marker', html, iconSize: [width + 12, 26], iconAnchor: [(width + 12)/2, 13] });
             } else {
-                const base = `<div class="marker-background" style="background-color:${categoryColors[loc.category] || '#808080'};"><span style="font-size:18px;">${loc.icon}</span></div>`;
+                const base = `<div class="marker-background" style="background-color:${categoryColors[loc.category] || '#808080'};"><span style="font-size:18px;">${loc.icon || (loc.isPostcard ? '📬' : categoryIcons[loc.category] || '📝')}</span></div>`;
                 return L.divIcon({ className: isGlowing(loc) ? 'custom-icon glowing' : 'custom-icon', html: base, iconSize: [30, 30], iconAnchor: [15, 15] });
             }
         }
@@ -1681,38 +1848,36 @@ document.addEventListener('DOMContentLoaded', function() {
             openModal('Edit Item', index);
         };
 
-        // FIXED: SMOOTH DRAGGING — NO DROP
         function attachDragHandler(marker, loc) {
     marker.on('add', () => {
         const icon = marker._icon;
         if (!icon) return;
-        let isDragging = true;
-            const onDragging = (e) => {
-                if (!isDragging) return;
-                let clientX, clientY;
-                if (e.touches && e.touches.length > 0) {
-                    clientX = e.touches[0].clientX;
-                    clientY = e.touches[0].clientY;
-                } else {
-                    clientX = e.clientX;
-                    clientY = e.clientY;
-                }
-                const latlng = map.mouseEventToLatLng({ clientX: clientX, clientY: clientY });
-                marker.setLatLng(latlng);
-            };
-                    const onDragEnd = () => {
-            if (!isDragging) return;
-            isDragging = true;
-            isDraggingAny = true;
-            map.dragging.enable();
 
-            // Reset to normal Leaflet positioning
-            icon.style.left = '';
-            icon.style.top = '';
-            icon.style.marginLeft = '';
-            icon.style.marginTop = '';
-            icon.style.position = '';
-            icon.style.zIndex = '';
+        let isDragging = false;
+        let originalLatLng = null;
+
+        window.isDraggingAnyMarker = window.isDraggingAnyMarker || false;
+
+        const onDragging = (e) => {
+            if (!isDragging) return;
+            let clientX, clientY;
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            const latlng = map.mouseEventToLatLng({ clientX, clientY });
+            marker.setLatLng(latlng);
+        };
+
+        const onDragEnd = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            window.isDraggingAnyMarker = false;
+
+            map.dragging.enable();
             L.DomUtil.removeClass(icon, 'dragging');
 
             L.DomEvent.off(document, 'mousemove touchmove', onDragging);
@@ -1726,6 +1891,7 @@ document.addEventListener('DOMContentLoaded', function() {
             loc.userEdited = true;
             loc.locked = true;
             lastMovedMarker = marker;
+
             saveLocations();
             playSound('saving');
             showTempMessage(`Moved + saved + LOCKED! ${loc.icon}`, 4000);
@@ -1734,16 +1900,22 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         const onDragStart = (e) => {
-            if (loc.locked || isDraggingAny) return;
+            if (loc.locked || window.isDraggingAnyMarker) return;
+
             if (e.touches) L.DomEvent.preventDefault(e);
+
+            originalLatLng = marker.getLatLng();
             isDragging = true;
-            isDraggingAny = true;
+            window.isDraggingAnyMarker = true;
+
             map.dragging.disable();
-            L.DomUtil.addClass(marker._icon, 'dragging');
+            L.DomUtil.addClass(icon, 'dragging');
+
             if (activeMessageControl) {
                 map.removeControl(activeMessageControl);
                 activeMessageControl = null;
             }
+
             L.DomEvent.on(document, 'mousemove', onDragging);
             L.DomEvent.on(document, 'mouseup', onDragEnd);
             L.DomEvent.on(document, 'touchmove', onDragging);
@@ -1754,11 +1926,8 @@ document.addEventListener('DOMContentLoaded', function() {
             marker.on('dragstart', onDragStart);
         }
 
-        marker.on('click', e => {
-            if (isDragging) {
-                isDragging = true;
-                return;
-            }
+        marker.on('click', (e) => {
+            if (isDragging) return;
             icon.classList.add('marker-flash');
             setTimeout(() => icon.classList.remove('marker-flash'), 3000);
         });
@@ -1766,7 +1935,6 @@ document.addEventListener('DOMContentLoaded', function() {
         icon.addEventListener('mouseenter', () => icon.classList.add('marker-hover'));
         icon.addEventListener('mouseleave', () => icon.classList.remove('marker-hover'));
 
-        // Postcard popup (unchanged)
         if (loc.isPostcard) {
             marker.bindPopup(() => createPopupContent(loc), { maxWidth: 320, offset: [0, -20] });
             marker.on('popupopen', () => {
@@ -1790,7 +1958,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <b>${loc.icon} ${loc.category.toUpperCase()}</b><br>
                 <div style="max-height:80px;overflow-y:auto;margin:4px 0;padding-right:8px;">${escapeHtml(loc.desc)}</div>
                 <div style="margin:6px 0;text-align:center;">
-                    <span class="popup-lock-toggle" onclick="toggleLockFromPopup(${locations.indexOf(loc)})">${loc.locked?'🔐':'🔓'}</span>
+                    <span class="popup-lock-toggle" onclick="toggleLockFromPopup(${locations.indexOf(loc)})">${loc.locked ? 'Locked' : 'Unlocked'}</span>
                 </div>
                 <button onclick="editMarkerFromPopup(${locations.indexOf(loc)})">Edit</button>
             `, { maxWidth: 260, offset: [0, -20] });
@@ -1830,65 +1998,77 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         function refreshTable(search = '', cat = '') {
-            const tbody = document.querySelector('#locationsTable tbody');
-            tbody.innerHTML = '';
-            let list = locations.filter(l => activeCategories.has(l.category) && (!cat || l.category === cat));
-            if (search) list = list.filter(l => {
-                const text = normalizeString(l.desc + ' ' + l.category);
-                const terms = normalizeString(search).split(/\s+/).filter(t => t.length > 1);
-                return terms.every(term => text.includes(term));
-            });
-            const glow = list.filter(isGlowing).sort((a,b)=>b.addedTime-a.addedTime);
-            const rest = list.filter(l=>!isGlowing(l)).sort((a,b)=>a.category.localeCompare(b.category) || a.desc.localeCompare(b.desc));
-            const sorted = [...glow, ...rest];
-            const start = (tablePage-1)*pageSize;
-            sorted.slice(start, start+pageSize).forEach(loc => {
-                const tr = document.createElement('tr');
-                if (isGlowing(loc)) tr.classList.add('glowing');
-                const short = loc.desc.split('\n')[0].trim();
-                let lockCell = '';
-                if (loc.isPostcard) {
-                    const timeLeft = Math.max(0, 300000 - (Date.now() - loc.startTime));
-                    const mins = Math.floor(timeLeft / 60000);
-                    const secs = Math.floor((timeLeft % 60000) / 1000).toString().padStart(2, '0');
-                    lockCell = `<span style="color:#ff0;font-size:11px;">${mins}:${secs}</span>`;
-                } else {
-                    const lock = loc.locked ? '🔐':'🔓';
-                    lockCell = `<span class="lock-toggle" onclick="toggleLockFromTable(${locations.indexOf(loc)})">${lock}</span>`;
-                }
-                tr.innerHTML = `
-                    <td>${lockCell}</td>
-                    <td>${['named locations','regions'].includes(loc.category) ? `<div class="text-location">${escapeHtml(short)}</div>` : `<div class="icon-circle" style="background:${categoryColors[loc.category]||'#808080'}">${loc.icon}</div>`}</td>
-                    <td>${escapeHtml(loc.category)} ${loc.icon}</td>
-                    <td>${escapeHtml(short)}</td>
-                `;
-                tr.onclick = e => {
-                    if (e.target.tagName === 'SPAN' && !loc.isPostcard) return;
-                    document.getElementById('map').scrollIntoView({behavior:'smooth'});
-                    const targetLatLng = [loc.lat, loc.lng];
-                    const duration = map.getZoom() < 2 ? 2.5 : 1.5;
-                    map.flyTo(targetLatLng, 4, { duration });
-                    map.once('moveend', () => {
-                        setTimeout(() => {
-                            const m = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()].find(m=>m.options.id===loc.id);
-                            if (m) { m.openPopup(); playSound('click'); }
-                        }, 200);
-                    });
-                };
-                tr.oncontextmenu = e => {
-                    e.preventDefault();
-                    safeFlyTo(loc.lat, loc.lng, 4);
-                    if (!loc.isPostcard) openModal('Edit Item', locations.findIndex(l=>l.id===loc.id));
-                };
-                tbody.appendChild(tr);
-            });
-            const pages = Math.ceil(sorted.length/pageSize);
-            tablePage = Math.min(tablePage, pages||1);
-            pageInfo.textContent = `Page ${tablePage} of ${pages||1}`;
-            prevPageBtn.disabled = tablePage<=1;
-            nextPageBtn.disabled = tablePage>=pages;
-            updateCounterDisplay();
+    const tbody = document.querySelector('#locationsTable tbody');
+    tbody.innerHTML = '';
+
+    let list = locations.filter(l => activeCategories.has(l.category) && (!cat || l.category === cat));
+
+    if (search) {
+        const normalizedSearch = normalizeString(search);
+        list = list.filter(l => {
+            const text = normalizeString(l.desc + ' ' + l.category);
+            return text.includes(normalizedSearch) || normalizedSearch.includes(text.split(' ')[0]);
+        });
+    }
+
+    const glow = list.filter(isGlowing).sort((a,b) => b.addedTime - a.addedTime);
+    const rest = list.filter(l => !isGlowing(l)).sort((a,b) => a.category.localeCompare(b.category) || a.desc.localeCompare(b.desc));
+    const sorted = [...glow, ...rest];
+
+    const start = (tablePage - 1) * pageSize;
+    sorted.slice(start, start + pageSize).forEach(loc => {
+        const tr = document.createElement('tr');
+        if (isGlowing(loc)) tr.classList.add('glowing');
+
+        const short = loc.desc.split('\n')[0].trim();
+        let lockCell = '';
+        if (loc.isPostcard) {
+            const timeLeft = Math.max(0, 300000 - (Date.now() - loc.startTime));
+            const mins = Math.floor(timeLeft / 60000);
+            const secs = Math.floor((timeLeft % 60000) / 1000).toString().padStart(2, '0');
+            lockCell = `<span style="color:#ff0;font-size:11px;">${mins}:${secs}</span>`;
+        } else {
+            const lock = loc.locked ? 'Locked' : 'Unlocked';
+            lockCell = `<span class="lock-toggle" onclick="toggleLockFromTable(${locations.indexOf(loc)})">${lock}</span>`;
         }
+
+        tr.innerHTML = `
+            <td>${lockCell}</td>
+            <td>${['named locations','regions'].includes(loc.category) ? `<div class="text-location">${escapeHtml(short)}</div>` : `<div class="icon-circle" style="background:${categoryColors[loc.category]||'#808080'}">${loc.icon}</div>`}</td>
+            <td>${escapeHtml(loc.category)} ${loc.icon}</td>
+            <td>${escapeHtml(short)}</td>
+        `;
+
+        tr.onclick = e => {
+            if (e.target.tagName === 'SPAN' && !loc.isPostcard) return;
+            document.getElementById('map').scrollIntoView({behavior:'smooth'});
+            const targetLatLng = [loc.lat, loc.lng];
+            const duration = map.getZoom() < 2 ? 2.5 : 1.5;
+            map.flyTo(targetLatLng, 4, { duration });
+            map.once('moveend', () => {
+                setTimeout(() => {
+                    const m = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()].find(m=>m.options.id===loc.id);
+                    if (m) { m.openPopup(); playSound('click'); }
+                }, 200);
+            });
+        };
+
+        tr.oncontextmenu = e => {
+            e.preventDefault();
+            safeFlyTo(loc.lat, loc.lng, 4);
+            if (!loc.isPostcard) openModal('Edit Item', locations.findIndex(l=>l.id===loc.id));
+        };
+
+        tbody.appendChild(tr);
+    });
+
+    const pages = Math.ceil(sorted.length / pageSize);
+    tablePage = Math.min(tablePage, pages || 1);
+    pageInfo.textContent = `Page ${tablePage} of ${pages||1}`;
+    prevPageBtn.disabled = tablePage <= 1;
+    nextPageBtn.disabled = tablePage >= pages;
+    updateCounterDisplay();
+}
 
         window.toggleLockFromTable = i => {
             const loc = locations[i];
@@ -1902,33 +2082,45 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         setInterval(() => {
-            if (document.visibilityState !== 'visible') return;
-            let popupIsOpen = false;
-            map.eachLayer(layer => {
-                if (layer.getPopup && layer.getPopup() && layer.getPopup().isOpen()) {
-                    popupIsOpen = true;
-                }
-            });
-            if (!popupIsOpen) {
-                loadData(combinedSearch.value, categoryFilter.value);
+    if (document.visibilityState === 'visible' && !window.isDraggingAnyMarker) {
+
+        let popupIsOpen = false;
+        map.eachLayer(layer => {
+            if (layer.getPopup && layer.getPopup() && layer.getPopup().isOpen()) {
+                popupIsOpen = true;
             }
-            [clusteredMarkers, nonClusteredMarkers].forEach(g => g.eachLayer(m => {
-                const loc = locations.find(l => l.id === m.options.id);
-                if (!loc) return;
-                const glow = isGlowing(loc);
-                const icon = m.getIcon();
-                if (glow && !icon.options.className?.includes('glowing')) {
-                    m.setIcon(createMarkerIcon(loc));
-                    m.setZIndexOffset(10000);
-                } else if (!glow && icon.options.className?.includes('glowing')) {
-                    m.setIcon(createMarkerIcon(loc));
-                    m.setZIndexOffset(0);
-                }
-                loc.locked || loc.isPostcard ? m.dragging?.disable() : m.dragging?.enable();
-            }));
-            refreshTable(combinedSearch?.value || '', categoryFilter?.value || '');
-            updateLockAllBtn();
-        }, 1000);
+        });
+
+        if (!popupIsOpen) {
+            loadData(combinedSearch.value || '', categoryFilter.value || '');
+        }
+
+        [clusteredMarkers, nonClusteredMarkers].forEach(g => g.eachLayer(m => {
+            const loc = locations.find(l => l.id === m.options.id);
+            if (!loc) return;
+
+            const glow = isGlowing(loc);
+            const icon = m.getIcon();
+
+            if (glow && !icon.options.className?.includes('glowing')) {
+                m.setIcon(createMarkerIcon(loc));
+                m.setZIndexOffset(10000);
+            } else if (!glow && icon.options.className?.includes('glowing')) {
+                m.setIcon(createMarkerIcon(loc));
+                m.setZIndexOffset(0);
+            }
+
+            if (loc.locked || loc.isPostcard) {
+                m.dragging?.disable();
+            } else {
+                m.dragging?.enable();
+            }
+        }));
+
+        refreshTable(combinedSearch?.value || '', categoryFilter?.value || '');
+        updateLockAllBtn?.();
+    }
+}, 1000);
 
         function renderCategoryToggles() {
             const box = document.getElementById('categoryCheckboxes');
@@ -2036,20 +2228,43 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         function triggerNuke() {
-            const nuke = document.createElement('div');
-            nuke.style.cssText = `
-                position:fixed;top:0;left:0;width:100%;height:100%;background:#000;
-                z-index:99999;display:flex;align-items:center;justify-content:center;
-                flex-direction:column;pointer-events:none;
-            `;
-            nuke.innerHTML = `
-                <h1 style="color:#0f0;font-size:80px;animation:pulse 0.8s infinite;">NUKE DETONATED</h1>
-                <p style="color:#0f0;font-size:30px;">LEVEL ${level} ACHIEVED!</p>
-            `;
-            document.body.appendChild(nuke);
-            playSound('levelUp');
-            setTimeout(() => nuke.remove(), 2200);
-        }
+    const flash = document.createElement('div');
+    flash.style.cssText = `
+        position:fixed;top:0;left:0;width:100vw;height:100vh;
+        background:#fff;z-index:99999;pointer-events:none;
+        animation: quickFlash 0.7s ease-out forwards;
+    `;
+    document.body.appendChild(flash);
+
+    setTimeout(() => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position:fixed;top:0;left:0;width:100vw;height:100vh;
+            background:#000;z-index:99998;pointer-events:none;
+            display:flex;flex-direction:column;align-items:center;justify-content:center;
+            gap:20px;padding:20px;box-sizing:border-box;
+            font-family:'Courier New',monospace;text-align:center;
+        `;
+
+        overlay.innerHTML = `
+            <div class="nuke-symbol">☢</div>
+            <h1 class="nuke-title">LEVEL ${level} ACHIEVED</h1>
+            <p class="nuke-subtitle">${level % 10 === 0 ? 'NUKE DETONATED!' : 'RANK UP!'}</p>
+        `;
+
+        document.body.appendChild(overlay);
+        playSound('levelUp');
+
+        setTimeout(() => {
+            overlay.style.transition = 'opacity 1.2s';
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 1200);
+        }, 3500);
+
+    }, 400);
+
+    setTimeout(() => flash.remove(), 700);
+}
 
         function updateXPBar() {
             levelSpan.textContent = level;
@@ -2058,32 +2273,44 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         function loadData(search = '', catFilter = '') {
-            clusteredMarkers.clearLayers(); nonClusteredMarkers.clearLayers();
-            const filtered = locations.filter(loc =>
-                activeCategories.has(loc.category) &&
-                (!catFilter || loc.category === catFilter) &&
-                (!search || normalizeString(loc.desc + loc.category).includes(normalizeString(search)))
-            );
-            filtered.forEach(addMarkerToMap);
-            refreshTable(search, catFilter);
-            updateXPBar();
-            drawGrid();
-            saveAppState();
-            updateLockAllBtn();
-            if (locations.some(l => l.isPostcard)) startPostcardTicker();
-        }
+    clusteredMarkers.clearLayers();
+    nonClusteredMarkers.clearLayers();
+    const currentLocations = [...locations];
+
+    const filtered = currentLocations.filter(loc => {
+        if (!activeCategories.has(loc.category)) return false;
+        if (catFilter && loc.category !== catFilter) return false;
+        if (!search) return true;
+
+        const normalizedSearch = normalizeString(search);
+        const normalizedDesc = normalizeString(loc.desc);
+        const normalizedCat = loc.category ? normalizeString(loc.category) : '';
+
+        return normalizedDesc.includes(normalizedSearch) || 
+               normalizedSearch.includes(normalizedDesc) ||
+               normalizedCat.includes(normalizedSearch);
+    });
+
+    filtered.forEach(addMarkerToMap);
+
+    refreshTable(search, catFilter);
+
+    updateXPBar();
+    drawGrid();
+    saveAppState();
+    updateLockAllBtn();
+    if (currentLocations.some(l => l.isPostcard)) startPostcardTicker();
+}
 
         function forceReload() {
-    // Save the currently selected category in the modal (if modal is open)
     const modalOpen = itemModal.style.display === 'block';
     const currentModalCategory = modalOpen ? (locations[currentIndex]?.category || itemCategorySelect.value) : null;
 
     saveAppState();
-    loadData(combinedSearch?.value || '', categoryFilter?.value || '');
+    loadData('', categoryFilter?.value || '');
     renderCategoryToggles();
     updateCategoryDropdowns();
 
-    // CRITICAL: Restore the category AFTER dropdown rebuild
     if (modalOpen && currentModalCategory) {
         setTimeout(() => {
             itemCategorySelect.value = currentModalCategory;
@@ -2141,6 +2368,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showTempMessage('Backup saved! Now confirm reset.', 5000);
             setTimeout(() => {
                 if (confirm('Backup saved. Click OK to RESET app (cannot undo).')) {
+				    localStorage.removeItem(LAST_VERSION_KEY);
                     localStorage.clear();
                     location.reload();
                 }
@@ -2176,7 +2404,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 r.onload = ev => {
                     try {
                         const data = JSON.parse(ev.target.result);
-                        const incoming = data.locations || [];
+                        const incoming = data.locations || (Array.isArray(data) ? data : []);
                         let added = 0, updated = 0, skipped = 0;
                         incoming.forEach(imp => {
                             const existing = locations.find(l => l.cid === imp.cid);
@@ -2188,7 +2416,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 Object.assign(existing, imp);
                                 updated++;
                             } else {
-                                locations.push({ ...imp, id: generateUniqueId(), locked: true, isPostcard: false, isTemp: false });
+                                locations.push({ ...imp, id: generateUniqueId(), addedTime: Date.now(), locked: true, isPostcard: false, isTemp: false });
                                 added++;
                             }
                         });
@@ -2235,7 +2463,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             Object.assign(existing, imp);
                             updated++;
                         } else {
-                            locations.push({ ...imp, id: generateUniqueId(), locked: true, isPostcard: false, isTemp: false });
+                            locations.push({ ...imp, id: generateUniqueId(), addedTime: Date.now(), locked: true, isPostcard: false, isTemp: false });
                             added++;
                         }
                     });
@@ -2403,70 +2631,68 @@ document.addEventListener('DOMContentLoaded', function() {
             playSound('delete');
         };
 
-        document.getElementById('closeCategoryToggleBtn').onclick = () => closeModal(categoryToggleModal);
-
         saveItemBtn.onclick = () => {
-            const cat = itemCategorySelect.value;
-            let desc = itemDescInput.value.trim();
-            const isNew = currentIndex < 0;
-            let lat, lng;
+    const cat = itemCategorySelect.value;
+    let desc = itemDescInput.value.trim();
+    const isNew = currentIndex < 0;
+    let lat, lng;
 
-            if (isNew) {
-                if (tempLatLng && typeof tempLatLng.lat === 'number' && typeof tempLatLng.lng === 'number') {
-                    lat = tempLatLng.lat;
-                    lng = tempLatLng.lng;
-                } else {
-                    showTempMessage('No location selected! Double-click map first.', 4000);
-                    playSound('error');
-                    return;
-                }
-            } else {
-                const loc = locations[currentIndex];
-                if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number') {
-                    showTempMessage('Invalid location data!', 4000);
-                    playSound('error');
-                    return;
-                }
-                lat = loc.lat;
-                lng = loc.lng;
-            }
+    if (isNew) {
+        if (tempLatLng && typeof tempLatLng.lat === 'number' && typeof tempLatLng.lng === 'number') {
+            lat = tempLatLng.lat;
+            lng = tempLatLng.lng;
+        } else {
+            showTempMessage('No location selected! Double-click map first.', 4000);
+            playSound('error');
+            return;
+        }
+    } else {
+        const loc = locations[currentIndex];
+        if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number') {
+            showTempMessage('Invalid location data!', 4000);
+            playSound('error');
+            return;
+        }
+        lat = loc.lat;
+        lng = loc.lng;
+    }
 
-            if (!desc) {
-                const grid = getGridFromLatLng(lat, lng);
-                const x = Math.round(lng);
-                const y = Math.round(lat);
-                desc = grid ? `Grid ${grid} (X: ${x}, Y: ${y})` : `X: ${x}, Y: ${y}`;
-                itemDescInput.value = desc;
-            } else {
-                desc = updateDescWithGrid(desc, lat, lng);
-            }
+    if (!desc) {
+        const grid = getGridFromLatLng(lat, lng);
+        const x = Math.round(lng);
+        const y = Math.round(lat);
+        desc = grid ? `Grid ${grid} (X: ${x}, Y: ${y})` : `X: ${x}, Y: ${y}`;
+        itemDescInput.value = desc;
+    } else {
+        desc = updateDescWithGrid(desc, lat, lng);
+    }
 
-            if (currentIndex >= 0) {
-                const loc = locations[currentIndex];
-                if (loc.locked) {
-                    showTempMessage('Unlock first!', 4000);
-                    playSound('error');
-                    return;
-                }
-                loc.category = cat;
-                loc.desc = desc;
-                loc.icon = categoryIcons[cat] || 'NOTE';
-                loc.addedTime = Date.now();
-                loc.userEdited = true;
-                loc.locked = false;
-            } else {
-                const newLoc = createNewLocation(lat, lng, cat, desc);
-                newLoc.locked = false;
-                locations.push(newLoc);
-                recalculateXP();
-            }
+    if (currentIndex >= 0) {
+        const loc = locations[currentIndex];
+        if (loc.locked) {
+            showTempMessage('Unlock first!', 4000);
+            playSound('error');
+            return;
+        }
+        loc.category = cat;
+        loc.desc = desc;
+        loc.icon = categoryIcons[cat] || '📬';
+        loc.addedTime = Date.now();
+        loc.userEdited = true;
+        loc.locked = true;
+    } else {
+        const newLoc = createNewLocation(lat, lng, cat, desc);
+        newLoc.locked = true;
+        locations.push(newLoc);
+        recalculateXP();
+    }
 
-            closeModal(itemModal);
-            saveLocations();
-            playSound('saving');
-            showTempMessage('Saved!', 4000);
-            forceReload();
-        };
+    closeModal(itemModal);
+    saveLocations();
+    playSound('saving');
+    showTempMessage('Saved + LOCKED!', 4000);
+    forceReload();
+};
 
         deleteBtn.onclick = () => {
             if (currentIndex < 0) return;
@@ -2498,6 +2724,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showTempMessage('Undo complete!', 3000);
             playSound('undo');
             const restoredLoc = locations[locations.length - 1];
+			closeModal(itemModal);
             safeFlyTo(restoredLoc.lat, restoredLoc.lng, 4);
         };
 
@@ -2554,6 +2781,10 @@ document.addEventListener('DOMContentLoaded', function() {
             isDraggingAny = false;
             return;
         }
+		
+		combinedSearch.value = '';
+        loadData('', categoryFilter.value);
+	
         if (!gridEnabled) {
             const lat = e.latlng.lat;
             const lng = e.latlng.lng;
@@ -2581,7 +2812,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const desc = grid ? `Grid ${grid} (X: ${x}, Y: ${y})` : `X: ${x}, Y: ${y}`;
         const url = `${window.location.origin}${window.location.pathname}?lat=${y}&lng=${x}&grid=${grid}&desc=${encodeURIComponent(desc)}`;
         navigator.clipboard.writeText(url).then(() => {
-            showTempMessage('Right-click location copied!', 3000);
+            showTempMessage('Sending A Postcard location copied!', 3000);
             playSound('click');
         }).catch(() => {
             prompt('Copy this link:', url);
@@ -2698,71 +2929,197 @@ document.addEventListener('DOMContentLoaded', function() {
         const WELCOME_KEY = 'fo76_welcome_accepted_v38';
         const LAST_VERSION_KEY = 'fo76_last_seen_version';
         function showWelcomeModal() {
-            const welcomeModal = document.createElement('div');
-            welcomeModal.className = 'modal';
-            welcomeModal.style.display = 'block';
-            welcomeModal.innerHTML = `
-                <div class="modal-content" style="max-width:600px;">
-                    <h2>Welcome to Fallout 76 Item Finder v76.1.0</h2>
-                    <p>By using this app you agree:</p>
-                    <ul style="text-align:left;margin:20px 0;">
-                        <li>This app, created by MrCrazy, is for personal, non-commercial use by Fallout 76 players to track in-game items. Unauthorized copying, modification, distribution, or monetization is strictly prohibited. Do at your own risk.</li>
-                        <li>Stay Updated! Some Markers are community-sourced — use at your own risk</li>
-                        <li>Check the "Update Community Map" button periodically for the latest map version or to reset the app if you encounter issues. Find this tip in the "How to Use" section.</li>
-                        <li>Have fun and share the ❤️ in Appalachia explore and start logging locations!</li>
-                    </ul>
-                    <div style="text-align:center;margin-top:20px;">
-                        <button id="agreeBtn" style="background:#00ff00;color:#000;padding:10px 30px;font-size:18px;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">I AGREE — LET'S GO!</button>
+    const welcomeModal = document.createElement('div');
+    welcomeModal.id = 'welcomeModal';
+    welcomeModal.className = 'modal';
+    welcomeModal.style.display = 'block';
+
+    welcomeModal.innerHTML = `
+        <div class="modal-content" style="max-width:650px; background:#000; border:2px solid #00ff00; box-shadow:0 0 30px #00ff00;">
+            <div style="background:#000; padding:15px; text-align:center; border-bottom:2px solid #00ff00;">
+                <h1 style="margin:0; font-size:2.5em; text-shadow:0 0 20px #00ff00;">
+                    ☢ FALLOUT 76 ITEM FINDER ☢
+                </h1>
+                <p style="margin:8px 0 0; font-size:1.3em; color:#0f0;">
+                    v76.1.0 — Built with ❤️ by MrCrazy
+                </p>
+            </div>
+
+            <div style="padding:20px; line-height:1.7;">
+                <p style="font-size:1.1em; margin-bottom:18px;">
+                    <strong>Welcome, Vault Dweller!</strong> By using this app you agree:
+                </p>
+
+                <ul style="margin:20px 0; padding-left:30px; font-size:1.05em;">
+                    <li>This tool is for <strong>personal, non-commercial use only</strong>.</li>
+                    <li>No copying, selling, or redistributing without permission.</li>
+                    <li>Some markers are community-sourced — use at your own risk.</li>
+                    <li>Always hit <strong>"Update Community Map"</strong> for the latest data.</li>
+                    <li>Have fun exploring Appalachia — and share the love! ❤️</li>
+                </ul>
+
+                <div style="margin:25px 0; text-align:center;">
+                    <div id="welcomeGotItBtn" style="display:inline-block; padding:12px 40px; background:#000; border:3px solid #00ff00; color:#00ff00; font-size:1.5em; font-weight:bold; text-shadow:0 0 15px #00ff00; box-shadow:0 0 20px #00ff00; cursor:pointer;">
+                        ENTER THE WASTELAND
                     </div>
                 </div>
-            `;
-            document.body.appendChild(welcomeModal);
-            document.body.classList.add('modal-open');
-            document.getElementById('agreeBtn').onclick = () => {
-                localStorage.setItem(WELCOME_KEY, 'true');
-                welcomeModal.remove();
-                document.body.classList.remove('modal-open');
-                playSound('levelUp');
-                showTempMessage('Welcome, wanderer!', 4000);
-            };
-        }
+
+                <p style="text-align:center; margin-top:20px; font-size:0.9em; opacity:0.8;">
+                    Made with passion for the Fallout 76 community.<br>
+                    <a href="https://buymeacoffee.com/mrcrazy" target="_blank" style="color:#00ff80;">Buy MrCrazy a Nuka-Cola ☕</a> if you love it!
+                </p>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(welcomeModal);
+    document.body.classList.add('modal-open');
+    document.getElementById('welcomeGotItBtn').onclick = () => {
+        localStorage.setItem(WELCOME_KEY, 'true');
+        welcomeModal.remove();
+        document.body.classList.remove('modal-open');
+        playSound('levelUp');
+        showTempMessage('Welcome to Appalachia!', 5000);
+    };
+}
 
         function checkForUpdate() {
-            const lastSeen = localStorage.getItem(LAST_VERSION_KEY);
-            if (lastSeen !== CURRENT_UPDATE_VERSION) {
-                const updateModal = document.createElement('div');
-                updateModal.className = 'modal';
-                updateModal.style.display = 'block';
-                updateModal.innerHTML = `
-                    <div class="modal-content" style="max-width:500px;">
-                        <h2>App Updated!</h2>
-                        <p style="text-align:left;">What’s new:</p>
-                        <ul style="text-align:left;">
-                            <li>Welcome To Version 76.1.0</li>
-                            <li>This is The Latest Update Reset Your App. Find this tip in the "How to Use" section.</li>
-                            <li>Made With ❤️</li>
-                        </ul>
-                        <div style="text-align:center;margin-top:20px;">
-                            <button id="updateGotIt" style="background:#00ff00;color:#000;padding:10px 30px;font-size:18px;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">GOT IT — LET'S GO!</button>
+    const lastSeen = localStorage.getItem(LAST_VERSION_KEY);
+    if (lastSeen !== CURRENT_UPDATE_VERSION) {
+        const updateModal = document.createElement('div');
+        updateModal.id = 'updateModal';
+        updateModal.className = 'modal';
+        updateModal.style.display = 'block';
+        updateModal.innerHTML = `
+            <div class="modal-content" style="max-width:600px; background:#000; border:2px solid #00ff00; box-shadow:0 0 30px #00ff00;">
+                <div style="background:#000; padding:18px; text-align:center; border-bottom:2px solid #00ff00;">
+                    <h1 style="margin:0; font-size:2.4em; text-shadow:0 0 20px #00ff00; color:#0f0;">
+                        ☢ UPDATE AVAILABLE ☢
+                    </h1>
+                </div>
+                <div style="padding:30px; text-align:center; line-height:1.8;">
+                    <ul style="text-align:left; display:inline-block; margin:25px 0; padding-left:30px; font-size:1.2em;">
+                        <li>Welcome To ☢ FALLOUT 76 ITEM FINDER ☢ Version 76.1.0</li>
+                        <li>This is The Latest Update — Reset Your App if needed.<br>
+                            Find this tip in the "How to Use" section.</li>
+						<li>Always hit "Update Community Map" for the latest data.</li>
+                        <li>Made With ❤️ By MrCrazy</li>
+                    </ul>
+                    <div style="margin:30px 0;">
+                        <div id="updateGotItBtn" style="display:inline-block; padding:14px 50px; background:#000; border:3px solid #00ff00; color:#00ff00; font-size:1.6em; font-weight:bold; text-shadow:0 0 18px #00ff00; box-shadow:0 0 25px #00ff00; cursor:pointer;">
+                            GOT IT — LET'S GO!
                         </div>
                     </div>
-                `;
-                document.body.appendChild(updateModal);
-                document.body.classList.add('modal-open');
-                document.getElementById('updateGotIt').onclick = () => {
-                    localStorage.setItem(LAST_VERSION_KEY, CURRENT_UPDATE_VERSION);
-                    updateModal.remove();
-                    document.body.classList.remove('modal-open');
-                    playSound('levelUp');
-                };
-            }
-        }
+                    <p style="margin-top:20px; font-size:0.9em; opacity:0.8;">
+                        Thank you for using the Fallout 76 Item Finder!<br>
+                        <a href="https://buymeacoffee.com/mrcrazy" target="_blank" style="color:#00ff80;">Buy MrCrazy a Nuka-Cola ☕</a>
+                    </p>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(updateModal);
+        document.body.classList.add('modal-open');
+        document.getElementById('updateGotItBtn').onclick = () => {
+            localStorage.setItem(LAST_VERSION_KEY, CURRENT_UPDATE_VERSION);
+            updateModal.remove();
+            document.body.classList.remove('modal-open');
+            playSound('levelUp');
+        };
+    }
+}
 
         if (!localStorage.getItem(WELCOME_KEY)) {
             setTimeout(showWelcomeModal, 800);
         } else {
-            setTimeout(checkForUpdate, 800);
+            setTimeout(checkForUpdate, 500);
         }
+		
+		const searchInput = document.getElementById('combinedSearch');
+const suggestionsBox = document.getElementById('searchSuggestions');
+
+searchInput.addEventListener('input', function(e) {
+    if (e && !e.isTrusted) return;
+
+    const q = searchInput.value.trim().toLowerCase();
+    suggestionsBox.innerHTML = '';
+    suggestionsBox.style.display = 'none';
+
+    if (q.length < 2) return;
+
+    const matches = [];
+
+    locations.forEach(loc => {
+        if (!loc.desc) return;
+
+        const descLower = loc.desc.toLowerCase();
+        if (descLower.includes(q)) {
+            const displayText = loc.desc.length > 50 ? loc.desc.substring(0,47) + '...' : loc.desc;
+            matches.push({
+                display: displayText,
+                desc: loc.desc,
+                lat: loc.lat,
+                lng: loc.lng,
+                id: loc.id
+            });
+        }
+
+        if (loc.category && loc.category.toLowerCase().includes(q)) {
+            matches.push({
+                display: loc.category,
+                desc: loc.category,
+                lat: loc.lat,
+                lng: loc.lng,
+                id: loc.id
+            });
+        }
+    });
+
+    const seen = new Set();
+    const unique = matches.filter(item => {
+        if (seen.has(item.desc + item.lat + item.lng)) return false;
+        seen.add(item.desc + item.lat + item.lng);
+        return true;
+    }).slice(0, 12);
+
+    if (unique.length === 0) return;
+
+    unique.forEach(item => {
+        const div = document.createElement('div');
+        div.textContent = item.display;
+        div.onclick = () => {
+    searchInput.value = '';
+    suggestionsBox.style.display = 'none';
+
+    loadData('', categoryFilter.value);
+
+    safeFlyTo(item.lat, item.lng, 4);
+
+    map.once('moveend', () => {
+        setTimeout(() => {
+            const m = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
+                .find(m => m.options.id === item.id);
+            if (m) {
+                m.openPopup();
+                playSound('click');
+            }
+        }, 200);
+    });
+
+    playSound('click');
+};
+        suggestionsBox.appendChild(div);
+    });
+
+    suggestionsBox.style.display = 'block';
+});
+
+document.addEventListener('click', e => {
+    if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+        suggestionsBox.style.display = 'none';
+    }
+});
+setTimeout(checkForUpdate, 800);
 
         console.log('%cFallout 76 Item Finder v76.1.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
