@@ -3018,11 +3018,10 @@ showTempMessage(`Community Map v${data.communityVersion || "1.0"} loaded!`, 5000
                 </div>
                 <div style="padding:30px; text-align:center; line-height:1.8;">
                     <ul style="text-align:left; display:inline-block; margin:25px 0; padding-left:30px; font-size:1.2em;">
-                        <li>Welcome To ☢ FALLOUT 76 ITEM FINDER ☢ Version 76.1.0</li>
+                        <li>Welcome To Version 76.1.0</li>
                         <li>This is The Latest Update — Reset Your App if needed.<br>
                             Find this tip in the "How to Use" section.</li>
-						<li>Always hit "Update Community Map" for the latest data.</li>
-                        <li>Made With ❤️ By MrCrazy</li>
+                        <li>Made With ❤️</li>
                     </ul>
                     <div style="margin:30px 0;">
                         <div id="updateGotItBtn" style="display:inline-block; padding:14px 50px; background:#000; border:3px solid #00ff00; color:#00ff00; font-size:1.6em; font-weight:bold; text-shadow:0 0 18px #00ff00; box-shadow:0 0 25px #00ff00; cursor:pointer;">
@@ -3039,11 +3038,28 @@ showTempMessage(`Community Map v${data.communityVersion || "1.0"} loaded!`, 5000
 
         document.body.appendChild(updateModal);
         document.body.classList.add('modal-open');
-        document.getElementById('updateGotItBtn').onclick = () => {
-            localStorage.setItem(LAST_VERSION_KEY, CURRENT_UPDATE_VERSION);
-            updateModal.remove();
-            document.body.classList.remove('modal-open');
-            playSound('levelUp');
+
+        setTimeout(() => {
+            const btn = document.getElementById('updateGotItBtn');
+            if (btn) {
+                btn.onclick = () => {
+                    localStorage.setItem(LAST_VERSION_KEY, CURRENT_UPDATE_VERSION);
+                    updateModal.remove();
+                    document.body.classList.remove('modal-open');
+                    playSound('levelUp');
+                };
+            } else {
+                console.error('Update button not found');
+            }
+        }, 50);
+
+        updateModal.onclick = (e) => {
+            if (e.target === updateModal) {
+                localStorage.setItem(LAST_VERSION_KEY, CURRENT_UPDATE_VERSION);
+                updateModal.remove();
+                document.body.classList.remove('modal-open');
+                playSound('levelUp');
+            }
         };
     }
 }
