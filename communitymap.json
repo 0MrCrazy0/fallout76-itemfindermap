@@ -1,6 +1,7 @@
 {
-  "version": 37,
+  "version": "1.0",
   "communityVersion": "1.0",
+  "displayVersion": "76.1.0",
   "locations": [
     {
       "id": "id-usu1gwag8-1761425159043",
@@ -1842,6 +1843,6 @@
   "icon": "📚",
   "addedTime": 1761572313838
 }
-],
-"customCategories": {}
+  ],
+  "customCategories": {}
 }
