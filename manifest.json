@@ -1,7 +1,7 @@
 {
   "name": "Fallout 76 Item Finder",
   "short_name": "FO76 Finder",
-  "description": "The ultimate interactive item & location map for Fallout 76",
+  "description": "The ultimate interactive item &amp; location map for Fallout 76",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
