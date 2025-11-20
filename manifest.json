@@ -2,20 +2,21 @@
   "name": "Fallout 76 Item Finder",
   "short_name": "FO76 Finder",
   "description": "The ultimate interactive item & location map for Fallout 76",
-  "start_url": "/fallout76-itemfindermap/index.html",
+  "start_url": "/0mrcrazy0.github.io/fallout76-itemfindermap/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#00ff00",
   "icons": [
     {
-      "src": "/fallout76-itemfindermap/icon-192-v2.png",
+      "src": "/0mrcrazy0.github.io/fallout76-itemfindermap/icon-192-v2.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/fallout76-itemfindermap/icon-512-v2.png",
+      "src": "/0mrcrazy0.github.io/fallout76-itemfindermap/icon-512-v2.png",
       "sizes": "512x512",
       "type": "image/png"
     }
   ]
 }
+
