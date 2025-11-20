@@ -5,8 +5,7 @@ self.addEventListener("install", e => {
     caches.open(CACHE).then(cache => cache.addAll([
       "/",
       "/fallout76-itemfindermap/",
-      "/fallout76-itemfindermap/index.html",
-      "/fallout76-itemfindermap/icon-192.jpeg"
+      "/fallout76-itemfindermap/index.html"
       // add more files if you want, but your PWA already caches everything
     ]))
   );
@@ -18,3 +17,4 @@ self.addEventListener("fetch", e => {
   );
 
 });
+
