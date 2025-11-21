@@ -1,41 +1,21 @@
 {
-  "background_color": "#ffffff",
-  "dir": "ltr",
-  "display": "standalone",
-  "name": "IFM",
-  "orientation": "any",
+  "name": "Fallout 76 Item Finder",
+  "short_name": "FO76 Finder",
   "description": "The ultimate interactive item & location map for Fallout 76",
-  "scope": "/",
-  "short_name": "IFM",
-  "start_url": "/https://0mrcrazy0.github.io/fallout76-itemfindermap/",
+  "start_url": "/fallout76-itemfindermap/index.html",
+  "display": "standalone",
+  "background_color": "#000000",
   "theme_color": "#00ff00",
   "icons": [
     {
-      "src": "/0mrcrazy0.github.io/fallout76-itemfindermap/icon-192-v2.png",
+      "src": "/fallout76-itemfindermap/icon-192-v2.png",
       "sizes": "192x192",
-      "isSquare": true,
-      "isPng": true,
-      "isWebp": false,
-      "isJpg": false,
-      "width": 192,
-      "is512x512": false,
-      "is256x256": false,
-      "is192x192": true
+      "type": "image/png"
     },
     {
-      "src": "/0mrcrazy0.github.io/fallout76-itemfindermap/icon-512-v2.png",
+      "src": "/fallout76-itemfindermap/icon-512-v2.png",
       "sizes": "512x512",
-      "isSquare": true,
-      "isPng": true,
-      "isWebp": false,
-      "isJpg": false,
-      "width": 512,
-      "is512x512": true,
-      "is256x256": false,
-      "is192x192": false
+      "type": "image/png"
     }
   ]
 }
-
-
-
