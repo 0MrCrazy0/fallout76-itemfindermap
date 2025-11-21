@@ -4,6 +4,7 @@
   "display": "standalone",
   "name": "IFM",
   "orientation": "any",
+  "description": "The ultimate interactive item & location map for Fallout 76",
   "scope": "/",
   "short_name": "IFM",
   "start_url": "/https://0mrcrazy0.github.io/fallout76-itemfindermap/",
@@ -35,4 +36,5 @@
     }
   ]
 }
+
 
