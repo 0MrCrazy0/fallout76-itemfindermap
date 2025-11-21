@@ -11,7 +11,7 @@
   "theme_color": "#00ff00",
   "icons": [
     {
-      "src": "https://0mrcrazy0.github.io/fallout76-itemfindermap/icon-192-v2.png",
+      "src": "/0mrcrazy0.github.io/fallout76-itemfindermap/icon-192-v2.png",
       "sizes": "192x192",
       "isSquare": true,
       "isPng": true,
@@ -23,7 +23,7 @@
       "is192x192": true
     },
     {
-      "src": "https://0mrcrazy0.github.io/fallout76-itemfindermap/icon-512-v2.png",
+      "src": "/0mrcrazy0.github.io/fallout76-itemfindermap/icon-512-v2.png",
       "sizes": "512x512",
       "isSquare": true,
       "isPng": true,
@@ -36,5 +36,6 @@
     }
   ]
 }
+
 
 
