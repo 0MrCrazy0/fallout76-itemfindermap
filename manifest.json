@@ -2,15 +2,15 @@
   "background_color": "#ffffff",
   "dir": "ltr",
   "display": "standalone",
-  "name": "FO76-IFM",
+  "name": "IFM",
   "orientation": "any",
   "scope": "/",
-  "short_name": "FO76-IFM",
+  "short_name": "IFM",
   "start_url": "/https://0mrcrazy0.github.io/fallout76-itemfindermap/",
   "theme_color": "#00ff00",
   "icons": [
     {
-      "src": "https://0mrcrazy0.github.io/fallout76-itemfindermap/icon-192.png",
+      "src": "https://0mrcrazy0.github.io/fallout76-itemfindermap/icon-192-v2.png",
       "sizes": "192x192",
       "isSquare": true,
       "isPng": true,
@@ -22,7 +22,7 @@
       "is192x192": true
     },
     {
-      "src": "https://0mrcrazy0.github.io/fallout76-itemfindermap/icon-512.png",
+      "src": "https://0mrcrazy0.github.io/fallout76-itemfindermap/icon-512-v2.png",
       "sizes": "512x512",
       "isSquare": true,
       "isPng": true,
@@ -35,3 +35,4 @@
     }
   ]
 }
+
