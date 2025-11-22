@@ -7,8 +7,7 @@ self.addEventListener("install", e => {
       "/fallout76-itemfindermap/index.html",
       "/fallout76-itemfindermap/manifest.json",
       "/fallout76-itemfindermap/icon-192-v2.png",
-      "/fallout76-itemfindermap/icon-512-v2.png",
-      "/fallout76-itemfindermap/_headers"
+      "/fallout76-itemfindermap/icon-512-v2.png"
     ]))
   );
 });
@@ -17,6 +16,7 @@ self.addEventListener("fetch", e => {
     caches.match(e.request).then(response => response || fetch(e.request))
   );
 });
+
 
 
 
