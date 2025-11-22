@@ -2478,6 +2478,7 @@ map.on('popupclose', () => {
     fetchWithTimeout('https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?t=' + Date.now(), 12000)
         .then(r => r.ok ? r.json() : Promise.reject('Bad response'))
         .then(data => {
+    // ─────── CLEAR communitymap.json FROM ALL CACHES (non-blocking) ───────
     caches.keys().then(cacheNames => {
         cacheNames.forEach(name => {
             caches.open(name).then(cache => {
@@ -2492,49 +2493,48 @@ map.on('popupclose', () => {
         });
     });
 
+    // ─────── DEBUG LOGS ───────
     console.log('Fetched version:', data.communityVersion);
     console.log('Markers:', data.locations.length);
 
+    // ─────── YOUR ORIGINAL IMPORT CODE (unchanged) ───────
+    const incoming = data.locations || [];
+    let added = 0, updated = 0, skipped = 0;
+    incoming.forEach(imp => {
+        const existing = locations.find(l => l.cid === imp.cid);
+        if (existing && existing.userEdited) {
+            skipped++;
+            return;
+        }
+        if (existing) {
+            Object.assign(existing, imp);
+            updated++;
+        } else {
+            locations.push({ ...imp, id: generateUniqueId(), addedTime: Date.now(), locked: true, isPostcard: false, isTemp: false });
+            added++;
+        }
+    });
+
+    if (data.customCategories) customCategories = { ...customCategories, ...data.customCategories };
+
+    const newVersion = String(data.communityVersion || "1.0");
+    localStorage.setItem(MAP_VERSION_KEY, newVersion);
+    communityVersion = newVersion;
+
+    showTempMessage(`Community Map v${newVersion} loaded! (${data.locations.length} markers)`, 5000);
+    localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+    recalculateXP();
+    updateCounterDisplay();
+    forceReload();
+    saveLocations();
+
+    showConfirmModal(
+        'Community Map Updated',
+        `Added: <strong>${added}</strong> markers<br>Updated: <strong>${updated}</strong> markers<br>Skipped (user-edited): <strong>${skipped}</strong> markers<br>Total: <strong>${locations.length}</strong> markers`,
+        null
+    );
+    playSound('saving');
 })
-            
-            const incoming = data.locations || [];
-            let added = 0, updated = 0, skipped = 0;
-            incoming.forEach(imp => {
-                const existing = locations.find(l => l.cid === imp.cid);
-                if (existing && existing.userEdited) {
-                    skipped++;
-                    return;
-                }
-                if (existing) {
-                    Object.assign(existing, imp);
-                    updated++;
-                } else {
-                    locations.push({ ...imp, id: generateUniqueId(), addedTime: Date.now(), locked: true, isPostcard: false, isTemp: false });
-                    added++;
-                }
-            });
-            
-            if (data.customCategories) customCategories = { ...customCategories, ...data.customCategories };
-            
-            // Force version update
-            const newVersion = String(data.communityVersion || "1.0");
-            localStorage.setItem(MAP_VERSION_KEY, newVersion);
-            communityVersion = newVersion;
-            
-            showTempMessage(`Community Map v${newVersion} loaded! (${data.locations.length} markers)`, 5000);
-            localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-            recalculateXP();
-            updateCounterDisplay();
-            forceReload();
-            saveLocations();
-            
-            showConfirmModal(
-                'Community Map Updated',
-                `Added: <strong>${added}</strong> markers<br>Updated: <strong>${updated}</strong> markers<br>Skipped (user-edited): <strong>${skipped}</strong> markers<br>Total: <strong>${locations.length}</strong> markers`,
-                null
-            );
-            playSound('saving');
-        })
         .catch(err => {
             console.error('Fetch error:', err); // Debug: check console
             showTempMessage('Update failed – check internet', 5000);
@@ -3219,6 +3219,7 @@ setTimeout(checkForUpdate, 800);
 </script>
 </body>
 </html>
+
 
 
 
