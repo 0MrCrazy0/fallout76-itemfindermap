@@ -1,6 +1,6 @@
 {
-  "name": "Fallout 76 Item Finder",
-  "short_name": "FO76 Finder",
+  "name": "Fallout 76 Item Finder Map",
+  "short_name": "FO76 IFM",
   "description": "The ultimate interactive item & location map for Fallout 76",
   "start_url": "/fallout76-itemfindermap/",
   "display": "standalone",
@@ -19,3 +19,4 @@
     }
   ]
 }
+
