@@ -1073,6 +1073,24 @@ document.head.appendChild(nukeStyle);
     </div>
 
 <script>
+	// ─────── AUTO-RECOVERY FOR COMPLETELY BROKEN PWAs (Edge, old Chrome, etc.) ───────
+if ('serviceWorker' in navigator) {
+    // If the page loads but the map is empty OR we detect old version stuck
+    setTimeout(async () => {
+        const storedVersion = localStorage.getItem('fo76_map_version');
+        if (!storedVersion || storedVersion < '1.3') {
+            console.log('Old or broken install detected — auto-fixing...');
+            // Kill old service workers
+            const regs = await navigator.serviceWorker.getRegistrations();
+            for (const reg of regs) await reg.unregister();
+            // Clear all caches
+            const keys = await caches.keys();
+            for (const key of keys) await caches.delete(key);
+            // Force full reload with fresh everything
+            location.replace(location.href.split('?')[0] + '?recovered=' + Date.now());
+        }
+    }, 3000); // wait 3 seconds to see if normal load works
+}
 document.addEventListener('DOMContentLoaded', function() {
     (function() {
         const STORAGE_KEY = 'fo76_locations';
@@ -3287,6 +3305,7 @@ banner.innerHTML = `
 </script>
 </body>
 </html>
+
 
 
 
