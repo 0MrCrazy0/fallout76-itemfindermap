@@ -3214,6 +3214,60 @@ document.addEventListener('click', e => {
 });
 setTimeout(checkForUpdate, 800);
 
+// ─────── PWA INSTALL REMINDER (WORKS EVERYWHERE) ───────
+let deferredPrompt = null;
+let reminderShown = false;
+
+// Capture the install prompt
+window.addEventListener('beforeinstallprompt', (e) => {
+    console.log('beforeinstallprompt fired');
+    e.preventDefault();           // Stop Chrome from showing its own banner
+    deferredPrompt = e;           // Save it so we can trigger it manually
+});
+
+// Check if running as installed PWA
+function isInstalled() {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           window.matchMedia('(display-mode: minimal-ui)').matches ||
+           window.navigator.standalone === true;
+}
+
+// Show reminder after 30 seconds if not installed and not shown this session
+setTimeout(() => {
+    if (!isInstalled() && deferredPrompt && !reminderShown) {
+        reminderShown = true;
+
+        const banner = document.createElement('div');
+banner.style.cssText = `
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    background:#001100; color:#00ff00; padding:14px 20px; border:2px solid #00ff00;
+    border-radius:8px; font:bold 16px 'Courier New',monospace; text-align:center;
+    z-index:99999; box-shadow:0 0 20px #00ff00; max-width:90%;
+`;
+
+// ← ADD THIS ONE LINE
+const isMobile = /Mobi|Android|iPhone|iPad|iPod/.test(navigator.userAgent);
+banner.innerHTML = `
+    ❤️ Love the map?<br>
+    <button id="installYes" style="background:#00ff00;color:#000;padding:8px 16px;border:none;margin:8px;cursor:pointer;">
+        ${isMobile ? 'Install App' : 'Install as App'}
+    </button>
+    <button id="installNo" style="background:transparent;color:#00ff00;border:none;margin:8px;cursor:pointer;">
+        Maybe later
+    </button>
+`;
+
+        document.body.appendChild(banner);
+
+        document.getElementById('installYes').onclick = () => {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(() => banner.remove());
+        };
+
+        document.getElementById('installNo').onclick = () => banner.remove();
+    }
+}, 30000); // 30 seconds — change if you want faster/slower
+
         console.log('%cFallout 76 Item Finder v76.1.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
        Fallout 76 Item Finder Map - Disclaimer and Terms of Use
