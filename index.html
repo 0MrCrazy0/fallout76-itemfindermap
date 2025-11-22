@@ -2476,7 +2476,7 @@ map.on('popupclose', () => {
     
     // Cache-busting with timestamp (forces fresh download every time)
     const cacheBust = new Date().getTime();
-    fetchWithTimeout(`https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?v=${cacheBust}`, 12000)
+    fetchWithTimeout('https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?t=' + Date.now(), 12000)
         .then(r => r.ok ? r.json() : Promise.reject('Bad response'))
         .then(data => {
             console.log('Fetched data version:', data.communityVersion); // Debug: check console
@@ -3204,6 +3204,7 @@ setTimeout(checkForUpdate, 800);
 </script>
 </body>
 </html>
+
 
 
 
