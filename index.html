@@ -1003,7 +1003,7 @@ document.head.appendChild(nukeStyle);
     <p>Hit <strong>Download Community Map</strong> occasionally to get the latest community updates.</p>
     <p style="margin-top:20px;"><strong>Enjoy Appalachia — & Happy Exploring!</strong></p>
             <div style="text-align:center; margin:15px 0;">
-                <button id="resetAppBtn" class="reset-btn">Reset App (for debugging only)</button>
+                <button id="resetAppBtn" class="reset-btn">Reset App (deletes everything)</button>
             </div>
             <p class="small"><br>❤️ the Item Finder? Support MrCrazy with a <a href="https://buymeacoffee.com/mrcrazy" target="_blank">Nuka-Cola</a>!</p>
             <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version v76.1.0 Made By MrCrazy</p>
@@ -2397,23 +2397,37 @@ map.on('popupclose', () => {
         }
 
         resetAppBtn.onclick = () => {
-            if (!confirm('Reset ALL data? Backup your markers first! Click OK to backup.')) return;
-            const data = { version: 1.0, communityVersion, customCategories, locations: locations.filter(l => !l.isPostcard) };
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `fo76_backup_ALL_${data.locations.length}_v${communityVersion}_${new Date().toISOString().slice(0,10)}.json`;
-            a.click();
-            URL.revokeObjectURL(a.href);
-            showTempMessage('Backup saved! Now confirm reset.', 5000);
-            setTimeout(() => {
-                if (confirm('Backup saved. Click OK to RESET app (cannot undo).')) {
-				    localStorage.removeItem(LAST_VERSION_KEY);
-                    localStorage.clear();
-                    location.reload();
-                }
-            }, 1000);
-        };
+    if (!confirm('⚠️ RESET APP — This will delete ALL markers, XP, settings & map version.\n\nFirst we create a full backup for you.\n\nClick OK to continue.')) return;
+
+    // 1. Create and download backup
+    const data = { 
+        version: 1.0, 
+        communityVersion, 
+        customCategories, 
+        locations: locations.filter(l => !l.isPostcard) 
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `FO76_BACKUP_${data.locations.length}_markers_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+
+    showTempMessage('Backup downloaded! Final step...', 6000);
+
+    // 2. Final warning with FULL reset instructions
+    setTimeout(() => {
+        if (confirm('⚠️ FINAL STEP — FULL RESET REQUIRED\n\nYour backup is safe!\n\nFor a 100% complete reset (especially on phones with stuck old versions):\n\n→ After clicking OK, go to Browser Settings → Privacy → Clear browsing data → "All time" → check "Cached images and files" → Clear\n\nThis removes old cached maps forever.\n\nReady?')) {
+            localStorage.clear();
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(regs => {
+                    regs.forEach(reg => reg.unregister());
+                });
+            }
+            location.reload();
+        }
+    }, 1200);
+};
 
         exportBtn.onclick = () => {
             playSound('saving');
@@ -3310,5 +3324,10 @@ banner.innerHTML = `
 </script>
 </body>
 </html>
+
+
+
+
+
 
 
