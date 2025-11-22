@@ -3270,13 +3270,6 @@ banner.innerHTML = `
         document.getElementById('installNo').onclick = () => banner.remove();
     }
 }, 30000); // 30 seconds — change if you want faster/slower
-
-		let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    console.log('Install prompt ready — manual trigger available');
-});
         console.log('%cFallout 76 Item Finder v76.1.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
        Fallout 76 Item Finder Map - Disclaimer and Terms of Use
@@ -3294,6 +3287,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
 </script>
 </body>
 </html>
+
 
 
 
