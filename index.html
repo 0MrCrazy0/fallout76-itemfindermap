@@ -2474,7 +2474,7 @@ map.on('popupclose', () => {
     downloadCommunityBtn.disabled = true;
     downloadCommunityBtn.textContent = 'Updating...';
 
-    fetchWithTimeout('https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?v=1.2', 12000)
+    fetchWithTimeout('/fallout76-itemfindermap/communitymap.json?v=1.2', 12000)
         .then(r => r.ok ? r.json() : Promise.reject('Bad response'))
         .then(data => {
             const newVersion = String(data.communityVersion || "1.0");
@@ -3201,6 +3201,7 @@ setTimeout(checkForUpdate, 800);
 </script>
 </body>
 </html>
+
 
 
 
