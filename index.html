@@ -4,9 +4,12 @@
     <!-- DEV NOTE: Meta tags for mobile + PWA support -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+	<meta http-equiv="Pragma" content="no-cache">
+	<meta http-equiv="Expires" content="0">
     <title>Fallout 76 Item Finder Map v76.1.0</title>
 
-	<link rel="manifest" href="manifest.json?v=2">
+	<link rel="manifest" href="manifest.json?v=3">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -3268,6 +3271,23 @@ banner.innerHTML = `
     }
 }, 30000); // 30 seconds — change if you want faster/slower
 
+		let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    console.log('Install prompt ready — manual trigger available');
+});
+
+// Trigger manual prompt after 30 seconds or on interaction
+setTimeout(() => {
+    if (deferredPrompt) {
+        const banner = document.createElement('div');
+        banner.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,255,0,0.9);color:#000;padding:12px;border-radius:6px;font:bold 16px "Courier New",monospace;text-align:center;z-index:10000;max-width:90%;';
+        banner.innerHTML = 'Ready to install? <button onclick="deferredPrompt.prompt();banner.remove();" style="background:#000;color:#00ff00;border:1px solid #00ff00;padding:4px 8px;margin-left:8px;cursor:pointer;">Install App</button>';
+        document.body.appendChild(banner);
+    }
+}, 30000);
+
         console.log('%cFallout 76 Item Finder v76.1.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
        Fallout 76 Item Finder Map - Disclaimer and Terms of Use
@@ -3285,5 +3305,6 @@ banner.innerHTML = `
 </script>
 </body>
 </html>
+
 
 
