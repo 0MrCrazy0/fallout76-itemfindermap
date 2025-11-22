@@ -1225,7 +1225,7 @@ communityVersion = getCurrentCommunityVersion();  // set it correctly on load
         let currentIndex = -1;
         let tempLatLng = { lat: 0, lng: 0 };
         let clusteringEnabled = localStorage.getItem('clusteringEnabled') !== 'false';
-        let gridEnabled = localStorage.getItem('gridEnabled') === 'true';
+        let gridEnabled = localStorage.getItem('gridEnabled') === 'true' ? true : false;
         let activeCategories = new Set(
             localStorage.getItem('activeCategories')
                 ? JSON.parse(localStorage.getItem('activeCategories'))
@@ -3310,10 +3310,5 @@ banner.innerHTML = `
 </script>
 </body>
 </html>
-
-
-
-
-
 
 
