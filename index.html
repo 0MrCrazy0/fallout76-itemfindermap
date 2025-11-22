@@ -2474,14 +2474,28 @@ map.on('popupclose', () => {
     downloadCommunityBtn.disabled = true;
     downloadCommunityBtn.textContent = 'Updating...';
     
-    // Cache-busting with timestamp (forces fresh download every time)
     const cacheBust = new Date().getTime();
     fetchWithTimeout('https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?t=' + Date.now(), 12000)
         .then(r => r.ok ? r.json() : Promise.reject('Bad response'))
         .then(data => {
-			caches.open('fo76-finder-v76.1.0').then(cache => cache.delete('https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json'));
-            console.log('Fetched data version:', data.communityVersion); // Debug: check console
-            console.log('Marker count:', data.locations.length); // Debug: check console
+    caches.keys().then(cacheNames => {
+        cacheNames.forEach(name => {
+            caches.open(name).then(cache => {
+                cache.keys().then(requests => {
+                    requests.forEach(req => {
+                        if (req.url.includes('communitymap.json')) {
+                            cache.delete(req);
+                        }
+                    });
+                });
+            });
+        });
+    });
+
+    console.log('Fetched version:', data.communityVersion);
+    console.log('Markers:', data.locations.length);
+
+})
             
             const incoming = data.locations || [];
             let added = 0, updated = 0, skipped = 0;
@@ -3205,6 +3219,7 @@ setTimeout(checkForUpdate, 800);
 </script>
 </body>
 </html>
+
 
 
 
