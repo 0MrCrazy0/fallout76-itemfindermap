@@ -3277,17 +3277,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
     deferredPrompt = e;
     console.log('Install prompt ready — manual trigger available');
 });
-
-// Trigger manual prompt after 30 seconds or on interaction
-setTimeout(() => {
-    if (deferredPrompt) {
-        const banner = document.createElement('div');
-        banner.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,255,0,0.9);color:#000;padding:12px;border-radius:6px;font:bold 16px "Courier New",monospace;text-align:center;z-index:10000;max-width:90%;';
-        banner.innerHTML = 'Ready to install? <button onclick="deferredPrompt.prompt();banner.remove();" style="background:#000;color:#00ff00;border:1px solid #00ff00;padding:4px 8px;margin-left:8px;cursor:pointer;">Install App</button>';
-        document.body.appendChild(banner);
-    }
-}, 30000);
-
         console.log('%cFallout 76 Item Finder v76.1.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
        Fallout 76 Item Finder Map - Disclaimer and Terms of Use
@@ -3305,6 +3294,7 @@ setTimeout(() => {
 </script>
 </body>
 </html>
+
 
 
 
