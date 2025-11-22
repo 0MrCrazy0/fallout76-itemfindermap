@@ -2478,7 +2478,7 @@ map.on('popupclose', () => {
     fetchWithTimeout('https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?t=' + Date.now(), 12000)
         .then(r => r.ok ? r.json() : Promise.reject('Bad response'))
         .then(data => {
-    // ─────── CLEAR communitymap.json FROM ALL CACHES (non-blocking) ───────
+    // Clear any cached communitymap.json (non-blocking)
     caches.keys().then(cacheNames => {
         cacheNames.forEach(name => {
             caches.open(name).then(cache => {
@@ -3219,6 +3219,7 @@ setTimeout(checkForUpdate, 800);
 </script>
 </body>
 </html>
+
 
 
 
