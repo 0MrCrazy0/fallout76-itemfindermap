@@ -1,4 +1,4 @@
-const CACHE = "fo76-ifm-service-worker-v1.1";
+const CACHE = "fo76-ifm-service-worker-v2.0";
 
 self.addEventListener("install", e => {
   e.waitUntil(
@@ -16,6 +16,7 @@ self.addEventListener("fetch", e => {
     caches.match(e.request).then(response => response || fetch(e.request))
   );
 });
+
 
 
 
