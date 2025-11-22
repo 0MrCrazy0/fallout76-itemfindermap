@@ -2473,17 +2473,17 @@ map.on('popupclose', () => {
     if (!confirm('Update Community Map? Your edits are SAFE.')) return;
     downloadCommunityBtn.disabled = true;
     downloadCommunityBtn.textContent = 'Updating...';
-
-    fetchWithTimeout('/fallout76-itemfindermap/communitymap.json?v=1.2', 12000)
+    
+    // Cache-busting with timestamp (forces fresh download every time)
+    const cacheBust = new Date().getTime();
+    fetchWithTimeout(`https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?v=${cacheBust}`, 12000)
         .then(r => r.ok ? r.json() : Promise.reject('Bad response'))
         .then(data => {
-            const newVersion = String(data.communityVersion || "1.0");
-            localStorage.setItem(MAP_VERSION_KEY, newVersion);
-            communityVersion = newVersion;
-
+            console.log('Fetched data version:', data.communityVersion); // Debug: check console
+            console.log('Marker count:', data.locations.length); // Debug: check console
+            
             const incoming = data.locations || [];
             let added = 0, updated = 0, skipped = 0;
-
             incoming.forEach(imp => {
                 const existing = locations.find(l => l.cid === imp.cid);
                 if (existing && existing.userEdited) {
@@ -2498,27 +2498,30 @@ map.on('popupclose', () => {
                     added++;
                 }
             });
-
-            if (data.customCategories) {
-                customCategories = { ...customCategories, ...data.customCategories };
-            }
-
-            showTempMessage(`Community Map v${newVersion} loaded!`, 5000);
-
+            
+            if (data.customCategories) customCategories = { ...customCategories, ...data.customCategories };
+            
+            // Force version update
+            const newVersion = String(data.communityVersion || "1.0");
+            localStorage.setItem(MAP_VERSION_KEY, newVersion);
+            communityVersion = newVersion;
+            
+            showTempMessage(`Community Map v${newVersion} loaded! (${data.locations.length} markers)`, 5000);
             localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
             recalculateXP();
+            updateCounterDisplay();
             forceReload();
             saveLocations();
-			updateCounterDisplay();
-
+            
             showConfirmModal(
                 'Community Map Updated',
-                `Added: <strong>${added}</strong> markers<br>Updated: <strong>${updated}</strong> markers<br>Skipped (user-edited): <strong>${skipped}</strong> markers`,
+                `Added: <strong>${added}</strong> markers<br>Updated: <strong>${updated}</strong> markers<br>Skipped (user-edited): <strong>${skipped}</strong> markers<br>Total: <strong>${locations.length}</strong> markers`,
                 null
             );
             playSound('saving');
         })
-        .catch(() => {
+        .catch(err => {
+            console.error('Fetch error:', err); // Debug: check console
             showTempMessage('Update failed – check internet', 5000);
             playSound('error');
         })
@@ -3201,6 +3204,7 @@ setTimeout(checkForUpdate, 800);
 </script>
 </body>
 </html>
+
 
 
 
