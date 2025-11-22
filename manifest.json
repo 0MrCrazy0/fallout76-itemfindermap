@@ -3,7 +3,7 @@
   "short_name": "FO76 IFM",
   "description": "The ultimate interactive item & location map for Fallout 76",
   "start_url": "/fallout76-itemfindermap/",
-  "display": "standalone",
+  "display": "fullscreen",
   "background_color": "#000000",
   "theme_color": "#00ff00",
   "icons": [
@@ -19,5 +19,6 @@
     }
   ]
 }
+
 
 
