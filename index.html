@@ -2479,6 +2479,7 @@ map.on('popupclose', () => {
     fetchWithTimeout('https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?t=' + Date.now(), 12000)
         .then(r => r.ok ? r.json() : Promise.reject('Bad response'))
         .then(data => {
+			caches.open('fo76-finder-v76.1.0').then(cache => cache.delete('https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json'));
             console.log('Fetched data version:', data.communityVersion); // Debug: check console
             console.log('Marker count:', data.locations.length); // Debug: check console
             
@@ -3204,6 +3205,7 @@ setTimeout(checkForUpdate, 800);
 </script>
 </body>
 </html>
+
 
 
 
