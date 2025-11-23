@@ -2625,10 +2625,10 @@ map.on('popupclose', () => {
         });
 };
 
-// ——— SHARE MY ENTIRE MAP (ONE TAP) ———
+// ——— SHARE MY ENTIRE MAP (NOW FIXED & BULLETPROOF) ———
 document.getElementById('shareMyMapBtn').onclick = async () => {
     playSound('click');
-    
+
     const myMarkers = locations.filter(l => l.userEdited === true && !l.isPostcard);
     if (myMarkers.length === 0) {
         showTempMessage('No personal markers to share yet!', 4000);
@@ -2642,29 +2642,30 @@ document.getElementById('shareMyMapBtn').onclick = async () => {
         version: 1.0,
         sharedBy: "Vault Dweller",
         sharedAt: new Date().toISOString(),
-        locations: myMarkers
+        locations: myMarkers,
+        note: "Shared via Fallout 76 Item Finder by MrCrazy"
     };
 
     try {
-        const response = await fetch('https://file.io/?expires=1', {
-            method: 'POST',
-            body: JSON.stringify(data, null, 2)
+        const response = await fetch('https://transfer.sh/fo76_my_map.json', {
+            method: 'PUT',
+            body: JSON.stringify(data, null, 2),
+            headers: { 'Content-Type': 'application/json' }
         });
-        const result = await response.json();
 
-        if (result.success) {
-            const shareUrl = `${location.origin}${location.pathname}?import=${encodeURIComponent(result.link)}`;
-            navigator.clipboard.writeText(shareUrl).then(() => {
-                showTempMessage('Your map link is ready! Copied!', 6000);
-                playSound('postcard');
-            }).catch(() => {
-                prompt('Copy this link to share your map:', shareUrl);
-            });
-        } else {
-            throw new Error('Upload failed');
-        }
+        if (!response.ok) throw new Error('Upload failed');
+
+        const directLink = await response.text();
+        const shareUrl = `${location.origin}${location.pathname}?import=${encodeURIComponent(directLink.trim())}`;
+
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            showTempMessage('Your map link is ready! Copied to clipboard!', 6000);
+            playSound('postcard');
+        }).catch(() => {
+            prompt('Copy this link to share your full map:', shareUrl);
+        });
     } catch (err) {
-        showTempMessage('Share failed — try again later', 5000);
+        showTempMessage('Share failed — try again in a few seconds', 5000);
         playSound('error');
     } finally {
         shareMyMapBtn.disabled = false;
@@ -2931,30 +2932,34 @@ document.getElementById('shareMyMapBtn').onclick = async () => {
             playSound('saving');
         };
 		
-// ——— SHARE SINGLE MARKER AS LINK ———
+// ——— SHARE SINGLE MARKER (FIXED & BULLETPROOF) ———
 document.getElementById('shareOneBtn').onclick = async () => {
     if (currentIndex < 0) return;
-    const loc = locations[currentIndex];
 
+    const loc = locations[currentIndex];
     shareOneBtn.disabled = true;
     shareOneBtn.textContent = 'Uploading...';
 
     const data = { version: 1.0, locations: [loc] };
 
     try {
-        const res = await fetch('https://file.io/?expires=1', {
-            method: 'POST',
-            body: JSON.stringify(data, null, 2)
+        const res = await fetch('https://transfer.sh/fo76_marker.json', {
+            method: 'PUT',
+            body: JSON.stringify(data, null, 2),
+            headers: { 'Content-Type': 'application/json' }
         });
-        const json = await res.json();
 
-        if (json.success) {
-            const shareUrl = `${location.origin}${location.pathname}?import=${encodeURIComponent(json.link)}`;
-            navigator.clipboard.writeText(shareUrl).then(() => {
-                showTempMessage('Marker shared! Link copied!', 5000);
-                playSound('postcard');
-            }).catch(() => prompt('Copy this link:', shareUrl));
-        } else throw new Error();
+        if (!res.ok) throw new Error();
+
+        const directLink = await res.text();
+        const shareUrl = `${location.origin}${location.pathname}?import=${encodeURIComponent(directLink.trim())}`;
+
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            showTempMessage('Marker shared! Link copied!', 5000);
+            playSound('postcard');
+        }).catch(() => {
+            prompt('Copy this link:', shareUrl);
+        });
     } catch {
         showTempMessage('Share failed — try again', 4000);
         playSound('error');
