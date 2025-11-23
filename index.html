@@ -2449,22 +2449,25 @@ map.on('popupclose', () => {
 };
 
         exportBtn.onclick = () => {
-            playSound('saving');
-            const all = confirm('OK = ALL markers | Cancel = USER only');
-            const data = {
-                version: 1.0,
-                communityVersion,
-                customCategories,
-                locations: all ? locations.filter(l => !l.isPostcard) : locations.filter(l => l.userEdited && !l.isPostcard)
-            };
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `fo76_${all ? 'all' : 'user'}_${data.locations.length}_v${communityVersion}_${new Date().toISOString().slice(0,10)}.json`;
-            a.click();
-            URL.revokeObjectURL(a.href);
-            showTempMessage(`Exported ${data.locations.length} markers!`, 4000);
-        };
+    playSound('saving');
+    const all = confirm('OK = ALL markers | Cancel = USER only');
+    const data = {
+        version: 1.0,
+        communityVersion,
+        customCategories,
+        locations: all ? locations.filter(l => !l.isPostcard) : locations.filter(l => l.userEdited && !l.isPostcard)
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+
+    // CLEAN FILENAME — no version number anymore
+    a.download = `fo76_${all ? 'all' : 'user'}_${data.locations.length}_markers_${new Date().toISOString().slice(0,10)}.json`;
+
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showTempMessage(`Exported ${data.locations.length} marker${data.locations.length === 1 ? '' : 's'}!`, 4000);
+};
 
         importBtn.onclick = () => {
     const input = document.createElement('input');
@@ -2513,30 +2516,27 @@ map.on('popupclose', () => {
                 }
 
                 showTempMessage(`Imported ${added + updated} marker${added + updated === 1 ? '' : 's'}!`, 6000);
-
                 recalculateXP();
                 saveLocations();
                 forceReload();
                 updateCounterDisplay();
 
-                // UNDO BUTTON — now works perfectly for ALL imports
-                const undoBtn = document.getElementById('undoImportBtn');
-                if (undoBtn && (added + updated > 0)) {
-                    undoBtn.style.display = 'block';
-                    undoBtn.onclick = () => {
-                        locations = JSON.parse(beforeState);
-                        saveLocations();
-                        forceReload();
-                        undoBtn.style.display = 'none';
-                        showTempMessage('Import undone!', 4000);
-                        playSound('undo');
-                    };
-                    setTimeout(() => {
-                        if (undoBtn.style.display === 'block') {
+                // ——— UNDO BUTTON — now 100% guaranteed to appear on EVERY import (including single marker) ———
+                setTimeout(() => {
+                    const undoBtn = document.getElementById('undoImportBtn');
+                    if (undoBtn && (added + updated > 0)) {
+                        undoBtn.style.display = 'block';
+                        undoBtn.onclick = () => {
+                            locations = JSON.parse(beforeState);
+                            saveLocations();
+                            forceReload();
                             undoBtn.style.display = 'none';
-                        }
-                    }, 30000);
-                }
+                            showTempMessage('Import undone!', 4000);
+                            playSound('undo');
+                        };
+                        setTimeout(() => undoBtn.style.display = 'none', 30000);
+                    }
+                }, 100);
 
                 showConfirmModal(
                     'Import Complete',
