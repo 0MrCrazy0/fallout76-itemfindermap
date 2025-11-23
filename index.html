@@ -381,6 +381,15 @@
         gap: 10px;
         margin-top: 12px;
     }
+	
+	#itemModal .modal-content > div:last-child {
+    gap: 10px !important;
+    flex-wrap: wrap;
+}
+#exportOneBtn, #shareOneBtn {
+    flex: 1;
+    min-width: 120px;
+}
 
     /* DEV NOTE: MARKER CLUSTERING */
     .marker-cluster div {
@@ -927,6 +936,7 @@ document.head.appendChild(nukeStyle);
         <button id="exportJsonBtn">Export Markers</button>
         <button id="importBtn">Import Markers</button>
         <button id="downloadCommunityBtn">Update Community Map</button>
+		<button id="shareMyMapBtn">Share My Map</button>
         <button id="undoImportBtn" style="display:none;">UNDO LAST LINK</button>
         <button id="saveMapJpegBtn">Save Map as JPEG</button>
         <button id="toggleDarkModeBtn">Dark Mode: Off</button>
@@ -968,8 +978,9 @@ document.head.appendChild(nukeStyle);
             <textarea id="itemDesc" placeholder="Enter item and location details or leave blank auto puts gid location"></textarea>
             <div style="margin-top:12px; text-align:center;">
                 <button id="saveItemBtn">Save</button>
-                <button id="shareItemBtn">Share Link</button>
-                <button id="exportOneBtn" style="display:none;">Share This Marker</button>
+                <button id="shareItemBtn">Share Map View</button>
+                <button id="exportOneBtn">Export Marker</button>
+                <button id="shareOneBtn">Share Marker</button>
                 <button id="deleteItemBtn" style="display:none;">Delete</button>
                 <button id="undoItemBtn" style="display:none;">Undo Delete</button>
                 <button id="duplicateItemBtn" style="display:none;">Duplicate</button>
@@ -1142,6 +1153,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (loc.isPostcard === undefined) loc.isPostcard = loc.isTemp;
             if (loc.startTime === undefined) loc.startTime = loc.postcardExpire - 300000;
             if (loc.keepBtnBound === undefined) loc.keepBtnBound = false;
+			if (loc.userEdited === undefined) loc.userEdited = true;
         });
         localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
         let postcardTicker = null;
@@ -1426,7 +1438,7 @@ map.on('popupclose', () => {
             playSound('click');
         };
 
-        shareItemBtn.textContent = 'Share View';
+        shareItemBtn.textContent = 'Share Map View';
         shareItemBtn.onclick = () => {
             const loc = locations[currentIndex];
             if (!loc) return;
@@ -1464,6 +1476,7 @@ map.on('popupclose', () => {
             const newLng = loc.lng + o * Math.cos(a);
             const newDesc = updateDescWithGrid(loc.desc, newLat, newLng);
             const dup = createNewLocation(newLat, newLng, loc.category, newDesc);
+			dup.userEdited = true;
             dup.locked = false;
             locations.push(dup);
             recalculateXP();
@@ -2029,12 +2042,15 @@ map.on('popupclose', () => {
         function updateCounterDisplay() {
     const appVersion = "76.1.0";
     const communityVer = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
-
     const total = locations.filter(l => activeCategories.has(l.category)).length;
-    const showing = locations.filter(l => activeCategories.has(l.category))
-        .slice((tablePage-1)*pageSize, tablePage*pageSize).length;
+    const userTotal = locations.filter(l => l.userEdited === true && !l.isPostcard).length;
 
-    counter.innerHTML = `<strong>Fallout 76 Item Finder v${appVersion}</strong> — <strong>Community Map v${communityVer}</strong> — <strong>${total}</strong> logged — <strong>${showing}</strong> showing`;
+    counter.innerHTML = `
+        <strong>Fallout 76 Item Finder v${appVersion}</strong><br>
+        Community Map v${communityVer} — <strong style="color:#00ff88;">Total Logged: ${total}</strong><br>
+        <strong style="color:#00ff88;">You Logged → ${userTotal}</strong><br>
+        <strong style="color:#00ff88;">You Are Level → ${level}</strong>
+    `;
 }
 
         function refreshTable(search = '', cat = '') {
@@ -2226,21 +2242,24 @@ map.on('popupclose', () => {
         }
 
         function recalculateXP() {
-            const oldLevel = lastLevel;
-            xp = locations.filter(l => !l.isPostcard).length * xpPerMarker;
-            level = 1 + Math.floor(xp / xpPerLevel);
-            xp = xp % xpPerLevel;
-            if (level > oldLevel) {
-                playSound('levelUp');
-                triggerConfetti();
-                showTempMessage(`LEVEL UP → ${level}!`, 5000);
-                if (level % 10 === 0) triggerNuke();
-            }
-            localStorage.setItem('fo76_level', level);
-            localStorage.setItem('fo76_xp', xp);
-            lastLevel = level;
-            updateXPBar();
-        }
+    const oldLevel = lastLevel;
+    const userMarkers = locations.filter(l => l.userEdited === true && !l.isPostcard);
+    xp = userMarkers.length * xpPerMarker;
+    level = 1 + Math.floor(xp / xpPerLevel);
+    xp = xp % xpPerLevel;
+
+    if (level > oldLevel) {
+        playSound('levelUp');
+        triggerConfetti();
+        showTempMessage(`LEVEL UP → ${level}!`, 5000);
+        if (level % 10 === 0) triggerNuke();
+    }
+
+    localStorage.setItem('fo76_level', level);
+    localStorage.setItem('fo76_xp', xp);
+    lastLevel = level;
+    updateXPBar();
+}
 
         function triggerConfetti() {
             const fire = () => {
@@ -2469,9 +2488,10 @@ map.on('popupclose', () => {
             }
             if (existing) {
                 Object.assign(existing, imp);
+				existing.userEdited = false;
                 updated++;
             } else {
-                locations.push({ ...imp, id: generateUniqueId(), addedTime: Date.now(), locked: true, isPostcard: false, isTemp: false });
+			    locations.push({ ...imp, id: generateUniqueId(), addedTime: Date.now(), locked: true, isPostcard: false, isTemp: false, userEdited: false });
                 added++;
             }
         });
@@ -2511,7 +2531,6 @@ map.on('popupclose', () => {
         downloadCommunityBtn.onclick = () => {
     playSound('click');
     if (!confirm('Update Community Map? Your edits are SAFE.')) return;
-
     downloadCommunityBtn.disabled = true;
     downloadCommunityBtn.textContent = 'Updating...';
 
@@ -2520,7 +2539,6 @@ map.on('popupclose', () => {
         .then(data => {
             console.log('Fetched version:', data.communityVersion);
             console.log('Markers:', data.locations.length);
-
             const incoming = data.locations || [];
             let added = 0, updated = 0, skipped = 0;
 
@@ -2532,19 +2550,18 @@ map.on('popupclose', () => {
                 }
                 if (existing) {
                     Object.assign(existing, imp);
+                    existing.userEdited = false;
                     updated++;
                 } else {
-                    locations.push({ ...imp, id: generateUniqueId(), addedTime: Date.now(), locked: true, isPostcard: false, isTemp: false });
+                    locations.push({ ...imp, id: generateUniqueId(), addedTime: Date.now(), locked: true, isPostcard: false, isTemp: false, userEdited: false });
                     added++;
                 }
             });
 
             if (data.customCategories) customCategories = { ...customCategories, ...data.customCategories };
-
             const newVersion = String(data.communityVersion || "1.0");
             localStorage.setItem(MAP_VERSION_KEY, newVersion);
             communityVersion = newVersion;
-
             showTempMessage(`Community Map v${newVersion} loaded! (${data.locations.length} markers)`, 5000);
             localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
             recalculateXP();
@@ -2558,6 +2575,44 @@ map.on('popupclose', () => {
                 null
             );
             playSound('saving');
+
+            if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
+    localStorage.setItem('seenCommunityNuke', 'true');
+
+    setTimeout(() => {
+        const flash = document.createElement('div');
+        flash.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#fff;z-index:99999;pointer-events:none;animation:quickFlash 0.7s ease-out forwards;';
+        document.body.appendChild(flash);
+
+        setTimeout(() => {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:99998;
+                display:flex;flex-direction:column;align-items:center;justify-content:center;
+                gap:30px;padding:20px;box-sizing:border-box;
+                font-family:'Courier New',monospace;text-align:center;
+            `;
+            overlay.innerHTML = `
+                <div class="nuke-symbol">☢</div>
+                <h1 class="nuke-title">COMMUNITY MAP NUKED!</h1>
+                <p class="nuke-subtitle">
+                    Welcome to Appalachia, Vault Dweller!<br>
+                    <strong>${added} markers</strong> just detonated across the wasteland.
+                </p>
+            `;
+            document.body.appendChild(overlay);
+            playSound('levelUp');
+
+            setTimeout(() => {
+                overlay.style.transition = 'opacity 1.8s';
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.remove(), 1800);
+            }, 4200);
+        }, 400);
+
+        setTimeout(() => flash.remove(), 700);
+    }, 800);
+}
         })
         .catch(err => {
             console.error('Fetch error:', err);
@@ -2568,6 +2623,53 @@ map.on('popupclose', () => {
             downloadCommunityBtn.disabled = false;
             downloadCommunityBtn.textContent = 'Update Community Map';
         });
+};
+
+// ——— SHARE MY ENTIRE MAP (ONE TAP) ———
+document.getElementById('shareMyMapBtn').onclick = async () => {
+    playSound('click');
+    
+    const myMarkers = locations.filter(l => l.userEdited === true && !l.isPostcard);
+    if (myMarkers.length === 0) {
+        showTempMessage('No personal markers to share yet!', 4000);
+        return;
+    }
+
+    shareMyMapBtn.disabled = true;
+    shareMyMapBtn.textContent = 'Uploading...';
+
+    const data = {
+        version: 1.0,
+        sharedBy: "Vault Dweller",
+        sharedAt: new Date().toISOString(),
+        locations: myMarkers
+    };
+
+    try {
+        const response = await fetch('https://file.io/?expires=1', {
+            method: 'POST',
+            body: JSON.stringify(data, null, 2)
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            const shareUrl = `${location.origin}${location.pathname}?import=${encodeURIComponent(result.link)}`;
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                showTempMessage('Your map link is ready! Copied!', 6000);
+                playSound('postcard');
+            }).catch(() => {
+                prompt('Copy this link to share your map:', shareUrl);
+            });
+        } else {
+            throw new Error('Upload failed');
+        }
+    } catch (err) {
+        showTempMessage('Share failed — try again later', 5000);
+        playSound('error');
+    } finally {
+        shareMyMapBtn.disabled = false;
+        shareMyMapBtn.textContent = 'Share My Map';
+    }
 };
 
         saveJpegBtn.onclick = () => {
@@ -2828,6 +2930,39 @@ map.on('popupclose', () => {
             showTempMessage('Single marker exported!', 3000);
             playSound('saving');
         };
+		
+// ——— SHARE SINGLE MARKER AS LINK ———
+document.getElementById('shareOneBtn').onclick = async () => {
+    if (currentIndex < 0) return;
+    const loc = locations[currentIndex];
+
+    shareOneBtn.disabled = true;
+    shareOneBtn.textContent = 'Uploading...';
+
+    const data = { version: 1.0, locations: [loc] };
+
+    try {
+        const res = await fetch('https://file.io/?expires=1', {
+            method: 'POST',
+            body: JSON.stringify(data, null, 2)
+        });
+        const json = await res.json();
+
+        if (json.success) {
+            const shareUrl = `${location.origin}${location.pathname}?import=${encodeURIComponent(json.link)}`;
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                showTempMessage('Marker shared! Link copied!', 5000);
+                playSound('postcard');
+            }).catch(() => prompt('Copy this link:', shareUrl));
+        } else throw new Error();
+    } catch {
+        showTempMessage('Share failed — try again', 4000);
+        playSound('error');
+    } finally {
+        shareOneBtn.disabled = false;
+        shareOneBtn.textContent = 'Share Marker';
+    }
+};
 
         /* DEV NOTE: MAP INTERACTIONS */
     map.on('dragstart', () => { isDraggingAny = true; });
@@ -3279,6 +3414,38 @@ banner.innerHTML = `
         document.getElementById('installNo').onclick = () => banner.remove();
     }
 }, 30000); // 30 seconds — change if you want faster/slower
+
+// Auto-import shared maps from URL
+if (urlParams.has('import')) {
+    const importUrl = urlParams.get('import');
+    setTimeout(async () => {
+        try {
+            const res = await fetch(importUrl);
+            const data = await res.json();
+            if (data.locations) {
+                // Same import logic as your import button
+                let added = 0;
+                data.locations.forEach(imp => {
+                    const existing = locations.find(l => l.cid === imp.cid);
+                    if (existing && existing.userEdited) return;
+                    if (existing) {
+                        Object.assign(existing, imp);
+                        existing.userEdited = false;
+                    } else {
+                        locations.push({ ...imp, id: generateUniqueId(), addedTime: Date.now(), locked: true, userEdited: false });
+                        added++;
+                    }
+                });
+                saveLocations();
+                forceReload();
+                showTempMessage(`Imported ${added} markers from shared map!`, 6000);
+                playSound('saving');
+            }
+        } catch (e) {
+            showTempMessage('Failed to load shared map', 4000);
+        }
+    }, 1500);
+}
         console.log('%cFallout 76 Item Finder v76.1.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
        Fallout 76 Item Finder Map - Disclaimer and Terms of Use
