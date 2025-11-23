@@ -2534,7 +2534,7 @@ map.on('popupclose', () => {
                             showTempMessage('Import undone!', 4000);
                             playSound('undo');
                         };
-                        setTimeout(() => undoBtn.style.display = 'none', 30000);
+                        setTimeout(() => undoBtn.style.display = 'none', 60000);
                     }
                 }, 100);
 
@@ -2948,7 +2948,7 @@ document.getElementById('shareOneBtn').onclick = () => {
             const blob = new Blob([JSON.stringify([loc], null, 2)], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `fo76_marker_${getGridFromLatLng(loc.lat, loc.lng) || 'unknown'}_v1.0_${new Date().toISOString().slice(0,10)}.json`;
+            a.download = `fo76_marker_${getGridFromLatLng(loc.lat, loc.lng) || 'unknown'}_${new Date().toISOString().slice(0,10)}.json`;
             a.click();
             URL.revokeObjectURL(a.href);
             showTempMessage('Single marker exported!', 3000);
@@ -3461,7 +3461,7 @@ if (urlParams.has('permshare')) {
                     showTempMessage('Import undone!', 4000);
                     playSound('undo');
                 };
-                setTimeout(() => undoBtn.style.display = 'none', 30000);
+                setTimeout(() => undoBtn.style.display = 'none', 60000);
             }
 
             history.replaceState(null, null, location.pathname);
