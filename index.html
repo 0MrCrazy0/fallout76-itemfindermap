@@ -228,6 +228,15 @@
         border-radius: 8px;
         display: block !important;
     }
+	
+	.text-marker {
+    transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+    will-change: transform;
+}
+
+.leaflet-marker-icon {
+    will-change: transform;
+}
 
     /* DEV NOTE: PAGINATION — PERFECTLY CENTERED ON ALL DEVICES */
     .pagination {
@@ -1091,18 +1100,14 @@ if ('serviceWorker' in navigator && !sessionStorage.getItem('recoveryDone')) {
         if (!storedVersion || storedVersion < '1.3') {
             console.log('Old/broken install detected — auto-fixing once...');
 
-            // Prevent this from running again this session
             sessionStorage.setItem('recoveryDone', 'true');
 
-            // Kill old service workers
             const regs = await navigator.serviceWorker.getRegistrations();
             for (const reg of regs) await reg.unregister();
 
-            // Clear all caches
             const keys = await caches.keys();
             for (const key of keys) await caches.delete(key);
 
-            // One-time clean reload
             location.replace(location.href.split('?')[0] + '?recovered=' + Date.now());
         }
     }, 3000);
@@ -1183,11 +1188,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (postcardTicker) { clearInterval(postcardTicker); postcardTicker = null; }
         }
         let customCategories = JSON.parse(localStorage.getItem(CUSTOM_CATEGORIES_KEY)) || {};
-        let communityVersion = "1.0";  // default fallback only
+        let communityVersion = "1.0";
 function getCurrentCommunityVersion() {
     return localStorage.getItem(MAP_VERSION_KEY) || "1.0";
 }
-communityVersion = getCurrentCommunityVersion();  // set it correctly on load
+communityVersion = getCurrentCommunityVersion(); 
         const defaultCategoryIcons = {
         'weapons': '🔫', 'armor': '🛡️', 'aid': '💉', 'food/drink': '🍽️', 'ammunition': '💥',
         'apparel': '👕', 'plans': '📜', 'junk': '🗑️', 'holotapes': '📀', 'misc': '📝',
@@ -1229,7 +1234,41 @@ communityVersion = getCurrentCommunityVersion();  // set it correctly on load
         let imageOverlay = L.imageOverlay(mapUrls[currentMap], imageBounds).addTo(map);
         map.fitBounds(imageBounds);
         L.control.zoom({ position: 'topleft' }).addTo(map);
-        const clusteredMarkers = L.markerClusterGroup({ maxClusterRadius: 30, disableClusteringAtZoom: 2, animate: true, spiderfyOnMaxZoom: true });
+
+const clusteredMarkers = L.markerClusterGroup({
+    maxClusterRadius: 30,
+    disableClusteringAtZoom: 4,
+    spiderfyOnMaxZoom: true,
+    showCoverageOnHover: false,
+    zoomToBoundsOnClick: false,
+    removeOutsideVisibleBounds: false,
+    animate: true,
+    spiderfyDistanceMultiplier: 1,
+    maxSpiderfySize: 1000,
+
+    iconCreateFunction: function(cluster) {
+        return L.divIcon({
+            html: `<div><span>${cluster.getChildCount()}</span></div>`,
+            className: 'marker-cluster',
+            iconSize: L.point(40, 40)
+        });
+    }
+});
+
+clusteredMarkers.on('clustermouseover', function (a) {
+    if (!a.layer._spiderfied) {
+        a.layer.spiderfy();
+    }
+});
+
+clusteredMarkers.on('clustermouseout', function (a) {
+
+});
+
+clusteredMarkers.on('animationend', function () {
+
+});
+
         const nonClusteredMarkers = L.layerGroup();
         map.addLayer(clusteredMarkers);
         map.addLayer(nonClusteredMarkers);
@@ -1810,20 +1849,32 @@ map.on('popupclose', () => {
         }
 
         function createMarkerIcon(loc) {
-            const isTextOnly = ['named locations', 'regions'].includes(loc.category);
-            if (isTextOnly) {
-			    const iconToUse = loc.icon || categoryIcons[loc.category] || '📝';
-                const words = loc.desc.split('\n')[0].trim().split(' ');
-                const shortText = words.slice(0, 3).join(' ') + (words.length > 3 ? '...' : '');
-                const width = Math.min(120, Math.max(60, shortText.length * 9));
-                const glowClass = isGlowing(loc) ? 'glowing' : '';
-                const html = `<div class="${glowClass}" style="background:#000;color:#fff;padding:3px 6px;border:2px solid #0f0;border-radius:4px;font-weight:bold;font-size:11px;white-space:nowrap;width:${width}px;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(shortText)}</div>`;
-                return L.divIcon({ className: 'text-marker', html, iconSize: [width + 12, 26], iconAnchor: [(width + 12)/2, 13] });
-            } else {
-                const base = `<div class="marker-background" style="background-color:${categoryColors[loc.category] || '#808080'};"><span style="font-size:18px;">${loc.icon || (loc.isPostcard ? '📬' : categoryIcons[loc.category] || '📝')}</span></div>`;
-                return L.divIcon({ className: isGlowing(loc) ? 'custom-icon glowing' : 'custom-icon', html: base, iconSize: [30, 30], iconAnchor: [15, 15] });
-            }
-        }
+    const isTextOnly = ['named locations', 'regions'].includes(loc.category);
+    if (isTextOnly) {
+        const iconToUse = loc.icon || categoryIcons[loc.category] || '📝';
+        const words = loc.desc.split('\n')[0].trim().split(' ');
+        const shortText = words.slice(0, 3).join(' ') + (words.length > 3 ? '...' : '');
+        const width = Math.min(120, Math.max(60, shortText.length * 9));
+        const glowClass = isGlowing(loc) ? 'glowing' : '';
+        const html = `<div class="${glowClass}" style="background:#000;color:#fff;padding:3px 6px;border:2px solid #0f0;border-radius:4px;font-weight:bold;font-size:11px;white-space:nowrap;width:${width}px;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(shortText)}</div>`;
+        
+        return L.divIcon({ 
+            className: 'text-marker', 
+            html, 
+            iconSize: [width + 12, 26], 
+            iconAnchor: [(width + 12)/2, 13],
+            zIndexOffset: 1000
+        });
+    } else {
+        const base = `<div class="marker-background" style="background-color:${categoryColors[loc.category] || '#808080'};"><span style="font-size:18px;">${loc.icon || (loc.isPostcard ? '📬' : categoryIcons[loc.category] || '📝')}</span></div>`;
+        return L.divIcon({ 
+            className: isGlowing(loc) ? 'custom-icon glowing' : 'custom-icon', 
+            html: base, 
+            iconSize: [30, 30], 
+            iconAnchor: [15, 15]
+        });
+    }
+}
 
         const messageQueue = [];
         let activeMessageControl = null;
@@ -2138,45 +2189,47 @@ map.on('popupclose', () => {
         };
 
         setInterval(() => {
-    if (document.visibilityState === 'visible' && !window.isDraggingAnyMarker) {
+            if (document.visibilityState === 'visible' && !window.isDraggingAnyMarker) {
+                let popupIsOpen = false;
+                let spiderfiedActive = false;
 
-        let popupIsOpen = false;
-        map.eachLayer(layer => {
-            if (layer.getPopup && layer.getPopup() && layer.getPopup().isOpen()) {
-                popupIsOpen = true;
+                map.eachLayer(layer => {
+                    if (layer.getPopup && layer.getPopup() && layer.getPopup().isOpen()) {
+                        popupIsOpen = true;
+                    }
+
+                    if (layer.spiderfy && layer._spiderfied) {
+                        spiderfiedActive = true;
+                    }
+                });
+
+                if (!popupIsOpen && !spiderfiedActive) {
+                    loadData(combinedSearch.value || '', categoryFilter.value || '');
+                }
+
+                [clusteredMarkers, nonClusteredMarkers].forEach(g => g.eachLayer(m => {
+                    const loc = locations.find(l => l.id === m.options.id);
+                    if (!loc) return;
+                    const glow = isGlowing(loc);
+                    const icon = m.getIcon();
+                    if (glow && !icon.options.className?.includes('glowing')) {
+                        m.setIcon(createMarkerIcon(loc));
+                        m.setZIndexOffset(10000);
+                    } else if (!glow && icon.options.className?.includes('glowing')) {
+                        m.setIcon(createMarkerIcon(loc));
+                        m.setZIndexOffset(0);
+                    }
+                    if (loc.locked || loc.isPostcard) {
+                        m.dragging?.disable();
+                    } else {
+                        m.dragging?.enable();
+                    }
+                }));
+
+                refreshTable(combinedSearch?.value || '', categoryFilter?.value || '');
+                updateLockAllBtn?.();
             }
-        });
-
-        if (!popupIsOpen) {
-            loadData(combinedSearch.value || '', categoryFilter.value || '');
-        }
-
-        [clusteredMarkers, nonClusteredMarkers].forEach(g => g.eachLayer(m => {
-            const loc = locations.find(l => l.id === m.options.id);
-            if (!loc) return;
-
-            const glow = isGlowing(loc);
-            const icon = m.getIcon();
-
-            if (glow && !icon.options.className?.includes('glowing')) {
-                m.setIcon(createMarkerIcon(loc));
-                m.setZIndexOffset(10000);
-            } else if (!glow && icon.options.className?.includes('glowing')) {
-                m.setIcon(createMarkerIcon(loc));
-                m.setZIndexOffset(0);
-            }
-
-            if (loc.locked || loc.isPostcard) {
-                m.dragging?.disable();
-            } else {
-                m.dragging?.enable();
-            }
-        }));
-
-        refreshTable(combinedSearch?.value || '', categoryFilter?.value || '');
-        updateLockAllBtn?.();
-    }
-}, 1000);
+        }, 1000);
 
         function renderCategoryToggles() {
             const box = document.getElementById('categoryCheckboxes');
@@ -2418,7 +2471,6 @@ map.on('popupclose', () => {
         resetAppBtn.onclick = () => {
     if (!confirm('⚠️ RESET APP — This will delete ALL markers, XP, settings & map version.\n\nFirst we create a full backup for you.\n\nClick OK to continue.')) return;
 
-    // 1. Create and download backup
     const data = { 
         version: 1.0, 
         communityVersion, 
@@ -2434,7 +2486,6 @@ map.on('popupclose', () => {
 
     showTempMessage('Backup downloaded! Final step...', 6000);
 
-    // 2. Final warning with FULL reset instructions
     setTimeout(() => {
         if (confirm('⚠️ FINAL STEP — FULL RESET REQUIRED\n\nYour backup is safe!\n\nFor a 100% complete reset (especially on phones with stuck old versions):\n\n→ After clicking OK, go to Browser Settings → Privacy → Clear browsing data → "All time" → check "Cached images and files" → Clear\n\nThis removes old cached maps forever.\n\nReady?')) {
             localStorage.clear();
@@ -2461,7 +2512,6 @@ map.on('popupclose', () => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
 
-    // CLEAN FILENAME — no version number anymore
     a.download = `fo76_${all ? 'all' : 'user'}_${data.locations.length}_markers_${new Date().toISOString().slice(0,10)}.json`;
 
     a.click();
@@ -2483,7 +2533,6 @@ map.on('popupclose', () => {
                 const incoming = data.locations || (Array.isArray(data) ? data : []);
                 let added = 0, updated = 0, skipped = 0;
 
-                // Save state before import for proper UNDO
                 const beforeState = JSON.stringify(locations);
 
                 incoming.forEach(imp => {
@@ -2521,7 +2570,6 @@ map.on('popupclose', () => {
                 forceReload();
                 updateCounterDisplay();
 
-                // ——— UNDO BUTTON — now 100% guaranteed to appear on EVERY import (including single marker) ———
                 setTimeout(() => {
                     const undoBtn = document.getElementById('undoImportBtn');
                     if (undoBtn && (added + updated > 0)) {
@@ -2655,13 +2703,11 @@ map.on('popupclose', () => {
         });
 };
 
-// ——— PERMANENT SHARE — WORKS FOREVER ON ANY DEVICE/BROWSER ———
 function createPermanentShare(markersToShare) {
     if (markersToShare.length === 0) return;
 
     const shareData = { version: 1.0, locations: markersToShare };
 
-    // Encode the entire JSON directly into the URL — no localStorage needed
     const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(shareData))))
                     .replace(/\+/g, '-')
                     .replace(/\//g, '_')
@@ -2677,7 +2723,6 @@ function createPermanentShare(markersToShare) {
     });
 }
 
-// Share My Map button
 document.getElementById('shareMyMapBtn').onclick = () => {
     playSound('click');
     const myMarkers = locations.filter(l => l.userEdited === true && !l.isPostcard);
@@ -2688,7 +2733,6 @@ document.getElementById('shareMyMapBtn').onclick = () => {
     createPermanentShare(myMarkers);
 };
 
-// Share single marker (in modal)
 document.getElementById('shareOneBtn').onclick = () => {
     if (currentIndex < 0) return;
     const loc = locations[currentIndex];
@@ -2996,10 +3040,15 @@ document.getElementById('shareOneBtn').onclick = () => {
             isDraggingAny = false;
             return;
         }
-		
-		combinedSearch.value = '';
+
+        const clickedOnSpiderfied = e.originalEvent.target.closest('.leaflet-marker-icon');
+        if (clickedOnSpiderfied) {
+            return;
+        }
+
+        combinedSearch.value = '';
         loadData('', categoryFilter.value);
-	
+
         if (!gridEnabled) {
             const lat = e.latlng.lat;
             const lng = e.latlng.lng;
@@ -3352,25 +3401,21 @@ document.addEventListener('click', e => {
 });
 setTimeout(checkForUpdate, 800);
 
-// ─────── PWA INSTALL REMINDER (WORKS EVERYWHERE) ───────
 let deferredPrompt = null;
 let reminderShown = false;
 
-// Capture the install prompt
 window.addEventListener('beforeinstallprompt', (e) => {
     console.log('beforeinstallprompt fired');
-    e.preventDefault();           // Stop Chrome from showing its own banner
-    deferredPrompt = e;           // Save it so we can trigger it manually
+    e.preventDefault(); 
+    deferredPrompt = e; 
 });
 
-// Check if running as installed PWA
 function isInstalled() {
     return window.matchMedia('(display-mode: standalone)').matches ||
            window.matchMedia('(display-mode: minimal-ui)').matches ||
            window.navigator.standalone === true;
 }
 
-// Show reminder after 30 seconds if not installed and not shown this session
 setTimeout(() => {
     if (!isInstalled() && deferredPrompt && !reminderShown) {
         reminderShown = true;
@@ -3383,7 +3428,6 @@ banner.style.cssText = `
     z-index:99999; box-shadow:0 0 20px #00ff00; max-width:90%;
 `;
 
-// ← ADD THIS ONE LINE
 const isMobile = /Mobi|Android|iPhone|iPad|iPod/.test(navigator.userAgent);
 banner.innerHTML = `
     ❤️ Love the map?<br>
@@ -3404,9 +3448,8 @@ banner.innerHTML = `
 
         document.getElementById('installNo').onclick = () => banner.remove();
     }
-}, 30000); // 30 seconds — change if you want faster/slower
+}, 30000);
 
-// ——— PERMANENT SHARE IMPORT — FINAL PERFECT VERSION ———
 if (urlParams.has('permshare')) {
     const id = urlParams.get('permshare');
     let raw = null;
