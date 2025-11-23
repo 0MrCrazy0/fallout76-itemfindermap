@@ -1,43 +1,41 @@
-const CACHE = "fo76-ifm-v3.1";   // bump version so every device updates immediately
-
-// ONLY cache files that 100% exist on GitHub Pages
-const FILES_TO_CACHE = [
-  "/",
-  "/fallout76-itemfindermap/",
-  "/fallout76-itemfindermap/index.html",
-  "/fallout76-itemfindermap/manifest.json"
-  // ← removed the two icon files that 404
-];
+// service-worker.js — BULLETPROOF FINAL VERSION
+const CACHE_NAME = "fo76-ifm-v4.0";   // ← new name forces immediate update
 
 self.addEventListener("install", e => {
-  e.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(FILES_TO_CACHE))
-  );
-  self.skipWaiting();
+  // Cache literally nothing on install → zero chance of failure
+  e.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener("activate", e => {
   e.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.map(key => {
-        if (key !== CACHE) return caches.delete(key);
-      })
-    )).then(() => self.clients.claim())
+    caches.keys().then(keys => {
+      return Promise.all(
+        keys.map(key => {
+          if (key !== CACHE_NAME) {
+            console.log("Deleting old cache:", key);
+            return caches.delete(key);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener("fetch", e => {
-  // Never interfere with community map or shared map imports
   const url = e.request.url;
-  if (url.includes('communitymap.json') || 
-      url.includes('tmpfiles.org') || 
-      url.includes('transfer.sh') || 
-      url.includes('file.io')) {
+
+  // Never touch these — always go straight to network
+  if (url.includes('communitymap.json') ||
+      url.includes('tmpfiles.org') ||
+      url.includes('transfer.sh') ||
+      url.includes('file.io') ||
+      url.includes('githubusercontent.com')) {
     e.respondWith(fetch(e.request));
     return;
   }
 
+  // For everything else: try cache first, then network (standard PWA behavior)
   e.respondWith(
-    caches.match(e.request).then(resp => resp || fetch(e.request))
+    caches.match(e.request).then(cached => cached || fetch(e.request))
   );
 });
