@@ -3377,7 +3377,7 @@ banner.innerHTML = `
     }
 }, 30000); // 30 seconds — change if you want faster/slower
 
-// ——— AUTO-IMPORT PERMANENT SHARES + UNDO BUTTON (FINAL FIXED) ———
+// ——— PERMANENT SHARE IMPORT — WORKS FOREVER + ANY BROWSER ———
 if (urlParams.has('permshare')) {
     const id = urlParams.get('permshare');
     const raw = localStorage.getItem('permshare_' + id);
@@ -3414,7 +3414,7 @@ if (urlParams.has('permshare')) {
             showTempMessage(`Imported ${added} permanent marker${added === 1 ? '' : 's'}!`, 6000);
             playSound('saving');
 
-            // Show UNDO button for 30 seconds
+            // Show Undo button for 30 seconds
             const undoBtn = document.getElementById('undoImportBtn');
             if (undoBtn) {
                 undoBtn.style.display = 'block';
@@ -3422,14 +3422,14 @@ if (urlParams.has('permshare')) {
                 setTimeout(() => undoBtn.style.display = 'none', 30000);
             }
 
-            // Clean URL
             history.replaceState(null, null, location.pathname);
 
         } catch (e) {
             showTempMessage('Invalid share link', 5000);
         }
     } else {
-        showTempMessage('Link already used or expired', 5000);
+        showTempMessage('Link expired or already used in this browser', 5000);
+        // Optional: add a "Try again in a new tab" message
     }
 }
         console.log('%cFallout 76 Item Finder v76.1.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
