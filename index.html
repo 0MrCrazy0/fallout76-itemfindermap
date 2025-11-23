@@ -2625,43 +2625,46 @@ map.on('popupclose', () => {
         });
 };
 
-// ——— SHARE MY ENTIRE MAP — FINAL WORKING VERSION ———
-document.getElementById('shareMyMapBtn').onclick = async () => {
+// ——— PERMANENT SHARE SYSTEM (Share My Map + Share Marker) ———
+function createPermanentShare(markersToShare) {
+    if (markersToShare.length === 0) return;
+
+    const shareId = 'perm_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+    // Store the exact markers that are being shared so we can undo later
+    const shareData = {
+        version: 1.0,
+        locations: markersToShare,
+        timestamp: Date.now()
+    };
+
+    localStorage.setItem('permshare_' + shareId, JSON.stringify(shareData));
+
+    const shareUrl = location.origin + location.pathname + '?permshare=' + shareId;
+
+    navigator.clipboard.writeText(shareUrl).then(() => {
+        showTempMessage('Permanent link copied! Markers are forever.', 6000);
+        playSound('postcard');
+    });
+}
+
+// Share My Map button
+document.getElementById('shareMyMapBtn').onclick = () => {
     playSound('click');
     const myMarkers = locations.filter(l => l.userEdited === true && !l.isPostcard);
     if (myMarkers.length === 0) {
         showTempMessage('No personal markers to share yet!', 4000);
         return;
     }
+    createPermanentShare(myMarkers);
+};
 
-    shareMyMapBtn.disabled = true;
-    shareMyMapBtn.textContent = 'Uploading...';
-
-    const blob = new Blob([JSON.stringify({version:1.0,locations:myMarkers}, null, 2)], {type: 'application/json'});
-    const form = new FormData();
-    form.append('reqtype', 'fileupload');
-    form.append('fileToUpload', blob, 'fo76_map.json');
-
-    try {
-        const res = await fetch('https://litterbox.catbox.moe/resources/internals/api.php', {
-            method: 'POST',
-            body: form
-        });
-        const url = await res.text();
-        if (!url.startsWith('https://')) throw 'bad';
-
-        const shareUrl = location.origin + location.pathname + '?import=' + encodeURIComponent(url);
-        navigator.clipboard.writeText(shareUrl).then(() => {
-            showTempMessage('Map link copied!', 6000);
-            playSound('postcard');
-        });
-    } catch {
-        showTempMessage('Share failed – try again', 5000);
-        playSound('error');
-    } finally {
-        shareMyMapBtn.disabled = false;
-        shareMyMapBtn.textContent = 'Share My Map';
-    }
+// Share single marker (in modal)
+document.getElementById('shareOneBtn').onclick = () => {
+    if (currentIndex < 0) return;
+    const loc = locations[currentIndex];
+    createPermanentShare([loc]);
+    closeModal(itemModal);
 };
 
         saveJpegBtn.onclick = () => {
@@ -2922,41 +2925,6 @@ document.getElementById('shareMyMapBtn').onclick = async () => {
             showTempMessage('Single marker exported!', 3000);
             playSound('saving');
         };
-		
-// ——— SHARE SINGLE MARKER — FINAL WORKING VERSION ———
-document.getElementById('shareOneBtn').onclick = async () => {
-    if (currentIndex < 0) return;
-    const loc = locations[currentIndex];
-
-    shareOneBtn.disabled = true;
-    shareOneBtn.textContent = 'Uploading...';
-
-    const blob = new Blob([JSON.stringify({version:1.0,locations:[loc]}, null, 2)], {type: 'application/json'});
-    const form = new FormData();
-    form.append('reqtype', 'fileupload');
-    form.append('fileToUpload', blob, 'fo76_marker.json');
-
-    try {
-        const res = await fetch('https://litterbox.catbox.moe/resources/internals/api.php', {
-            method: 'POST',
-            body: form
-        });
-        const url = await res.text();
-        if (!url.startsWith('https://')) throw 'bad';
-
-        const shareUrl = location.origin + location.pathname + '?import=' + encodeURIComponent(url);
-        navigator.clipboard.writeText(shareUrl).then(() => {
-            showTempMessage('Marker link copied!', 5000);
-            playSound('postcard');
-        });
-    } catch {
-        showTempMessage('Share failed – try again', 4000);
-        playSound('error');
-    } finally {
-        shareOneBtn.disabled = false;
-        shareOneBtn.textContent = 'Share Marker';
-    }
-};
 
         /* DEV NOTE: MAP INTERACTIONS */
     map.on('dragstart', () => { isDraggingAny = true; });
@@ -3409,31 +3377,21 @@ banner.innerHTML = `
     }
 }, 30000); // 30 seconds — change if you want faster/slower
 
-// Auto-import shared maps from URL – FINAL BULLETPROOF VERSION
-if (urlParams.has('import')) {
-    const importUrl = urlParams.get('import');
+// ——— AUTO-IMPORT PERMANENT SHARES + UNDO BUTTON (FINAL FIXED) ———
+if (urlParams.has('permshare')) {
+    const id = urlParams.get('permshare');
+    const raw = localStorage.getItem('permshare_' + id);
 
-    setTimeout(async () => {
+    if (raw) {
         try {
-            const res = await fetch(importUrl, {
-                method: 'GET',
-                cache: 'no-cache',     // ← Critical: bypasses any caching (including service worker)
-                mode: 'cors',          // ← Critical: forces CORS mode
-                credentials: 'omit',
-                headers: { 'Accept': 'application/json' }
-            });
+            const shareData = JSON.parse(raw);
+            const incoming = shareData.locations || [];
 
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const beforeCount = locations.length;
 
-            const data = await res.json();
-            if (!data?.locations || !Array.isArray(data.locations)) {
-                throw new Error('Invalid data format');
-            }
-
-            let added = 0;
-            data.locations.forEach(imp => {
+            incoming.forEach(imp => {
                 const existing = locations.find(l => l.cid === imp.cid);
-                if (existing && existing.userEdited) return; // protect user edits
+                if (existing && existing.userEdited) return;
                 if (existing) {
                     Object.assign(existing, imp);
                     existing.userEdited = false;
@@ -3445,20 +3403,34 @@ if (urlParams.has('import')) {
                         locked: true,
                         userEdited: false
                     });
-                    added++;
                 }
             });
 
+            const added = locations.length - beforeCount;
+
             saveLocations();
             forceReload();
-            showTempMessage(`Imported ${added} marker${added === 1 ? '' : 's'} from shared map!`, 6000);
+
+            showTempMessage(`Imported ${added} permanent marker${added === 1 ? '' : 's'}!`, 6000);
             playSound('saving');
 
-        } catch (err) {
-            console.error('Import failed:', err);
-            showTempMessage('Failed to load shared map – link expired or broken', 6000);
+            // Show UNDO button for 30 seconds
+            const undoBtn = document.getElementById('undoImportBtn');
+            if (undoBtn) {
+                undoBtn.style.display = 'block';
+                undoBtn.onclick = () => location.reload();
+                setTimeout(() => undoBtn.style.display = 'none', 30000);
+            }
+
+            // Clean URL
+            history.replaceState(null, null, location.pathname);
+
+        } catch (e) {
+            showTempMessage('Invalid share link', 5000);
         }
-    }, 1500);
+    } else {
+        showTempMessage('Link already used or expired', 5000);
+    }
 }
         console.log('%cFallout 76 Item Finder v76.1.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
