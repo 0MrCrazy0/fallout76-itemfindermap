@@ -23,6 +23,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <!-- DEV NOTE: Icons & Theme -->
+    <link rel="icon" href="/icon-192-v2.png" sizes="192x192">
+    <link rel="icon" href="/icon-512-v2.png" sizes="512x512">
+    <link rel="apple-touch-icon" href="/icon-192-v2.png">
     <meta name="theme-color" content="#00ff00">
 
     <style>
@@ -2622,10 +2625,9 @@ map.on('popupclose', () => {
         });
 };
 
-// ——— SHARE MY ENTIRE MAP (FIXED WITH FORMDATA) ———
+// ——— SHARE MY ENTIRE MAP — FINAL WORKING VERSION ———
 document.getElementById('shareMyMapBtn').onclick = async () => {
     playSound('click');
-
     const myMarkers = locations.filter(l => l.userEdited === true && !l.isPostcard);
     if (myMarkers.length === 0) {
         showTempMessage('No personal markers to share yet!', 4000);
@@ -2635,44 +2637,26 @@ document.getElementById('shareMyMapBtn').onclick = async () => {
     shareMyMapBtn.disabled = true;
     shareMyMapBtn.textContent = 'Uploading...';
 
-    const data = JSON.stringify({
-        version: 1.0,
-        sharedBy: "Vault Dweller",
-        sharedAt: new Date().toISOString(),
-        locations: myMarkers
-    });
+    const blob = new Blob([JSON.stringify({version:1.0,locations:myMarkers}, null, 2)], {type: 'application/json'});
+    const form = new FormData();
+    form.append('reqtype', 'fileupload');
+    form.append('fileToUpload', blob, 'fo76_map.json');
 
     try {
-        const formData = new FormData();
-        const blob = new Blob([data], { type: 'application/json' });
-        formData.append('file', blob, 'fo76_map.json');
-
-        const res = await fetch('https://tmpfiles.org/api/v1/upload', {
+        const res = await fetch('https://litterbox.catbox.moe/resources/internals/api.php', {
             method: 'POST',
-            body: formData
+            body: form
         });
+        const url = await res.text();
+        if (!url.startsWith('https://')) throw 'bad';
 
-        if (!res.ok) {
-            const errorText = await res.text();
-            console.error('Tmpfiles error:', errorText); // For debugging
-            throw new Error(`HTTP ${res.status}`);
-        }
-
-        const json = await res.json();
-        if (!json.data?.url) throw new Error('No URL in response');
-
-        const directLink = json.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
-        const shareUrl = `${location.origin}${location.pathname}?import=${encodeURIComponent(directLink)}`;
-
+        const shareUrl = location.origin + location.pathname + '?import=' + encodeURIComponent(url);
         navigator.clipboard.writeText(shareUrl).then(() => {
-            showTempMessage('Your map link is ready! Copied!', 6000);
+            showTempMessage('Map link copied!', 6000);
             playSound('postcard');
-        }).catch(() => {
-            prompt('Copy this link to share your full map:', shareUrl);
         });
-    } catch (err) {
-        console.error('Share error:', err); // For debugging
-        showTempMessage('Share failed – try again later', 5000);
+    } catch {
+        showTempMessage('Share failed – try again', 5000);
         playSound('error');
     } finally {
         shareMyMapBtn.disabled = false;
@@ -2939,7 +2923,7 @@ document.getElementById('shareMyMapBtn').onclick = async () => {
             playSound('saving');
         };
 		
-// ——— SHARE SINGLE MARKER (FIXED WITH FORMDATA) ———
+// ——— SHARE SINGLE MARKER — FINAL WORKING VERSION ———
 document.getElementById('shareOneBtn').onclick = async () => {
     if (currentIndex < 0) return;
     const loc = locations[currentIndex];
@@ -2947,39 +2931,26 @@ document.getElementById('shareOneBtn').onclick = async () => {
     shareOneBtn.disabled = true;
     shareOneBtn.textContent = 'Uploading...';
 
-    const data = JSON.stringify({ version: 1.0, locations: [loc] });
+    const blob = new Blob([JSON.stringify({version:1.0,locations:[loc]}, null, 2)], {type: 'application/json'});
+    const form = new FormData();
+    form.append('reqtype', 'fileupload');
+    form.append('fileToUpload', blob, 'fo76_marker.json');
 
     try {
-        const formData = new FormData();
-        const blob = new Blob([data], { type: 'application/json' });
-        formData.append('file', blob, 'fo76_marker.json');
-
-        const res = await fetch('https://tmpfiles.org/api/v1/upload', {
+        const res = await fetch('https://litterbox.catbox.moe/resources/internals/api.php', {
             method: 'POST',
-            body: formData
+            body: form
         });
+        const url = await res.text();
+        if (!url.startsWith('https://')) throw 'bad';
 
-        if (!res.ok) {
-            const errorText = await res.text();
-            console.error('Tmpfiles error:', errorText); // For debugging
-            throw new Error(`HTTP ${res.status}`);
-        }
-
-        const json = await res.json();
-        if (!json.data?.url) throw new Error('No URL in response');
-
-        const directLink = json.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
-        const shareUrl = `${location.origin}${location.pathname}?import=${encodeURIComponent(directLink)}`;
-
+        const shareUrl = location.origin + location.pathname + '?import=' + encodeURIComponent(url);
         navigator.clipboard.writeText(shareUrl).then(() => {
-            showTempMessage('Marker shared! Link copied!', 5000);
+            showTempMessage('Marker link copied!', 5000);
             playSound('postcard');
-        }).catch(() => {
-            prompt('Copy this link:', shareUrl);
         });
-    } catch (err) {
-        console.error('Share error:', err); // For debugging
-        showTempMessage('Share failed – try again later', 4000);
+    } catch {
+        showTempMessage('Share failed – try again', 4000);
         playSound('error');
     } finally {
         shareOneBtn.disabled = false;
@@ -3506,7 +3477,6 @@ if (urlParams.has('import')) {
 </script>
 </body>
 </html>
-
 
 
 
