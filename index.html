@@ -163,6 +163,12 @@
     touch-action: manipulation;
 }
 
+.leaflet-marker-icon {
+    transform: scale(1.1);
+    margin-left: -16.5px !important;
+    margin-top: -16.5px !important;
+}
+
     /* DEV NOTE: SEARCH BAR HIGHLIGHT ANIMATION */
     #combinedSearch { 
         max-width: 250px; 
@@ -1252,7 +1258,7 @@ const clusteredMarkers = L.markerClusterGroup({
     zoomToBoundsOnClick: false,
     removeOutsideVisibleBounds: false,
     animate: true,
-    spiderfyDistanceMultiplier: 1.6,
+    spiderfyDistanceMultiplier: 1.8,
     maxSpiderfySize: 1000,
     iconCreateFunction: function(cluster) {
         return L.divIcon({
