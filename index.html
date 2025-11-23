@@ -3441,34 +3441,54 @@ banner.innerHTML = `
     }
 }, 30000); // 30 seconds — change if you want faster/slower
 
-// Auto-import shared maps from URL
+// Auto-import shared maps from URL – FINAL BULLETPROOF VERSION
 if (urlParams.has('import')) {
     const importUrl = urlParams.get('import');
+
     setTimeout(async () => {
         try {
-            const res = await fetch(importUrl);
+            const res = await fetch(importUrl, {
+                method: 'GET',
+                cache: 'no-cache',     // ← Critical: bypasses any caching (including service worker)
+                mode: 'cors',          // ← Critical: forces CORS mode
+                credentials: 'omit',
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
             const data = await res.json();
-            if (data.locations) {
-                // Same import logic as your import button
-                let added = 0;
-                data.locations.forEach(imp => {
-                    const existing = locations.find(l => l.cid === imp.cid);
-                    if (existing && existing.userEdited) return;
-                    if (existing) {
-                        Object.assign(existing, imp);
-                        existing.userEdited = false;
-                    } else {
-                        locations.push({ ...imp, id: generateUniqueId(), addedTime: Date.now(), locked: true, userEdited: false });
-                        added++;
-                    }
-                });
-                saveLocations();
-                forceReload();
-                showTempMessage(`Imported ${added} markers from shared map!`, 6000);
-                playSound('saving');
+            if (!data?.locations || !Array.isArray(data.locations)) {
+                throw new Error('Invalid data format');
             }
-        } catch (e) {
-            showTempMessage('Failed to load shared map', 4000);
+
+            let added = 0;
+            data.locations.forEach(imp => {
+                const existing = locations.find(l => l.cid === imp.cid);
+                if (existing && existing.userEdited) return; // protect user edits
+                if (existing) {
+                    Object.assign(existing, imp);
+                    existing.userEdited = false;
+                } else {
+                    locations.push({
+                        ...imp,
+                        id: generateUniqueId(),
+                        addedTime: Date.now(),
+                        locked: true,
+                        userEdited: false
+                    });
+                    added++;
+                }
+            });
+
+            saveLocations();
+            forceReload();
+            showTempMessage(`Imported ${added} marker${added === 1 ? '' : 's'} from shared map!`, 6000);
+            playSound('saving');
+
+        } catch (err) {
+            console.error('Import failed:', err);
+            showTempMessage('Failed to load shared map – link expired or broken', 6000);
         }
     }, 1500);
 }
