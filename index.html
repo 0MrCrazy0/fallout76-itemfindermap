@@ -1716,7 +1716,7 @@ map.on('popupclose', () => {
             playSound('click');
         });
 
-        document.getElementById('createPostcardBtn')?.addEventListener('click', () => {
+                document.getElementById('createPostcardBtn')?.addEventListener('click', () => {
             const msg = document.getElementById('postcardMessage')?.value.trim() || 'Check this spot!';
             if (!currentPostcardLatLng) return;
             const loc = createNewLocation(currentPostcardLatLng.lat, currentPostcardLatLng.lng, 'misc', msg, true);
@@ -1734,7 +1734,9 @@ map.on('popupclose', () => {
             startPostcardTicker();
         });
 
-                const urlParams = new URLSearchParams(window.location.search);
+        const urlParams = new URLSearchParams(window.location.search);
+        let pendingPostcard = null;
+
         if (urlParams.has('postcard')) {
             const id = urlParams.get('postcard');
             const lat = parseFloat(urlParams.get('lat'));
@@ -1742,58 +1744,58 @@ map.on('popupclose', () => {
             const msg = urlParams.has('msg')
                 ? decodeURIComponent(urlParams.get('msg').replace(/\+/g, ' '))
                 : 'Postcard from a friend!';
-            if (isNaN(lat) || isNaN(lng)) return;
 
-            const existing = locations.find(l => l.id === id);
-            let postcardCreated = false;
-
-            if (!existing || !existing.isPostcard || (existing.postcardExpire && Date.now() > existing.postcardExpire)) {
-                if (existing) {
-                    const idx = locations.indexOf(existing);
-                    if (idx > -1) locations.splice(idx, 1);
-                }
-                const loc = createNewLocation(lat, lng, 'misc', msg, true);
-                loc.id = id;
-                loc.startTime = Date.now();
-                loc.postcardExpire = Date.now() + 300000;
-                locations.push(loc);
-                saveLocations();
-                postcardCreated = true;
-                showTempMessage('Postcard received!', 5000);
-                playSound('postcard');
+            if (!isNaN(lat) && !isNaN(lng)) {
+                pendingPostcard = { id, lat, lng, msg };
             }
+        }
 
-            const isInApp = /Discord|FBAV|FB_IAB|Instagram|Line/i.test(navigator.userAgent);
-            const delay = isInApp ? 3500 : 2000;
+        const originalLoadData = loadData;
+        loadData = function (search = '', catFilter = '') {
+            originalLoadData.call(this, search, catFilter);
 
-            const wait = setInterval(() => {
-                if (document.body.classList.contains('map-ready') && map.getPane('overlayPane').children.length) {
-                    clearInterval(wait);
+            if (pendingPostcard && !pendingPostcard.processed) {
+                const { id, lat, lng, msg } = pendingPostcard;
+                pendingPostcard.processed = true;
 
+                const existing = locations.find(l => l.id === id);
+                let created = false;
+
+                if (!existing || !existing.isPostcard || (existing.postcardExpire && Date.now() > existing.postcardExpire)) {
+                    if (existing) {
+                        const idx = locations.indexOf(existing);
+                        if (idx > -1) locations.splice(idx, 1);
+                    }
+                    const loc = createNewLocation(lat, lng, 'misc', msg, true);
+                    loc.id = id;
+                    loc.startTime = Date.now();
+                    loc.postcardExpire = Date.now() + 300000;
+                    locations.push(loc);
+                    saveLocations();
+                    created = true;
+                    showTempMessage('Postcard received!', 5000);
+                    playSound('postcard');
+                }
+
+                setTimeout(() => {
+                    safeFlyTo(lat, lng, 1);
                     setTimeout(() => {
-                        map._onResize();
-                        map.invalidateSize();
-
-                        map.setView([lat, lng], 4, { animate: false });
-                        setTimeout(() => {
-                            map.flyTo([lat, lng], 1, { duration: 1.8 });
-                        }, 100);
-                    }, 800);
-
-                    setTimeout(() => {
-                        let marker = [...nonClusteredMarkers.getLayers(), ...clusteredMarkers.getLayers()]
+                        const marker = [...nonClusteredMarkers.getLayers(), ...clusteredMarkers.getLayers()]
                             .find(m => m.options.id === id);
-
-                        if (marker || postcardCreated) {
-                            const displayMsg = postcardCreated ? msg : 'Check this spot!';
+                        if (marker || created) {
+                            const displayMsg = created ? msg : 'Check this spot!';
                             marker?.unbindPopup();
                             marker?.bindPopup(createPopupContent({ desc: displayMsg, id: id }), { maxWidth: 320, offset: [0, -20] });
                             marker?.openPopup();
                         }
-                    }, delay + 300);
-                }
-            }, 250);
-        } else if (urlParams.has('lat') && urlParams.has('lng')) {
+                    }, 1800);
+                }, 600);
+
+                pendingPostcard = null;
+            }
+        };
+
+        if (!pendingPostcard && urlParams.has('lat') && urlParams.has('lng')) {
             const lat = parseFloat(urlParams.get('lat'));
             const lng = parseFloat(urlParams.get('lng'));
             if (!isNaN(lat) && !isNaN(lng)) {
