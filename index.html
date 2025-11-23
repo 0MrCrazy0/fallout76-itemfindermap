@@ -156,6 +156,12 @@
         min-height: 80px; 
         resize: vertical; 
     }
+	
+	.leaflet-marker-icon,
+.leaflet-marker-cluster {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
 
     /* DEV NOTE: SEARCH BAR HIGHLIGHT ANIMATION */
     #combinedSearch { 
@@ -1235,6 +1241,10 @@ communityVersion = getCurrentCommunityVersion();
         map.fitBounds(imageBounds);
         L.control.zoom({ position: 'topleft' }).addTo(map);
 
+// FINAL CLUSTER SYSTEM — 100% PERFECT ON DESKTOP & MOBILE
+let currentlySpiderfied = null;
+
+// Create the cluster group
 const clusteredMarkers = L.markerClusterGroup({
     maxClusterRadius: 30,
     disableClusteringAtZoom: 4,
@@ -1245,7 +1255,6 @@ const clusteredMarkers = L.markerClusterGroup({
     animate: true,
     spiderfyDistanceMultiplier: 1,
     maxSpiderfySize: 1000,
-
     iconCreateFunction: function(cluster) {
         return L.divIcon({
             html: `<div><span>${cluster.getChildCount()}</span></div>`,
@@ -1255,18 +1264,36 @@ const clusteredMarkers = L.markerClusterGroup({
     }
 });
 
-clusteredMarkers.on('clustermouseover', function (a) {
+// OPEN on hover (desktop) OR tap (mobile)
+clusteredMarkers.on('clustermouseover clusterclick', function (a) {
     if (!a.layer._spiderfied) {
         a.layer.spiderfy();
+        currentlySpiderfied = a.layer;
     }
 });
 
+// PREVENT closing when hovering over spiderfied markers
 clusteredMarkers.on('clustermouseout', function (a) {
-
+    const relatedTarget = a.originalEvent.relatedTarget;
+    if (relatedTarget && relatedTarget.closest && relatedTarget.closest('.leaflet-marker-icon')) {
+        return; // Mouse/touch moved to a spiderfied marker → DO NOT close
+    }
 });
 
-clusteredMarkers.on('animationend', function () {
+// CLOSE only when clicking/tapping empty map area
+map.on('click', function (e) {
+    if (currentlySpiderfied && !e.originalEvent.target.closest('.leaflet-marker-icon')) {
+        currentlySpiderfied.unspiderfy();
+        currentlySpiderfied = null;
+    }
+});
 
+// Also close on right-click / long-press (mobile)
+map.on('contextmenu', function () {
+    if (currentlySpiderfied) {
+        currentlySpiderfied.unspiderfy();
+        currentlySpiderfied = null;
+    }
 });
 
         const nonClusteredMarkers = L.layerGroup();
