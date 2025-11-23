@@ -23,9 +23,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <!-- DEV NOTE: Icons & Theme -->
-    <link rel="icon" href="/icon-192-v2.png" sizes="192x192">
-    <link rel="icon" href="/icon-512-v2.png" sizes="512x512">
-    <link rel="apple-touch-icon" href="/icon-192-v2.png">
+    <link rel="icon" href="/fallout76-itemfindermap/icon-192-v2.png" sizes="192x192">
+    <link rel="icon" href="/fallout76-itemfindermap/icon-512-v2.png" sizes="512x512">
+    <link rel="apple-touch-icon" href="/fallout76-itemfindermap/icon-192-v2.png">
     <meta name="theme-color" content="#00ff00">
 
     <style>
@@ -937,7 +937,7 @@ document.head.appendChild(nukeStyle);
         <button id="importBtn">Import Markers</button>
         <button id="downloadCommunityBtn">Update Community Map</button>
 		<button id="shareMyMapBtn">Share My Map</button>
-        <button id="undoImportBtn" style="display:none;">UNDO LAST LINK</button>
+        <button id="undoImportBtn" style="display:none;">UNDO LAST IMPORT</button>
         <button id="saveMapJpegBtn">Save Map as JPEG</button>
         <button id="toggleDarkModeBtn">Dark Mode: Off</button>
         <button id="lockAllBtn">Lock All</button>
@@ -2512,15 +2512,7 @@ map.on('popupclose', () => {
                     localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
                 }
 
-                // Only update community version if it's actually a community map
-                if (data.communityVersion || incoming.length > 50) {
-                    const newVersion = String(data.communityVersion || "1.0");
-                    localStorage.setItem(MAP_VERSION_KEY, newVersion);
-                    communityVersion = newVersion;
-                    showTempMessage(`Community Map v${newVersion} loaded!`, 5000);
-                } else {
-                    showTempMessage(`Imported ${added + updated} marker${added + updated === 1 ? '' : 's'}!`, 6000);
-                }
+                showTempMessage(`Imported ${added + updated} marker${added + updated === 1 ? '' : 's'}!`, 6000);
 
                 recalculateXP();
                 saveLocations();
@@ -2678,7 +2670,7 @@ function createPermanentShare(markersToShare) {
     const shareUrl = location.origin + location.pathname + '?permshare=' + encoded;
 
     navigator.clipboard.writeText(shareUrl).then(() => {
-        showTempMessage('Permanent link copied — works forever on any device!', 8000);
+        showTempMessage('Permanent link copied!', 6000);
         playSound('postcard');
     }).catch(() => {
         prompt('Copy this link (it works everywhere):', shareUrl);
@@ -3414,7 +3406,7 @@ banner.innerHTML = `
     }
 }, 30000); // 30 seconds — change if you want faster/slower
 
-// ——— PERMANENT SHARE IMPORT — WORKS EVERY TIME + UNDO WORKS ———
+// ——— PERMANENT SHARE IMPORT — FINAL PERFECT VERSION ———
 if (urlParams.has('permshare')) {
     const id = urlParams.get('permshare');
     let raw = null;
@@ -3432,8 +3424,6 @@ if (urlParams.has('permshare')) {
             const shareData = JSON.parse(raw);
             const incoming = shareData.locations || [];
             const beforeCount = locations.length;
-
-            // Save current state for undo
             const undoState = JSON.stringify(locations);
 
             incoming.forEach(imp => {
@@ -3454,16 +3444,14 @@ if (urlParams.has('permshare')) {
             });
 
             const added = locations.length - beforeCount;
-
             saveLocations();
             forceReload();
 
-            showTempMessage(`Imported ${added} marker${added === 1 ? '' : 's'}!`, 6000);
+            showTempMessage(`Imported ${added} marker${added === 1 ? '' : 's'} from shared link!`, 6000);
             playSound('saving');
 
-            // UNDO BUTTON — now works perfectly
             const undoBtn = document.getElementById('undoImportBtn');
-            if (undoBtn) {
+            if (undoBtn && added > 0) {
                 undoBtn.style.display = 'block';
                 undoBtn.onclick = () => {
                     locations = JSON.parse(undoState);
@@ -3471,12 +3459,9 @@ if (urlParams.has('permshare')) {
                     forceReload();
                     undoBtn.style.display = 'none';
                     showTempMessage('Import undone!', 4000);
+                    playSound('undo');
                 };
-                setTimeout(() => {
-                    if (undoBtn.style.display === 'block') {
-                        undoBtn.style.display = 'none';
-                    }
-                }, 30000);
+                setTimeout(() => undoBtn.style.display = 'none', 30000);
             }
 
             history.replaceState(null, null, location.pathname);
