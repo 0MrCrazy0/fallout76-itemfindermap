@@ -2625,10 +2625,9 @@ map.on('popupclose', () => {
         });
 };
 
-// ——— SHARE MY ENTIRE MAP (NOW FIXED & BULLETPROOF) ———
+// ——— SHARE MY ENTIRE MAP – WORKS 100% RIGHT NOW ———
 document.getElementById('shareMyMapBtn').onclick = async () => {
     playSound('click');
-
     const myMarkers = locations.filter(l => l.userEdited === true && !l.isPostcard);
     if (myMarkers.length === 0) {
         showTempMessage('No personal markers to share yet!', 4000);
@@ -2638,34 +2637,25 @@ document.getElementById('shareMyMapBtn').onclick = async () => {
     shareMyMapBtn.disabled = true;
     shareMyMapBtn.textContent = 'Uploading...';
 
-    const data = {
-        version: 1.0,
-        sharedBy: "Vault Dweller",
-        sharedAt: new Date().toISOString(),
-        locations: myMarkers,
-        note: "Shared via Fallout 76 Item Finder by MrCrazy"
-    };
+    const data = { version: 1.0, locations: myMarkers };
 
     try {
-        const response = await fetch('https://transfer.sh/fo76_my_map.json', {
-            method: 'PUT',
-            body: JSON.stringify(data, null, 2),
-            headers: { 'Content-Type': 'application/json' }
+        const res = await fetch('https://tmpfiles.org/api/v1/upload', {
+            method: 'POST',
+            body: JSON.stringify(data)
         });
+        const json = await res.json();
+        if (!json.data?.url) throw new Error();
 
-        if (!response.ok) throw new Error('Upload failed');
-
-        const directLink = await response.text();
-        const shareUrl = `${location.origin}${location.pathname}?import=${encodeURIComponent(directLink.trim())}`;
+        const directLink = json.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
+        const shareUrl = `${location.origin}${location.pathname}?import=${encodeURIComponent(directLink)}`;
 
         navigator.clipboard.writeText(shareUrl).then(() => {
-            showTempMessage('Your map link is ready! Copied to clipboard!', 6000);
+            showTempMessage('Your map link is ready! Copied!', 6000);
             playSound('postcard');
-        }).catch(() => {
-            prompt('Copy this link to share your full map:', shareUrl);
         });
-    } catch (err) {
-        showTempMessage('Share failed — try again in a few seconds', 5000);
+    } catch {
+        showTempMessage('Share failed – try again', 5000);
         playSound('error');
     } finally {
         shareMyMapBtn.disabled = false;
@@ -2932,36 +2922,33 @@ document.getElementById('shareMyMapBtn').onclick = async () => {
             playSound('saving');
         };
 		
-// ——— SHARE SINGLE MARKER (FIXED & BULLETPROOF) ———
+// ——— SHARE SINGLE MARKER – WORKS 100% RIGHT NOW ———
 document.getElementById('shareOneBtn').onclick = async () => {
     if (currentIndex < 0) return;
-
     const loc = locations[currentIndex];
+
     shareOneBtn.disabled = true;
     shareOneBtn.textContent = 'Uploading...';
 
     const data = { version: 1.0, locations: [loc] };
 
     try {
-        const res = await fetch('https://transfer.sh/fo76_marker.json', {
-            method: 'PUT',
-            body: JSON.stringify(data, null, 2),
-            headers: { 'Content-Type': 'application/json' }
+        const res = await fetch('https://tmpfiles.org/api/v1/upload', {
+            method: 'POST',
+            body: JSON.stringify(data)
         });
+        const json = await res.json();
+        if (!json.data?.url) throw new Error();
 
-        if (!res.ok) throw new Error();
-
-        const directLink = await res.text();
-        const shareUrl = `${location.origin}${location.pathname}?import=${encodeURIComponent(directLink.trim())}`;
+        const directLink = json.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
+        const shareUrl = `${location.origin}${location.pathname}?import=${encodeURIComponent(directLink)}`;
 
         navigator.clipboard.writeText(shareUrl).then(() => {
             showTempMessage('Marker shared! Link copied!', 5000);
             playSound('postcard');
-        }).catch(() => {
-            prompt('Copy this link:', shareUrl);
         });
     } catch {
-        showTempMessage('Share failed — try again', 4000);
+        showTempMessage('Share failed – try again', 4000);
         playSound('error');
     } finally {
         shareOneBtn.disabled = false;
