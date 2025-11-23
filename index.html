@@ -1241,10 +1241,9 @@ communityVersion = getCurrentCommunityVersion();
         map.fitBounds(imageBounds);
         L.control.zoom({ position: 'topleft' }).addTo(map);
 
-// FINAL CLUSTER SYSTEM — 100% PERFECT ON DESKTOP & MOBILE
 let currentlySpiderfied = null;
+let currentClusterPopup = null;
 
-// Create the cluster group
 const clusteredMarkers = L.markerClusterGroup({
     maxClusterRadius: 30,
     disableClusteringAtZoom: 4,
@@ -1253,7 +1252,7 @@ const clusteredMarkers = L.markerClusterGroup({
     zoomToBoundsOnClick: false,
     removeOutsideVisibleBounds: false,
     animate: true,
-    spiderfyDistanceMultiplier: 1,
+    spiderfyDistanceMultiplier: 1.6,
     maxSpiderfySize: 1000,
     iconCreateFunction: function(cluster) {
         return L.divIcon({
@@ -1264,35 +1263,52 @@ const clusteredMarkers = L.markerClusterGroup({
     }
 });
 
-// OPEN on hover (desktop) OR tap (mobile)
 clusteredMarkers.on('clustermouseover clusterclick', function (a) {
-    if (!a.layer._spiderfied) {
-        a.layer.spiderfy();
-        currentlySpiderfied = a.layer;
-    }
+    if (a.layer._spiderfied) return;
+
+    a.layer.spiderfy();
+    currentlySpiderfied = a.layer;
+
+    setTimeout(() => {
+        const childMarkers = a.layer.getAllChildMarkers();
+        if (childMarkers.length === 0) return;
+
+        const clusterCenter = a.layer.getLatLng();
+
+        let closestMarker = childMarkers[0];
+        let closestDistance = clusterCenter.distanceTo(closestMarker.getLatLng());
+
+        childMarkers.forEach(marker => {
+            const dist = clusterCenter.distanceTo(marker.getLatLng());
+            if (dist < closestDistance) {
+                closestDistance = dist;
+                closestMarker = marker;
+            }
+        });
+
+        closestMarker.openPopup();
+        currentClusterPopup = closestMarker;
+    }, 380);
 });
 
-// PREVENT closing when hovering over spiderfied markers
-clusteredMarkers.on('clustermouseout', function (a) {
-    const relatedTarget = a.originalEvent.relatedTarget;
-    if (relatedTarget && relatedTarget.closest && relatedTarget.closest('.leaflet-marker-icon')) {
-        return; // Mouse/touch moved to a spiderfied marker → DO NOT close
+clusteredMarkers.on('click', function (e) {
+    const marker = e.layer;
+    if (!currentlySpiderfied) return;
+
+    if (currentClusterPopup && currentClusterPopup !== marker) {
+        currentClusterPopup.closePopup();
     }
+
+    marker.openPopup();
+    currentClusterPopup = marker;
 });
 
-// CLOSE only when clicking/tapping empty map area
 map.on('click', function (e) {
-    if (currentlySpiderfied && !e.originalEvent.target.closest('.leaflet-marker-icon')) {
+    const clickedOnMap = !e.originalEvent.target.closest('.leaflet-marker-icon, .leaflet-popup, .leaflet-marker-cluster');
+    if (currentlySpiderfied && clickedOnMap) {
         currentlySpiderfied.unspiderfy();
         currentlySpiderfied = null;
-    }
-});
-
-// Also close on right-click / long-press (mobile)
-map.on('contextmenu', function () {
-    if (currentlySpiderfied) {
-        currentlySpiderfied.unspiderfy();
-        currentlySpiderfied = null;
+        currentClusterPopup = null;
     }
 });
 
