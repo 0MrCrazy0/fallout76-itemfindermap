@@ -2475,54 +2475,92 @@ map.on('popupclose', () => {
         if (!file) return;
         const r = new FileReader();
         r.onload = ev => {
-    try {
-        const data = JSON.parse(ev.target.result);
-        const incoming = data.locations || (Array.isArray(data) ? data : []);
-        let added = 0, updated = 0, skipped = 0;
-        
-        incoming.forEach(imp => {
-            const existing = locations.find(l => l.cid === imp.cid);
-            if (existing && existing.userEdited) {
-                skipped++;
-                return;
+            try {
+                const data = JSON.parse(ev.target.result);
+                const incoming = data.locations || (Array.isArray(data) ? data : []);
+                let added = 0, updated = 0, skipped = 0;
+
+                // Save state before import for proper UNDO
+                const beforeState = JSON.stringify(locations);
+
+                incoming.forEach(imp => {
+                    const existing = locations.find(l => l.cid === imp.cid);
+                    if (existing && existing.userEdited) {
+                        skipped++;
+                        return;
+                    }
+                    if (existing) {
+                        Object.assign(existing, imp);
+                        existing.userEdited = false;
+                        updated++;
+                    } else {
+                        locations.push({
+                            ...imp,
+                            id: generateUniqueId(),
+                            addedTime: Date.now(),
+                            locked: true,
+                            isPostcard: false,
+                            isTemp: false,
+                            userEdited: false
+                        });
+                        added++;
+                    }
+                });
+
+                if (data.customCategories) {
+                    customCategories = { ...customCategories, ...data.customCategories };
+                    localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+                }
+
+                // Only update community version if it's actually a community map
+                if (data.communityVersion || incoming.length > 50) {
+                    const newVersion = String(data.communityVersion || "1.0");
+                    localStorage.setItem(MAP_VERSION_KEY, newVersion);
+                    communityVersion = newVersion;
+                    showTempMessage(`Community Map v${newVersion} loaded!`, 5000);
+                } else {
+                    showTempMessage(`Imported ${added + updated} marker${added + updated === 1 ? '' : 's'}!`, 6000);
+                }
+
+                recalculateXP();
+                saveLocations();
+                forceReload();
+                updateCounterDisplay();
+
+                // UNDO BUTTON — now works perfectly for ALL imports
+                const undoBtn = document.getElementById('undoImportBtn');
+                if (undoBtn && (added + updated > 0)) {
+                    undoBtn.style.display = 'block';
+                    undoBtn.onclick = () => {
+                        locations = JSON.parse(beforeState);
+                        saveLocations();
+                        forceReload();
+                        undoBtn.style.display = 'none';
+                        showTempMessage('Import undone!', 4000);
+                        playSound('undo');
+                    };
+                    setTimeout(() => {
+                        if (undoBtn.style.display === 'block') {
+                            undoBtn.style.display = 'none';
+                        }
+                    }, 30000);
+                }
+
+                showConfirmModal(
+                    'Import Complete',
+                    `Added: <strong>${added}</strong> marker${added === 1 ? '' : 's'}<br>` +
+                    `Updated: <strong>${updated}</strong> marker${updated === 1 ? '' : 's'}<br>` +
+                    `Skipped: <strong>${skipped}</strong> (your edits protected)`,
+                    null
+                );
+                playSound('saving');
+
+            } catch (err) {
+                console.error("Import failed:", err);
+                showTempMessage('Invalid or corrupted file', 5000);
+                playSound('error');
             }
-            if (existing) {
-                Object.assign(existing, imp);
-				existing.userEdited = false;
-                updated++;
-            } else {
-			    locations.push({ ...imp, id: generateUniqueId(), addedTime: Date.now(), locked: true, isPostcard: false, isTemp: false, userEdited: false });
-                added++;
-            }
-        });
-        
-        if (data.customCategories) {
-            customCategories = { ...customCategories, ...data.customCategories };
-            localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-        }
-
-        const newVersion = data.communityVersion || "1.0";
-        localStorage.setItem(MAP_VERSION_KEY, String(data.communityVersion || data.version || "1.0"));
-        showTempMessage(`Community Map v${newVersion} loaded!`, 5000);
-
-        updateCounterDisplay();
-
-        recalculateXP();
-        forceReload();
-		saveLocations();
-
-        showConfirmModal(
-            'Import Complete',
-            `Added: <strong>${added}</strong> markers<br>Updated: <strong>${updated}</strong> markers<br>Skipped (user-edited): <strong>${skipped}</strong> markers`,
-            null
-        );
-        playSound('saving');
-    } catch (err) {
-        console.error("Import failed:", err);
-        showTempMessage('Invalid file', 4000);
-        playSound('error');
-    }
-};
+        };
         r.readAsText(file);
     };
     input.click();
@@ -3376,16 +3414,14 @@ banner.innerHTML = `
     }
 }, 30000); // 30 seconds — change if you want faster/slower
 
-// ——— PERMANENT SHARE IMPORT — WORKS EVERY TIME, ANYWHERE ———
+// ——— PERMANENT SHARE IMPORT — WORKS EVERY TIME + UNDO WORKS ———
 if (urlParams.has('permshare')) {
     const id = urlParams.get('permshare');
-
     let raw = null;
     try {
-        // Decode the data that is embedded in the URL
         const decoded = decodeURIComponent(id.replace(/-/g, '+').replace(/_/g, '/'));
         raw = atob(decoded + '=='.substring(0, (4 - decoded.length % 4) % 4));
-        raw = decodeURIComponent(escape(raw)); // fixes unicode
+        raw = decodeURIComponent(escape(raw));
     } catch (e) {
         showTempMessage('Invalid share link', 5000);
         history.replaceState(null, null, location.pathname);
@@ -3395,12 +3431,14 @@ if (urlParams.has('permshare')) {
         try {
             const shareData = JSON.parse(raw);
             const incoming = shareData.locations || [];
-
             const beforeCount = locations.length;
+
+            // Save current state for undo
+            const undoState = JSON.stringify(locations);
 
             incoming.forEach(imp => {
                 const existing = locations.find(l => l.cid === imp.cid);
-                if (existing && existing.userEdited) return; // protect user edits
+                if (existing && existing.userEdited) return;
                 if (existing) {
                     Object.assign(existing, imp);
                     existing.userEdited = false;
@@ -3420,18 +3458,27 @@ if (urlParams.has('permshare')) {
             saveLocations();
             forceReload();
 
-            showTempMessage(`Imported ${added} permanent marker${added === 1 ? '' : 's'}!`, 6000);
+            showTempMessage(`Imported ${added} marker${added === 1 ? '' : 's'}!`, 6000);
             playSound('saving');
 
-            // Undo button for 30 seconds
+            // UNDO BUTTON — now works perfectly
             const undoBtn = document.getElementById('undoImportBtn');
             if (undoBtn) {
                 undoBtn.style.display = 'block';
-                undoBtn.onclick = () => location.reload();
-                setTimeout(() => undoBtn.style.display = 'none', 30000);
+                undoBtn.onclick = () => {
+                    locations = JSON.parse(undoState);
+                    saveLocations();
+                    forceReload();
+                    undoBtn.style.display = 'none';
+                    showTempMessage('Import undone!', 4000);
+                };
+                setTimeout(() => {
+                    if (undoBtn.style.display === 'block') {
+                        undoBtn.style.display = 'none';
+                    }
+                }, 30000);
             }
 
-            // Clean the URL
             history.replaceState(null, null, location.pathname);
 
         } catch (e) {
