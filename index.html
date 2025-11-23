@@ -1736,61 +1736,57 @@ map.on('popupclose', () => {
 
                 const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('postcard')) {
-    const id = urlParams.get('postcard');
-    const lat = parseFloat(urlParams.get('lat'));
-    const lng = parseFloat(urlParams.get('lng'));
-    const msg = urlParams.has('msg')
-        ? decodeURIComponent(urlParams.get('msg').replace(/\+/g, ' '))
-        : 'Postcard from a friend!';
-    if (isNaN(lat) || isNaN(lng)) return;
+            const id = urlParams.get('postcard');
+            const lat = parseFloat(urlParams.get('lat'));
+            const lng = parseFloat(urlParams.get('lng'));
+            const msg = urlParams.has('msg')
+                ? decodeURIComponent(urlParams.get('msg').replace(/\+/g, ' '))
+                : 'Postcard from a friend!';
+            if (isNaN(lat) || isNaN(lng)) return;
 
-    // === IMPROVED: Fresh postcard on repeat, with state guard ===
-    const existing = locations.find(l => l.id === id);
-    let postcardCreated = false;
-    if (!existing || !existing.isPostcard || (existing.postcardExpire && Date.now() > existing.postcardExpire)) {
-        // Remove expired if exists
-        if (existing) {
-            const idx = locations.indexOf(existing);
-            if (idx > -1) locations.splice(idx, 1);
-        }
-        const loc = createNewLocation(lat, lng, 'misc', msg, true);
-        loc.id = id;
-        loc.startTime = Date.now();
-        loc.postcardExpire = Date.now() + 300000;
-        locations.push(loc);
-        saveLocations();
-        postcardCreated = true;  // ← NEW: Flag for guard
-        showTempMessage('Postcard received!', 5000);
-        playSound('postcard');
-    }
+            const existing = locations.find(l => l.id === id);
+            let postcardCreated = false;
 
-    // === GUARD: Delay forceReload until after postcard is processed ===
-    setTimeout(() => {
-        forceReload();
-    }, 100);  // Short delay ensures addition completes first
-
-    // === In-app browser fix ===
-    const isInAppBrowser = /FBAV|FB_IAB|Messenger|Instagram|Line|Discord/i.test(navigator.userAgent);
-    const popupDelay = isInAppBrowser ? 2800 : 1600;
-
-    const check = setInterval(() => {
-        if (document.body.classList.contains('map-ready')) {
-            clearInterval(check);
-            safeFlyTo(lat, lng, 1);
-            setTimeout(() => {
-                let marker = nonClusteredMarkers.getLayers().find(m => m.options.id === id);
-                if (!marker && clusteringEnabled) {
-                    marker = clusteredMarkers.getLayers().find(m => m.options.id === id);
+            if (!existing || !existing.isPostcard || (existing.postcardExpire && Date.now() > existing.postcardExpire)) {
+                if (existing) {
+                    const idx = locations.indexOf(existing);
+                    if (idx > -1) locations.splice(idx, 1);
                 }
-                if (marker || postcardCreated) {  // ← NEW: Fallback if created but not yet layered
-                    const displayMsg = postcardCreated ? msg : 'Check this spot!';
-                    marker?.unbindPopup();
-                    marker?.bindPopup(createPopupContent({ desc: displayMsg, id: id }), { maxWidth: 320, offset: [0, -20] });
-                    marker?.openPopup();
+                const loc = createNewLocation(lat, lng, 'misc', msg, true);
+                loc.id = id;
+                loc.startTime = Date.now();
+                loc.postcardExpire = Date.now() + 300000;
+                locations.push(loc);
+                saveLocations();
+                postcardCreated = true;
+                showTempMessage('Postcard received!', 5000);
+                playSound('postcard');
+            }
+
+            // COMPLETELY REMOVED forceReload() — THIS WAS KILLING THE MAP
+            // The normal loadData() at startup now handles everything perfectly
+
+            const isInApp = /Discord|FBAV|FB_IAB|Instagram|Line/i.test(navigator.userAgent);
+            const delay = isInApp ? 3500 : 2000;
+
+            const wait = setInterval(() => {
+                if (document.body.classList.contains('map-ready') && map.getPane('overlayPane').children.length) {
+                    clearInterval(wait);
+                    safeFlyTo(lat, lng, 1);
+
+                    setTimeout(() => {
+                        let marker = [...nonClusteredMarkers.getLayers(), ...clusteredMarkers.getLayers()]
+                            .find(m => m.options.id === id);
+
+                        if (marker || postcardCreated) {
+                            const displayMsg = postcardCreated ? msg : 'Check this spot!';
+                            marker?.unbindPopup();
+                            marker?.bindPopup(createPopupContent({ desc: displayMsg, id: id }), { maxWidth: 320, offset: [0, -20] });
+                            marker?.openPopup();
+                        }
+                    }, delay);
                 }
-            }, popupDelay);
-        }
-    }, 200);
+            }, 250);
         } else if (urlParams.has('lat') && urlParams.has('lng')) {
             const lat = parseFloat(urlParams.get('lat'));
             const lng = parseFloat(urlParams.get('lng'));
