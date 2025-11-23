@@ -2625,26 +2625,25 @@ map.on('popupclose', () => {
         });
 };
 
-// ——— PERMANENT SHARE SYSTEM (Share My Map + Share Marker) ———
+// ——— PERMANENT SHARE — WORKS FOREVER ON ANY DEVICE/BROWSER ———
 function createPermanentShare(markersToShare) {
     if (markersToShare.length === 0) return;
 
-    const shareId = 'perm_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    const shareData = { version: 1.0, locations: markersToShare };
 
-    // Store the exact markers that are being shared so we can undo later
-    const shareData = {
-        version: 1.0,
-        locations: markersToShare,
-        timestamp: Date.now()
-    };
+    // Encode the entire JSON directly into the URL — no localStorage needed
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(shareData))))
+                    .replace(/\+/g, '-')
+                    .replace(/\//g, '_')
+                    .replace(/=+$/, '');
 
-    localStorage.setItem('permshare_' + shareId, JSON.stringify(shareData));
-
-    const shareUrl = location.origin + location.pathname + '?permshare=' + shareId;
+    const shareUrl = location.origin + location.pathname + '?permshare=' + encoded;
 
     navigator.clipboard.writeText(shareUrl).then(() => {
-        showTempMessage('Permanent link copied! Markers are forever.', 6000);
+        showTempMessage('Permanent link copied — works forever on any device!', 8000);
         playSound('postcard');
+    }).catch(() => {
+        prompt('Copy this link (it works everywhere):', shareUrl);
     });
 }
 
@@ -3377,10 +3376,20 @@ banner.innerHTML = `
     }
 }, 30000); // 30 seconds — change if you want faster/slower
 
-// ——— PERMANENT SHARE IMPORT — WORKS FOREVER + ANY BROWSER ———
+// ——— PERMANENT SHARE IMPORT — WORKS EVERY TIME, ANYWHERE ———
 if (urlParams.has('permshare')) {
     const id = urlParams.get('permshare');
-    const raw = localStorage.getItem('permshare_' + id);
+
+    let raw = null;
+    try {
+        // Decode the data that is embedded in the URL
+        const decoded = decodeURIComponent(id.replace(/-/g, '+').replace(/_/g, '/'));
+        raw = atob(decoded + '=='.substring(0, (4 - decoded.length % 4) % 4));
+        raw = decodeURIComponent(escape(raw)); // fixes unicode
+    } catch (e) {
+        showTempMessage('Invalid share link', 5000);
+        history.replaceState(null, null, location.pathname);
+    }
 
     if (raw) {
         try {
@@ -3391,7 +3400,7 @@ if (urlParams.has('permshare')) {
 
             incoming.forEach(imp => {
                 const existing = locations.find(l => l.cid === imp.cid);
-                if (existing && existing.userEdited) return;
+                if (existing && existing.userEdited) return; // protect user edits
                 if (existing) {
                     Object.assign(existing, imp);
                     existing.userEdited = false;
@@ -3414,7 +3423,7 @@ if (urlParams.has('permshare')) {
             showTempMessage(`Imported ${added} permanent marker${added === 1 ? '' : 's'}!`, 6000);
             playSound('saving');
 
-            // Show Undo button for 30 seconds
+            // Undo button for 30 seconds
             const undoBtn = document.getElementById('undoImportBtn');
             if (undoBtn) {
                 undoBtn.style.display = 'block';
@@ -3422,14 +3431,12 @@ if (urlParams.has('permshare')) {
                 setTimeout(() => undoBtn.style.display = 'none', 30000);
             }
 
+            // Clean the URL
             history.replaceState(null, null, location.pathname);
 
         } catch (e) {
-            showTempMessage('Invalid share link', 5000);
+            showTempMessage('Corrupted share data', 5000);
         }
-    } else {
-        showTempMessage('Link expired or already used in this browser', 5000);
-        // Optional: add a "Try again in a new tab" message
     }
 }
         console.log('%cFallout 76 Item Finder v76.1.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
