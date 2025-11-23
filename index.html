@@ -1763,16 +1763,22 @@ map.on('popupclose', () => {
                 playSound('postcard');
             }
 
-            // COMPLETELY REMOVED forceReload() — THIS WAS KILLING THE MAP
-            // The normal loadData() at startup now handles everything perfectly
-
             const isInApp = /Discord|FBAV|FB_IAB|Instagram|Line/i.test(navigator.userAgent);
             const delay = isInApp ? 3500 : 2000;
 
             const wait = setInterval(() => {
                 if (document.body.classList.contains('map-ready') && map.getPane('overlayPane').children.length) {
                     clearInterval(wait);
-                    safeFlyTo(lat, lng, 1);
+
+                    setTimeout(() => {
+                        map._onResize();
+                        map.invalidateSize();
+
+                        map.setView([lat, lng], 4, { animate: false });
+                        setTimeout(() => {
+                            map.flyTo([lat, lng], 1, { duration: 1.8 });
+                        }, 100);
+                    }, 800);
 
                     setTimeout(() => {
                         let marker = [...nonClusteredMarkers.getLayers(), ...clusteredMarkers.getLayers()]
@@ -1784,7 +1790,7 @@ map.on('popupclose', () => {
                             marker?.bindPopup(createPopupContent({ desc: displayMsg, id: id }), { maxWidth: 320, offset: [0, -20] });
                             marker?.openPopup();
                         }
-                    }, delay);
+                    }, delay + 300);
                 }
             }, 250);
         } else if (urlParams.has('lat') && urlParams.has('lng')) {
