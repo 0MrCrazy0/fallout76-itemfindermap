@@ -1743,19 +1743,35 @@ map.on('popupclose', () => {
                 ? decodeURIComponent(urlParams.get('msg').replace(/\+/g, ' '))
                 : 'Postcard from a friend!';
             if (isNaN(lat) || isNaN(lng)) return;
-            if (!locations.find(l => l.id === id)) {
+
+            // === NEW & IMPROVED: Always show a fresh postcard on repeat clicks ===
+            const existing = locations.find(l => l促进.id === id);
+            if (!existing || !existing.isPostcard || (existing.postcardExpire && Date.now() > existing.postcardExpire)) {
+                // Remove expired postcard if it exists
+                if (existing) {
+                    const idx = locations.indexOf(existing);
+                    if (idx > -1) locations.splice(idx, 1);
+                }
                 const loc = createNewLocation(lat, lng, 'misc', msg, true);
                 loc.id = id;
+                loc.startTime = Date.now();
+                loc.postcardExpire = Date.now() + 300000;
                 locations.push(loc);
                 saveLocations();
+                showTempMessage('Postcard received!', 5000);
+                playSound('postcard');
             }
+
             forceReload();
+
+            // === In-app browser fix (Facebook Messenger, Instagram, etc.) ===
+            const isInAppBrowser = /FBAV|FB_IAB|Messenger|Instagram|Line/i.test(navigator.userAgent);
+            const popupDelay = isInAppBrowser ? 2800 : 1600;
+
             const check = setInterval(() => {
                 if (document.body.classList.contains('map-ready')) {
                     clearInterval(check);
                     safeFlyTo(lat, lng, 1);
-                    showTempMessage('Postcard received!', 5000);
-                    playSound('postcard');
                     setTimeout(() => {
                         let marker = nonClusteredMarkers.getLayers().find(m => m.options.id === id);
                         if (!marker && clusteringEnabled) {
@@ -1766,7 +1782,7 @@ map.on('popupclose', () => {
                             marker.bindPopup(createPopupContent({ desc: msg, id: id }), { maxWidth: 320, offset: [0, -20] });
                             marker.openPopup();
                         }
-                    }, 1600);
+                    }, popupDelay);
                 }
             }, 200);
         } else if (urlParams.has('lat') && urlParams.has('lng')) {
