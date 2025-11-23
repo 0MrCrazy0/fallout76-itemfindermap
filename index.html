@@ -2625,9 +2625,10 @@ map.on('popupclose', () => {
         });
 };
 
-// ——— SHARE MY ENTIRE MAP – WORKS 100% RIGHT NOW ———
+// ——— SHARE MY ENTIRE MAP (FIXED WITH FORMDATA) ———
 document.getElementById('shareMyMapBtn').onclick = async () => {
     playSound('click');
+
     const myMarkers = locations.filter(l => l.userEdited === true && !l.isPostcard);
     if (myMarkers.length === 0) {
         showTempMessage('No personal markers to share yet!', 4000);
@@ -2637,15 +2638,31 @@ document.getElementById('shareMyMapBtn').onclick = async () => {
     shareMyMapBtn.disabled = true;
     shareMyMapBtn.textContent = 'Uploading...';
 
-    const data = { version: 1.0, locations: myMarkers };
+    const data = JSON.stringify({
+        version: 1.0,
+        sharedBy: "Vault Dweller",
+        sharedAt: new Date().toISOString(),
+        locations: myMarkers
+    });
 
     try {
+        const formData = new FormData();
+        const blob = new Blob([data], { type: 'application/json' });
+        formData.append('file', blob, 'fo76_map.json');
+
         const res = await fetch('https://tmpfiles.org/api/v1/upload', {
             method: 'POST',
-            body: JSON.stringify(data)
+            body: formData
         });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error('Tmpfiles error:', errorText); // For debugging
+            throw new Error(`HTTP ${res.status}`);
+        }
+
         const json = await res.json();
-        if (!json.data?.url) throw new Error();
+        if (!json.data?.url) throw new Error('No URL in response');
 
         const directLink = json.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
         const shareUrl = `${location.origin}${location.pathname}?import=${encodeURIComponent(directLink)}`;
@@ -2653,9 +2670,12 @@ document.getElementById('shareMyMapBtn').onclick = async () => {
         navigator.clipboard.writeText(shareUrl).then(() => {
             showTempMessage('Your map link is ready! Copied!', 6000);
             playSound('postcard');
+        }).catch(() => {
+            prompt('Copy this link to share your full map:', shareUrl);
         });
-    } catch {
-        showTempMessage('Share failed – try again', 5000);
+    } catch (err) {
+        console.error('Share error:', err); // For debugging
+        showTempMessage('Share failed – try again later', 5000);
         playSound('error');
     } finally {
         shareMyMapBtn.disabled = false;
@@ -2922,7 +2942,7 @@ document.getElementById('shareMyMapBtn').onclick = async () => {
             playSound('saving');
         };
 		
-// ——— SHARE SINGLE MARKER – WORKS 100% RIGHT NOW ———
+// ——— SHARE SINGLE MARKER (FIXED WITH FORMDATA) ———
 document.getElementById('shareOneBtn').onclick = async () => {
     if (currentIndex < 0) return;
     const loc = locations[currentIndex];
@@ -2930,15 +2950,26 @@ document.getElementById('shareOneBtn').onclick = async () => {
     shareOneBtn.disabled = true;
     shareOneBtn.textContent = 'Uploading...';
 
-    const data = { version: 1.0, locations: [loc] };
+    const data = JSON.stringify({ version: 1.0, locations: [loc] });
 
     try {
+        const formData = new FormData();
+        const blob = new Blob([data], { type: 'application/json' });
+        formData.append('file', blob, 'fo76_marker.json');
+
         const res = await fetch('https://tmpfiles.org/api/v1/upload', {
             method: 'POST',
-            body: JSON.stringify(data)
+            body: formData
         });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error('Tmpfiles error:', errorText); // For debugging
+            throw new Error(`HTTP ${res.status}`);
+        }
+
         const json = await res.json();
-        if (!json.data?.url) throw new Error();
+        if (!json.data?.url) throw new Error('No URL in response');
 
         const directLink = json.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
         const shareUrl = `${location.origin}${location.pathname}?import=${encodeURIComponent(directLink)}`;
@@ -2946,9 +2977,12 @@ document.getElementById('shareOneBtn').onclick = async () => {
         navigator.clipboard.writeText(shareUrl).then(() => {
             showTempMessage('Marker shared! Link copied!', 5000);
             playSound('postcard');
+        }).catch(() => {
+            prompt('Copy this link:', shareUrl);
         });
-    } catch {
-        showTempMessage('Share failed – try again', 4000);
+    } catch (err) {
+        console.error('Share error:', err); // For debugging
+        showTempMessage('Share failed – try again later', 4000);
         playSound('error');
     } finally {
         shareOneBtn.disabled = false;
