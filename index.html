@@ -2592,8 +2592,20 @@ map.on('popupclose', () => {
     a.download = `fo76_${all ? 'all' : 'user'}_${data.locations.length}_markers_${new Date().toISOString().slice(0,10)}.json`;
 
     a.click();
-    URL.revokeObjectURL(a.href);
-    showTempMessage(`Exported ${data.locations.length} marker${data.locations.length === 1 ? '' : 's'}!`, 4000);
+    const exportOverlay = document.createElement('div');
+    exportOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"Courier New",monospace;color:#00ff00;text-align:center;gap:20px;';
+    exportOverlay.innerHTML = `
+        <div style="font-size:clamp(60px,15vw,180px);text-shadow:0 0 40px #00ff00;">💾</div>
+        <h1 style="font-size:clamp(28px,8vw,70px);margin:0;text-shadow:0 0 30px #00ff00;">
+            EXPORT COMPLETE
+        </h1>
+        <p style="font-size:clamp(18px,5vw,40px);margin:0;">
+            ${data.locations.length} marker${data.locations.length===1?'':'s'} saved!
+        </p>
+    `;
+    document.body.appendChild(exportOverlay);
+    playSound('saving');
+    setTimeout(() => exportOverlay.remove(), 3000);
 };
 
         importBtn.onclick = () => {
@@ -3598,90 +3610,125 @@ if (urlParams.has('permshare')) {
 }
 
         document.getElementById('backupAllBtn')?.addEventListener('click', () => {
-            const fullBackup = {
-                version: "full-v76.1.0",
-                timestamp: new Date().toISOString(),
-                locations: locations,
-                customCategories: customCategories,
-                level: level,
-                xp: xp,
-                settings: {
-                    clusteringEnabled,
-                    gridEnabled,
-                    currentMap,
-                    darkMode,
-                    soundsEnabled,
-                    titleVisible,
-                    toolsVisible,
-                    activeCategories: [...activeCategories]
-                }
-            };
-            const blob = new Blob([JSON.stringify(fullBackup, null, 2)], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `FO76_FULL_BACKUP_${new Date().toISOString().slice(0,10)}.json`;
-            a.click();
-            showTempMessage('FULL BACKUP downloaded!', 5000);
-            playSound('saving');
-        });
+    const fullBackup = {
+        version: "full-v76.1.0",
+        timestamp: new Date().toISOString(),
+        communityVersion: localStorage.getItem('fo76_map_version') || '1.0',
+        locations: locations,
+        customCategories: customCategories,
+        level: level,
+        xp: xp,
+        settings: {
+            clusteringEnabled,
+            gridEnabled,
+            currentMap,
+            darkMode,
+            soundsEnabled,
+            titleVisible,
+            toolsVisible,
+            activeCategories: [...activeCategories]
+        }
+    };
+    const blob = new Blob([JSON.stringify(fullBackup, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `FO76_FULL_BACKUP_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    showTempMessage('FULL BACKUP downloaded!', 5000);
+    playSound('saving');
+});
 
         document.getElementById('restoreAllBtn')?.addEventListener('click', () => {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            input.onchange = e => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = ev => {
-                    try {
-                        const data = JSON.parse(ev.target.result);
-                        if (data.version && data.version.includes('full-v76')) {
-                            if (!confirm('⚡ RESTORE FULL BACKUP?\nThis will replace EVERYTHING (markers, XP, settings)!')) return;
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = e => {
+        const file =e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+            try {
+                const data = JSON.parse(ev.target.result);
+                if (data.version && data.version.includes('full-v76')) {
+                    if (!confirm('RESTORE FULL BACKUP?\nThis will replace EVERYTHING (markers, XP, settings)!')) return;
 
-                            locations = data.locations || [];
-                            customCategories = data.customCategories || {};
-                            Object.assign(categoryIcons, defaultCategoryIcons, customCategories);
-                            level = data.level || 1;
-                            xp = data.xp || 0;
+                    // ←←← ALL YOUR EXISTING RESTORE CODE (unchanged) ←←←
+                    locations = data.locations || [];
+                    customCategories = data.customCategories || {};
+                    Object.assign(categoryIcons, defaultCategoryIcons, customCategories);
+                    level = data.level || 1;
+                    xp = data.xp || 0;
+                    const s = data.settings || {};
+                    clusteringEnabled = s.clusteringEnabled !== undefined ? s.clusteringEnabled : true;
+                    gridEnabled = s.gridEnabled || false;
+                    currentMap = s.currentMap || 'named';
+                    darkMode = s.darkMode || false;
+                    soundsEnabled = s.soundsEnabled !== undefined ? s.soundsEnabled : true;
+                    titleVisible = s.titleVisible !== undefined ? s.titleVisible : true;
+                    toolsVisible = s.toolsVisible !== undefined ? s.toolsVisible : true;
+                    activeCategories = new Set(s.activeCategories || Object.keys(defaultCategoryIcons));
+                    localStorage.setItem('fo76_map_version', data.communityVersion || s.communityVersion || '1.3');
 
-                            const s = data.settings || {};
-                            clusteringEnabled = s.clusteringEnabled !== undefined ? s.clusteringEnabled : true;
-                            gridEnabled = s.gridEnabled || false;
-                            currentMap = s.currentMap || 'named';
-                            darkMode = s.darkMode || false;
-                            soundsEnabled = s.soundsEnabled !== undefined ? s.soundsEnabled : true;
-                            titleVisible = s.titleVisible !== undefined ? s.titleVisible : true;
-                            toolsVisible = s.toolsVisible !== undefined ? s.toolsVisible : true;
-                            activeCategories = new Set(s.activeCategories || Object.keys(defaultCategoryIcons));
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
+                    localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+                    localStorage.setItem('fo76_level', level);
+                    localStorage.setItem('fo76_xp', xp);
+                    localStorage.setItem('clusteringEnabled', clusteringEnabled);
+                    localStorage.setItem('gridEnabled', gridEnabled);
+                    localStorage.setItem('currentMap', currentMap);
+                    localStorage.setItem('darkMode', darkMode);
+                    localStorage.setItem('soundsEnabled', soundsEnabled);
+                    localStorage.setItem('titleVisible', titleVisible);
+                    localStorage.setItem('toolsVisible', toolsVisible);
+                    localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
 
-                            localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
-                            localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-                            localStorage.setItem('fo76_level', level);
-                            localStorage.setItem('fo76_xp', xp);
-                            localStorage.setItem('clusteringEnabled', clusteringEnabled);
-                            localStorage.setItem('gridEnabled', gridEnabled);
-                            localStorage.setItem('currentMap', currentMap);
-                            localStorage.setItem('darkMode', darkMode);
-                            localStorage.setItem('soundsEnabled', soundsEnabled);
-                            localStorage.setItem('titleVisible', titleVisible);
-                            localStorage.setItem('toolsVisible', toolsVisible);
-                            localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
+                    // ←←← NEW BEAUTIFUL SUCCESS SCREEN ←←←
+                    const successOverlay = document.createElement('div');
+                    successOverlay.style.cssText = `
+                        position:fixed;top:0;left:0;width:100vw;height:100vh;
+                        background:#000;z-index:99999;display:flex;
+                        flex-direction:column;align-items:center;justify-content:center;
+                        font-family:'Courier New',monospace;color:#00ff00;
+                        text-align:center;gap:30px;
+                    `;
+                    successOverlay.innerHTML = `
+                        <div style="font-size:clamp(60px,15vw,180px);text-shadow:0 0 40px #00ff00;">☢</div>
+                        <h1 style="font-size:clamp(28px,8vw,70px);margin:0;text-shadow:0 0 30px #00ff00;">
+                            FULL RESTORE COMPLETE
+                        </h1>
+                        <p style="font-size:clamp(18px,5vw,40px);margin:0;">
+                            All markers, XP, settings & community map restored!
+                        </p>
+                        <p style="font-size:clamp(16px,4vw,30px);opacity:0.9;">
+                            Reloading in 3...
+                        </p>
+                    `;
+                    document.body.appendChild(successOverlay);
+                    playSound('levelUp');
 
-                            showTempMessage('FULL RESTORE complete – reloading!', 4000);
-                            setTimeout(() => location.reload(), 1500);
-                        } else {
-                            showTempMessage('Not a full backup file', 4000);
+                    // Countdown + reload
+                    let count = 3;
+                    const countdown = setInterval(() => {
+                        count--;
+                        successOverlay.querySelector('p:last-child').textContent = `Reloading in ${count}...`;
+                        if (count <= 0) {
+                            clearInterval(countdown);
+                            location.reload();
                         }
-                    } catch (err) {
-                        showTempMessage('Invalid backup file', 4000);
-                        console.error(err);
-                    }
-                };
-                reader.readAsText(file);
-            };
-            input.click();
-        });
+                    }, 1000);
+
+                } else {
+                    showTempMessage('Not a full backup file', 4000);
+                }
+            } catch (err) {
+                showTempMessage('Invalid backup file', 4000);
+                console.error(err);
+            }
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+});
         console.log('%cFallout 76 Item Finder v76.1.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
        Fallout 76 Item Finder Map - Disclaimer and Terms of Use
