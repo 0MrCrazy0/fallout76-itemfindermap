@@ -718,7 +718,7 @@
         background: #00cc00 !important;
     }
 
-    /* V38.1 — BIGGER DESCRIPTION BOX */
+    /* BIGGER DESCRIPTION BOX */
     #itemDesc, #itemModal textarea {
         height: 160px !important;
         width: 100% !important;
@@ -740,7 +740,7 @@
         border-radius: 0;
     }
 
-    /* V38.1 — MARKER FLASH & HOVER PULSE */
+    /* MARKER FLASH & HOVER PULSE */
     .marker-flash {
         animation: flashGreen 3s ease-out forwards;
     }
@@ -756,7 +756,7 @@
         50%      { filter: brightness(1.4); }
     }
 
-    /* V38.1 — SHARE BUBBLE */
+    /* SHARE BUBBLE */
     .share-spot {
         position: fixed;
         top: 20%;
@@ -962,6 +962,8 @@ document.head.appendChild(nukeStyle);
         <button id="saveMapJpegBtn">Save Map as JPEG</button>
         <button id="toggleDarkModeBtn">Dark Mode: Off</button>
         <button id="lockAllBtn">Lock All</button>
+		<button id="backupAllBtn">Backup All Data</button>
+        <button id="restoreAllBtn">Restore All Data</button>
     </div>
 
     <!-- DEV NOTE: XP PROGRESS BAR -->
@@ -3159,12 +3161,17 @@ document.getElementById('shareOneBtn').onclick = () => {
         if (grid) showGridNotification(grid);
     });
 
-    map.on('dblclick', e => {
+    map.doubleClickZoom.enable();
+map.on('dblclick', e => {
+    const clickedOnMarker = e.originalEvent.target.classList.contains('leaflet-marker-icon') ||
+                            e.originalEvent.target.closest('.leaflet-marker-icon');
+    if (!clickedOnMarker) {
         L.DomEvent.stopPropagation(e);
         tempLatLng = { lat: e.latlng.lat, lng: e.latlng.lng };
         openModal('Log Item');
         playSound('click');
-    });
+    }
+});
 
         updateCategoryDropdowns();
         renderCategoryToggles();
@@ -3265,7 +3272,7 @@ document.getElementById('shareOneBtn').onclick = () => {
         confettiScript.onload = () => { window.confettiReady = true; };
         document.head.appendChild(confettiScript);
 
-        const WELCOME_KEY = 'fo76_welcome_accepted_v38';
+        const WELCOME_KEY = 'fo76_welcome_accepted';
         const LAST_VERSION_KEY = 'fo76_last_seen_version';
         function showWelcomeModal() {
     const welcomeModal = document.createElement('div');
@@ -3333,7 +3340,7 @@ document.getElementById('shareOneBtn').onclick = () => {
             <div class="modal-content" style="max-width:600px; background:#000; border:2px solid #00ff00; box-shadow:0 0 30px #00ff00;">
                 <div style="background:#000; padding:18px; text-align:center; border-bottom:2px solid #00ff00;">
                     <h1 style="margin:0; font-size:2.4em; text-shadow:0 0 20px #00ff00; color:#0f0;">
-                        ☢ UPDATE AVAILABLE ☢
+                        ☢ LATEST UPDATE ☢
                     </h1>
                 </div>
                 <div style="padding:30px; text-align:center; line-height:1.8;">
@@ -3589,6 +3596,92 @@ if (urlParams.has('permshare')) {
         }
     }
 }
+
+        document.getElementById('backupAllBtn')?.addEventListener('click', () => {
+            const fullBackup = {
+                version: "full-v76.1.0",
+                timestamp: new Date().toISOString(),
+                locations: locations,
+                customCategories: customCategories,
+                level: level,
+                xp: xp,
+                settings: {
+                    clusteringEnabled,
+                    gridEnabled,
+                    currentMap,
+                    darkMode,
+                    soundsEnabled,
+                    titleVisible,
+                    toolsVisible,
+                    activeCategories: [...activeCategories]
+                }
+            };
+            const blob = new Blob([JSON.stringify(fullBackup, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `FO76_FULL_BACKUP_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            showTempMessage('FULL BACKUP downloaded!', 5000);
+            playSound('saving');
+        });
+
+        document.getElementById('restoreAllBtn')?.addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    try {
+                        const data = JSON.parse(ev.target.result);
+                        if (data.version && data.version.includes('full-v76')) {
+                            if (!confirm('⚡ RESTORE FULL BACKUP?\nThis will replace EVERYTHING (markers, XP, settings)!')) return;
+
+                            locations = data.locations || [];
+                            customCategories = data.customCategories || {};
+                            Object.assign(categoryIcons, defaultCategoryIcons, customCategories);
+                            level = data.level || 1;
+                            xp = data.xp || 0;
+
+                            const s = data.settings || {};
+                            clusteringEnabled = s.clusteringEnabled !== undefined ? s.clusteringEnabled : true;
+                            gridEnabled = s.gridEnabled || false;
+                            currentMap = s.currentMap || 'named';
+                            darkMode = s.darkMode || false;
+                            soundsEnabled = s.soundsEnabled !== undefined ? s.soundsEnabled : true;
+                            titleVisible = s.titleVisible !== undefined ? s.titleVisible : true;
+                            toolsVisible = s.toolsVisible !== undefined ? s.toolsVisible : true;
+                            activeCategories = new Set(s.activeCategories || Object.keys(defaultCategoryIcons));
+
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
+                            localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+                            localStorage.setItem('fo76_level', level);
+                            localStorage.setItem('fo76_xp', xp);
+                            localStorage.setItem('clusteringEnabled', clusteringEnabled);
+                            localStorage.setItem('gridEnabled', gridEnabled);
+                            localStorage.setItem('currentMap', currentMap);
+                            localStorage.setItem('darkMode', darkMode);
+                            localStorage.setItem('soundsEnabled', soundsEnabled);
+                            localStorage.setItem('titleVisible', titleVisible);
+                            localStorage.setItem('toolsVisible', toolsVisible);
+                            localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
+
+                            showTempMessage('FULL RESTORE complete – reloading!', 4000);
+                            setTimeout(() => location.reload(), 1500);
+                        } else {
+                            showTempMessage('Not a full backup file', 4000);
+                        }
+                    } catch (err) {
+                        showTempMessage('Invalid backup file', 4000);
+                        console.error(err);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        });
         console.log('%cFallout 76 Item Finder v76.1.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
        Fallout 76 Item Finder Map - Disclaimer and Terms of Use
