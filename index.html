@@ -3191,6 +3191,7 @@ map.on('dblclick', e => {
         drawGrid();
         updateXPBar();
         playSound('selectcategory');
+		syncToggleButtonStates();
         setTimeout(() => document.body.classList.add('map-ready'), 1000);
 
         toggleDarkModeBtn.onclick = () => {
@@ -3201,6 +3202,26 @@ map.on('dblclick', e => {
             resetAppBtn.style.color = '#000';
             playSound('click');
         };
+		
+		function syncToggleButtonStates() {
+            toggleClusterBtn.textContent = clusteringEnabled 
+                ? 'Clustering: On' 
+                : 'Clustering: Off';
+
+            toggleGridBtn.textContent = gridEnabled 
+                ? 'Grid: On' 
+                : 'Grid: Off';
+
+            toggleDarkModeBtn.textContent = darkMode 
+                ? 'Dark Mode: On' 
+                : 'Dark Mode: Off';
+
+            toggleSoundsBtn.textContent = soundsEnabled 
+                ? 'Sounds: On' 
+                : 'Sounds: Off';
+        }
+
+        syncToggleButtonStates();
 
         if (howToUseBtn) {
             howToUseBtn.onclick = () => {
