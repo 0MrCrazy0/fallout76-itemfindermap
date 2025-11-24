@@ -2546,25 +2546,40 @@ map.on('popupclose', () => {
         }
 
         resetAppBtn.onclick = () => {
-    if (!confirm('⚠️ RESET APP — This will delete ALL markers, XP, settings & map version.\n\nFirst we create a full backup for you.\n\nClick OK to continue.')) return;
+    if (!confirm('⚠️ RESET APP — This will delete ALL markers, XP, settings & map version.\n\nFirst we create a FULL backup for you.\n\nClick OK to continue.')) return;
 
-    const data = { 
-        version: 1.0, 
-        communityVersion, 
-        customCategories, 
-        locations: locations.filter(l => !l.isPostcard) 
+    // ←←← FULL BACKUP (identical to Backup All Data button) ←←←
+    const fullBackup = {
+        version: "full-v76.1.0",
+        timestamp: new Date().toISOString(),
+        communityVersion,
+        locations: locations.filter(l => !l.isPostcard),  // postcards are temp anyway
+        customCategories,
+        level,
+        xp,
+        settings: {
+            clusteringEnabled,
+            gridEnabled,
+            currentMap,
+            darkMode,
+            soundsEnabled,
+            titleVisible,
+            toolsVisible,
+            activeCategories: [...activeCategories]
+        }
     };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+
+    const blob = new Blob([JSON.stringify(fullBackup, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `FO76_BACKUP_${data.locations.length}_markers_${new Date().toISOString().slice(0,10)}.json`;
+    a.download = `FO76_BACKUP_${locations.filter(l => !l.isPostcard).length}_markers_${new Date().toISOString().slice(0,10)}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
 
-    showTempMessage('Backup downloaded! Final step...', 6000);
+    showTempMessage('FULL backup downloaded! Final step...', 6000);
 
     setTimeout(() => {
-        if (confirm('⚠️ FINAL STEP — FULL RESET REQUIRED\n\nYour backup is safe!\n\nFor a 100% complete reset (especially on phones with stuck old versions):\n\n→ After clicking OK, go to Browser Settings → Privacy → Clear browsing data → "All time" → check "Cached images and files" → Clear\n\nThis removes old cached maps forever.\n\nReady?')) {
+        if (confirm('⚠️ FINAL STEP — FULL RESET\n\nYour FULL backup is safe and contains XP, level, and all settings!\n\nReady?')) {
             localStorage.clear();
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.getRegistrations().then(regs => {
