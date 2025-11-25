@@ -3070,6 +3070,20 @@
         "down": 0
       },
       "isCommunity": true
+    },
+    {
+      "lat": 25.492441329394296,
+      "lng": 32.20958896312845,
+      "category": "event locations",
+      "desc": "Hello Welcome! Love MrCrazy!\nGrid A1 (X: 32, Y: 25)",
+      "submittedBy": "MrCrazy",
+      "id": "id-1764067180424",
+      "icon": "note",
+      "votes": {
+        "up": 0,
+        "down": 0
+      },
+      "isCommunity": true
     }
   ]
 }
