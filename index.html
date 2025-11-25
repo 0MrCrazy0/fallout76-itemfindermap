@@ -3870,9 +3870,10 @@ window.voteAndUpdate = function(markerId, voteValue) {
         } else {
             alert("You already voted on this marker!");
         }
-        return;
+        return; // ← BLOCKS EVERYTHING BELOW
     }
 
+    // ←←← ONLY RUNS IF NOT ALREADY VOTED ←←←
     marker.votes = marker.votes || { up: 0, down: 0 };
     if (voteValue === 1) marker.votes.up++;
     else if (voteValue === -1) marker.votes.down++;
