@@ -9,7 +9,7 @@
 	<meta http-equiv="Expires" content="0">
     <title>Fallout 76 Item Finder Map v76.2.0</title>
 
-	<link rel="manifest" href="manifest.json?v=4">
+	<link rel="manifest" href="manifest.json?v=3">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -2133,14 +2133,32 @@ map.on('popupclose', () => {
                 }
             });
         } else {
-            marker.bindPopup(`
-                <b>${loc.icon} ${loc.category.toUpperCase()}</b><br>
-                <div style="max-height:80px;overflow-y:auto;margin:4px 0;padding-right:8px;">${escapeHtml(loc.desc)}</div>
-                <div style="margin:6px 0;text-align:center;">
-                    <span class="popup-lock-toggle" onclick="toggleLockFromPopup(${locations.indexOf(loc)})">${loc.locked ? 'Locked' : 'Unlocked'}</span>
+                            marker.bindPopup(`
+                <div style="font-family:monospace;max-width:320px">
+                  <strong style="font-size:1.4em">${loc.icon || categoryIcons[loc.category] || 'Position'} ${loc.category.toUpperCase()}</strong><br>
+                  <small style="white-space:pre-wrap">${escapeHtml(loc.desc)}</small>
+                  ${loc.isCommunity ? `
+                    <div style="margin-top:12px;text-align:center;font-size:13px;">
+                      <button onclick="voteMarker('${loc.id}',1)" style="background:none;border:none;font-size:2em;cursor:pointer">Positive</button>
+                      <strong style="margin:0 15px;font-size:1.4em">${(loc.votes?.up||0)-(loc.votes?.down||0)}</strong>
+                      <button onmousedown="startReport('${loc.id}')" ontouchstart="startReport('${loc.id}')"
+                              onmouseup="cancelReport('${loc.id}')" ontouchend="cancelReport('${loc.id}')"
+                              onclick="voteMarker('${loc.id}',-1)" 
+                              style="background:none;border:none;font-size:2em;cursor:pointer">Negative</button>
+                      ${loc.trusted ? ' <span style="color:#0f0">Trusted</span>' : ''}
+                      <br><small>Submitted by: ${loc.submittedBy || 'Anonymous'}</small>
+                    </div>
+                    <hr style="border:1px dashed #0f0;margin:10px 0">
+                  ` : ''}
+                  ${!loc.isCommunity ? `
+                    <div style="margin:6px 0;text-align:center;">
+                      <span class="popup-lock-toggle" onclick="toggleLockFromPopup(${locations.indexOf(loc)})">${loc.locked ? 'Locked' : 'Unlocked'}</span>
+                    </div>
+                  ` : ''}
+                  <button onclick="editMarkerFromPopup(${locations.indexOf(loc)})">Edit</button>
+                  ${!loc.locked && !loc.isPostcard ? ` <button onclick="deleteMarker('${loc.id}')">Delete</button>` : ''}
                 </div>
-                <button onclick="editMarkerFromPopup(${locations.indexOf(loc)})">Edit</button>
-            `, { maxWidth: 260, offset: [0, -20] });
+            `, { maxWidth: 340, offset: [0, -20] });
         }
     });
 }
@@ -3796,10 +3814,37 @@ if (urlParams.has('permshare')) {
        -------------------------------------------------------------------------- */
     })();
 });
+let reportTimer;
+function startReport(id) {
+  reportTimer = setTimeout(() => {
+    if (confirm("Report this marker as abusive/spam?")) {
+      voteMarker(id, -3);
+      alert("Reported! MrCrazy will review it.");
+    }
+  }, 1000);
+}
+function cancelReport(id) { clearTimeout(reportTimer); }
+
+function voteMarker(id, vote) {
+  if (localStorage.getItem("voted_" + id)) {
+    alert("You already voted on this marker!");
+    return;
+  }
+  fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({type:"vote", markerId:id, vote})
+  })
+  .then(r => r.text())
+  .then(msg => {
+    alert(msg.includes("PR") ? "Vote recorded!" : msg);
+    localStorage.setItem("voted_" + id, "true");
+    location.reload();
+  });
+}
 </script>
 </body>
 </html>
-
 
 
 
