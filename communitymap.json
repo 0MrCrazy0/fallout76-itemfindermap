@@ -3056,6 +3056,20 @@
       "startTime": null,
       "popupTimer": null,
       "keepBtnBound": false
+    },
+    {
+      "lat": 0.21737870185005903,
+      "lng": 0.253334979841604,
+      "category": "event locations",
+      "desc": "Hi, MrCrazy Here I Added This Marker To Test Community Added Markers Please Down Vote This To Test The System Thanks!\nGrid A1 (X: 0, Y: 0)",
+      "icon": "Event",
+      "submittedBy": "MrCrazy",
+      "id": "id-1764076927777",
+      "votes": {
+        "up": 0,
+        "down": 0
+      },
+      "isCommunity": true
     }
   ]
 }
