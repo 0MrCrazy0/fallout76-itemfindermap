@@ -2368,7 +2368,14 @@ map.on('popupclose', () => {
                 modalToggle.onclick = (e) => {
                     e.stopPropagation();
                     loc.locked = !loc.locked;
-					document.getElementById('submitCommunityBtn').style.display =(loc.locked && !loc.isCommunity) ? 'inline-block' : 'none';
+					// Show Submit to Community button only when marker is locked and not already community
+const submitBtn = document.getElementById('submitCommunityBtn');
+if (submitBtn) {
+    submitBtn.style.display = 
+        (currentIndex >= 0 && locations[currentIndex]?.locked && !locations[currentIndex]?.isCommunity)
+        ? 'inline-block'
+        : 'none';
+}
                     modalToggle.textContent = loc.locked ? '🔐':'🔓';
                     itemCategorySelect.disabled = loc.locked;
                     itemDescInput.disabled = loc.locked;
@@ -2380,37 +2387,18 @@ map.on('popupclose', () => {
                     playSound('click');
                 };
             }
-			// Show Submit to Community button only if marker is locked and not already community
-document.getElementById('submitCommunityBtn').onclick = async () => {
-    const loc = locations[currentIndex];
-    if (!loc || !loc.locked) return;
-
-    const playerName = prompt("Your name (optional):") || "Anonymous";
-
-    const markerToSend = {
-        lat: loc.lat,
-        lng: loc.lng,
-        category: loc.category,
-        desc: loc.desc,
-        // ← THIS SENDS THE REAL EMOJI — NO MORE "note" EVER
-        icon: categoryIcons[loc.category] || "Notepad",
-        submittedBy: playerName
-    };
-
-    try {
-        const response = await fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ type: "submit", marker: markerToSend, name: playerName })
-        });
-
-        const text = await response.text();
-        alert(text.includes("PR") ? "Submitted! Thank you ❤️ PR created!" : text);
-        playSound('saving');
-    } catch (e) {
-        alert("Submit failed: " + e.message);
-    }
-};
+			// Show Submit to Community button only when marker is locked and not already community
+const submitBtn = document.getElementById('submitCommunityBtn');
+if (submitBtn) {
+    submitBtn.style.display = 
+        (currentIndex >= 0 && locations[currentIndex]?.locked && !locations[currentIndex]?.isCommunity)
+        ? 'inline-block'
+        : 'none';
+}
+            itemModal.style.display = 'block';
+            document.body.classList.add('modal-open');
+            playSound('click');
+        }
 
         function closeModal(m) {
             m.style.display = 'none';
@@ -3041,12 +3029,11 @@ document.getElementById('shareOneBtn').onclick = () => {
             playSound('delete');
         };
 
-        saveItemBtn.onclick = () => {
+                saveItemBtn.onclick = () => {
     const cat = itemCategorySelect.value;
     let desc = itemDescInput.value.trim();
     const isNew = currentIndex < 0;
     let lat, lng;
-
     if (isNew) {
         if (tempLatLng && typeof tempLatLng.lat === 'number' && typeof tempLatLng.lng === 'number') {
             lat = tempLatLng.lat;
@@ -3066,7 +3053,6 @@ document.getElementById('shareOneBtn').onclick = () => {
         lat = loc.lat;
         lng = loc.lng;
     }
-
     if (!desc) {
         const grid = getGridFromLatLng(lat, lng);
         const x = Math.round(lng);
@@ -3076,7 +3062,6 @@ document.getElementById('shareOneBtn').onclick = () => {
     } else {
         desc = updateDescWithGrid(desc, lat, lng);
     }
-
     if (currentIndex >= 0) {
         const loc = locations[currentIndex];
         if (loc.locked) {
@@ -3086,7 +3071,7 @@ document.getElementById('shareOneBtn').onclick = () => {
         }
         loc.category = cat;
         loc.desc = desc;
-        loc.icon = categoryIcons[cat] || '📬';
+        loc.icon = categoryIcons[cat] || 'Notepad';
         loc.addedTime = Date.now();
         loc.userEdited = true;
         loc.locked = true;
@@ -3096,16 +3081,20 @@ document.getElementById('shareOneBtn').onclick = () => {
         locations.push(newLoc);
         recalculateXP();
     }
-
     closeModal(itemModal);
     saveLocations();
     playSound('saving');
     showTempMessage('Saved + LOCKED!', 4000);
     forceReload();
-	// Update submit button visibility after save
-document.getElementById('submitCommunityBtn').style.display = 
-    (currentIndex >= 0 && locations[currentIndex]?.locked && !locations[currentIndex]?.isCommunity) 
-    ? 'inline-block' : 'none';
+
+    // FIXED — NO EXTRA }; HERE
+    const submitBtn = document.getElementById('submitCommunityBtn');
+    if (submitBtn) {
+        submitBtn.style.display = 
+            (currentIndex >= 0 && locations[currentIndex]?.locked && !locations[currentIndex]?.isCommunity)
+            ? 'inline-block'
+            : 'none';
+    }
 };
 
         deleteBtn.onclick = () => {
@@ -3153,12 +3142,33 @@ document.getElementById('submitCommunityBtn').style.display =
             showTempMessage('Single marker exported!', 3000);
             playSound('saving');
         };
-		document.getElementById('submitCommunityBtn').onclick = () => {
+		document.getElementById('submitCommunityBtn').onclick = async () => {
     const loc = locations[currentIndex];
-    if (!loc) return;
-    const url = `https://0mrcrazy0.github.io/fallout76-itemfindermap/submit.html?lat=${loc.lat}&lng=${loc.lng}&category=${encodeURIComponent(loc.category)}&desc=${encodeURIComponent(loc.desc)}`;
-    window.open(url, '_blank');
-    playSound('click');
+    if (!loc?.locked) return;
+
+    const playerName = prompt("Your name (optional):") || "Anonymous";
+
+    const markerToSend = {
+        lat: loc.lat,
+        lng: loc.lng,
+        category: loc.category,
+        desc: loc.desc,
+        icon: categoryIcons[loc.category] || "Notepad",  // ← REAL EMOJI
+        submittedBy: playerName
+    };
+
+    try {
+        const res = await fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "submit", marker: markerToSend, name: playerName })
+        });
+        const text = await res.text();
+        alert(text.includes("PR") ? "Submitted! Thank you ❤️ PR created!" : text);
+        playSound('saving');
+    } catch (e) {
+        alert("Submit failed: " + e.message);
+    }
 };
 
         /* DEV NOTE: MAP INTERACTIONS */
