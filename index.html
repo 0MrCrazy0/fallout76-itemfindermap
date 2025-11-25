@@ -2159,11 +2159,13 @@ map.on('popupclose', () => {
       </strong>
       <div style="display:inline-block;position:relative;">
         <div style="color:#ff6666;font-size:9px;margin-bottom:2px;">hold = report</div>
-        <button onmousedown="startReport('${loc.id}')" 
-                onmouseup="cancelReport()" 
-                ontouchstart="startReport('${loc.id}')" 
-                ontouchend="cancelReport()"
-                style="background:none;border:none;font-size:2em;cursor:pointer">Negative</button>
+        <button 
+            onmousedown="startReport('${loc.id}')" 
+            onclick="this.onclick=null; voteMarker('${loc.id}',-1)" 
+            onmouseup="cancelReport()" 
+            ontouchstart="startReport('${loc.id}')" 
+            ontouchend="cancelReport()"
+            style="background:none;border:none;font-size:2em;cursor:pointer">Negative</button>
       </div>
     </div>
     <hr style="border:1px dashed #0f0;margin:12px 0">
@@ -3861,7 +3863,7 @@ let reportTimer;
                 payload.markerCid = marker.cid;
             }
 
-            fetch("https://itemfinder-submit.crzymn05.workers.dev/submit", {
+            fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
