@@ -10,7 +10,6 @@ self.addEventListener("activate", e => {
       return Promise.all(
         keys.map(key => {
           if (key !== CACHE_NAME) {
-            console.log("Deleting old cache:", key);
             return caches.delete(key);
           }
         })
@@ -21,13 +20,10 @@ self.addEventListener("activate", e => {
 
 self.addEventListener("fetch", e => {
   const url = e.request.url;
-
-  if (url.includes('communitymap.json') ||
-      url.includes('githubusercontent.com')) {
+  if (url.includes('communitymap.json') || url.includes('githubusercontent.com')) {
     e.respondWith(fetch(e.request));
     return;
   }
-
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))
   );
