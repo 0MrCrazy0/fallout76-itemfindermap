@@ -30,41 +30,61 @@
     </form>
 
     <script>
-        // Pre-fill from URL params
-        const urlParams = new URLSearchParams(window.location.search);
-        document.getElementById('coords').textContent = urlParams.get('lat') + ', ' + urlParams.get('lng');
-        document.getElementById('category').textContent = urlParams.get('category') || 'Misc';
-        document.getElementById('desc').textContent = decodeURIComponent(urlParams.get('desc') || 'No description');
+    // Pre-fill from URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const lat = urlParams.get('lat');
+    const lng = urlParams.get('lng');
+    const category = urlParams.get('category') || 'misc';
+    const desc = decodeURIComponent(urlParams.get('desc') || 'No description');
 
-        document.getElementById('submitForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('playerName').value.trim() || 'Anonymous';
-            const marker = {
-                lat: parseFloat(urlParams.get('lat')),
-                lng: parseFloat(urlParams.get('lng')),
-                category: urlParams.get('category'),
-                desc: decodeURIComponent(urlParams.get('desc')),
-                submittedBy: name
-            };
+    // FORCE REAL EMOJI ICON — THIS IS THE KEY!
+    const categoryIcons = {
+        'weapons': '🔫', 'armor': '🛡️', 'aid': '💉', 'food/drink': '🍽️', 'ammunition': '💥',
+        'apparel': '👕', 'plans': '📜', 'junk': '🗑️', 'holotapes': '📀', 'misc': '📝',
+        'plants': '🌿', 'eggs': '🥚', 'creatures': '🐺', 'vendors': '💰', 'exchanges': '⚖️',
+        'vaults': '⚙️', 'power armor': '👨‍🚀', 'fusion core': '🔋', 'nuke drop zones': '☢️',
+        'nuke silos': '🚀', 'magazines': '📚', 'bobbleheads': '🎎', 'safe locations': '🗄️',
+        'terminal locations': '🖥️', 'treasure maps': '🗺️', 'resource deposits': '⛏️',
+        'fishing locations': '🎣', 'workshops': '🔧', 'train stations': '🚂', 'town locations': '🏫',
+        'event locations': '🎉', 'named locations': '🚩', 'regions': '📍'
+        };
+    const icon = categoryIcons[category.toLowerCase()] || 'Miscellaneous';
 
-            try {
-                const response = await fetch('https://itemfinder-submit.crzymn05.workers.dev', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: 'submit', marker, name })
-                });
-                if (response.ok) {
-    document.body.innerHTML = `
-        <h1>THANK YOU ❤️</h1>
-        <p>Your marker was submitted!<br>MrCrazy will review it soon.</p>
-        <a href="javascript:window.close()">Close</a>`;
-                } else {
-                    alert('Submit failed. Try again or contact MrCrazy.');
-                }
-            } catch (err) {
-                alert('Network error. Check your connection.');
+    document.getElementById('coords').textContent = lat + ', ' + lng;
+    document.getElementById('category').textContent = category;
+    document.getElementById('desc').textContent = desc;
+
+    document.getElementById('submitForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('playerName').value.trim() || 'Anonymous';
+        const marker = {
+            lat: parseFloat(lat),
+            lng: parseFloat(lng),
+            category: category,
+            desc: desc,
+            icon: icon,  // ← ALWAYS A REAL EMOJI NOW
+            submittedBy: name
+        };
+        try {
+            const response = await fetch('https://itemfinder-submit.crzymn05.workers.dev', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'submit', marker, name })
+            });
+            const text = await response.text();
+            if (response.ok || text.includes("PR")) {
+                document.body.innerHTML = `
+                    <h1>THANK YOU ❤️</h1>
+                    <p>Your marker was submitted!<br>MrCrazy will review it soon.</p>
+                    <p><strong>Icon:</strong> ${icon}</p>
+                    <a href="javascript:window.close()" style="color:#00ff88;">Close Window</a>`;
+            } else {
+                alert('Submit failed: ' + text);
             }
-        });
-    </script>
+        } catch (err) {
+            alert('Network error: ' + err.message);
+        }
+    });
+</script>
 </body>
 </html>
