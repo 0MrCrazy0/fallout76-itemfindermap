@@ -2844,16 +2844,13 @@ if (submitBtn) {
 
 function createPermanentShare(markersToShare) {
     if (markersToShare.length === 0) return;
-
     const shareData = { version: 1.0, locations: markersToShare };
-
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(shareData))))
+    const jsonString = JSON.stringify(shareData);
+    const encoded = utf8ToBase64(jsonString)  // Use the safe encoder here
                     .replace(/\+/g, '-')
                     .replace(/\//g, '_')
                     .replace(/=+$/, '');
-
     const shareUrl = location.origin + location.pathname + '?permshare=' + encoded;
-
     navigator.clipboard.writeText(shareUrl).then(() => {
         showTempMessage('Permanent link copied!', 6000);
         playSound('postcard');
@@ -3683,6 +3680,16 @@ if (urlParams.has('permshare')) {
                     });
                 }
             });
+			
+			// Unicode-safe Base64 encoder for permanent shares
+function utf8ToBase64(str) {
+    return btoa(unescape(encodeURIComponent(str)));
+}
+
+// Unicode-safe Base64 decoder (for completeness, though not used in your code)
+function base64ToUtf8(str) {
+    return decodeURIComponent(escape(atob(str)));
+}
 
             const added = locations.length - beforeCount;
             saveLocations();
