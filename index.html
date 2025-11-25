@@ -1176,7 +1176,9 @@ function base64ToUtf8(str) {
         let locations = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
         locations.forEach(loc => {
     if (!loc.id) loc.id = generateUniqueId();
-    if (!loc.cid && loc.category && loc.desc && loc.lat && loc.lng) loc.cid = generateCid(loc);
+    if (!loc.cid) {
+    loc.cid = generateCid(loc);
+}
     if (loc.locked === undefined) loc.locked = false;
     if (loc.isTemp === undefined) loc.isTemp = false;
     if (loc.postcardExpire === undefined && loc.isTemp) loc.postcardExpire = Date.now() + 300000;
@@ -3831,39 +3833,37 @@ let reportTimer = null;
 // Permanent report block — uses cid, survives refresh/reset
 window.startReport = function(markerId) {
     const marker = locations.find(l => l.id === markerId);
-    if (!marker) return;
+    if (!marker || !marker.cid) {
+        alert("Error: Invalid marker");
+        return;
+    }
 
-    const reportKey = "reported_cid_" + (marker.cid || marker.id);
+    const reportKey = "reported_cid_" + marker.cid;
 
-    // BLOCK IF ALREADY REPORTED (permanent)
+    // BLOCK FOREVER — survives refresh, reset, import
     if (localStorage.getItem(reportKey) === "true") {
         alert("You already reported this marker — thank you! MrCrazy will review it.");
         return;
     }
 
     if (confirm("Report this marker?\n\nOnly report if it's spam, wrong, or inaccurate.\nMrCrazy will review and remove if needed.")) {
-        // Mark as reported (permanent block)
         localStorage.setItem(reportKey, "true");
 
-        // Send report to server as "report" type (forces GitHub Issue)
         fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                type: "report",  // Changed to "report" for Issue creation
+                type: "report",
                 markerId: markerId,
                 marker: {
                     lat: marker.lat,
                     lng: marker.lng,
                     category: marker.category,
-                    desc: marker.desc,
-                    icon: marker.icon || "Notepad",
-                    submittedBy: "Anonymous Reporter"
+                    desc: marker.desc
                 }
             })
         })
-        .then(r => r.text())
-        .then(msg => alert("Report sent — thank you! MrCrazy will review it."))
+        .then(() => alert("Report sent — thank you! MrCrazy will review it."))
         .catch(() => alert("Report sent — will be reviewed soon!"));
 
         playSound('error');
