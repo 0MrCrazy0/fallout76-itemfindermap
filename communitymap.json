@@ -3056,6 +3056,13 @@
       "startTime": null,
       "popupTimer": null,
       "keepBtnBound": false
+    },
+    {
+      "lat": 26.128209955562852,
+      "lng": 22.41753303447058,
+      "category": "event locations",
+      "desc": "Welcome Love MyCrazy\nGrid A1 (X: 22, Y: 26)",
+      "submittedBy": "MrCrazy"
     }
   ]
 }
