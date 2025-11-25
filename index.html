@@ -3848,38 +3848,45 @@ let reportTimer;
         }
 
         window.voteMarker = function(markerId, voteValue) {
-            if (localStorage.getItem("voted_" + markerId) === "true") {
-                alert("You already voted on this marker!");
-                return;
-            }
+    if (localStorage.getItem("voted_" + markerId) === "true") {
+        alert("You already voted on this marker!");
+        return;
+    }
 
-            const marker = locations.find(l => l.id === markerId);
-            const payload = {
-                type: "vote",
-                markerId: markerId,
-                vote: voteValue
-            };
-            if (marker && marker.cid) {
-                payload.markerCid = marker.cid;
-            }
+    const marker = locations.find(l => l.id === markerId);
+    if (!marker) return;
 
-            fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            })
-            .then(r => r.text())
-            .then(msg => {
-                if (msg.includes("success") || msg.includes("recorded") || msg.includes("PR")) {
-                    alert("Vote recorded! Thank you ❤️");
-                    localStorage.setItem("voted_" + markerId, "true");
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    alert("Vote failed: " + msg);
-                }
-            })
-            .catch(() => alert("Network error — try again later"));
-        };
+    const payload = {
+        type: "vote",
+        markerId: markerId,
+        vote: voteValue,
+        marker: {
+            lat: marker.lat,
+            lng: marker.lng,
+            category: marker.category,
+            desc: marker.desc,
+            icon: marker.icon || '📝',
+            submittedBy: marker.submittedBy || "Unknown"
+        }
+    };
+
+    fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.text())
+    .then(msg => {
+        if (msg.includes("Vote recorded") || msg.includes("Thank you")) {
+            alert("Vote recorded! Thank you ❤️");
+            localStorage.setItem("voted_" + markerId, "true");
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            alert("Vote noted — will be reviewed! (new marker)");
+        }
+    })
+    .catch(() => alert("Network error — try again later"));
+};
 
         window.startReport = function(markerId) {
             reportTimer = setTimeout(() => {
