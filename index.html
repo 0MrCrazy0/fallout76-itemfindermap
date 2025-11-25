@@ -2160,9 +2160,12 @@ map.on('popupclose', () => {
       </div>
       <div style="display:flex;align-items:center;justify-content:center;gap:15px;">
         <button onclick="voteAndUpdate('${loc.id}',1,this)" style="background:none;border:none;font-size:2em;cursor:pointer">Positive</button>
-        <strong id="voteCount-${loc.id}" style="font-size:1.4em;min-width:40px;color:#0f0;">
-          ${((loc.votes?.up || 0) - (loc.votes?.down || 0))}
-        </strong>
+        <strong id="voteCount-${loc.id}" style="font-size:1.4em;min-width:50px;color:#0f0;">
+  ${(() => {
+    const net = (loc.votes?.up || 0) - (loc.votes?.down || 0);
+    return net > 0 ? '+' + net : net;
+  })()}
+</strong>
         <div style="position:relative;">
           <div style="color:#ff6666;font-size:8px;margin-bottom:1px;white-space:nowrap;">hold = report</div>
           <button 
@@ -2198,46 +2201,40 @@ window.startReport = function(markerId) {
     }, 1000);
 };
 
-window.voteAndUpdate = function(markerId, voteValue, button) {
+window.voteMarker = function(markerId, voteValue) {
     const marker = locations.find(l => l.id === markerId);
     if (!marker) return;
 
-    // PERMANENT VOTE KEY — survives reset + re-import
+    // PERMANENT VOTE BLOCK (uses cid = survives reset + re-import)
     const voteKey = marker.cid ? "voted_cid_" + marker.cid : "voted_" + markerId;
-
-    // SPECIAL: Allow report (-3) even if already voted normally
-    const alreadyVoted = localStorage.getItem(voteKey) === "true";
-
-    if (alreadyVoted && voteValue !== -3) {
-        alert("You already voted on this marker!");
+    if (localStorage.getItem(voteKey) === "true") {
+        if (voteValue === -3) {
+            alert("Thank you — your report was already sent! MrCrazy will review it.");
+        } else {
+            alert("You already voted on this marker!");
+        }
         return;
     }
 
-    if (voteValue === -3 && alreadyVoted) {
-        alert("Thank you — your report was already sent! MrCrazy will review it.");
-        return;
-    }
-
-    // UPDATE LOCAL DATA FIRST
+    // UPDATE LOCAL VOTES
     marker.votes = marker.votes || { up: 0, down: 0 };
     if (voteValue === 1) marker.votes.up++;
     else if (voteValue === -1) marker.votes.down++;
     else if (voteValue === -3) marker.votes.down += 3;
 
-    if (marker.votes.up - marker.votes.down >= 10) marker.trusted = true;
-
-    // INSTANT COUNTER UPDATE
+    // UPDATE COUNTER INSTANTLY
     const countEl = document.getElementById("voteCount-" + markerId);
     if (countEl) {
         const net = marker.votes.up - marker.votes.down;
-        countEl.textContent = net < 0 ? net : (net > 0 ? "+" + net : "0");
+        countEl.textContent = net > 0 ? '+' + net : net;
         countEl.style.color = voteValue > 0 ? "#00ff88" : "#ff4444";
         setTimeout(() => countEl.style.color = "#0f0", 1000);
     }
 
-    // SAVE VOTES TO LOCALSTORAGE SO THEY SURVIVE REFRESH
+    // SAVE TO LOCALSTORAGE (survives refresh)
     localStorage.setItem("marker_votes_" + markerId, JSON.stringify(marker.votes));
-    localStorage.setItem(voteKey, "true"); // block future votes
+    localStorage.setItem(voteKey, "true");
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
 
     // SEND TO SERVER
     const payload = {
@@ -2249,7 +2246,7 @@ window.voteAndUpdate = function(markerId, voteValue, button) {
             lng: marker.lng,
             category: marker.category,
             desc: marker.desc,
-            icon: marker.icon || 'Notepad',
+            icon: marker.icon || '📝',
             submittedBy: marker.submittedBy || "Unknown"
         }
     };
@@ -2264,19 +2261,16 @@ window.voteAndUpdate = function(markerId, voteValue, button) {
         if (voteValue === -3) {
             alert("Report sent — thank you! MrCrazy will review it.");
         } else if (msg.includes("Upvote noted")) {
-            alert("Upvote noted — thank you for the support! ❤️");
+            alert("Upvote noted — thank you! ❤️");
         } else if (msg.includes("Downvote noted")) {
-            alert("Downvote noted — sorry this marker didn't help.");
+            alert("Downvote noted — sorry it didn't help.");
         } else {
             alert("Vote recorded! Thank you ❤️");
         }
     })
     .catch(() => {
-        if (voteValue === -3) {
-            alert("Report sent — thank you! MrCrazy will review it.");
-        } else {
-            alert("Vote sent — thank you!");
-        }
+        if (voteValue === -3) alert("Report sent — thank you!");
+        else alert("Vote sent — thank you!");
     });
 };
 
