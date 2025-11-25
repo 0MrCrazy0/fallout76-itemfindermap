@@ -2185,29 +2185,37 @@ map.on('popupclose', () => {
     });
 }
 
+window.startReport = function(markerId) {
+    reportTimer = setTimeout(() => {
+        if (confirm("Report this marker as spam or inaccurate?")) {
+            voteAndUpdate(markerId, -3); // -3 = report
+        }
+    }, 1000);
+};
+
 window.voteAndUpdate = function(markerId, voteValue, button) {
-    // Find the marker in our local data
     const marker = locations.find(l => l.id === markerId);
     if (!marker) return;
 
-    // ABUSE-PROOF VOTE KEY (uses cid — survives reset + re-import)
+    // ABUSE-PROOF + SESSION VOTE KEY
     const voteKey = marker.cid ? "voted_cid_" + marker.cid : "voted_" + markerId;
     if (localStorage.getItem(voteKey) === "true") {
-        alert("You already voted on this marker!");
+        if (voteValue === -3) {
+            alert("Thank you — your report was already sent! MrCrazy will review it.");
+        } else {
+            alert("You already voted on this marker!");
+        }
         return;
     }
 
-    // INSTANTLY UPDATE LOCAL DATA (so counter never resets)
+    // INSTANT LOCAL UPDATE
     marker.votes = marker.votes || { up: 0, down: 0 };
     if (voteValue === 1) marker.votes.up++;
-    else if (voteValue === -1 || voteValue === -3) marker.votes.down += (voteValue === -3 ? 3 : 1);
+    else if (voteValue === -1) marker.votes.down++;
+    else if (voteValue === -3) marker.votes.down += 3;
 
-    // Update trusted status
-    if (marker.votes.up - marker.votes.down >= 10) {
-        marker.trusted = true;
-    }
+    if (marker.votes.up - marker.votes.down >= 10) marker.trusted = true;
 
-    // INSTANT VISUAL UPDATE
     const countEl = document.getElementById("voteCount-" + markerId);
     if (countEl) {
         const net = marker.votes.up - marker.votes.down;
@@ -2219,7 +2227,7 @@ window.voteAndUpdate = function(markerId, voteValue, button) {
     // Mark as voted forever
     localStorage.setItem(voteKey, "true");
 
-    // Send to server (but don't wait — user already sees result)
+    // Send to server
     const payload = {
         type: "vote",
         markerId: markerId,
@@ -2241,12 +2249,23 @@ window.voteAndUpdate = function(markerId, voteValue, button) {
     })
     .then(r => r.text())
     .then(msg => {
-        if (msg.includes("Upvote noted")) alert("Upvote noted — thank you! ❤️");
-        else if (msg.includes("Downvote noted")) alert("Downvote noted — sorry it didn't help.");
-        else if (msg.includes("Report received")) alert("Report sent — will be reviewed!");
-        else alert("Vote recorded! Thank you ❤️");
+        if (voteValue === -3) {
+            alert("Report sent — thank you! MrCrazy will review it.");
+        } else if (msg.includes("Upvote noted")) {
+            alert("Upvote noted — thank you for the support! ❤️");
+        } else if (msg.includes("Downvote noted")) {
+            alert("Downvote noted — sorry this marker didn't help.");
+        } else {
+            alert("Vote recorded! Thank you ❤️");
+        }
     })
-    .catch(() => {}); // Silent — user already saw success
+    .catch(() => {
+        if (voteValue === -3) {
+            alert("Report sent — thank you! MrCrazy will review it.");
+        } else {
+            alert("Vote sent — thank you!");
+        }
+    });
 };
 
         function addMarkerToMap(loc) {
