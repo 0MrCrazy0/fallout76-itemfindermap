@@ -1,5 +1,5 @@
 // service-worker.js — BULLETPROOF FINAL VERSION
-const CACHE_NAME = "fo76-ifm-v4.0";   // ← new name forces immediate update
+const CACHE_NAME = "fo76-ifm-v5.0";   // ← new name forces immediate update
 
 self.addEventListener("install", e => {
   // Cache literally nothing on install → zero chance of failure
@@ -39,3 +39,4 @@ self.addEventListener("fetch", e => {
     caches.match(e.request).then(cached => cached || fetch(e.request))
   );
 });
+
