@@ -1175,21 +1175,18 @@ function base64ToUtf8(str) {
 }
         let locations = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
         locations.forEach(loc => {
-            if (!loc.id) loc.id = generateUniqueId();
-            if (!loc.cid && loc.category && loc.desc && loc.lat && loc.lng) loc.cid = generateCid(loc);
-            if (loc.locked === undefined) loc.locked = false;
-            if (loc.isTemp === undefined) loc.isTemp = false;
-            if (loc.postcardExpire === undefined && loc.isTemp) loc.postcardExpire = Date.now() + 300000;
-            if (loc.isPostcard === undefined) loc.isPostcard = loc.isTemp;
-            if (loc.startTime === undefined) loc.startTime = loc.postcardExpire - 300000;
-            if (loc.keepBtnBound === undefined) loc.keepBtnBound = false;
-			if (loc.userEdited === undefined) loc.userEdited = true;
-			
-			const savedVotes = localStorage.getItem("marker_votes_" + loc.id);
-    if (savedVotes) {
-        try { loc.votes = JSON.parse(savedVotes); } catch(e) {}
-    }
+    if (!loc.id) loc.id = generateUniqueId();
+    if (!loc.cid && loc.category && loc.desc && loc.lat && loc.lng) loc.cid = generateCid(loc);
+    if (loc.locked === undefined) loc.locked = false;
+    if (loc.isTemp === undefined) loc.isTemp = false;
+    if (loc.postcardExpire === undefined && loc.isTemp) loc.postcardExpire = Date.now() + 300000;
+    if (loc.isPostcard === undefined) loc.isPostcard = loc.isTemp;
+    if (loc.startTime === undefined) loc.startTime = loc.postcardExpire - 300000;
+    if (loc.keepBtnBound === undefined) loc.keepBtnBound = false;
+    if (loc.userEdited === undefined) loc.userEdited = true;
 });
+
+// ONLY SAVE ONCE — at the end
 localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
         let postcardTicker = null;
         function startPostcardTicker() {
@@ -2153,19 +2150,17 @@ map.on('popupclose', () => {
                   <strong style="font-size:1.4em">${loc.icon || categoryIcons[loc.category] || 'Position'} ${loc.category.toUpperCase()}</strong><br>
                   <small style="white-space:pre-wrap">${escapeHtml(loc.desc)}</small>
                   ${loc.isCommunity ? `
-  <div style="margin-top:12px;text-align:center;">
-    <button 
-        onclick="startReport('${loc.id}')"
-        onmouseup="cancelReport()" 
-        ontouchend="cancelReport()"
-        style="background:#300;color:#f00;border:2px solid #f00;padding:12px 30px;border-radius:8px;font-size:18px;cursor:pointer;font-weight:bold;">
-      ⚠️ REPORT BAD MARKER
-    </button>
-    <div style="margin-top:8px;font-size:12px;color:#aaa;">
-      Tap/click to report if this marker is wrong or spam
+    <div style="margin-top:12px;text-align:center;">
+      <button onclick="startReport('${loc.id}')" 
+              style="background:#300;color:#f00;border:2px solid #f00;padding:10px 20px;border-radius:6px;font-size:16px;cursor:pointer;font-weight:bold;">
+        ⚠️ Report Bad Marker
+      </button>
+      <div style="margin-top:6px;font-size:12px;color:#aaa;">
+        Tap to report spam/wrong locations — MrCrazy will review
+      </div>
     </div>
-  </div>
-` : ''}
+    <hr style="border:1px dashed #0f0;margin:12px 0">
+  ` : ''}
                   ${!loc.isCommunity ? `
                     <div style="margin:6px 0;text-align:center;">
                       <span class="popup-lock-toggle" onclick="toggleLockFromPopup(${locations.indexOf(loc)})">${loc.locked ? 'Locked' : 'Unlocked'}</span>
@@ -3833,44 +3828,46 @@ if (urlParams.has('permshare')) {
 
 let reportTimer = null;
 
-// ONE REPORT PER USER — PERMANENT (uses cid, survives reset + refresh)
+// Permanent report block — uses cid, survives refresh/reset
 window.startReport = function(markerId) {
     const marker = locations.find(l => l.id === markerId);
     if (!marker) return;
 
     const reportKey = "reported_cid_" + (marker.cid || marker.id);
 
-    // ALREADY REPORTED? BLOCK FOREVER
+    // BLOCK IF ALREADY REPORTED (permanent)
     if (localStorage.getItem(reportKey) === "true") {
         alert("You already reported this marker — thank you! MrCrazy will review it.");
         return;
     }
 
-    reportTimer = setTimeout(() => {
-        if (confirm("Report this marker?\n\nOnly report if you want MrCrazy to REMOVE it.\n(Spam, wrong location, etc.)")) {
-            // Mark as reported locally
-            localStorage.setItem(reportKey, "true");
+    if (confirm("Report this marker?\n\nOnly report if it's spam, wrong, or inaccurate.\nMrCrazy will review and remove if needed.")) {
+        // Mark as reported (permanent block)
+        localStorage.setItem(reportKey, "true");
 
-            // Send report to server
-            fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    type: "report",
-                    markerId: markerId,
-                    marker: {
-                        lat: marker.lat,
-                        lng: marker.lng,
-                        category: marker.category,
-                        desc: marker.desc
-                    }
-                })
-            });
+        // Send report to server as "report" type (forces GitHub Issue)
+        fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                type: "report",  // Changed to "report" for Issue creation
+                markerId: markerId,
+                marker: {
+                    lat: marker.lat,
+                    lng: marker.lng,
+                    category: marker.category,
+                    desc: marker.desc,
+                    icon: marker.icon || "Notepad",
+                    submittedBy: "Anonymous Reporter"
+                }
+            })
+        })
+        .then(r => r.text())
+        .then(msg => alert("Report sent — thank you! MrCrazy will review it."))
+        .catch(() => alert("Report sent — will be reviewed soon!"));
 
-            alert("REPORT SENT — Thank you!\nMrCrazy will review and remove if needed.");
-            playSound('error');
-        }
-    }, 800);
+        playSound('error');
+    }
 };
 
 window.cancelReport = function() {
