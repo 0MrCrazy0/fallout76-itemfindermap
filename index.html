@@ -2148,18 +2148,21 @@ map.on('popupclose', () => {
                   <strong style="font-size:1.4em">${loc.icon || categoryIcons[loc.category] || 'Position'} ${loc.category.toUpperCase()}</strong><br>
                   <small style="white-space:pre-wrap">${escapeHtml(loc.desc)}</small>
                   ${loc.isCommunity ? `
-                    <div style="margin-top:12px;text-align:center;font-size:13px;">
-                      <button onclick="voteMarker('${loc.id}',1)" style="background:none;border:none;font-size:2em;cursor:pointer">Positive</button>
-                      <strong style="margin:0 15px;font-size:1.4em">${(loc.votes?.up||0)-(loc.votes?.down||0)}</strong>
-                      <button onmousedown="startReport('${loc.id}')" ontouchstart="startReport('${loc.id}')"
-                              onmouseup="cancelReport('${loc.id}')" ontouchend="cancelReport('${loc.id}')"
-                              onclick="voteMarker('${loc.id}',-1)" 
-                              style="background:none;border:none;font-size:2em;cursor:pointer">Negative</button>
-                      ${loc.trusted ? ' <span style="color:#0f0">Trusted</span>' : ''}
-                      <br><small>Submitted by: ${loc.submittedBy || 'Anonymous'}</small>
-                    </div>
-                    <hr style="border:1px dashed #0f0;margin:10px 0">
-                  ` : ''}
+    <div style="margin-top:12px;text-align:center;font-size:13px;">
+      <button onclick="voteMarker('${loc.id}',1)" style="background:none;border:none;font-size:2em;cursor:pointer">Positive</button>
+      <strong style="margin:0 20px;font-size:1.6em">
+        ${((loc.votes?.up || 0) - (loc.votes?.down || 0))}
+      </strong>
+      <button onmousedown="startReport('${loc.id}')" 
+              onmouseup="cancelReport()" 
+              ontouchstart="startReport('${loc.id}')" 
+              ontouchend="cancelReport()"
+              style="background:none;border:none;font-size:2em;cursor:pointer">Negative</button>
+      ${loc.trusted ? ' <span style="color:#0f0;font-weight:bold;">Trusted</span>' : ''}
+      <br><small>Submitted by: ${loc.submittedBy || 'Anonymous'}</small>
+    </div>
+    <hr style="border:1px dashed #0f0;margin:12px 0">
+  ` : ''}
                   ${!loc.isCommunity ? `
                     <div style="margin:6px 0;text-align:center;">
                       <span class="popup-lock-toggle" onclick="toggleLockFromPopup(${locations.indexOf(loc)})">${loc.locked ? 'Locked' : 'Unlocked'}</span>
@@ -3838,33 +3841,42 @@ if (urlParams.has('permshare')) {
        -------------------------------------------------------------------------- */
     })();
 });
-let reportTimer;
-function startReport(id) {
-  reportTimer = setTimeout(() => {
-    if (confirm("Report this marker as abusive/spam?")) {
-      voteMarker(id, -3);
-      alert("Reported! MrCrazy will review it.");
+// FIXED VOTING — WORKS FOR BOTH OLD TIMESTAMP IDs AND NEW UUIDs
+function voteMarker(markerId, voteValue) {
+    // Prevent double-voting
+    if (localStorage.getItem("voted_" + markerId) === "true") {
+        alert("You already voted on this marker!");
+        return;
     }
-  }, 1000);
-}
-function cancelReport(id) { clearTimeout(reportTimer); }
 
-function voteMarker(id, vote) {
-  if (localStorage.getItem("voted_" + id)) {
-    alert("You already voted on this marker!");
-    return;
-  }
-  fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({type:"vote", markerId:id, vote})
-  })
-  .then(r => r.text())
-  .then(msg => {
-    alert(msg.includes("PR") ? "Vote recorded!" : msg);
-    localStorage.setItem("voted_" + id, "true");
-    location.reload();
-  });
+    fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "vote", markerId: markerId, vote: voteValue })
+    })
+    .then(r => r.text())
+    .then(msg => {
+        if (msg.includes("success") || msg.includes("recorded")) {
+            alert("Vote recorded! Thank you ❤️");
+            localStorage.setItem("voted_" + markerId, "true");
+            setTimeout(() => location.reload(), 800); // Refresh to show new count
+        } else {
+            alert("Vote failed: " + msg);
+        }
+    })
+    .catch(() => alert("Network error — try again later"));
+}
+
+let reportTimer;
+function startReport(markerId) {
+    reportTimer = setTimeout(() => {
+        if (confirm("Report this marker as spam/inaccurate?")) {
+            voteMarker(markerId, -3); // Same endpoint handles reports
+        }
+    }, 1000);
+}
+function cancelReport() {
+    clearTimeout(reportTimer);
 }
 </script>
 </body>
