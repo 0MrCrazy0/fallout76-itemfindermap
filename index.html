@@ -1184,8 +1184,13 @@ function base64ToUtf8(str) {
             if (loc.startTime === undefined) loc.startTime = loc.postcardExpire - 300000;
             if (loc.keepBtnBound === undefined) loc.keepBtnBound = false;
 			if (loc.userEdited === undefined) loc.userEdited = true;
-        });
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
+			
+			const savedVotes = localStorage.getItem("marker_votes_" + loc.id);
+    if (savedVotes) {
+        try { loc.votes = JSON.parse(savedVotes); } catch(e) {}
+    }
+});
+localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
         let postcardTicker = null;
         function startPostcardTicker() {
             if (postcardTicker) return;
@@ -2197,18 +2202,23 @@ window.voteAndUpdate = function(markerId, voteValue, button) {
     const marker = locations.find(l => l.id === markerId);
     if (!marker) return;
 
-    // ABUSE-PROOF + SESSION VOTE KEY
+    // PERMANENT VOTE KEY — survives reset + re-import
     const voteKey = marker.cid ? "voted_cid_" + marker.cid : "voted_" + markerId;
-    if (localStorage.getItem(voteKey) === "true") {
-        if (voteValue === -3) {
-            alert("Thank you — your report was already sent! MrCrazy will review it.");
-        } else {
-            alert("You already voted on this marker!");
-        }
+
+    // SPECIAL: Allow report (-3) even if already voted normally
+    const alreadyVoted = localStorage.getItem(voteKey) === "true";
+
+    if (alreadyVoted && voteValue !== -3) {
+        alert("You already voted on this marker!");
         return;
     }
 
-    // INSTANT LOCAL UPDATE
+    if (voteValue === -3 && alreadyVoted) {
+        alert("Thank you — your report was already sent! MrCrazy will review it.");
+        return;
+    }
+
+    // UPDATE LOCAL DATA FIRST
     marker.votes = marker.votes || { up: 0, down: 0 };
     if (voteValue === 1) marker.votes.up++;
     else if (voteValue === -1) marker.votes.down++;
@@ -2216,18 +2226,20 @@ window.voteAndUpdate = function(markerId, voteValue, button) {
 
     if (marker.votes.up - marker.votes.down >= 10) marker.trusted = true;
 
+    // INSTANT COUNTER UPDATE
     const countEl = document.getElementById("voteCount-" + markerId);
     if (countEl) {
         const net = marker.votes.up - marker.votes.down;
-        countEl.textContent = net;
+        countEl.textContent = net < 0 ? net : (net > 0 ? "+" + net : "0");
         countEl.style.color = voteValue > 0 ? "#00ff88" : "#ff4444";
-        setTimeout(() => countEl.style.color = "#0f0", 800);
+        setTimeout(() => countEl.style.color = "#0f0", 1000);
     }
 
-    // Mark as voted forever
-    localStorage.setItem(voteKey, "true");
+    // SAVE VOTES TO LOCALSTORAGE SO THEY SURVIVE REFRESH
+    localStorage.setItem("marker_votes_" + markerId, JSON.stringify(marker.votes));
+    localStorage.setItem(voteKey, "true"); // block future votes
 
-    // Send to server
+    // SEND TO SERVER
     const payload = {
         type: "vote",
         markerId: markerId,
