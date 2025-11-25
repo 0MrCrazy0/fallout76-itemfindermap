@@ -3056,6 +3056,20 @@
       "startTime": null,
       "popupTimer": null,
       "keepBtnBound": false
+    },
+    {
+      "lat": 186.9132248135843,
+      "lng": 206.642049349609,
+      "category": "event locations",
+      "desc": "Hello Welcome, Love MrCrazy!\nGrid A1 (X: 207, Y: 187)",
+      "icon": "Event",
+      "submittedBy": "MrCrazy",
+      "id": "id-1764074745554",
+      "votes": {
+        "up": 0,
+        "down": 0
+      },
+      "isCommunity": true
     }
   ]
 }
