@@ -2153,15 +2153,15 @@ map.on('popupclose', () => {
         <small>Submitted by: ${loc.submittedBy || 'Anonymous'}</small>
         ${loc.trusted ? ' · <span style="color:#0f0;font-weight:bold;">Trusted</span>' : ''}
       </div>
-      <button onclick="voteMarker('${loc.id}',1)" style="background:none;border:none;font-size:2em;cursor:pointer">Positive</button>
-      <strong style="margin:0 20px;font-size:1.6em;color:#0f0;">
+      <button onclick="voteAndUpdate('${loc.id}',1,this)" style="background:none;border:none;font-size:2em;cursor:pointer">Positive</button>
+      <strong id="voteCount-${loc.id}" style="margin:0 20px;font-size:1.6em;color:#0f0;">
         ${((loc.votes?.up || 0) - (loc.votes?.down || 0))}
       </strong>
       <div style="display:inline-block;position:relative;">
         <div style="color:#ff6666;font-size:9px;margin-bottom:2px;">hold = report</div>
         <button 
             onmousedown="startReport('${loc.id}')" 
-            onclick="this.onclick=null; voteMarker('${loc.id}',-1)" 
+            onclick="this.onclick=null; voteAndUpdate('${loc.id}',-1,this)" 
             onmouseup="cancelReport()" 
             ontouchstart="startReport('${loc.id}')" 
             ontouchend="cancelReport()"
@@ -2182,6 +2182,26 @@ map.on('popupclose', () => {
         }
     });
 }
+
+window.voteAndUpdate = function(markerId, voteValue, button) {
+    if (localStorage.getItem("voted_" + markerId) === "true") {
+        alert("You already voted on this marker!");
+        return;
+    }
+
+    // Instantly update the number in the popup
+    const countEl = document.getElementById("voteCount-" + markerId);
+    if (countEl) {
+        const current = parseInt(countEl.textContent) || 0;
+        const change = voteValue === 1 ? 1 : (voteValue === -1 ? -1 : -3);
+        countEl.textContent = current + change;
+        countEl.style.color = change > 0 ? "#00ff00" : "#ff4444";
+        setTimeout(() => countEl.style.color = "#0f0", 1000);
+    }
+
+    // Send vote to server
+    window.voteMarker(markerId, voteValue);
+};
 
         function addMarkerToMap(loc) {
             const marker = L.marker([loc.lat, loc.lng], {
