@@ -1,8 +1,6 @@
-// service-worker.js — FINAL VERSION FOR v76.2.0
-const CACHE_NAME = "fo76-ifm-v5.0";   // ← ONLY CHANGE THIS LINE (from v4.0 → v5.0)
+const CACHE_NAME = "fo76-ifm-v5.0";
 
 self.addEventListener("install", e => {
-  // Cache literally nothing on install → zero chance of failure
   e.waitUntil(self.skipWaiting());
 });
 
@@ -24,19 +22,13 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   const url = e.request.url;
 
-  // Never cache these — always go straight to network
   if (url.includes('communitymap.json') ||
-      url.includes('tmpfiles.org') ||
-      url.includes('transfer.sh') ||
-      url.includes('file.io') ||
       url.includes('githubusercontent.com')) {
     e.respondWith(fetch(e.request));
     return;
   }
 
-  // For everything else: try cache first, then network
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))
   );
 });
-
