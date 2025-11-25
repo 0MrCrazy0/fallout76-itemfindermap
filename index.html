@@ -3139,33 +3139,17 @@ document.getElementById('shareOneBtn').onclick = () => {
             showTempMessage('Single marker exported!', 3000);
             playSound('saving');
         };
-		document.getElementById('submitCommunityBtn').onclick = async () => {
+		// NEW — PERFECT — BULLETPROOF
+document.getElementById('submitCommunityBtn').onclick = () => {
     const loc = locations[currentIndex];
-    if (!loc?.locked) return;
-
-    const playerName = prompt("Your name (optional):") || "Anonymous";
-
-    const markerToSend = {
-        lat: loc.lat,
-        lng: loc.lng,
-        category: loc.category,
-        desc: loc.desc,
-        icon: categoryIcons[loc.category] || '📝',  // ← REAL EMOJI
-        submittedBy: playerName
-    };
-
-    try {
-        const res = await fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ type: "submit", marker: markerToSend, name: playerName })
-        });
-        const text = await res.text();
-        alert(text.includes("PR") ? "Submitted! Thank you ❤️ PR created!" : text);
-        playSound('saving');
-    } catch (e) {
-        alert("Submit failed: " + e.message);
+    if (!loc?.locked) {
+        alert("Please lock the marker first!");
+        return;
     }
+
+    // Open your perfect submit.html — NO MORE SERVER CRASHES EVER
+    const url = `submit.html?lat=${loc.lat}&lng=${loc.lng}&category=${encodeURIComponent(loc.category)}&desc=${encodeURIComponent(loc.desc)}`;
+    window.open(url, '_blank', 'width=500,height=720,scrollbars=yes');
 };
 
         /* DEV NOTE: MAP INTERACTIONS */
