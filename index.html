@@ -2148,21 +2148,23 @@ map.on('popupclose', () => {
                   <strong style="font-size:1.4em">${loc.icon || categoryIcons[loc.category] || 'Position'} ${loc.category.toUpperCase()}</strong><br>
                   <small style="white-space:pre-wrap">${escapeHtml(loc.desc)}</small>
                   ${loc.isCommunity ? `
-    <div style="margin-top:12px;text-align:center;font-size:13px;">
+    <div style="margin-top:12px;text-align:center;font-size:13px;line-height:1.4;">
+      <div style="margin-bottom:6px;color:#aaa;font-size:10px;">
+        <small>Submitted by: ${loc.submittedBy || 'Anonymous'}</small>
+        ${loc.trusted ? ' · <span style="color:#0f0;font-weight:bold;">Trusted</span>' : ''}
+      </div>
       <button onclick="voteMarker('${loc.id}',1)" style="background:none;border:none;font-size:2em;cursor:pointer">Positive</button>
-      <strong style="margin:0 20px;font-size:1.6em">
+      <strong style="margin:0 20px;font-size:1.6em;color:#0f0;">
         ${((loc.votes?.up || 0) - (loc.votes?.down || 0))}
       </strong>
       <div style="display:inline-block;position:relative;">
+        <div style="color:#ff6666;font-size:9px;margin-bottom:2px;">hold = report</div>
         <button onmousedown="startReport('${loc.id}')" 
                 onmouseup="cancelReport()" 
                 ontouchstart="startReport('${loc.id}')" 
                 ontouchend="cancelReport()"
                 style="background:none;border:none;font-size:2em;cursor:pointer">Negative</button>
-        <small style="position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);color:#ff6666;font-size:9px;white-space:nowrap;">hold to report</small>
       </div>
-      ${loc.trusted ? ' <span style="color:#0f0;font-weight:bold;">Trusted</span>' : ''}
-      <br><small>Submitted by: ${loc.submittedBy || 'Anonymous'}</small>
     </div>
     <hr style="border:1px dashed #0f0;margin:12px 0">
   ` : ''}
@@ -3859,7 +3861,7 @@ let reportTimer;
                 payload.markerCid = marker.cid;
             }
 
-            fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
+            fetch("https://itemfinder-submit.crzymn05.workers.dev/submit", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
