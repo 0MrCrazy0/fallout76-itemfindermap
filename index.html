@@ -2193,87 +2193,6 @@ map.on('popupclose', () => {
     });
 }
 
-window.startReport = function(markerId) {
-    reportTimer = setTimeout(() => {
-        if (confirm("Report this marker as spam or inaccurate?")) {
-            voteAndUpdate(markerId, -3); // -3 = report
-        }
-    }, 1000);
-};
-
-window.voteMarker = function(markerId, voteValue) {
-    const marker = locations.find(l => l.id === markerId);
-    if (!marker) return;
-
-    // PERMANENT VOTE BLOCK (uses cid = survives reset + re-import)
-    const voteKey = marker.cid ? "voted_cid_" + marker.cid : "voted_" + markerId;
-    if (localStorage.getItem(voteKey) === "true") {
-        if (voteValue === -3) {
-            alert("Thank you — your report was already sent! MrCrazy will review it.");
-        } else {
-            alert("You already voted on this marker!");
-        }
-        return;
-    }
-
-    // UPDATE LOCAL VOTES
-    marker.votes = marker.votes || { up: 0, down: 0 };
-    if (voteValue === 1) marker.votes.up++;
-    else if (voteValue === -1) marker.votes.down++;
-    else if (voteValue === -3) marker.votes.down += 3;
-
-    // UPDATE COUNTER INSTANTLY
-    const countEl = document.getElementById("voteCount-" + markerId);
-    if (countEl) {
-        const net = marker.votes.up - marker.votes.down;
-        countEl.textContent = net > 0 ? '+' + net : net;
-        countEl.style.color = voteValue > 0 ? "#00ff88" : "#ff4444";
-        setTimeout(() => countEl.style.color = "#0f0", 1000);
-    }
-
-    // SAVE TO LOCALSTORAGE (survives refresh)
-    localStorage.setItem("marker_votes_" + markerId, JSON.stringify(marker.votes));
-    localStorage.setItem(voteKey, "true");
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
-
-    // SEND TO SERVER
-    const payload = {
-        type: "vote",
-        markerId: markerId,
-        vote: voteValue,
-        marker: {
-            lat: marker.lat,
-            lng: marker.lng,
-            category: marker.category,
-            desc: marker.desc,
-            icon: marker.icon || '📝',
-            submittedBy: marker.submittedBy || "Unknown"
-        }
-    };
-
-    fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    })
-    .then(r => r.text())
-    .then(msg => {
-        if (voteValue === -3) {
-            alert("Report sent — thank you! MrCrazy will review it.");
-        } else if (msg.includes("Upvote noted")) {
-            alert("Upvote noted — thank you! ❤️");
-        } else if (msg.includes("Downvote noted")) {
-            alert("Downvote noted — sorry it didn't help.");
-        } else {
-            alert("Vote recorded! Thank you ❤️");
-        }
-    })
-    .catch(() => {
-        if (voteValue === -3) alert("Report sent — thank you!");
-        else alert("Vote sent — thank you!");
-    });
-};
-
         function addMarkerToMap(loc) {
             const marker = L.marker([loc.lat, loc.lng], {
                 icon: createMarkerIcon(loc),
@@ -3940,7 +3859,7 @@ window.cancelReport = function() {
     clearTimeout(reportTimer);
 };
 
-window.voteAndUpdate = function(markerId, voteValue, button) {
+window.voteAndUpdate = function(markerId, voteValue) {
     const marker = locations.find(l => l.id === markerId);
     if (!marker) return;
 
@@ -3995,9 +3914,9 @@ window.voteAndUpdate = function(markerId, voteValue, button) {
         if (voteValue === -3) {
             alert("Report sent — thank you! MrCrazy will review it.");
         } else if (msg.includes("Upvote noted")) {
-            alert("Upvote noted — thank you for the support! ❤️");
+            alert("Upvote noted — thank you! ❤️");
         } else if (msg.includes("Downvote noted")) {
-            alert("Downvote noted — sorry this marker didn't help.");
+            alert("Downvote noted — sorry it didn't help.");
         } else {
             alert("Vote recorded! Thank you ❤️");
         }
@@ -4005,7 +3924,6 @@ window.voteAndUpdate = function(markerId, voteValue, button) {
     .catch(() => {});
 };
 
-console.log('%cFallout 76 Item Finder v76.3 — FINAL VERSION\nMade with eternal love by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
         console.log('%cFallout 76 Item Finder v76.2.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
        Fallout 76 Item Finder Map - Disclaimer and Terms of Use
