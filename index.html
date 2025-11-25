@@ -2153,11 +2153,14 @@ map.on('popupclose', () => {
       <strong style="margin:0 20px;font-size:1.6em">
         ${((loc.votes?.up || 0) - (loc.votes?.down || 0))}
       </strong>
-      <button onmousedown="startReport('${loc.id}')" 
-              onmouseup="cancelReport()" 
-              ontouchstart="startReport('${loc.id}')" 
-              ontouchend="cancelReport()"
-              style="background:none;border:none;font-size:2em;cursor:pointer">Negative</button>
+      <div style="display:inline-block;position:relative;">
+        <button onmousedown="startReport('${loc.id}')" 
+                onmouseup="cancelReport()" 
+                ontouchstart="startReport('${loc.id}')" 
+                ontouchend="cancelReport()"
+                style="background:none;border:none;font-size:2em;cursor:pointer">Negative</button>
+        <small style="position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);color:#ff6666;font-size:9px;white-space:nowrap;">hold to report</small>
+      </div>
       ${loc.trusted ? ' <span style="color:#0f0;font-weight:bold;">Trusted</span>' : ''}
       <br><small>Submitted by: ${loc.submittedBy || 'Anonymous'}</small>
     </div>
@@ -3840,7 +3843,7 @@ let reportTimer;
             clearTimeout(reportTimer);
         }
 
-        function voteMarker(markerId, voteValue) {
+        window.voteMarker = function(markerId, voteValue) {
             if (localStorage.getItem("voted_" + markerId) === "true") {
                 alert("You already voted on this marker!");
                 return;
@@ -3872,7 +3875,19 @@ let reportTimer;
                 }
             })
             .catch(() => alert("Network error — try again later"));
-        }
+        };
+
+        window.startReport = function(markerId) {
+            reportTimer = setTimeout(() => {
+                if (confirm("Report this marker as spam or inaccurate?")) {
+                    window.voteMarker(markerId, -3);
+                }
+            }, 1000);
+        };
+
+        window.cancelReport = function() {
+            clearTimeout(reportTimer);
+        };
         console.log('%cFallout 76 Item Finder v76.2.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
        Fallout 76 Item Finder Map - Disclaimer and Terms of Use
