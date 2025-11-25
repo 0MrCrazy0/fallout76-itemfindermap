@@ -7,7 +7,7 @@
 	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 	<meta http-equiv="Pragma" content="no-cache">
 	<meta http-equiv="Expires" content="0">
-    <title>Fallout 76 Item Finder Map v76.1.0</title>
+    <title>Fallout 76 Item Finder Map v76.2.0</title>
 
 	<link rel="manifest" href="manifest.json?v=3">
 
@@ -1004,6 +1004,7 @@ document.head.appendChild(nukeStyle);
                 <button id="shareItemBtn">Share Map View</button>
                 <button id="exportOneBtn">Export Marker</button>
                 <button id="shareOneBtn">Share Marker</button>
+				<button id="submitCommunityBtn" style="display:none; background:#00ff88 !important; color:#000 !important;">Submit to Community Map</button>
                 <button id="deleteItemBtn" style="display:none;">Delete</button>
                 <button id="undoItemBtn" style="display:none;">Undo Delete</button>
                 <button id="duplicateItemBtn" style="display:none;">Duplicate</button>
@@ -1040,7 +1041,7 @@ document.head.appendChild(nukeStyle);
                 <button id="resetAppBtn" class="reset-btn">Reset App (deletes everything)</button>
             </div>
             <p class="small"><br>❤️ the Item Finder? Support MrCrazy with a <a href="https://buymeacoffee.com/mrcrazy" target="_blank">Nuka-Cola</a>!</p>
-            <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version v76.1.0 Made By MrCrazy</p>
+            <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version v76.2.0 Made By MrCrazy</p>
         </div>
     </div>
 
@@ -1131,8 +1132,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const STORAGE_KEY = 'fo76_locations';
         const CUSTOM_CATEGORIES_KEY = '76_custom_categories';
         const MAP_VERSION_KEY = 'fo76_map_version';
-        const CURRENT_UPDATE_VERSION = 'v76.1.0';
-        const APP_VERSION = "v76.1.0";
+        const CURRENT_UPDATE_VERSION = 'v76.2.0';
+        const APP_VERSION = "v76.2.0";
         let soundsEnabled = localStorage.getItem('soundsEnabled') !== 'false';
         const baseSounds = {
             click: new Audio("https://rpg.hamsterrepublic.com/wiki-images/8/84/Select8-Bit.ogg"),
@@ -2168,7 +2169,7 @@ map.on('popupclose', () => {
         }
 
         function updateCounterDisplay() {
-    const appVersion = "76.1.0";
+    const appVersion = "76.2.0";
     const communityVer = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
     const total = locations.filter(l => activeCategories.has(l.category)).length;
     const userTotal = locations.filter(l => l.userEdited === true && !l.isPostcard).length;
@@ -2349,6 +2350,7 @@ map.on('popupclose', () => {
                 modalToggle.onclick = (e) => {
                     e.stopPropagation();
                     loc.locked = !loc.locked;
+					document.getElementById('submitCommunityBtn').style.display =(loc.locked && !loc.isCommunity) ? 'inline-block' : 'none';
                     modalToggle.textContent = loc.locked ? '🔐':'🔓';
                     itemCategorySelect.disabled = loc.locked;
                     itemDescInput.disabled = loc.locked;
@@ -2360,6 +2362,10 @@ map.on('popupclose', () => {
                     playSound('click');
                 };
             }
+			// Show Submit to Community button only if marker is locked and not already community
+document.getElementById('submitCommunityBtn').style.display = 
+    (currentIndex >= 0 && locations[currentIndex]?.locked && !locations[currentIndex]?.isCommunity) 
+    ? 'inline-block' : 'none';
             itemModal.style.display = 'block';
             document.body.classList.add('modal-open');
             playSound('click');
@@ -2550,7 +2556,7 @@ map.on('popupclose', () => {
 
     // ←←← FULL BACKUP (identical to Backup All Data button) ←←←
     const fullBackup = {
-        version: "full-v76.1.0",
+        version: "full-v76.2.0",
         timestamp: new Date().toISOString(),
         communityVersion,
         locations: locations.filter(l => !l.isPostcard),  // postcards are temp anyway
@@ -3055,6 +3061,10 @@ document.getElementById('shareOneBtn').onclick = () => {
     playSound('saving');
     showTempMessage('Saved + LOCKED!', 4000);
     forceReload();
+	// Update submit button visibility after save
+document.getElementById('submitCommunityBtn').style.display = 
+    (currentIndex >= 0 && locations[currentIndex]?.locked && !locations[currentIndex]?.isCommunity) 
+    ? 'inline-block' : 'none';
 };
 
         deleteBtn.onclick = () => {
@@ -3102,6 +3112,13 @@ document.getElementById('shareOneBtn').onclick = () => {
             showTempMessage('Single marker exported!', 3000);
             playSound('saving');
         };
+		document.getElementById('submitCommunityBtn').onclick = () => {
+    const loc = locations[currentIndex];
+    if (!loc) return;
+    const url = `https://0mrcrazy0.github.io/fallout76-itemfindermap/submit.html?lat=${loc.lat}&lng=${loc.lng}&category=${encodeURIComponent(loc.category)}&desc=${encodeURIComponent(loc.desc)}`;
+    window.open(url, '_blank');
+    playSound('click');
+};
 
         /* DEV NOTE: MAP INTERACTIONS */
     map.on('dragstart', () => { isDraggingAny = true; });
@@ -3335,7 +3352,7 @@ map.on('dblclick', e => {
                     ☢ FALLOUT 76 ITEM FINDER ☢
                 </h1>
                 <p style="margin:8px 0 0; font-size:1.3em; color:#0f0;">
-                    v76.1.0 — Built with ❤️ by MrCrazy
+                    v76.2.0 — Built with ❤️ by MrCrazy
                 </p>
             </div>
 
@@ -3393,7 +3410,7 @@ map.on('dblclick', e => {
                 </div>
                 <div style="padding:30px; text-align:center; line-height:1.8;">
                     <ul style="text-align:left; display:inline-block; margin:25px 0; padding-left:30px; font-size:1.2em;">
-                        <li>Welcome To Version 76.1.0</li>
+                        <li>Welcome To Version 76.2.0</li>
                         <li>This is The Latest Update — Reset Your App if needed.<br>
                             Find this tip in the "How to Use" section.</li>
                         <li>Made With ❤️</li>
@@ -3647,7 +3664,7 @@ if (urlParams.has('permshare')) {
 
         document.getElementById('backupAllBtn')?.addEventListener('click', () => {
     const fullBackup = {
-        version: "full-v76.1.0",
+        version: "full-v76.2.0",
         timestamp: new Date().toISOString(),
         communityVersion: localStorage.getItem('fo76_map_version') || '1.0',
         locations: locations,
@@ -3765,7 +3782,7 @@ if (urlParams.has('permshare')) {
     };
     input.click();
 });
-        console.log('%cFallout 76 Item Finder v76.1.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
+        console.log('%cFallout 76 Item Finder v76.2.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
        Fallout 76 Item Finder Map - Disclaimer and Terms of Use
        --------------------------------------------------------------------------
