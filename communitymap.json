@@ -3058,14 +3058,28 @@
       "keepBtnBound": false
     },
     {
-  "lat": 0.21737870185005903,
-  "lng": 0.253334979841604,
-  "category": "event locations",
-  "desc": "Hi, MrCrazy Here I Added This Marker To Test Community Added Markers Please Report This Marker To Test The System Thanks!\nGrid A1 (X: 0, Y: 0)",
-  "icon": "🎉",
-  "submittedBy": "MrCrazy",
-  "id": "id-1764076927777",
-  "isCommunity": true
-}
+      "lat": 0.21737870185005903,
+      "lng": 0.253334979841604,
+      "category": "event locations",
+      "desc": "Hi, MrCrazy Here I Added This Marker To Test Community Added Markers Please Report This Marker To Test The System Thanks!\nGrid A1 (X: 0, Y: 0)",
+      "icon": "🎉",
+      "submittedBy": "MrCrazy",
+      "id": "id-1764076927777",
+      "isCommunity": true
+    },
+    {
+      "lat": 176.5674495515059,
+      "lng": 273.68301129059273,
+      "category": "misc",
+      "desc": "Grid A1 (X: 274, Y: 177)",
+      "icon": "Misc",
+      "submittedBy": "MrCrazy",
+      "id": "id-1764092998710",
+      "votes": {
+        "up": 0,
+        "down": 0
+      },
+      "isCommunity": true
+    }
   ]
 }
