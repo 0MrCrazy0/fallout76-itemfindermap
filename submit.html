@@ -37,18 +37,18 @@
     const category = urlParams.get('category') || 'misc';
     const desc = decodeURIComponent(urlParams.get('desc') || 'No description');
 
-    // FORCE REAL EMOJI ICON — THIS IS THE KEY!
+    // SERVER-SAFE ICON MAPPING — TEXT ONLY (no emojis to avoid crashes)
     const categoryIcons = {
-        'weapons': '🔫', 'armor': '🛡️', 'aid': '💉', 'food/drink': '🍽️', 'ammunition': '💥',
-        'apparel': '👕', 'plans': '📜', 'junk': '🗑️', 'holotapes': '📀', 'misc': '📝',
-        'plants': '🌿', 'eggs': '🥚', 'creatures': '🐺', 'vendors': '💰', 'exchanges': '⚖️',
-        'vaults': '⚙️', 'power armor': '👨‍🚀', 'fusion core': '🔋', 'nuke drop zones': '☢️',
-        'nuke silos': '🚀', 'magazines': '📚', 'bobbleheads': '🎎', 'safe locations': '🗄️',
-        'terminal locations': '🖥️', 'treasure maps': '🗺️', 'resource deposits': '⛏️',
-        'fishing locations': '🎣', 'workshops': '🔧', 'train stations': '🚂', 'town locations': '🏫',
-        'event locations': '🎉', 'named locations': '🚩', 'regions': '📍'
-        };
-    const icon = categoryIcons[category.toLowerCase()] || 'Miscellaneous';
+        'weapons': 'Weapon', 'armor': 'Armor', 'aid': 'Aid', 'food/drink': 'Food/Drink', 'ammunition': 'Ammo',
+        'apparel': 'Apparel', 'plans': 'Plans', 'junk': 'Junk', 'holotapes': 'Holotapes', 'misc': 'Misc',
+        'plants': 'Plant', 'eggs': 'Egg', 'creatures': 'Creature', 'vendors': 'Vendor', 'exchanges': 'Exchange',
+        'vaults': 'Vault', 'power armor': 'Power Armor', 'fusion core': 'Fusion Core', 'nuke drop zones': 'Nuke Zone',
+        'nuke silos': 'Nuke Silo', 'magazines': 'Magazine', 'bobbleheads': 'Bobblehead', 'safe locations': 'Safe',
+        'terminal locations': 'Terminal', 'treasure maps': 'Treasure Map', 'resource deposits': 'Resource',
+        'fishing locations': 'Fishing', 'workshops': 'Workshop', 'train stations': 'Train Station',
+        'town locations': 'Town', 'event locations': 'Event', 'named locations': 'Named Location', 'regions': 'Region'
+    };
+    const icon = categoryIcons[category.toLowerCase()] || 'Misc';  // Always text — 100% safe
 
     document.getElementById('coords').textContent = lat + ', ' + lng;
     document.getElementById('category').textContent = category;
@@ -62,7 +62,7 @@
             lng: parseFloat(lng),
             category: category,
             desc: desc,
-            icon: icon,  // ← ALWAYS A REAL EMOJI NOW
+            icon: icon,  // Text-only — server can't crash
             submittedBy: name
         };
         try {
@@ -76,13 +76,14 @@
                 document.body.innerHTML = `
                     <h1>THANK YOU ❤️</h1>
                     <p>Your marker was submitted!<br>MrCrazy will review it soon.</p>
-                    <p><strong>Icon:</strong> ${icon}</p>
+                    <p><strong>Category:</strong> ${category}<br>
+                    <strong>Icon:</strong> ${icon}</p>
                     <a href="javascript:window.close()" style="color:#00ff88;">Close Window</a>`;
             } else {
-                alert('Submit failed: ' + text);
+                alert('Submit failed: ' + text + '\n\n(If it mentions "emoji" or "btoa", contact MrCrazy.)');
             }
         } catch (err) {
-            alert('Network error: ' + err.message);
+            alert('Network error: ' + err.message + '\n\nTry again or contact support.');
         }
     });
 </script>
