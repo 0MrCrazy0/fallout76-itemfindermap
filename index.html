@@ -2153,33 +2153,19 @@ map.on('popupclose', () => {
                   <strong style="font-size:1.4em">${loc.icon || categoryIcons[loc.category] || 'Position'} ${loc.category.toUpperCase()}</strong><br>
                   <small style="white-space:pre-wrap">${escapeHtml(loc.desc)}</small>
                   ${loc.isCommunity ? `
-    <div style="margin-top:12px;text-align:center;font-size:13px;line-height:1.4;">
-      <div style="margin-bottom:6px;color:#aaa;font-size:10px;">
-        <small>Submitted by: ${loc.submittedBy || 'Anonymous'}</small>
-        ${loc.trusted ? ' · <span style="color:#0f0;font-weight:bold;">Trusted</span>' : ''}
-      </div>
-      <div style="display:flex;align-items:center;justify-content:center;gap:15px;">
-        <button onclick="voteAndUpdate('${loc.id}',1,this)" style="background:none;border:none;font-size:2em;cursor:pointer">Positive</button>
-        <strong id="voteCount-${loc.id}" style="font-size:1.4em;min-width:50px;color:#0f0;">
-  ${(() => {
-    const net = (loc.votes?.up || 0) - (loc.votes?.down || 0);
-    return net > 0 ? '+' + net : net;
-  })()}
-</strong>
-        <div style="position:relative;">
-          <div style="color:#ff6666;font-size:8px;margin-bottom:1px;white-space:nowrap;">hold = report</div>
-          <button 
-              onmousedown="startReport('${loc.id}')" 
-              onclick="this.onclick=null; voteAndUpdate('${loc.id}',-1,this)" 
-              onmouseup="cancelReport()" 
-              ontouchstart="startReport('${loc.id}')" 
-              ontouchend="cancelReport()"
-              style="background:none;border:none;font-size:2em;cursor:pointer">Negative</button>
-        </div>
-      </div>
+  <div style="margin-top:12px;text-align:center;">
+    <button 
+        onclick="startReport('${loc.id}')"
+        onmouseup="cancelReport()" 
+        ontouchend="cancelReport()"
+        style="background:#300;color:#f00;border:2px solid #f00;padding:12px 30px;border-radius:8px;font-size:18px;cursor:pointer;font-weight:bold;">
+      ⚠️ REPORT BAD MARKER
+    </button>
+    <div style="margin-top:8px;font-size:12px;color:#aaa;">
+      Tap/click to report if this marker is wrong or spam
     </div>
-    <hr style="border:1px dashed #0f0;margin:12px 0">
-  ` : ''}
+  </div>
+` : ''}
                   ${!loc.isCommunity ? `
                     <div style="margin:6px 0;text-align:center;">
                       <span class="popup-lock-toggle" onclick="toggleLockFromPopup(${locations.indexOf(loc)})">${loc.locked ? 'Locked' : 'Unlocked'}</span>
@@ -3847,82 +3833,48 @@ if (urlParams.has('permshare')) {
 
 let reportTimer = null;
 
+// ONE REPORT PER USER — PERMANENT (uses cid, survives reset + refresh)
 window.startReport = function(markerId) {
+    const marker = locations.find(l => l.id === markerId);
+    if (!marker) return;
+
+    const reportKey = "reported_cid_" + (marker.cid || marker.id);
+
+    // ALREADY REPORTED? BLOCK FOREVER
+    if (localStorage.getItem(reportKey) === "true") {
+        alert("You already reported this marker — thank you! MrCrazy will review it.");
+        return;
+    }
+
     reportTimer = setTimeout(() => {
-        if (confirm("Report this marker as spam or inaccurate?")) {
-            voteAndUpdate(markerId, -3);
+        if (confirm("Report this marker?\n\nOnly report if you want MrCrazy to REMOVE it.\n(Spam, wrong location, etc.)")) {
+            // Mark as reported locally
+            localStorage.setItem(reportKey, "true");
+
+            // Send report to server
+            fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    type: "report",
+                    markerId: markerId,
+                    marker: {
+                        lat: marker.lat,
+                        lng: marker.lng,
+                        category: marker.category,
+                        desc: marker.desc
+                    }
+                })
+            });
+
+            alert("REPORT SENT — Thank you!\nMrCrazy will review and remove if needed.");
+            playSound('error');
         }
-    }, 1000);
+    }, 800);
 };
 
 window.cancelReport = function() {
     clearTimeout(reportTimer);
-};
-
-window.voteAndUpdate = function(markerId, voteValue) {
-    const marker = locations.find(l => l.id === markerId);
-    if (!marker) return;
-
-    // ONE KEY TO RULE THEM ALL — survives reset + re-import
-    const voteKey = marker.cid ? "voted_cid_" + marker.cid : "voted_id_" + markerId;
-
-    // BLOCK DOUBLE VOTING — THIS MUST BE FIRST
-    if (localStorage.getItem(voteKey) === "true") {
-        alert(voteValue === -3 
-            ? "Your report was already sent — thank you!" 
-            : "You already voted on this marker!");
-        return; // ← THIS STOPS EVERYTHING BELOW
-    }
-
-    // ONLY RUN IF NOT VOTED YET
-    marker.votes = marker.votes || { up: 0, down: 0 };
-    if (voteValue === 1) marker.votes.up++;
-    else if (voteValue === -1) marker.votes.down++;
-    else if (voteValue === -3) marker.votes.down += 3;
-
-    // Update trusted status
-    if (marker.votes.up - marker.votes.down >= 10) marker.trusted = true;
-
-    // Update counter instantly
-    const el = document.getElementById("voteCount-" + markerId);
-    if (el) {
-        const net = marker.votes.up - marker.votes.down;
-        el.textContent = net > 0 ? "+" + net : net;
-        el.style.color = voteValue > 0 ? "#00ff88" : "#ff4444";
-        setTimeout(() => el.style.color = "#0f0", 1000);
-    }
-
-    // SAVE EVERYTHING
-    localStorage.setItem("marker_votes_" + markerId, JSON.stringify(marker.votes));
-    localStorage.setItem(voteKey, "true");
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
-
-    // Send to server (no reload ever)
-    fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            type: "vote",
-            markerId: markerId,
-            vote: voteValue,
-            marker: {
-                lat: marker.lat,
-                lng: marker.lng,
-                category: marker.category,
-                desc: marker.desc,
-                icon: marker.icon || "Notepad",
-                submittedBy: marker.submittedBy || "Unknown"
-            }
-        })
-    })
-    .then(r => r.text())
-    .then(msg => {
-        if (voteValue === -3) alert("Report sent — MrCrazy will review it. Thank you!");
-        else if (msg.includes("Upvote")) alert("Upvote recorded — thank you! ❤️");
-        else if (msg.includes("Downvote")) alert("Downvote recorded — sorry it wasn't helpful.");
-        else alert("Vote recorded — thank you! ❤️");
-    })
-    .catch(() => alert("Vote sent — will be counted soon!"));
 };
 
         console.log('%cFallout 76 Item Finder v76.2.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
