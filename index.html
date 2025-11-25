@@ -3927,25 +3927,49 @@ if (urlParams.has('permshare')) {
 });
 
 let reportTimer;
-        function startReport(markerId) {
-            reportTimer = setTimeout(() => {
-                if (confirm("Report this marker as spam or inaccurate?")) {
-                    voteMarker(markerId, -3);
-                }
-            }, 1000);
-        }
-        function cancelReport() {
-            clearTimeout(reportTimer);
-        }
 
-        window.voteMarker = function(markerId, voteValue) {
-    if (localStorage.getItem("voted_" + markerId) === "true") {
-        alert("You already voted on this marker!");
+window.startReport = function(markerId) {
+    reportTimer = setTimeout(() => {
+        if (confirm("Report this marker as spam or inaccurate?")) {
+            voteAndUpdate(markerId, -3);
+        }
+    }, 1000);
+};
+
+window.cancelReport = function() {
+    clearTimeout(reportTimer);
+};
+
+window.voteAndUpdate = function(markerId, voteValue, button) {
+    const marker = locations.find(l => l.id === markerId);
+    if (!marker) return;
+
+    const voteKey = marker.cid ? "voted_cid_" + marker.cid : "voted_" + markerId;
+    if (localStorage.getItem(voteKey) === "true") {
+        if (voteValue === -3) {
+            alert("Thank you — your report was already sent! MrCrazy will review it.");
+        } else {
+            alert("You already voted on this marker!");
+        }
         return;
     }
 
-    const marker = locations.find(l => l.id === markerId);
-    if (!marker) return;
+    marker.votes = marker.votes || { up: 0, down: 0 };
+    if (voteValue === 1) marker.votes.up++;
+    else if (voteValue === -1) marker.votes.down++;
+    else if (voteValue === -3) marker.votes.down += 3;
+
+    const countEl = document.getElementById("voteCount-" + markerId);
+    if (countEl) {
+        const net = marker.votes.up - marker.votes.down;
+        countEl.textContent = net > 0 ? '+' + net : net;
+        countEl.style.color = voteValue > 0 ? "#00ff88" : "#ff4444";
+        setTimeout(() => countEl.style.color = "#0f0", 1000);
+    }
+
+    localStorage.setItem("marker_votes_" + markerId, JSON.stringify(marker.votes));
+    localStorage.setItem(voteKey, "true");
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
 
     const payload = {
         type: "vote",
@@ -3968,32 +3992,20 @@ let reportTimer;
     })
     .then(r => r.text())
     .then(msg => {
-    if (msg.includes("Upvote noted")) {
-        alert("Upvote noted — thank you for the support! ❤️");
-    } else if (msg.includes("Downvote noted")) {
-        alert("Downvote noted — sorry this marker didn't help you.");
-    } else if (msg.includes("Report received")) {
-        alert("Report sent — MrCrazy will review it. Thank you!");
-    } else {
-        alert("Vote recorded! Thank you ❤️");
-    }
-    localStorage.setItem("voted_" + markerId, "true");
-    setTimeout(() => location.reload(), 1000);
-})
-    .catch(() => alert("Network error — try again later"));
+        if (voteValue === -3) {
+            alert("Report sent — thank you! MrCrazy will review it.");
+        } else if (msg.includes("Upvote noted")) {
+            alert("Upvote noted — thank you for the support! ❤️");
+        } else if (msg.includes("Downvote noted")) {
+            alert("Downvote noted — sorry this marker didn't help.");
+        } else {
+            alert("Vote recorded! Thank you ❤️");
+        }
+    })
+    .catch(() => {});
 };
 
-        window.startReport = function(markerId) {
-            reportTimer = setTimeout(() => {
-                if (confirm("Report this marker as spam or inaccurate?")) {
-                    window.voteMarker(markerId, -3);
-                }
-            }, 1000);
-        };
-
-        window.cancelReport = function() {
-            clearTimeout(reportTimer);
-        };
+console.log('%cFallout 76 Item Finder v76.3 — FINAL VERSION\nMade with eternal love by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
         console.log('%cFallout 76 Item Finder v76.2.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
        Fallout 76 Item Finder Map - Disclaimer and Terms of Use
