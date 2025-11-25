@@ -2596,12 +2596,12 @@ if (submitBtn) {
         resetAppBtn.onclick = () => {
     if (!confirm('⚠️ RESET APP — This will delete ALL markers, XP, settings & map version.\n\nFirst we create a FULL backup for you.\n\nClick OK to continue.')) return;
 
-    // ←←← FULL BACKUP (identical to Backup All Data button) ←←←
+    // ←←← FULL BACKUP (unchanged) ←←←
     const fullBackup = {
-        version: "full-v76.2.0",
+        version: "full-v76.3",
         timestamp: new Date().toISOString(),
         communityVersion,
-        locations: locations.filter(l => !l.isPostcard),  // postcards are temp anyway
+        locations: locations.filter(l => !l.isPostcard),
         customCategories,
         level,
         xp,
@@ -2616,19 +2616,33 @@ if (submitBtn) {
             activeCategories: [...activeCategories]
         }
     };
-
     const blob = new Blob([JSON.stringify(fullBackup, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `FO76_BACKUP_${locations.filter(l => !l.isPostcard).length}_markers_${new Date().toISOString().slice(0,10)}.json`;
     a.click();
-    URL.revokeObjectURL(a.href);
-
     showTempMessage('FULL backup downloaded! Final step...', 6000);
 
     setTimeout(() => {
-        if (confirm('⚠️ FINAL STEP — FULL RESET\n\nYour FULL backup is safe and contains XP, level, and all settings!\n\nReady?')) {
+        if (confirm('⚠️ FINAL STEP — FULL RESET\n\nYour reports are preserved so you cannot spam GitHub.\n\nReady?')) {
+            // SAVE ALL REPORT KEYS BEFORE CLEARING
+            const savedReports = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith("reported_cid_")) {
+                    savedReports[key] = localStorage.getItem(key);
+                }
+            }
+
+            // NOW CLEAR EVERYTHING
             localStorage.clear();
+
+            // RESTORE ONLY THE REPORT KEYS
+            Object.keys(savedReports).forEach(key => {
+                localStorage.setItem(key, savedReports[key]);
+            });
+
+            // Clear caches + reload
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.getRegistrations().then(regs => {
                     regs.forEach(reg => reg.unregister());
