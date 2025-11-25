@@ -54,7 +54,10 @@
                     body: JSON.stringify({ type: 'submit', marker, name })
                 });
                 if (response.ok) {
-                    document.body.innerHTML = '<h1>Submitted! ❤️</h1><p>Awaiting MrCrazy\'s approval. Thanks for sharing with the community!</p><a href="javascript:window.close()">Close</a>';
+    document.body.innerHTML = `
+        <h1>THANK YOU ❤️</h1>
+        <p>Your marker was submitted!<br>MrCrazy will review it soon.</p>
+        <a href="javascript:window.close()">Close</a>`;
                 } else {
                     alert('Submit failed. Try again or contact MrCrazy.');
                 }
