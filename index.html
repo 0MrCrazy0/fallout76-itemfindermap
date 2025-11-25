@@ -3827,6 +3827,52 @@ if (urlParams.has('permshare')) {
     };
     input.click();
 });
+
+let reportTimer;
+        function startReport(markerId) {
+            reportTimer = setTimeout(() => {
+                if (confirm("Report this marker as spam or inaccurate?")) {
+                    voteMarker(markerId, -3);
+                }
+            }, 1000);
+        }
+        function cancelReport() {
+            clearTimeout(reportTimer);
+        }
+
+        function voteMarker(markerId, voteValue) {
+            if (localStorage.getItem("voted_" + markerId) === "true") {
+                alert("You already voted on this marker!");
+                return;
+            }
+
+            const marker = locations.find(l => l.id === markerId);
+            const payload = {
+                type: "vote",
+                markerId: markerId,
+                vote: voteValue
+            };
+            if (marker && marker.cid) {
+                payload.markerCid = marker.cid;
+            }
+
+            fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.text())
+            .then(msg => {
+                if (msg.includes("success") || msg.includes("recorded") || msg.includes("PR")) {
+                    alert("Vote recorded! Thank you ❤️");
+                    localStorage.setItem("voted_" + markerId, "true");
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    alert("Vote failed: " + msg);
+                }
+            })
+            .catch(() => alert("Network error — try again later"));
+        }
         console.log('%cFallout 76 Item Finder v76.2.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
        Fallout 76 Item Finder Map - Disclaimer and Terms of Use
@@ -3841,43 +3887,6 @@ if (urlParams.has('permshare')) {
        -------------------------------------------------------------------------- */
     })();
 });
-// FIXED VOTING — WORKS FOR BOTH OLD TIMESTAMP IDs AND NEW UUIDs
-function voteMarker(markerId, voteValue) {
-    // Prevent double-voting
-    if (localStorage.getItem("voted_" + markerId) === "true") {
-        alert("You already voted on this marker!");
-        return;
-    }
-
-    fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "vote", markerId: markerId, vote: voteValue })
-    })
-    .then(r => r.text())
-    .then(msg => {
-        if (msg.includes("success") || msg.includes("recorded")) {
-            alert("Vote recorded! Thank you ❤️");
-            localStorage.setItem("voted_" + markerId, "true");
-            setTimeout(() => location.reload(), 800); // Refresh to show new count
-        } else {
-            alert("Vote failed: " + msg);
-        }
-    })
-    .catch(() => alert("Network error — try again later"));
-}
-
-let reportTimer;
-function startReport(markerId) {
-    reportTimer = setTimeout(() => {
-        if (confirm("Report this marker as spam/inaccurate?")) {
-            voteMarker(markerId, -3); // Same endpoint handles reports
-        }
-    }, 1000);
-}
-function cancelReport() {
-    clearTimeout(reportTimer);
-}
 </script>
 </body>
 </html>
