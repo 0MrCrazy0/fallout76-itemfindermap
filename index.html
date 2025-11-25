@@ -3864,7 +3864,7 @@ window.voteAndUpdate = function(markerId, voteValue) {
     if (!marker) return;
 
     // ONE KEY TO RULE THEM ALL — survives reset + re-import
-    const voteKey = marker.cid ? "voted_cid_" + marker.cid : "voted_" + markerId;
+    const voteKey = marker.cid ? "voted_cid_" + marker.cid : "voted_id_" + markerId;
 
     // BLOCK DOUBLE VOTING — THIS MUST BE FIRST
     if (localStorage.getItem(voteKey) === "true") {
