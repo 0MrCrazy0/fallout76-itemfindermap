@@ -2153,19 +2153,21 @@ map.on('popupclose', () => {
         <small>Submitted by: ${loc.submittedBy || 'Anonymous'}</small>
         ${loc.trusted ? ' · <span style="color:#0f0;font-weight:bold;">Trusted</span>' : ''}
       </div>
-      <button onclick="voteAndUpdate('${loc.id}',1,this)" style="background:none;border:none;font-size:2em;cursor:pointer">Positive</button>
-      <strong id="voteCount-${loc.id}" style="margin:0 20px;font-size:1.6em;color:#0f0;">
-        ${((loc.votes?.up || 0) - (loc.votes?.down || 0))}
-      </strong>
-      <div style="display:inline-block;position:relative;">
-        <div style="color:#ff6666;font-size:9px;margin-bottom:2px;">hold = report</div>
-        <button 
-            onmousedown="startReport('${loc.id}')" 
-            onclick="this.onclick=null; voteAndUpdate('${loc.id}',-1,this)" 
-            onmouseup="cancelReport()" 
-            ontouchstart="startReport('${loc.id}')" 
-            ontouchend="cancelReport()"
-            style="background:none;border:none;font-size:2em;cursor:pointer">Negative</button>
+      <div style="display:flex;align-items:center;justify-content:center;gap:15px;">
+        <button onclick="voteAndUpdate('${loc.id}',1,this)" style="background:none;border:none;font-size:2em;cursor:pointer">Positive</button>
+        <strong id="voteCount-${loc.id}" style="font-size:1.4em;min-width:40px;color:#0f0;">
+          ${((loc.votes?.up || 0) - (loc.votes?.down || 0))}
+        </strong>
+        <div style="position:relative;">
+          <div style="color:#ff6666;font-size:8px;margin-bottom:1px;white-space:nowrap;">hold = report</div>
+          <button 
+              onmousedown="startReport('${loc.id}')" 
+              onclick="this.onclick=null; voteAndUpdate('${loc.id}',-1,this)" 
+              onmouseup="cancelReport()" 
+              ontouchstart="startReport('${loc.id}')" 
+              ontouchend="cancelReport()"
+              style="background:none;border:none;font-size:2em;cursor:pointer">Negative</button>
+        </div>
       </div>
     </div>
     <hr style="border:1px dashed #0f0;margin:12px 0">
@@ -2189,18 +2191,51 @@ window.voteAndUpdate = function(markerId, voteValue, button) {
         return;
     }
 
-    // Instantly update the number in the popup
+    // INSTANT VISUAL UPDATE
     const countEl = document.getElementById("voteCount-" + markerId);
     if (countEl) {
         const current = parseInt(countEl.textContent) || 0;
         const change = voteValue === 1 ? 1 : (voteValue === -1 ? -1 : -3);
         countEl.textContent = current + change;
-        countEl.style.color = change > 0 ? "#00ff00" : "#ff4444";
-        setTimeout(() => countEl.style.color = "#0f0", 1000);
+        countEl.style.color = change > 0 ? "#00ff88" : "#ff4444";
+        setTimeout(() => countEl.style.color = "#0f0", 800);
     }
 
-    // Send vote to server
-    window.voteMarker(markerId, voteValue);
+    // Mark as voted
+    localStorage.setItem("voted_" + markerId, "true");
+
+    // Send vote (no reload!)
+    const marker = locations.find(l => l.id === markerId);
+    if (!marker) return;
+
+    const payload = {
+        type: "vote",
+        markerId: markerId,
+        vote: voteValue,
+        marker: {
+            lat: marker.lat,
+            lng: marker.lng,
+            category: marker.category,
+            desc: marker.desc,
+            icon: marker.icon || 'Notepad',
+            submittedBy: marker.submittedBy || "Unknown"
+        }
+    };
+
+    fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.text())
+    .then(msg => {
+        if (msg.includes("Upvote noted")) alert("Upvote noted — thank you for the support! ❤️");
+        else if (msg.includes("Downvote noted")) alert("Downvote noted — sorry this marker didn't help.");
+        else if (msg.includes("Report received")) alert("Report sent — MrCrazy will review it. Thank you!");
+        else alert("Vote recorded! Thank you ❤️");
+        // NO RELOAD — popup stays open, counter stays correct
+    })
+    .catch(() => alert("Vote sent — will be processed soon!"));
 };
 
         function addMarkerToMap(loc) {
