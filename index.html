@@ -3877,14 +3877,18 @@ let reportTimer;
     })
     .then(r => r.text())
     .then(msg => {
-        if (msg.includes("Vote recorded") || msg.includes("Thank you")) {
-            alert("Vote recorded! Thank you ❤️");
-            localStorage.setItem("voted_" + markerId, "true");
-            setTimeout(() => location.reload(), 1000);
-        } else {
-            alert("Vote noted — will be reviewed! (new marker)");
-        }
-    })
+    if (msg.includes("Upvote noted")) {
+        alert("Upvote noted — thank you for the support! ❤️");
+    } else if (msg.includes("Downvote noted")) {
+        alert("Downvote noted — sorry this marker didn't help you.");
+    } else if (msg.includes("Report received")) {
+        alert("Report sent — MrCrazy will review it. Thank you!");
+    } else {
+        alert("Vote recorded! Thank you ❤️");
+    }
+    localStorage.setItem("voted_" + markerId, "true");
+    setTimeout(() => location.reload(), 1000);
+})
     .catch(() => alert("Network error — try again later"));
 };
 
