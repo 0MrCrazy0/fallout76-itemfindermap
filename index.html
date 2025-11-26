@@ -1187,19 +1187,17 @@ function base64ToUtf8(str) {
     if (loc.keepBtnBound === undefined) loc.keepBtnBound = false;
     if (loc.userEdited === undefined) loc.userEdited = true;
 
-    // ETERNAL PROTECTION — BACKWARD COMPATIBILITY
+    // ETERNAL PROTECTION
     // If user has ever kept this marker (even in old versions), protect it forever
     if (loc.userEdited && loc.isCommunity === false && loc.wasCommunityKept === undefined) {
         loc.wasCommunityKept = true;
     }
 
-    // Safety: ensure the flag exists on all markers
     if (loc.wasCommunityKept === undefined) {
         loc.wasCommunityKept = false;
     }
 });
 
-// ONLY SAVE ONCE — at the end
 localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
         let postcardTicker = null;
         function startPostcardTicker() {
@@ -2612,96 +2610,102 @@ if (submitBtn) {
         }
 
         resetAppBtn.onclick = () => {
-    if (!confirm('⚠️ RESET APP — This will delete ALL markers, XP, settings & map version.\n\nFirst we create a FULL backup for you.\n\nClick OK to continue.')) return;
-
-    // ←←← FULL BACKUP (unchanged) ←←←
-    const fullBackup = {
-        version: "full-v76.3",
-        timestamp: new Date().toISOString(),
-        communityVersion,
-        locations: locations.filter(l => !l.isPostcard),
-        customCategories,
-        level,
-        xp,
-        settings: {
-            clusteringEnabled,
-            gridEnabled,
-            currentMap,
-            darkMode,
-            soundsEnabled,
-            titleVisible,
-            toolsVisible,
-            activeCategories: [...activeCategories]
-        }
-    };
-    const blob = new Blob([JSON.stringify(fullBackup, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `FO76_BACKUP_${locations.filter(l => !l.isPostcard).length}_markers_${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    showTempMessage('FULL backup downloaded! Final step...', 6000);
-
-    setTimeout(() => {
-        if (confirm('⚠️ FINAL STEP — FULL RESET\n\nYour reports are preserved so you cannot spam GitHub.\n\nReady?')) {
-            // SAVE ALL REPORT KEYS BEFORE CLEARING
-            const savedReports = {};
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key.startsWith("reported_cid_")) {
-                    savedReports[key] = localStorage.getItem(key);
+    showConfirmModal(
+        '⚠️ FULL APP RESET ⚠️',
+        'This will delete ALL markers, XP, settings & community version.<br><br>First we create a FULL backup for you.<br><br>Continue?',
+        () => {
+            // FULL BACKUP
+            const fullBackup = {
+                version: "full-v76.3",
+                timestamp: new Date().toISOString(),
+                communityVersion,
+                locations: locations.filter(l => !l.isPostcard),
+                customCategories,
+                level,
+                xp,
+                settings: {
+                    clusteringEnabled, gridEnabled, currentMap, darkMode,
+                    soundsEnabled, titleVisible, toolsVisible,
+                    activeCategories: [...activeCategories]
                 }
-            }
+            };
+            const blob = new Blob([JSON.stringify(fullBackup, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `FO76_BACKUP_${locations.filter(l => !l.isPostcard).length}_markers_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            showTempMessage('FULL backup downloaded!', 6000);
 
-            // NOW CLEAR EVERYTHING
-            localStorage.clear();
-
-            // RESTORE ONLY THE REPORT KEYS
-            Object.keys(savedReports).forEach(key => {
-                localStorage.setItem(key, savedReports[key]);
-            });
-
-            // Clear caches + reload
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(regs => {
-                    regs.forEach(reg => reg.unregister());
-                });
-            }
-            location.reload();
+            setTimeout(() => {
+                showConfirmModal(
+                    '⚠️ FINAL STEP — NUCLEAR WIPE ⚠️',
+                    'Your reports are preserved.<br><br>This will erase everything else.<br><br>Launch the nuke?',
+                    () => {
+                        const savedReports = {};
+                        for (let i = 0; i < localStorage.length; i++) {
+                            const key = localStorage.key(i);
+                            if (key?.startsWith("reported_cid_")) {
+                                savedReports[key] = localStorage.getItem(key);
+                            }
+                        }
+                        localStorage.clear();
+                        Object.keys(savedReports).forEach(k => localStorage.setItem(k, savedReports[k]));
+                        if ('serviceWorker' in navigator) {
+                            navigator.serviceWorker.getRegistrations().then(r => r.forEach(reg => reg.unregister()));
+                        }
+                        location.reload();
+                    }
+                );
+            }, 1300);
         }
-    }, 1200);
+    );
 };
 
         exportBtn.onclick = () => {
     playSound('saving');
-    const all = confirm('OK = ALL markers | Cancel = USER only');
-    const data = {
-        version: 1.0,
-        communityVersion,
-        customCategories,
-        locations: all ? locations.filter(l => !l.isPostcard) : locations.filter(l => l.userEdited && !l.isPostcard)
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
 
-    a.download = `fo76_${all ? 'all' : 'user'}_${data.locations.length}_markers_${new Date().toISOString().slice(0,10)}.json`;
+    showConfirmModal(
+        'EXPORT MARKERS',
+        '<strong>OK</strong> → Export ALL markers (yours + community)<br><br><strong>Cancel</strong> → Export only YOUR markers',
+        () => performExport(true),   // OK = ALL
+        () => performExport(false)  // Cancel = USER only
+    );
 
-    a.click();
-    const exportOverlay = document.createElement('div');
-    exportOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"Courier New",monospace;color:#00ff00;text-align:center;gap:20px;';
-    exportOverlay.innerHTML = `
-        <div style="font-size:clamp(60px,15vw,180px);text-shadow:0 0 40px #00ff00;">💾</div>
-        <h1 style="font-size:clamp(28px,8vw,70px);margin:0;text-shadow:0 0 30px #00ff00;">
-            EXPORT COMPLETE
-        </h1>
-        <p style="font-size:clamp(18px,5vw,40px);margin:0;">
-            ${data.locations.length} marker${data.locations.length===1?'':'s'} saved!
-        </p>
-    `;
-    document.body.appendChild(exportOverlay);
-    playSound('saving');
-    setTimeout(() => exportOverlay.remove(), 3000);
-};
+    function performExport(all) {
+        const data = {
+            version: 1.0,
+            communityVersion,
+            customCategories,
+            locations: all 
+                ? locations.filter(l => !l.isPostcard) 
+                : locations.filter(l => l.userEdited && !l.isPostcard)
+        };
+
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `fo76_${all ? 'all' : 'user'}_${data.locations.length}_markers_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+
+        const exportOverlay = document.createElement('div');
+        exportOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"Courier New",monospace;color:#00ff00;text-align:center;gap:20px;';
+        exportOverlay.innerHTML = `
+            <div style="font-size:clamp(60px,15vw,180px);text-shadow:0 0 40px #00ff00;">DISK</div>
+            <h1 style="font-size:clamp(28px,8vw,70px);margin:0;text-shadow:0 0 30px #00ff00;">
+                EXPORT COMPLETE
+            </h1>
+            <p style="font-size:clamp(18px,5vw,40px);margin:0;">
+                ${data.locations.length} marker${data.locations.length===1?'':'s'} saved!
+            </p>
+            <p style="font-size:clamp(14px,4vw,28px);opacity:0.9;">
+                ${all ? 'ALL markers (yours + community)' : 'Only YOUR markers'}
+            </p>
+        `;
+        document.body.appendChild(exportOverlay);
+        playSound('saving');
+        setTimeout(() => exportOverlay.remove(), 3000);
+    }
+};;
 
         importBtn.onclick = () => {
     const input = document.createElement('input');
@@ -2792,120 +2796,130 @@ if (submitBtn) {
 
         downloadCommunityBtn.onclick = () => {
     playSound('click');
-    if (!confirm('Update Community Map? Your edits are SAFE.')) return;
-    downloadCommunityBtn.disabled = true;
-    downloadCommunityBtn.textContent = 'Updating...';
 
-    fetchWithTimeout('https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?t=' + Date.now(), 12000)
-        .then(r => r.ok ? r.json() : Promise.reject('Bad response'))
-        .then(data => {
-            console.log('Fetched version:', data.communityVersion);
-            console.log('Markers:', data.locations.length);
-            const incoming = data.locations || [];
-            let added = 0, updated = 0, skipped = 0;
+    showConfirmModal(
+        'UPDATE COMMUNITY MAP',
+        '<strong>Your personal markers & edits are 100% SAFE</strong><br><br>' +
+        'This will download the latest community markers.<br>' +
+        'Your own markers will never be overwritten.<br><br>' +
+        'Launch the update?',
+        () => {
+            downloadCommunityBtn.disabled = true;
+            downloadCommunityBtn.textContent = 'Updating...';
 
-            incoming.forEach(imp => {
-                const existing = locations.find(l => l.cid === imp.cid);
+            fetchWithTimeout('https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?t=' + Date.now(), 12000)
+                .then(r => r.ok ? r.json() : Promise.reject('Bad response'))
+                .then(data => {
+                    console.log('Fetched version:', data.communityVersion);
+                    console.log('Markers:', data.locations.length);
 
-                // ETERNAL PROTECTION
-                if (existing && (existing.userEdited || existing.wasCommunityKept)) {
-                    skipped++;
-                    return;
-                }
+                    const incoming = data.locations || [];
+                    let added = 0, updated = 0, skipped = 0;
 
-                let loc;
-                if (existing) {
-                    Object.assign(existing, imp);
-                    loc = existing;
-                    updated++;
-                } else {
-                    loc = {
-                        ...imp,
-                        id: generateUniqueId(),
-                        addedTime: Date.now(),
-                        locked: true,
-                        isCommunity: true,
-                        isTemp: false,
-                        isPostcard: false,
-                        userEdited: false,
-                        wasCommunityKept: false
-                    };
-                    locations.push(loc);
-                    added++;
-                }
+                    incoming.forEach(imp => {
+                        const existing = locations.find(l => l.cid === imp.cid);
 
-                // FORCE FRESH COMMUNITY MARKERS TO BE NON-EDITABLE
-                loc.isCommunity = true;
-                loc.locked = true;
-                loc.userEdited = false;                     // ← BLOCKS EDIT BUTTON
-                loc.wasCommunityKept = !!existing?.wasCommunityKept;
-            });
+                        // ETERNAL PROTECTION
+                        if (existing && (existing.userEdited || existing.wasCommunityKept)) {
+                            skipped++;
+                            return;
+                        }
 
-            if (data.customCategories) customCategories = { ...customCategories, ...data.customCategories };
-            const newVersion = String(data.communityVersion || "1.0");
-            localStorage.setItem(MAP_VERSION_KEY, newVersion);
-            communityVersion = newVersion;
-            showTempMessage(`Community Map v${newVersion} loaded! (${data.locations.length} markers)`, 5000);
-            localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-            recalculateXP();
-            updateCounterDisplay();
-            forceReload();
-            saveLocations();
+                        let loc;
+                        if (existing) {
+                            Object.assign(existing, imp);
+                            loc = existing;
+                            updated++;
+                        } else {
+                            loc = {
+                                ...imp,
+                                id: generateUniqueId(),
+                                addedTime: Date.now(),
+                                locked: true,
+                                isCommunity: true,
+                                isTemp: false,
+                                isPostcard: false,
+                                userEdited: false,
+                                wasCommunityKept: false
+                            };
+                            locations.push(loc);
+                            added++;
+                        }
 
-            showConfirmModal(
-                'Community Map Updated',
-                `Added: <strong>${added}</strong> markers<br>Updated: <strong>${updated}</strong> markers<br>Skipped (yours): <strong>${skipped}</strong> markers<br>Total: <strong>${locations.length}</strong> markers`,
-                null
-            );
-            playSound('saving');
+                        loc.isCommunity = true;
+                        loc.locked = true;
+                        loc.userEdited = false;
+                        loc.wasCommunityKept = !!existing?.wasCommunityKept;
+                    });
 
-            if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
-                localStorage.setItem('seenCommunityNuke', 'true');
+                    if (data.customCategories) {
+                        customCategories = { ...customCategories, ...data.customCategories };
+                    }
 
-    setTimeout(() => {
-        const flash = document.createElement('div');
-        flash.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#fff;z-index:99999;pointer-events:none;animation:quickFlash 0.7s ease-out forwards;';
-        document.body.appendChild(flash);
+                    const newVersion = String(data.communityVersion || "1.0");
+                    localStorage.setItem(MAP_VERSION_KEY, newVersion);
+                    communityVersion = newVersion;
+                    localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
 
-        setTimeout(() => {
-            const overlay = document.createElement('div');
-            overlay.style.cssText = `
-                position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:99998;
-                display:flex;flex-direction:column;align-items:center;justify-content:center;
-                gap:30px;padding:20px;box-sizing:border-box;
-                font-family:'Courier New',monospace;text-align:center;
-            `;
-            overlay.innerHTML = `
-                <div class="nuke-symbol">☢</div>
-                <h1 class="nuke-title">COMMUNITY MAP NUKED!</h1>
-                <p class="nuke-subtitle">
-                    Welcome to Appalachia, Vault Dweller!<br>
-                    <strong>${added} markers</strong> just detonated across the wasteland.
-                </p>
-            `;
-            document.body.appendChild(overlay);
-            playSound('levelUp');
+                    recalculateXP();
+                    updateCounterDisplay();
+                    forceReload();
+                    saveLocations();
 
-            setTimeout(() => {
-                overlay.style.transition = 'opacity 1.8s';
-                overlay.style.opacity = '0';
-                setTimeout(() => overlay.remove(), 1800);
-            }, 4200);
-        }, 400);
+                    showConfirmModal(
+                        'COMMUNITY MAP UPDATED',
+                        `Added: <strong>${added}</strong> new markers<br>` +
+                        `Updated: <strong>${updated}</strong> existing<br>` +
+                        `Protected (yours): <strong>${skipped}</strong><br><br>` +
+                        `Total on map: <strong>${locations.length}</strong>`,
+                        null
+                    );
 
-        setTimeout(() => flash.remove(), 700);
-    }, 800);
-}
-        })
-        .catch(err => {
-            console.error('Fetch error:', err);
-            showTempMessage('Update failed – check internet', 5000);
-            playSound('error');
-        })
-        .finally(() => {
-            downloadCommunityBtn.disabled = false;
-            downloadCommunityBtn.textContent = 'Update Community Map';
-        });
+                    playSound('saving');
+
+                    // EPIC NUKE EFFECT FOR BIG UPDATES
+                    if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
+                        localStorage.setItem('seenCommunityNuke', 'true');
+                        setTimeout(() => {
+                            const flash = document.createElement('div');
+                            flash.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#fff;z-index:99999;pointer-events:none;animation:quickFlash 0.7s ease-out forwards;';
+                            document.body.appendChild(flash);
+
+                            setTimeout(() => {
+                                const overlay = document.createElement('div');
+                                overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:99998;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;padding:20px;box-sizing:border-box;font-family:"Courier New",monospace;text-align:center;';
+                                overlay.innerHTML = `
+                                    <div class="nuke-symbol">☢️</div>
+                                    <h1 class="nuke-title">COMMUNITY MAP NUKED!</h1>
+                                    <p class="nuke-subtitle">
+                                        <strong>${added}</strong> new markers detonated across Appalachia!
+                                    </p>
+                                `;
+                                document.body.appendChild(overlay);
+                                playSound('levelUp');
+
+                                setTimeout(() => {
+                                    overlay.style.transition = 'opacity 1.8s';
+                                    overlay.style.opacity = '0';
+                                    setTimeout(() => overlay.remove(), 1800);
+                                }, 4200);
+                            }, 400);
+
+                            setTimeout(() => flash.remove(), 700);
+                        }, 800);
+                    }
+                })
+                .catch(err => {
+                    console.error('Fetch error:', err);
+                    showTempMessage('Update failed — check internet', 6000);
+                    playSound('error');
+                })
+                .finally(() => {
+                    downloadCommunityBtn.disabled = false;
+                    downloadCommunityBtn.textContent = 'Update Community Map';
+                });
+        }
+    );
 };
 
 function createPermanentShare(markersToShare) {
@@ -3077,20 +3091,28 @@ document.getElementById('shareOneBtn').onclick = () => {
         };
 
         document.getElementById('confirmDeleteCategoryBtn').onclick = () => {
-            const name = document.getElementById('deleteCategorySelect').value;
-            if (!name || !customCategories[name]) return;
-            if (!confirm(`Delete "${name}"? Markers → misc`)) return;
+    const name = document.getElementById('deleteCategorySelect').value;
+    if (!name || !customCategories[name]) return;
+
+    showConfirmModal(
+        `DELETE CATEGORY "${name.toUpperCase()}"`,
+        `All markers will be moved to "misc".<br><br>This cannot be undone.<br><br>Proceed with deletion?`,
+        () => {
             locations.forEach(l => { if (l.category === name) l.category = 'misc'; });
-            delete customCategories[name]; delete categoryIcons[name]; delete categoryColors[name];
+            delete customCategories[name];
+            delete categoryIcons[name];
+            delete categoryColors[name];
             activeCategories.delete(name);
             localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
             localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
             saveLocations();
             forceReload();
             closeModal(document.getElementById('deleteCategoryModal'));
-            showTempMessage('Category deleted', 3000);
+            showTempMessage(`Category "${name}" deleted → markers reassigned`, 5000);
             playSound('delete');
-        };
+        }
+    );
+};
 
                 saveItemBtn.onclick = () => {
     const cat = itemCategorySelect.value;
@@ -3150,7 +3172,6 @@ document.getElementById('shareOneBtn').onclick = () => {
     showTempMessage('Saved + LOCKED!', 4000);
     forceReload();
 
-    // FIXED — NO EXTRA }; HERE
     const submitBtn = document.getElementById('submitCommunityBtn');
     if (submitBtn) {
         submitBtn.style.display = 
@@ -3205,15 +3226,13 @@ document.getElementById('shareOneBtn').onclick = () => {
             showTempMessage('Single marker exported!', 3000);
             playSound('saving');
         };
-		// NEW — PERFECT — BULLETPROOF
-document.getElementById('submitCommunityBtn').onclick = () => {
+		document.getElementById('submitCommunityBtn').onclick = () => {
     const loc = locations[currentIndex];
     if (!loc?.locked) {
-        alert("Please lock the marker first!");
+        showTempMessage('LOCK THE MARKER FIRST!', 5000);
+        playSound('error');
         return;
     }
-
-    // Open your perfect submit.html — NO MORE SERVER CRASHES EVER
     const url = `submit.html?lat=${loc.lat}&lng=${loc.lng}&category=${encodeURIComponent(loc.category)}&desc=${encodeURIComponent(loc.desc)}`;
     window.open(url, '_blank', 'width=500,height=720,scrollbars=yes');
 };
@@ -3528,7 +3547,7 @@ map.on('dblclick', e => {
         document.body.appendChild(updateModal);
         document.body.classList.add('modal-open');
 
-        // BUTTON WORKS INSTANTLY — no setTimeout
+        // BUTTON WORKS INSTANTLY
         const btn = document.getElementById('updateGotItBtn');
         if (btn) {
             btn.onclick = () => {
@@ -3538,9 +3557,6 @@ map.on('dblclick', e => {
                 playSound('levelUp');
             };
         }
-
-        // NO MORE CLICKING OUTSIDE TO CLOSE
-        // → Players MUST press the button (or the X)
     }
 }
 
@@ -3783,85 +3799,91 @@ if (urlParams.has('permshare')) {
     input.type = 'file';
     input.accept = '.json';
     input.onchange = e => {
-        const file =e.target.files[0];
+        const file = e.target.files[0];
         if (!file) return;
+
         const reader = new FileReader();
         reader.onload = ev => {
             try {
                 const data = JSON.parse(ev.target.result);
+
                 if (data.version && data.version.includes('full-v76')) {
-                    if (!confirm('RESTORE FULL BACKUP?\nThis will replace EVERYTHING (markers, XP, settings)!')) return;
+                    showConfirmModal(
+                        'FULL RESTORE FROM BACKUP',
+                        'This will OVERWRITE EVERYTHING:<br><br>• All your markers<br>• XP & Level<br>• Settings<br>• Community map version<br><br>Are you absolutely sure?',
+                        () => {
+                            // FULL RESTORE
+                            locations = data.locations || [];
+                            customCategories = data.customCategories || {};
+                            Object.assign(categoryIcons, defaultCategoryIcons, customCategories);
+                            level = data.level || 1;
+                            xp = data.xp || 0;
+                            const s = data.settings || {};
+                            clusteringEnabled = s.clusteringEnabled !== undefined ? s.clusteringEnabled : true;
+                            gridEnabled = s.gridEnabled || false;
+                            currentMap = s.currentMap || 'named';
+                            darkMode = s.darkMode || false;
+                            soundsEnabled = s.soundsEnabled !== undefined ? s.soundsEnabled : true;
+                            titleVisible = s.titleVisible !== undefined ? s.titleVisible : true;
+                            toolsVisible = s.toolsVisible !== undefined ? s.toolsVisible : true;
+                            activeCategories = new Set(s.activeCategories || Object.keys(defaultCategoryIcons));
 
-                    // ←←← ALL YOUR EXISTING RESTORE CODE (unchanged) ←←←
-                    locations = data.locations || [];
-                    customCategories = data.customCategories || {};
-                    Object.assign(categoryIcons, defaultCategoryIcons, customCategories);
-                    level = data.level || 1;
-                    xp = data.xp || 0;
-                    const s = data.settings || {};
-                    clusteringEnabled = s.clusteringEnabled !== undefined ? s.clusteringEnabled : true;
-                    gridEnabled = s.gridEnabled || false;
-                    currentMap = s.currentMap || 'named';
-                    darkMode = s.darkMode || false;
-                    soundsEnabled = s.soundsEnabled !== undefined ? s.soundsEnabled : true;
-                    titleVisible = s.titleVisible !== undefined ? s.titleVisible : true;
-                    toolsVisible = s.toolsVisible !== undefined ? s.toolsVisible : true;
-                    activeCategories = new Set(s.activeCategories || Object.keys(defaultCategoryIcons));
-                    localStorage.setItem('fo76_map_version', data.communityVersion || s.communityVersion || '1.3');
+                            localStorage.setItem('fo76_map_version', data.communityVersion || s.communityVersion || '1.3');
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
+                            localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+                            localStorage.setItem('fo76_level', level);
+                            localStorage.setItem('fo76_xp', xp);
+                            localStorage.setItem('clusteringEnabled', clusteringEnabled);
+                            localStorage.setItem('gridEnabled', gridEnabled);
+                            localStorage.setItem('currentMap', currentMap);
+                            localStorage.setItem('darkMode', darkMode);
+                            localStorage.setItem('soundsEnabled', soundsEnabled);
+                            localStorage.setItem('titleVisible', titleVisible);
+                            localStorage.setItem('toolsVisible', toolsVisible);
+                            localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
 
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
-                    localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-                    localStorage.setItem('fo76_level', level);
-                    localStorage.setItem('fo76_xp', xp);
-                    localStorage.setItem('clusteringEnabled', clusteringEnabled);
-                    localStorage.setItem('gridEnabled', gridEnabled);
-                    localStorage.setItem('currentMap', currentMap);
-                    localStorage.setItem('darkMode', darkMode);
-                    localStorage.setItem('soundsEnabled', soundsEnabled);
-                    localStorage.setItem('titleVisible', titleVisible);
-                    localStorage.setItem('toolsVisible', toolsVisible);
-                    localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
+                            // SUCCESS SCREEN + RELOAD
+                            const successOverlay = document.createElement('div');
+                            successOverlay.style.cssText = `
+                                position:fixed;top:0;left:0;width:100vw;height:100vh;
+                                background:#000;z-index:99999;display:flex;
+                                flex-direction:column;align-items:center;justify-content:center;
+                                font-family:'Courier New',monospace;color:#00ff00;
+                                text-align:center;gap:30px;
+                            `;
+                            successOverlay.innerHTML = `
+                                <div style="font-size:clamp(80px,20vw,200px);text-shadow:0 0 60px #00ff00;">RESTORED</div>
+                                <h1 style="font-size:clamp(32px,9vw,80px);margin:0;text-shadow:0 0 40px #00ff00;">
+                                    FULL RESTORE COMPLETE
+                                </h1>
+                                <p style="font-size:clamp(20px,6vw,48px);margin:0;">
+                                    All data successfully restored!
+                                </p>
+                                <p style="font-size:clamp(18px,5vw,36px);opacity:0.9;">
+                                    Reloading in 3...
+                                </p>
+                            `;
+                            document.body.appendChild(successOverlay);
+                            playSound('levelUp');
 
-                    // ←←← NEW BEAUTIFUL SUCCESS SCREEN ←←←
-                    const successOverlay = document.createElement('div');
-                    successOverlay.style.cssText = `
-                        position:fixed;top:0;left:0;width:100vw;height:100vh;
-                        background:#000;z-index:99999;display:flex;
-                        flex-direction:column;align-items:center;justify-content:center;
-                        font-family:'Courier New',monospace;color:#00ff00;
-                        text-align:center;gap:30px;
-                    `;
-                    successOverlay.innerHTML = `
-                        <div style="font-size:clamp(60px,15vw,180px);text-shadow:0 0 40px #00ff00;">☢</div>
-                        <h1 style="font-size:clamp(28px,8vw,70px);margin:0;text-shadow:0 0 30px #00ff00;">
-                            FULL RESTORE COMPLETE
-                        </h1>
-                        <p style="font-size:clamp(18px,5vw,40px);margin:0;">
-                            All markers, XP, settings & community map restored!
-                        </p>
-                        <p style="font-size:clamp(16px,4vw,30px);opacity:0.9;">
-                            Reloading in 3...
-                        </p>
-                    `;
-                    document.body.appendChild(successOverlay);
-                    playSound('levelUp');
-
-                    // Countdown + reload
-                    let count = 3;
-                    const countdown = setInterval(() => {
-                        count--;
-                        successOverlay.querySelector('p:last-child').textContent = `Reloading in ${count}...`;
-                        if (count <= 0) {
-                            clearInterval(countdown);
-                            location.reload();
+                            let count = 3;
+                            const countdown = setInterval(() => {
+                                count--;
+                                successOverlay.querySelector('p:last-child').textContent = `Reloading in ${count}...`;
+                                if (count <= 0) {
+                                    clearInterval(countdown);
+                                    location.reload();
+                                }
+                            }, 1000);
                         }
-                    }, 1000);
-
+                    );
                 } else {
-                    showTempMessage('Not a full backup file', 4000);
+                    showTempMessage('ERROR: Not a valid full backup file', 5000);
+                    playSound('error');
                 }
             } catch (err) {
-                showTempMessage('Invalid backup file', 4000);
+                showTempMessage('ERROR: Invalid or corrupted backup file', 5000);
+                playSound('error');
                 console.error(err);
             }
         };
@@ -3874,53 +3896,53 @@ let reportTimer = null;
 
 // Permanent report block — uses cid, survives refresh/reset
 window.startReport = function(markerId) {
-    // Find the marker by ID
     const marker = locations.find(l => l.id === markerId);
     if (!marker) {
-        alert("Error: Marker not found!");
+        showTempMessage('ERROR: Marker not found!', 5000);
         return;
     }
 
-    // GUARANTEE cid EXISTS — if somehow missing, generate it NOW
+    // Guarantee cid exists
     if (!marker.cid) {
         marker.cid = generateCid(marker);
-        // Save it so it survives refresh
         saveLocations();
     }
 
     const reportKey = "reported_cid_" + marker.cid;
 
-    // BLOCK IF ALREADY REPORTED — permanent, survives everything
+    // Already reported?
     if (localStorage.getItem(reportKey) === "true") {
-        alert("You already reported this marker — thank you! MrCrazy will review it.");
+        showTempMessage('ALREADY REPORTED — THANK YOU!', 6000);
         return;
     }
 
-    if (confirm("Report this marker?\n\nOnly report if it's spam, wrong location, or broken.\nMrCrazy will review and remove if needed.")) {
-        // Mark as reported forever
-        localStorage.setItem(reportKey, "true");
+    showConfirmModal(
+        'REPORT BAD MARKER',
+        'Only report if it is:<br>• Spam<br>• Wrong location<br>• Broken / outdated<br><br>MrCrazy will review and remove if needed.<br><br>Send report?',
+        () => {
+            localStorage.setItem(reportKey, "true");
 
-        // Send report
-        fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                type: "report",
-                markerId: markerId,
-                marker: {
-                    lat: marker.lat,
-                    lng: marker.lng,
-                    category: marker.category,
-                    desc: marker.desc,
-                    icon: marker.icon || "Notepad"
-                }
+            fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    type: "report",
+                    markerId: markerId,
+                    marker: {
+                        lat: marker.lat,
+                        lng: marker.lng,
+                        category: marker.category,
+                        desc: marker.desc,
+                        icon: marker.icon || "Notepad"
+                    }
+                })
             })
-        })
-        .then(() => alert("Report sent — thank you! MrCrazy will review it."))
-        .catch(() => alert("Report sent offline — will be reviewed soon!"));
+            .then(() => showTempMessage('REPORT SENT — THANK YOU!', 6000))
+            .catch(() => showTempMessage('REPORT SENT OFFLINE — WILL BE REVIEWED!', 6000));
 
-        playSound('error');
-    }
+            playSound('error');
+        }
+    );
 };
 
 window.cancelReport = function() {
@@ -3931,19 +3953,22 @@ window.keepCommunityMarker = function(markerId) {
     const marker = locations.find(l => l.id === markerId);
     if (!marker || !marker.isCommunity) return;
 
-    if (confirm("Keep this community marker?\nIt will become a normal marker you can edit/delete.")) {
-        // Convert to personal marker
-        marker.isCommunity = false;
-        marker.userEdited = true;
-        marker.locked = true;
-        marker.addedTime = Date.now();
-		marker.wasCommunityKept = true;
+    showConfirmModal(
+        'KEEP THIS MARKER',
+        'This community marker will become yours forever.<br><br>You will be able to edit, move, or delete it.<br><br>Continue?',
+        () => {
+            marker.isCommunity = false;
+            marker.userEdited = true;
+            marker.locked = true;
+            marker.addedTime = Date.now();
+            marker.wasCommunityKept = true;
 
-        saveLocations();
-        forceReload();
-        showTempMessage('Marker kept! Now yours forever', 4000);
-        playSound('saving');
-    }
+            saveLocations();
+            forceReload();
+            showTempMessage('Marker kept! Now yours (locked — unlock to edit)', 5000);
+            playSound('saving');
+        }
+    );
 };
 
         console.log('%cFallout 76 Item Finder v76.3.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
