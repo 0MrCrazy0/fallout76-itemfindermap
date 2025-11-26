@@ -1177,8 +1177,8 @@ function base64ToUtf8(str) {
         locations.forEach(loc => {
     if (!loc.id) loc.id = generateUniqueId();
     if (!loc.cid) {
-    loc.cid = generateCid(loc);
-}
+        loc.cid = generateCid(loc);
+    }
     if (loc.locked === undefined) loc.locked = false;
     if (loc.isTemp === undefined) loc.isTemp = false;
     if (loc.postcardExpire === undefined && loc.isTemp) loc.postcardExpire = Date.now() + 300000;
@@ -1186,6 +1186,17 @@ function base64ToUtf8(str) {
     if (loc.startTime === undefined) loc.startTime = loc.postcardExpire - 300000;
     if (loc.keepBtnBound === undefined) loc.keepBtnBound = false;
     if (loc.userEdited === undefined) loc.userEdited = true;
+
+    // ETERNAL PROTECTION — BACKWARD COMPATIBILITY
+    // If user has ever kept this marker (even in old versions), protect it forever
+    if (loc.userEdited && loc.isCommunity === false && loc.wasCommunityKept === undefined) {
+        loc.wasCommunityKept = true;
+    }
+
+    // Safety: ensure the flag exists on all markers
+    if (loc.wasCommunityKept === undefined) {
+        loc.wasCommunityKept = false;
+    }
 });
 
 // ONLY SAVE ONCE — at the end
@@ -2791,16 +2802,32 @@ if (submitBtn) {
 
             incoming.forEach(imp => {
                 const existing = locations.find(l => l.cid === imp.cid);
-                if (existing && existing.userEdited) {
+
+                // ETERNAL PROTECTION: If you EVER kept this marker (even if deleted), skip it forever
+                if (existing && (existing.userEdited || existing.wasCommunityKept)) {
                     skipped++;
                     return;
                 }
+
+                // Normal add/update for untouched community markers
                 if (existing) {
                     Object.assign(existing, imp);
                     existing.userEdited = false;
+                    existing.isCommunity = true;
+                    existing.wasCommunityKept = false; // reset if it was previously kept
                     updated++;
                 } else {
-                    locations.push({ ...imp, id: generateUniqueId(), addedTime: Date.now(), locked: true, isPostcard: false, isTemp: false, userEdited: false });
+                    locations.push({
+                        ...imp,
+                        id: generateUniqueId(),
+                        addedTime: Date.now(),
+                        locked: true,
+                        isCommunity: true,
+                        isTemp: false,
+                        isPostcard: false,
+                        userEdited: false,
+                        wasCommunityKept: false
+                    });
                     added++;
                 }
             });
@@ -3912,6 +3939,7 @@ window.keepCommunityMarker = function(markerId) {
         marker.userEdited = true;
         marker.locked = false;  // unlocked so they can move/delete
         marker.addedTime = Date.now();
+		marker.wasCommunityKept = true;
 
         saveLocations();
         forceReload();
