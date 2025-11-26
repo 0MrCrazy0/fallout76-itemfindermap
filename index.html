@@ -2666,9 +2666,11 @@ if (submitBtn) {
 
     showConfirmModal(
         'EXPORT MARKERS',
-        '<strong>OK</strong> → Export ALL markers (yours + community)<br><br><strong>Cancel</strong> → Export only YOUR markers',
-        () => performExport(true),   // OK = ALL
-        () => performExport(false)  // Cancel = USER only
+        'Choose what to export:<br><br>' +
+        '<strong style="color:#00ff00;">OK → Export ALL markers</strong> (yours + community)<br>' +
+        '<strong style="color:#ff8800;">CANCEL → Export only YOUR markers</strong>',
+        () => performExport(true),  // OK = ALL markers
+        () => performExport(false)  // CANCEL = YOUR markers only
     );
 
     function performExport(all) {
@@ -2676,8 +2678,8 @@ if (submitBtn) {
             version: 1.0,
             communityVersion,
             customCategories,
-            locations: all 
-                ? locations.filter(l => !l.isPostcard) 
+            locations: all
+                ? locations.filter(l => !l.isPostcard)
                 : locations.filter(l => l.userEdited && !l.isPostcard)
         };
 
@@ -2705,7 +2707,7 @@ if (submitBtn) {
         playSound('saving');
         setTimeout(() => exportOverlay.remove(), 3000);
     }
-};;
+};
 
         importBtn.onclick = () => {
     const input = document.createElement('input');
