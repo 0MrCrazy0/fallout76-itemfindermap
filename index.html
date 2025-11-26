@@ -3740,6 +3740,7 @@ if (urlParams.has('permshare')) {
     } catch (e) {
         showTempMessage('Invalid share link', 5000);
         history.replaceState(null, null, location.pathname);
+        return;
     }
 
     if (raw) {
@@ -3751,17 +3752,26 @@ if (urlParams.has('permshare')) {
 
             incoming.forEach(imp => {
                 const existing = locations.find(l => l.cid === imp.cid);
+
+                // Never overwrite a user's own edited marker
                 if (existing && existing.userEdited) return;
+
                 if (existing) {
+                    // Update existing marker but make it fully owned
                     Object.assign(existing, imp);
-                    existing.userEdited = false;
+                    existing.userEdited = true;
+                    existing.isCommunity = false;
                 } else {
+                    // NEW: Treat shared markers as user-edited from the start
                     locations.push({
                         ...imp,
                         id: generateUniqueId(),
                         addedTime: Date.now(),
                         locked: true,
-                        userEdited: false
+                        userEdited: true,      // ← This gives immediate edit/lock UI
+                        isCommunity: false,    // ← No "Keep" button needed
+                        isTemp: false,
+                        isPostcard: false
                     });
                 }
             });
@@ -3770,9 +3780,10 @@ if (urlParams.has('permshare')) {
             saveLocations();
             forceReload();
 
-            showTempMessage(`Imported ${added} marker${added === 1 ? '' : 's'} from shared link!`, 6000);
+            showTempMessage(`Imported ${added} marker${added === 1 ? '' : 's'} from shared link! (Ready to edit)`, 6000);
             playSound('saving');
 
+            // Undo button (unchanged)
             const undoBtn = document.getElementById('undoImportBtn');
             if (undoBtn && added > 0) {
                 undoBtn.style.display = 'block';
@@ -3788,9 +3799,9 @@ if (urlParams.has('permshare')) {
             }
 
             history.replaceState(null, null, location.pathname);
-
         } catch (e) {
             showTempMessage('Corrupted share data', 5000);
+            console.error('Permshare import error:', e);
         }
     }
 }
