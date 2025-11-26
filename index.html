@@ -2159,33 +2159,35 @@ map.on('popupclose', () => {
             });
         } else {
                             marker.bindPopup(`
-                <div style="font-family:monospace;max-width:320px">
-                  <strong style="font-size:1.4em">${loc.icon || categoryIcons[loc.category] || 'Position'} ${loc.category.toUpperCase()}</strong><br>
-                  <small style="white-space:pre-wrap">${escapeHtml(loc.desc)}</small>
-                  ${loc.isCommunity ? `
-  <div style="margin-top:12px;text-align:center;">
-    <button onclick="keepCommunityMarker('${loc.id}')" 
-            style="background:#00ff00;color:#000;border:none;padding:8px 16px;border-radius:6px;font-weight:bold;margin:4px;">
-      Keep This Marker
-    </button>
-    <button onclick="startReport('${loc.id}')" 
-            style="background:#300;color:#f00;border:2px solid #f00;padding:8px 16px;border-radius:6px;font-weight:bold;margin:4px;">
-      Report Bad Marker
-    </button>
-    <div style="margin-top:8px;font-size:12px;color:#aaa;">
-      Keep = save to your map • Report = ask MrCrazy to remove
+    <div style="font-family:monospace;max-width:320px">
+      <strong style="font-size:1.4em">${loc.icon || categoryIcons[loc.category] || 'Position'} ${loc.category.toUpperCase()}</strong><br>
+      <small style="white-space:pre-wrap">${escapeHtml(loc.desc)}</small>
+
+      ${loc.isCommunity && !loc.userEdited ? `
+        <div style="margin-top:12px;text-align:center;">
+          <button onclick="keepCommunityMarker('${loc.id}')"
+                  style="background:#00ff00;color:#000;border:none;padding:8px 16px;border-radius:6px;font-weight:bold;margin:4px;">
+            Keep This Marker
+          </button>
+          <button onclick="startReport('${loc.id}')"
+                  style="background:#300;color:#f00;border:2px solid #f00;padding:8px 16px;border-radius:6px;font-weight:bold;margin:4px;">
+            Report Bad Marker
+          </button>
+          <div style="margin-top:8px;font-size:12px;color:#aaa;">
+            Keep = save to your map • Report = ask MrCrazy to remove
+          </div>
+        </div>
+        <hr style="border:1px dashed #0f0;margin:12px 0">
+      ` : ''}
+
+      ${loc.userEdited && !loc.isPostcard ? `
+        <div style="margin:6px 0;text-align:center;">
+          <span class="popup-lock-toggle" onclick="toggleLockFromPopup(${locations.indexOf(loc)})">${loc.locked ? 'Locked' : 'Unlocked'}</span>
+        </div>
+        <button onclick="editMarkerFromPopup(${locations.indexOf(loc)})">Edit</button>
+      ` : ''}
     </div>
-  </div>
-  <hr style="border:1px dashed #0f0;margin:12px 0">
-` : ''}
-                  ${!loc.isCommunity ? `
-                    <div style="margin:6px 0;text-align:center;">
-                      <span class="popup-lock-toggle" onclick="toggleLockFromPopup(${locations.indexOf(loc)})">${loc.locked ? 'Locked' : 'Unlocked'}</span>
-                    </div>
-                  ` : ''}
-                  <button onclick="editMarkerFromPopup(${locations.indexOf(loc)})">Edit</button>
-                </div>
-            `, { maxWidth: 340, offset: [0, -20] });
+`, { maxWidth: 340, offset: [0, -20] });
         }
     });
 }
@@ -2283,10 +2285,12 @@ map.on('popupclose', () => {
             });
         };
 
-        tr.oncontextmenu = e => {
+                tr.oncontextmenu = e => {
             e.preventDefault();
             safeFlyTo(loc.lat, loc.lng, 4);
-            if (!loc.isPostcard) openModal('Edit Item', locations.findIndex(l=>l.id===loc.id));
+            if (loc.userEdited && !loc.isPostcard) {
+                openModal('Edit Item', locations.findIndex(l => l.id === loc.id));
+            }
         };
 
         tbody.appendChild(tr);
@@ -2803,21 +2807,19 @@ if (submitBtn) {
             incoming.forEach(imp => {
                 const existing = locations.find(l => l.cid === imp.cid);
 
-                // ETERNAL PROTECTION: If you EVER kept this marker (even if deleted), skip it forever
+                // ETERNAL PROTECTION
                 if (existing && (existing.userEdited || existing.wasCommunityKept)) {
                     skipped++;
                     return;
                 }
 
-                // Normal add/update for untouched community markers
+                let loc;
                 if (existing) {
                     Object.assign(existing, imp);
-                    existing.userEdited = false;
-                    existing.isCommunity = true;
-                    existing.wasCommunityKept = false; // reset if it was previously kept
+                    loc = existing;
                     updated++;
                 } else {
-                    locations.push({
+                    loc = {
                         ...imp,
                         id: generateUniqueId(),
                         addedTime: Date.now(),
@@ -2827,9 +2829,16 @@ if (submitBtn) {
                         isPostcard: false,
                         userEdited: false,
                         wasCommunityKept: false
-                    });
+                    };
+                    locations.push(loc);
                     added++;
                 }
+
+                // FORCE FRESH COMMUNITY MARKERS TO BE NON-EDITABLE
+                loc.isCommunity = true;
+                loc.locked = true;
+                loc.userEdited = false;                     // ← BLOCKS EDIT BUTTON
+                loc.wasCommunityKept = !!existing?.wasCommunityKept;
             });
 
             if (data.customCategories) customCategories = { ...customCategories, ...data.customCategories };
@@ -2845,13 +2854,13 @@ if (submitBtn) {
 
             showConfirmModal(
                 'Community Map Updated',
-                `Added: <strong>${added}</strong> markers<br>Updated: <strong>${updated}</strong> markers<br>Skipped (user-edited): <strong>${skipped}</strong> markers<br>Total: <strong>${locations.length}</strong> markers`,
+                `Added: <strong>${added}</strong> markers<br>Updated: <strong>${updated}</strong> markers<br>Skipped (yours): <strong>${skipped}</strong> markers<br>Total: <strong>${locations.length}</strong> markers`,
                 null
             );
             playSound('saving');
 
             if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
-    localStorage.setItem('seenCommunityNuke', 'true');
+                localStorage.setItem('seenCommunityNuke', 'true');
 
     setTimeout(() => {
         const flash = document.createElement('div');
@@ -3926,7 +3935,7 @@ window.keepCommunityMarker = function(markerId) {
         // Convert to personal marker
         marker.isCommunity = false;
         marker.userEdited = true;
-        marker.locked = false;  // unlocked so they can move/delete
+        marker.locked = true;
         marker.addedTime = Date.now();
 		marker.wasCommunityKept = true;
 
