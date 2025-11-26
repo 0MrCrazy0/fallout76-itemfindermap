@@ -1265,8 +1265,8 @@ communityVersion = getCurrentCommunityVersion();
         });
         const imageBounds = [[0, 0], [4096, 4096]];
         const mapUrls = {
-    named: 'https://raw.githubusercontent.com/0mrcrazy0/fallout76-itemfindermap/main/Mappalachia-Map-of-Appalachia-named.jpg',
-    noName: 'https://raw.githubusercontent.com/0mrcrazy0/fallout76-itemfindermap/main/Mappalachia-Map-of-Appalachia-no-name.jpg'
+    named: 'https://raw.githubusercontent.com/0mrcrazy0/fallout76-itemfindermap/main/Mappalachia-Map-of-Appalachia-named.png',
+    noName: 'https://raw.githubusercontent.com/0mrcrazy0/fallout76-itemfindermap/main/Mappalachia-Map-of-Appalachia-no-name.png'
 };
         let currentMap = localStorage.getItem('currentMap') || 'named';
         let imageOverlay = L.imageOverlay(mapUrls[currentMap], imageBounds).addTo(map);
@@ -4029,6 +4029,7 @@ window.keepCommunityMarker = function(markerId) {
 </script>
 </body>
 </html>
+
 
 
 
