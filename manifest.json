@@ -2,7 +2,7 @@
   "name": "Fallout 76 Item Finder Map",
   "short_name": "FO76 Map",
   "description": "The ultimate interactive item & location map for Fallout 76",
-  "start_url": "/",
+  "start_url": "/fallout76-itemfindermap/",
   "display": "standalone",
   "background_color": "#0a2a2a",
   "theme_color": "#00ff00",
@@ -21,4 +21,5 @@
     }
   ]
 }
+
 
