@@ -2662,18 +2662,42 @@ if (submitBtn) {
 };
 
         exportBtn.onclick = () => {
-    playSound('saving');
+    playSound('click');
 
-    showConfirmModal(
-        'EXPORT MARKERS',
-        'Choose what to export:<br><br>' +
-        '<strong style="color:#00ff00;">OK → Export ALL markers</strong> (yours + community)<br>' +
-        '<strong style="color:#ff8800;">CANCEL → Export only YOUR markers</strong>',
-        () => performExport(true),  // OK = ALL markers
-        () => performExport(false)  // CANCEL = YOUR markers only
-    );
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width:500px;">
+            <span class="close">×</span>
+            <h2>EXPORT MARKERS</h2>
+            <p style="text-align:center; line-height:1.8; margin:20px 0;">
+                Choose what to export:
+            </p>
+            <div style="display:flex; flex-direction:column; gap:15px; align-items:center;">
+                <button id="exportAllBtn" style="background:#00ff00; color:#000; padding:12px 30px; font-size:1.1em; width:80%;">
+                    <strong>EXPORT ALL MARKERS</strong><br>
+                    <small style="font-size:0.9em; opacity:0.9;">Yours + Community (${locations.filter(l => !l.isPostcard).length} total)</small>
+                </button>
+                <button id="exportMineBtn" style="background:#ffa500; color:#000; padding:12px 30px; font-size:1.1em; width:80%;">
+                    <strong>EXPORT MINE ONLY</strong><br>
+                    <small style="font-size:0.9em; opacity:0.9;">Only your created/edited markers (${locations.filter(l => l.userEdited && !l.isPostcard).length})</small>
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    document.body.classList.add('modal-open');
 
-    function performExport(all) {
+    const closeModal = () => {
+        modal.remove();
+        document.body.classList.remove('modal-open');
+        playSound('modalClose');
+    };
+
+    modal.querySelector('.close').onclick = closeModal;
+
+    const performExport = (all) => {
         const data = {
             version: 1.0,
             communityVersion,
@@ -2689,10 +2713,10 @@ if (submitBtn) {
         a.download = `fo76_${all ? 'all' : 'user'}_${data.locations.length}_markers_${new Date().toISOString().slice(0,10)}.json`;
         a.click();
 
-        const exportOverlay = document.createElement('div');
-        exportOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"Courier New",monospace;color:#00ff00;text-align:center;gap:20px;';
-        exportOverlay.innerHTML = `
-            <div style="font-size:clamp(60px,15vw,180px);text-shadow:0 0 40px #00ff00;">DISK</div>
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"Courier New",monospace;color:#00ff00;text-align:center;gap:20px;';
+        overlay.innerHTML = `
+            <div style="font-size:clamp(60px,15vw,180px);text-shadow:0 0 40px #00ff00;">💾</div>
             <h1 style="font-size:clamp(28px,8vw,70px);margin:0;text-shadow:0 0 30px #00ff00;">
                 EXPORT COMPLETE
             </h1>
@@ -2700,13 +2724,17 @@ if (submitBtn) {
                 ${data.locations.length} marker${data.locations.length===1?'':'s'} saved!
             </p>
             <p style="font-size:clamp(14px,4vw,28px);opacity:0.9;">
-                ${all ? 'ALL markers (yours + community)' : 'Only YOUR markers'}
+                ${all ? 'ALL markers exported' : 'Only YOUR markers'}
             </p>
         `;
-        document.body.appendChild(exportOverlay);
+        document.body.appendChild(overlay);
         playSound('saving');
-        setTimeout(() => exportOverlay.remove(), 3000);
-    }
+        setTimeout(() => overlay.remove(), 3000);
+        closeModal();
+    };
+
+    document.getElementById('exportAllBtn').onclick = () => performExport(true);
+    document.getElementById('exportMineBtn').onclick = () => performExport(false);
 };
 
         importBtn.onclick = () => {
