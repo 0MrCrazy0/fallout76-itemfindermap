@@ -3056,6 +3056,20 @@
       "startTime": null,
       "popupTimer": null,
       "keepBtnBound": false
+    },
+    {
+      "lat": 1961.7535173958931,
+      "lng": 1740.761730657404,
+      "category": "aid",
+      "desc": "aid box upstairs in the bedroom.\nGrid E5 (X: 1741, Y: 1962)",
+      "icon": "Aid",
+      "submittedBy": "Anonymous",
+      "id": "id-1764142676894",
+      "votes": {
+        "up": 0,
+        "down": 0
+      },
+      "isCommunity": true
     }
   ]
 }
