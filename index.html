@@ -2173,7 +2173,6 @@ map.on('popupclose', () => {
                     </div>
                   ` : ''}
                   <button onclick="editMarkerFromPopup(${locations.indexOf(loc)})">Edit</button>
-                  ${!loc.locked && !loc.isPostcard ? ` <button onclick="deleteMarker('${loc.id}')">Delete</button>` : ''}
                 </div>
             `, { maxWidth: 340, offset: [0, -20] });
         }
