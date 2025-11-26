@@ -2152,17 +2152,21 @@ map.on('popupclose', () => {
                   <strong style="font-size:1.4em">${loc.icon || categoryIcons[loc.category] || 'Position'} ${loc.category.toUpperCase()}</strong><br>
                   <small style="white-space:pre-wrap">${escapeHtml(loc.desc)}</small>
                   ${loc.isCommunity ? `
-    <div style="margin-top:12px;text-align:center;">
-      <button onclick="startReport('${loc.id}')" 
-              style="background:#300;color:#f00;border:2px solid #f00;padding:10px 20px;border-radius:6px;font-size:16px;cursor:pointer;font-weight:bold;">
-        ⚠️ Report Bad Marker
-      </button>
-      <div style="margin-top:6px;font-size:12px;color:#aaa;">
-        Tap to report spam/wrong locations — MrCrazy will review
-      </div>
+  <div style="margin-top:12px;text-align:center;">
+    <button onclick="keepCommunityMarker('${loc.id}')" 
+            style="background:#00ff00;color:#000;border:none;padding:8px 16px;border-radius:6px;font-weight:bold;margin:4px;">
+      Keep This Marker
+    </button>
+    <button onclick="startReport('${loc.id}')" 
+            style="background:#300;color:#f00;border:2px solid #f00;padding:8px 16px;border-radius:6px;font-weight:bold;margin:4px;">
+      Report Bad Marker
+    </button>
+    <div style="margin-top:8px;font-size:12px;color:#aaa;">
+      Keep = save to your map • Report = ask MrCrazy to remove
     </div>
-    <hr style="border:1px dashed #0f0;margin:12px 0">
-  ` : ''}
+  </div>
+  <hr style="border:1px dashed #0f0;margin:12px 0">
+` : ''}
                   ${!loc.isCommunity ? `
                     <div style="margin:6px 0;text-align:center;">
                       <span class="popup-lock-toggle" onclick="toggleLockFromPopup(${locations.indexOf(loc)})">${loc.locked ? 'Locked' : 'Unlocked'}</span>
@@ -3897,6 +3901,24 @@ window.startReport = function(markerId) {
 
 window.cancelReport = function() {
     clearTimeout(reportTimer);
+};
+
+window.keepCommunityMarker = function(markerId) {
+    const marker = locations.find(l => l.id === markerId);
+    if (!marker || !marker.isCommunity) return;
+
+    if (confirm("Keep this community marker?\nIt will become a normal marker you can edit/delete.")) {
+        // Convert to personal marker
+        marker.isCommunity = false;
+        marker.userEdited = true;
+        marker.locked = false;  // unlocked so they can move/delete
+        marker.addedTime = Date.now();
+
+        saveLocations();
+        forceReload();
+        showTempMessage('Marker kept! Now yours forever', 4000);
+        playSound('saving');
+    }
 };
 
         console.log('%cFallout 76 Item Finder v76.2.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
