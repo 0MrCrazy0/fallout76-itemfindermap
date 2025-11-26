@@ -1,4 +1,4 @@
-const CACHE_NAME = "fo76-ifm-v6.0";
+const CACHE_NAME = "fo76-ifm-v7.0";
 
 self.addEventListener("install", e => {
   e.waitUntil(self.skipWaiting());
@@ -28,4 +28,5 @@ self.addEventListener("fetch", e => {
     caches.match(e.request).then(cached => cached || fetch(e.request))
   );
 });
+
 
