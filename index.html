@@ -1449,6 +1449,9 @@ map.on('click', function (e) {
         let currentSearch = localStorage.getItem('currentSearch') || '';
         let currentCategoryFilter = localStorage.getItem('currentCategoryFilter') || '';
         let darkMode = localStorage.getItem('darkMode') === 'true';
+if (darkMode) {
+    document.body.classList.add('dark-mode');
+}
         let gridLayer = L.layerGroup().addTo(map);
         let isDraggingAny = false;
 		let isDraggingAnyMarker = false;
