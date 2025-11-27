@@ -3,75 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>☢️ Submit to Community Map ☢️</title>
+    <title>Submit to Community Map</title>
     <style>
-        body { 
-            font-family: 'Courier New', monospace; 
-            background: #0a2a2a; 
-            color: #00ff00; 
-            padding: 20px; 
-            text-align: center; 
-            margin: 0;
-        }
-        form { 
-            max-width: 420px; 
-            margin: 0 auto; 
-            background: #1a3c34; 
-            padding: 28px; 
-            border: 3px solid #00ff00; 
-            box-sizing: border-box;
-        }
-        h1 { 
-            margin: 0 0 16px 0; 
-            font-size: 2em; 
-            text-shadow: 0 0 12px #00ff00; 
-        }
-        p { margin: 10px 0 24px 0; font-size: 1.1em; }
-
-        label { 
-            display: block; 
-            text-align: center; 
-            font-weight: bold; 
-            margin: 20px 0 8px 0; 
-            color: #00ff88;
-        }
-        input, button { 
-            width: 100%; 
-            padding: 14px; 
-            margin: 0; 
-            border: 2px solid #00ff00; 
-            background: #000; 
-            color: #00ff00; 
-            font-family: inherit; 
-            font-size: 16px; 
-            box-sizing: border-box;
-        }
-        input::placeholder { color: #00aa00; opacity: 0.8; }
-
-        button { 
-            background: #00ff00; 
-            color: #000; 
-            font-weight: bold; 
-            font-size: 18px; 
-            cursor: pointer; 
-            margin-top: 20px;
-            transition: background 0.3s;
-        }
-        button:hover { background: #00cc00; }
-
-        .pre-filled { 
-            background: #0a3a0a; 
-            padding: 16px; 
-            margin: 20px 0; 
-            text-align: left; 
-            border: 1px solid #00ff88; 
-            font-size: 14px; 
-            line-height: 1.6;
-        }
+        body {font-family:'Courier New',monospace;background:#0a2a2a;color:#00ff00;padding:20px;text-align:center;margin:0}
+        form {max-width:420px;margin:0 auto;background:#1a3c34;padding:28px;border:3px solid #00ff00;box-sizing:border-box}
+        h1 {margin:0 0 16px;font-size:2em;text-shadow:0 0 12px #00ff00}
+        p {margin:10px 0 24px;font-size:1.1em}
+        label {display:block;text-align:center;font-weight:bold;margin:20px 0 8px;color:#00ff88}
+        input,button {width:100%;padding:14px;margin:0;border:2px solid #00ff00;background:#000;color:#00ff00;font-family:inherit;font-size:16px;box-sizing:border-box}
+        input::placeholder {color:#00aa00;opacity:0.8}
+        button {background:#00ff00;color:#000;font-weight:bold;font-size:18px;cursor:pointer;margin-top:20px;transition:background .3s}
+        button:hover {background:#00cc00}
+        .pre-filled {background:#0a3a0a;padding:16px;margin:20px 0;text-align:left;border:1px solid #00ff88;font-size:14px;line-height:1.6}
     </style>
 </head>
 <body>
-    <h1>☢️ Submit Marker ☢️</h1>
+    <h1>Submit Marker</h1>
     <p>Share your discovery with the wasteland!<br>MrCrazy will review and merge it soon.</p>
 
     <form id="submitForm">
@@ -94,7 +41,7 @@
         const lng = urlParams.get('lng');
         const category = urlParams.get('category') || 'misc';
         const desc = decodeURIComponent(urlParams.get('desc') || 'No description');
-        const icon = urlParams.get('icon') || '📝';  // Real emoji from app
+        const icon = urlParams.get('icon') || 'Notepad';  // Real emoji
 
         document.getElementById('coords').textContent = `${lat}, ${lng}`;
         document.getElementById('category').textContent = category;
@@ -103,31 +50,40 @@
         document.getElementById('submitForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('playerName').value.trim() || 'Anonymous';
+
+            // ←←← THIS IS THE FIX — we keep the emoji in the marker, but strip it from the commit message
+            const safeDescForCommit = desc.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
+
             const marker = {
                 lat: parseFloat(lat),
                 lng: parseFloat(lng),
                 category: category,
-                desc: desc,
-                icon: icon
+                desc: desc,           // ← original with emoji
+                icon: icon            // ← real emoji
             };
 
             try {
                 const response = await fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: 'submit', marker, name })
+                    body: JSON.stringify({ 
+                        type: 'submit', 
+                        marker, 
+                        name,
+                        safeDesc: safeDescForCommit  // ← worker will use this for commit message
+                    })
                 });
                 const text = await response.text();
 
                 if (response.ok || text.includes("PR")) {
                     document.body.innerHTML = `
-                        <h1>THANK YOU ❤️</h1>
+                        <h1>THANK YOU</h1>
                         <p>Your marker has been submitted!</p>
                         <p>MrCrazy will review and merge it soon.</p>
                         <p><strong>Category:</strong> ${category}<br>
                         <strong>Icon:</strong> ${icon}</p>
                         <br>
-                        <a href="javascript:window.close()" style="color:#00ff88; text-decoration:underline; font-size:1.2em; font-weight:bold;">
+                        <a href="javascript:window.close()" style="color:#00ff88;text-decoration:underline;font-size:1.2em;font-weight:bold;">
                             Close Window
                         </a>`;
                 } else {
