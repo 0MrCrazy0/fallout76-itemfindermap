@@ -3056,6 +3056,20 @@
       "startTime": null,
       "popupTimer": null,
       "keepBtnBound": false
+    },
+    {
+      "lat": 416.43092522837105,
+      "lng": 542.7769693530636,
+      "category": "misc",
+      "desc": "test msg\nGrid B2 (X: 543, Y: 416)",
+      "icon": "Misc",
+      "submittedBy": "mrcrazy",
+      "id": "id-1764247610666",
+      "votes": {
+        "up": 0,
+        "down": 0
+      },
+      "isCommunity": true
     }
   ]
 }
