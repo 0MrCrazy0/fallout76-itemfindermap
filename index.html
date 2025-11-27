@@ -813,24 +813,21 @@
 const nukeStyle = document.createElement('style');
 nukeStyle.textContent = `
     @keyframes nukeFlash {
-        0% { opacity: 0; }
-        10% { opacity: 1; }
-        100% { opacity: 0; }
-    }
-    @keyframes mushroomCloud {
-        0% { font-size: 0; opacity: 0; }
-        50% { font-size: 400px; opacity: 1; }
-        100% { font-size: 600px; opacity: 0; }
-    }
-    @keyframes textAppear {
-        to { opacity: 1; }
-    }
-`;
-document.head.appendChild(nukeStyle);
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    100% { opacity: 0; }
+}
+@keyframes mushroomCloud {
+    0% { font-size: 0; opacity: 0; }
+    50% { font-size: 400px; opacity: 1; }
+    100% { font-size: 600px; opacity: 0; }
+}
+@keyframes textAppear {
+    to { opacity: 1; }
 }
 @keyframes quickFlash {
-    0%   { opacity: 0; }
-    10%  { opacity: 1; }
+    0% { opacity: 0; }
+    10% { opacity: 1; }
     100% { opacity: 0; }
 }
 
@@ -1663,30 +1660,45 @@ map.on('popupclose', () => {
         };
 
         duplicateBtn.onclick = () => {
-            if (currentIndex < 0) return;
-            const loc = locations[currentIndex];
-            if (loc.locked) {
-                showTempMessage('Unlock first!', 4000);
-                playSound('error');
-                return;
-            }
-            const o = 40 / Math.pow(2, map.getZoom());
-            const a = (locations.filter(l => l.cid === loc.cid).length) * 60 * Math.PI / 180;
-            const newLat = loc.lat + o * Math.sin(a);
-            const newLng = loc.lng + o * Math.cos(a);
-            const newDesc = updateDescWithGrid(loc.desc, newLat, newLng);
-            const dup = createNewLocation(newLat, newLng, loc.category, newDesc);
-			dup.userEdited = true;
-            dup.locked = false;
-            locations.push(dup);
-            recalculateXP();
-            saveLocations();
-            forceReload();
-            closeModal(itemModal);
-            safeFlyTo(newLat, newLng);
-            showTempMessage('Duplicated!', 3000);
-            playSound('duplicate');
-        };
+    if (currentIndex < 0) return;
+    const loc = locations[currentIndex];
+    if (loc.locked) {
+        showTempMessage('Unlock first!', 4000);
+        playSound('error');
+        return;
+    }
+
+    // --- CHAINED OFFSET + CLUSTER-PROOF DISTANCE ---
+    const sameCidMarkers = locations.filter(l => l.cid === loc.cid);
+    const reference = sameCidMarkers.length > 0 ? sameCidMarkers[sameCidMarkers.length - 1] : loc;
+
+    // MASSIVE offset when clustering is on — guarantees no stacking even at zoom 0
+    const baseO = clusteringEnabled ? 160 : 60;  // 160px base = no cluster ever again
+    const o = baseO / Math.pow(2, map.getZoom());
+    const a = sameCidMarkers.length * (55 * Math.PI / 180); // tighter spiral, looks cleaner
+
+    const newLat = reference.lat + o * Math.sin(a);
+    const newLng = reference.lng + o * Math.cos(a);
+
+    const newDesc = updateDescWithGrid(loc.desc, newLat, newLng);
+    const dup = createNewLocation(newLat, newLng, loc.category, newDesc);
+    dup.userEdited = true;
+    dup.locked = false;  // new duplicate starts unlocked (ready to move if wanted)
+
+    // --- RE-LOCK THE ORIGINAL MARKER FOR SAFETY ---
+    loc.locked = true;                    // ← CRITICAL: prevent accidental move
+    loc.addedTime = Date.now();           // make it glow again briefly
+
+    locations.push(dup);
+    recalculateXP();
+    saveLocations();
+    forceReload();
+
+    closeModal(itemModal);
+    safeFlyTo(newLat, newLng, map.getZoom() + 1);  // zoom in a bit so user sees the separation
+    showTempMessage('Duplicated + Original Re-Locked!', 4000);
+    playSound('duplicate');
+};
 
         function drawGrid() {
             gridLayer.clearLayers();
@@ -1979,8 +1991,6 @@ map.on('popupclose', () => {
                 locations[index].userEdited = true;
                 locations[index].postcardExpire = null;
                 locations[index].addedTime = Date.now();
-                locations[index].startTime = null;
-				locations[index].postcardExpire = null;
                 locations[index].startTime = null;
 				locations[index].icon = '📝';
                 saveLocations();
@@ -2702,7 +2712,7 @@ if (submitBtn) {
         () => {
             // FULL BACKUP
             const fullBackup = {
-                version: "full-v76.3",
+                version: "full-v76.4.0",
                 timestamp: new Date().toISOString(),
                 communityVersion,
                 locations: locations.filter(l => !l.isPostcard),
@@ -3079,7 +3089,10 @@ document.getElementById('shareOneBtn').onclick = () => {
 
         saveJpegBtn.onclick = () => {
             playSound('saving');
-            html2canvas(document.getElementById('map'), { useCORS: true, scale: 2 }).then(canvas => {
+            html2canvas(document.getElementById('map'), { 
+    useCORS: true, 
+    scale: window.devicePixelRatio > 2 ? 2 : window.devicePixelRatio || 1.5 
+}).then(canvas => {
                 const a = document.createElement('a');
                 a.href = canvas.toDataURL('image/jpeg', 0.9);
                 a.download = `fo76_map_${new Date().toISOString().slice(0,10)}.jpg`;
@@ -3322,19 +3335,19 @@ document.getElementById('shareOneBtn').onclick = () => {
         };
 
         undoBtn.onclick = () => {
-            if (!lastDeleted) return;
-            locations.push(lastDeleted);
-            lastDeleted = null;
-            recalculateXP();
-            saveLocations();
-            forceReload();
-            undoBtn.style.display = 'none';
-            showTempMessage('Undo complete!', 3000);
-            playSound('undo');
-            const restoredLoc = locations[locations.length - 1];
-			closeModal(itemModal);
-            safeFlyTo(restoredLoc.lat, restoredLoc.lng, 4);
-        };
+    if (!lastDeleted) return;
+    locations.push(lastDeleted);
+    recalculateXP();
+    saveLocations();
+    forceReload();
+    undoBtn.style.display = 'none';
+    showTempMessage('Undo complete!', 3000);
+    playSound('undo');
+
+    closeModal(itemModal);
+    safeFlyTo(lastDeleted.lat, lastDeleted.lng, 4);
+    lastDeleted = null; // ← now perfectly safe + clean
+};
 
         exportOneBtn.onclick = () => {
             const loc = locations[currentIndex];
