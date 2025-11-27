@@ -3056,23 +3056,6 @@
       "startTime": null,
       "popupTimer": null,
       "keepBtnBound": false
-    },
-    {
-      "id": "id-9dd9ab00-87ef-44ad-bf3d-c91149c60ac6",
-      "cid": "armor_grid_a2_x_192_y_418_418_192",
-      "category": "armor",
-      "desc": "Grid A2 (X: 192, Y: 418)",
-      "lat": 417.57309739801167,
-      "lng": 191.56300915138036,
-      "icon": "Armor",
-      "addedTime": 1764252600427,
-      "locked": true,
-      "isPostcard": false,
-      "isTemp": false,
-      "startTime": null,
-      "keepBtnBound": false,
-      "userEdited": true,
-      "wasCommunityKept": false
     }
   ]
 }
