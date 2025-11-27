@@ -3056,6 +3056,23 @@
       "startTime": null,
       "popupTimer": null,
       "keepBtnBound": false
+    },
+    {
+      "id": "id-53f91c16-c17d-4a6b-b8d4-ceb416896094",
+      "cid": "misc_yo_grid_b3_x_465_y_824_824_465",
+      "category": "misc",
+      "desc": "yo\nGrid B3 (X: 465, Y: 824)",
+      "lat": 824.1988948794797,
+      "lng": 465.25290891156965,
+      "icon": "",
+      "addedTime": 1764250856358,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": true,
+      "wasCommunityKept": false
     }
   ]
 }
