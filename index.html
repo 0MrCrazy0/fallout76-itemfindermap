@@ -4,7 +4,7 @@
     <!-- DEV NOTE: Meta tags for mobile + PWA support -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Fallout 76 Item Finder Map v76.3.0</title>
+    <title>Fallout 76 Item Finder Map v76.4.0</title>
 
 	<link rel="manifest" href="manifest.json?v=3">
 
@@ -885,6 +885,26 @@ document.head.appendChild(nukeStyle);
     from { filter: drop-shadow(0 0 12px #00ff00) brightness(1.4); }
     to { filter: drop-shadow(0 0 18px #00ff80) brightness(1.5); }
 }
+
+/* FORCE BLACK TEXT ON BUTTONS — WORKS IN DARK MODE TOO */
+#exportAllBtn,
+#exportMineBtn,
+#installYes,
+#confirmModalBtn,
+#saveItemBtn,
+#shareItemBtn,
+#exportOneBtn,
+#sendReportNow,
+#submitCommunityBtn {
+    color: #000000 !important;
+    font-weight: bold !important;
+}
+
+/* Extra safety for the big export modal buttons */
+.modal-content button#exportAllBtn,
+.modal-content button#exportMineBtn {
+    color: #000000 !important;
+}
 /* AUTO-COMPLETE DROPDOWN */
 #searchSuggestions {
     position: absolute;
@@ -922,7 +942,24 @@ document.head.appendChild(nukeStyle);
     <h1 id="mainTitle">The Fallout 76 Item Finder! Quickly log items while exploring Appalachia.</h1>
 
     <!-- DEV NOTE: MAIN MAP CONTAINER -->
-    <div id="map"></div>
+    <div id="map">
+        <div id="mapLoadingOverlay" style="position:absolute;top:0;left:0;right:0;bottom:0;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;pointer-events:none;opacity:0;transition:opacity 0.6s;">
+          <div style="background:#0a2a2a;padding:40px 80px;border:5px solid #00ff00;border-radius:16px;text-align:center;box-shadow:0 0 60px #00ff00,inset 0 0 30px #00ff00;">
+            <h2 style="margin:0 0 30px 0;color:#00ff00;font-size:2.8em;text-shadow:0 0 25px #00ff00;letter-spacing:2px;">MAP LOADING…</h2>
+            <div style="font-size:2.4em;margin:25px 0;color:#00ff88;">
+              <span id="loadTimer">12</span><span style="opacity:0.7;font-size:0.8em;"> sec</span>
+            </div>
+            <div style="font-size:1.4em;line-height:1.7;opacity:0.95;">
+              • loading Appalachia map ~3–4 MB • <br>
+			  • first load can be slow give it time • <br>
+			  • click Show No-Name Map button to render •<br>
+			  • ☢ click the update community map button ☢ •
+            </div>
+          </div>
+        </div>
+        <!-- ← END OF OVERLAY -->
+    </div>
+	</div>
 
     <!-- DEV NOTE: SEARCH BAR — NOW UNDER MAP -->
     <div style="position:relative; display:block; margin:15px auto; max-width:600px;">
@@ -1038,7 +1075,7 @@ document.head.appendChild(nukeStyle);
                 <button id="resetAppBtn" class="reset-btn">Reset App (deletes everything)</button>
             </div>
             <p class="small"><br>❤️ the Item Finder? Support MrCrazy with a <a href="https://buymeacoffee.com/mrcrazy" target="_blank">Nuka-Cola</a>!</p>
-            <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version v76.3.0 Made By MrCrazy</p>
+            <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version v76.4.0 Made By MrCrazy</p>
         </div>
     </div>
 
@@ -1129,8 +1166,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const STORAGE_KEY = 'fo76_locations';
         const CUSTOM_CATEGORIES_KEY = '76_custom_categories';
         const MAP_VERSION_KEY = 'fo76_map_version';
-        const CURRENT_UPDATE_VERSION = 'v76.3.0';
-        const APP_VERSION = "v76.3.0";
+        const CURRENT_UPDATE_VERSION = 'v76.4.0';
+        const APP_VERSION = "v76.4.0";
         let soundsEnabled = localStorage.getItem('soundsEnabled') !== 'false';
         const baseSounds = {
             click: new Audio("https://rpg.hamsterrepublic.com/wiki-images/8/84/Select8-Bit.ogg"),
@@ -1238,6 +1275,21 @@ communityVersion = getCurrentCommunityVersion();
         'fishing locations': '🎣', 'workshops': '🔧', 'train stations': '🚂', 'town locations': '🏫',
         'event locations': '🎉', 'named locations': '🚩', 'regions': '📍'
         };
+		const textToEmojiMap = {
+    'Notepad': '📝', 'Weapon': '🔫', 'Armor': '🛡️', 'Aid': '💉', 'FoodDrink': '🍽️',
+    'Ammo': '💥', 'Apparel': '👕', 'Plans': '📜', 'Junk': '🗑️', 'Holotapes': '📀',
+    'Plant': '🌿', 'Egg': '🥚', 'Creature': '🐺', 'Vendor': '💰', 'Exchange': '⚖️',
+    'Vault': '⚙️', 'PowerArmor': '👨‍🚀', 'FusionCore': '🔋', 'NukeZone': '☢️',
+    'NukeSilo': '🚀', 'Magazine': '📚', 'Bobblehead': '🎎', 'Safe': '🗄️',
+    'Terminal': '🖥️', 'TreasureMap': '🗺️', 'Resource': '⛏️',
+    'Fishing': '🎣', 'Workshop': '🔧', 'TrainStation': '🚂', 'Town': '🏫',
+    'Event': '🎉', 'NamedLocation': '🚩', 'Region': '📍',
+    'Custom': '❓'  // fallback for player-made categories
+};
+
+function getDisplayIcon(storedIcon) {
+    return textToEmojiMap[storedIcon] || storedIcon; // converts "Notepad" → "📝"
+}
         let categoryIcons = { ...defaultCategoryIcons, ...customCategories };
         const defaultCategoryColors = {
             'weapons': '#ff4444', 'armor': '#4682b4', 'aid': '#32cd32', 'food/drink': '#adff2f',
@@ -1269,6 +1321,40 @@ communityVersion = getCurrentCommunityVersion();
         let imageOverlay = L.imageOverlay(mapUrls[currentMap], imageBounds).addTo(map);
         map.fitBounds(imageBounds);
         L.control.zoom({ position: 'topleft' }).addTo(map);
+		
+		(function() {
+            const mapContainer = document.getElementById('map');
+            const overlay = document.getElementById('mapLoadingOverlay');
+            const timer = document.getElementById('loadTimer');
+            if (!overlay || !timer || !mapContainer) return;
+
+            // Force overlay to exactly match map size
+            overlay.style.position = 'absolute';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.borderRadius = mapContainer.style.borderRadius || '0';
+
+            let seconds = 12;
+            overlay.style.opacity = '1';
+            timer.textContent = seconds;
+
+            const countdown = setInterval(() => {
+                seconds--;
+                timer.textContent = Math.max(0, seconds);
+            }, 1000);
+
+            const hide = () => {
+                clearInterval(countdown);
+                overlay.style.opacity = '0';
+                setTimeout(() => { overlay.style.display = 'none'; }, 800);
+            };
+
+            imageOverlay.on('load', hide);
+            imageOverlay.on('error', hide);
+            setTimeout(hide, 14000);
+        })();
 
 let currentlySpiderfied = null;
 let currentClusterPopup = null;
@@ -1964,7 +2050,7 @@ map.on('popupclose', () => {
             zIndexOffset: 1000
         });
     } else {
-        const base = `<div class="marker-background" style="background-color:${categoryColors[loc.category] || '#808080'};"><span style="font-size:18px;">${loc.icon || (loc.isPostcard ? '📬' : categoryIcons[loc.category] || '📝')}</span></div>`;
+        const base = `<div class="marker-background" style="background-color:${categoryColors[loc.category] || '#808080'};"><span style="font-size:18px;">${getDisplayIcon(loc.icon) || categoryIcons[loc.category] || '📝'}</span></div>`;
         return L.divIcon({ 
             className: isGlowing(loc) ? 'custom-icon glowing' : 'custom-icon', 
             html: base, 
@@ -2211,7 +2297,7 @@ map.on('popupclose', () => {
         }
 
         function updateCounterDisplay() {
-    const appVersion = "76.3.0";
+    const appVersion = "76.4.0";
     const communityVer = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
     const total = locations.filter(l => activeCategories.has(l.category)).length;
     const userTotal = locations.filter(l => l.userEdited === true && !l.isPostcard).length;
@@ -2802,12 +2888,14 @@ if (submitBtn) {
                 }, 100);
 
                 showConfirmModal(
-                    'Import Complete',
-                    `Added: <strong>${added}</strong> marker${added === 1 ? '' : 's'}<br>` +
-                    `Updated: <strong>${updated}</strong> marker${updated === 1 ? '' : 's'}<br>` +
-                    `Skipped: <strong>${skipped}</strong> (your edits protected)`,
-                    null
-                );
+    '💾Import Complete💾',
+    `<div style="text-align:left; line-height:1.9; font-size:1.1em;">
+        Added: <strong style="color:#00ff88;">${added}</strong> added: new markers added.<br>
+        Updated: <strong style="color:#00ff88;">${updated}</strong> updated: existing community markers checked & updated.<br>
+        Skipped: <strong style="color:#ffa500;">${skipped}</strong> skipped: your "keep", "edited", and user-created markers are protected.
+    </div>`,
+    null
+);
                 playSound('saving');
 
             } catch (err) {
@@ -2893,14 +2981,17 @@ if (submitBtn) {
                     forceReload();
                     saveLocations();
 
-                    showConfirmModal(
-                        'COMMUNITY MAP UPDATED',
-                        `Added: <strong>${added}</strong> new markers<br>` +
-                        `Updated: <strong>${updated}</strong> existing<br>` +
-                        `Protected (yours): <strong>${skipped}</strong><br><br>` +
-                        `Total on map: <strong>${locations.length}</strong>`,
-                        null
-                    );
+showConfirmModal(
+    '☢ COMMUNITY MAP UPDATED ☢',
+    `<div style="text-align:left; line-height:1.9; font-size:1.1em;">
+        <strong style="color:#00ff88;">${added}</strong> added: new markers added.<br>
+        <strong style="color:#00ff88;">${updated}</strong> updated: existing community markers checked & updated.<br>
+        <strong style="color:#ffa500;">${skipped}</strong> skipped: your "keep", "edited", and user-created markers are protected.<br><br>
+        <strong style="color:#00ff00;">Total on your map: ${locations.length}</strong><br>
+        <strong>You're all set — happy exploring!</strong>
+    </div>`,
+    null
+);
 
                     playSound('saving');
 
@@ -3260,7 +3351,23 @@ document.getElementById('shareOneBtn').onclick = () => {
         playSound('error');
         return;
     }
-    const url = `submit.html?lat=${loc.lat}&lng=${loc.lng}&category=${encodeURIComponent(loc.category)}&desc=${encodeURIComponent(loc.desc)}`;
+
+    // FULL DATA — 100% future-proof
+    const params = new URLSearchParams({
+        lat: loc.lat,
+        lng: loc.lng,
+        category: loc.category,
+        desc: loc.desc,
+        icon: loc.icon || "Notepad",
+        id: loc.id,
+        cid: loc.cid || generateCid(loc),           // ensures cid is always sent
+        userEdited: loc.userEdited || false,
+        wasCommunityKept: loc.wasCommunityKept || false
+    });
+
+    // CACHE-BUSTER = always loads the latest submit.html
+    const url = `https://0mrcrazy0.github.io/fallout76-itemfindermap/submit.html?v=${Date.now()}&${params.toString()}`;
+
     window.open(url, '_blank', 'width=500,height=720,scrollbars=yes');
 };
 
@@ -3496,7 +3603,7 @@ map.on('dblclick', e => {
                     ☢ FALLOUT 76 ITEM FINDER ☢
                 </h1>
                 <p style="margin:8px 0 0; font-size:1.3em; color:#0f0;">
-                    v76.3.0 — Built with ❤️ by MrCrazy
+                    v76.4.0 — Built with ❤️ by MrCrazy
                 </p>
             </div>
 
@@ -3554,7 +3661,7 @@ map.on('dblclick', e => {
                 </div>
                 <div style="padding:30px; text-align:center; line-height:1.8;">
                     <ul style="text-align:left; display:inline-block; margin:25px 0; padding-left:30px; font-size:1.2em;">
-                        <li>Welcome To Version 76.3.0</li>
+                        <li>Welcome To Version 76.4.0</li>
                         <li>This is The Latest Update — Reset Your App if needed.<br>
                             Find this tip in the "How to Use" section.</li>
                         <li>Made With ❤️</li>
@@ -3589,8 +3696,9 @@ map.on('dblclick', e => {
 
         if (!localStorage.getItem(WELCOME_KEY)) {
             setTimeout(showWelcomeModal, 800);
-        } else {
-            setTimeout(checkForUpdate, 500);
+        }
+        if (localStorage.getItem(LAST_VERSION_KEY) !== 'v76.4.0') {
+            setTimeout(checkForUpdate, 1400);
         }
 		
 		const searchInput = document.getElementById('combinedSearch');
@@ -3805,7 +3913,7 @@ if (urlParams.has('permshare')) {
 
         document.getElementById('backupAllBtn')?.addEventListener('click', () => {
     const fullBackup = {
-        version: "full-v76.3.0",
+        version: "full-v76.4.0",
         timestamp: new Date().toISOString(),
         communityVersion: localStorage.getItem('fo76_map_version') || '1.0',
         locations: locations,
@@ -3939,48 +4047,112 @@ window.startReport = function(markerId) {
         showTempMessage('ERROR: Marker not found!', 5000);
         return;
     }
-
     // Guarantee cid exists
     if (!marker.cid) {
         marker.cid = generateCid(marker);
         saveLocations();
     }
-
     const reportKey = "reported_cid_" + marker.cid;
-
     // Already reported?
     if (localStorage.getItem(reportKey) === "true") {
         showTempMessage('ALREADY REPORTED — THANK YOU!', 6000);
         return;
     }
 
-    showConfirmModal(
-        'REPORT BAD MARKER',
-        'Only report if it is:<br>• Spam<br>• Wrong location<br>• Broken / outdated<br><br>MrCrazy will review and remove if needed.<br><br>Send report?',
-        () => {
-            localStorage.setItem(reportKey, "true");
+    // Custom modal with optional message
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+modal.innerHTML = `
+    <div class="modal-content" style="max-width:560px; width:94vw; padding:24px; box-sizing:border-box;">
+        <span class="close">X</span>
+        <h2 style="text-align:center; margin:0 0 24px; font-size:1.8em;">👎 REPORT BAD MARKER ❌</h2>
+        
+        <div style="text-align:left; line-height:1.9; font-size:1.1em; margin-bottom:24px;">
+            Only report if it is:<br>
+            • Spam<br>
+            • Wrong location<br>
+            • Broken / outdated<br><br>
+            MrCrazy will review and remove if needed.
+        </div>
 
-            fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    type: "report",
-                    markerId: markerId,
-                    marker: {
-                        lat: marker.lat,
-                        lng: marker.lng,
-                        category: marker.category,
-                        desc: marker.desc,
-                        icon: marker.icon || "Notepad"
-                    }
-                })
+        <div style="text-align:center; font-weight:bold; color:#00ff88; margin-bottom:10px; font-size:1.1em;">
+            Optional message (highly appreciated!)
+        </div>
+
+        <textarea id="reportMessageTxt" 
+                  placeholder="e.g. Wrong grid — should be E8, not E9"
+                  style="width:100%; 
+                         max-width:none; 
+                         height:130px; 
+                         background:#000; 
+                         color:#0f0; 
+                         border:4px solid #00ff00; 
+                         padding:16px; 
+                         font-family:'Courier New',monospace; 
+                         font-size:1em; 
+                         box-sizing:border-box; 
+                         resize:vertical; 
+                         outline:none; 
+                         display:block; 
+                         margin:0 auto;"></textarea>
+
+        <div style="text-align:center; margin-top:28px;">
+            <button id="sendReportNow" 
+                    style="background:#00ff00; color:#000; padding:14px 50px; font-size:1.4em; font-weight:bold;">
+                SEND REPORT
+            </button>
+        </div>
+    </div>
+`;
+    document.body.appendChild(modal);
+    document.body.classList.add('modal-open');
+
+    const closeModal = () => {
+        modal.remove();
+        document.body.classList.remove('modal-open');
+        playSound('modalClose');
+    };
+
+    modal.querySelector('.close').onclick = closeModal;
+
+    modal.querySelector('#sendReportNow').onclick = () => {
+        const extraMessage = modal.querySelector('#reportMessageTxt').value.trim();
+
+        localStorage.setItem(reportKey, "true");
+
+        fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                type: "report",
+                markerId: markerId,
+                message: extraMessage || "(no message provided)",
+                marker: {
+				    id: markerId,
+				    cid: marker.cid || generateCid(marker),
+					userEdited: marker.userEdited || false,
+					wasCommunityKept: marker.wasCommunityKept || false,
+                    lat: marker.lat,
+                    lng: marker.lng,
+                    category: marker.category,
+                    desc: marker.desc,
+                    icon: marker.icon || "Notepad"
+                }
             })
-            .then(() => showTempMessage('REPORT SENT — THANK YOU!', 6000))
-            .catch(() => showTempMessage('REPORT SENT OFFLINE — WILL BE REVIEWED!', 6000));
+        })
+    .then(r => r.ok ? r.text() : Promise.reject('Server rejected'))
+    .then(() => showTempMessage('REPORT SENT — THANK YOU!', 6000))
+    .catch(err => {
+        console.error("Report failed:", err);
+        showTempMessage('REPORT SENT OFFLINE — WILL BE REVIEWED!', 6000);
+    });
 
-            playSound('error');
-        }
-    );
+    closeModal();
+    playSound('error');
+};
+
+    playSound('error');
 };
 
 window.cancelReport = function() {
@@ -3992,7 +4164,7 @@ window.keepCommunityMarker = function(markerId) {
     if (!marker || !marker.isCommunity) return;
 
     showConfirmModal(
-        'KEEP THIS MARKER',
+        '👍KEEP THIS MARKER💾',
         'This community marker will become yours forever.<br><br>You will be able to edit, move, or delete it.<br><br>Continue?',
         () => {
             marker.isCommunity = false;
@@ -4009,7 +4181,7 @@ window.keepCommunityMarker = function(markerId) {
     );
 };
 
-        console.log('%cFallout 76 Item Finder v76.3.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
+        console.log('%cFallout 76 Item Finder v76.4.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
        Fallout 76 Item Finder Map - Disclaimer and Terms of Use
        --------------------------------------------------------------------------
