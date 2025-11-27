@@ -3,18 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Submit to Fallout 76 Community Map</title>
+    <title>☢️Submit to Fallout 76 Community Map☢️</title>
     <style>
-        body { font-family: 'Courier New', monospace; background: #0a2a2a; color: #00ff00; padding: 20px; text-align: center; }
-        form { max-width: 400px; margin: 0 auto; background: #1a3c34; padding: 20px; border: 2px solid #00ff00; }
-        input, textarea, button { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #00ff00; background: #000; color: #00ff00; font-family: inherit; }
-        button { background: #00ff00; color: #000; font-weight: bold; cursor: pointer; }
+        body { 
+            font-family: 'Courier New', monospace; 
+            background: #0a2a2a; 
+            color: #00ff00; 
+            padding: 20px; 
+            text-align: center; 
+        }
+        form { 
+            max-width: 400px; 
+            margin: 0 auto; 
+            background: #1a3c34; 
+            padding: 20px; 
+            border: 2px solid #00ff00; 
+            box-sizing: border-box;
+        }
+        input, textarea, button { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 12px 0; 
+            border: 2px solid #00ff00; 
+            background: #000; 
+            color: #00ff00; 
+            font-family: inherit; 
+            font-size: 16px; 
+            box-sizing: border-box;
+        }
+        button { 
+            background: #00ff00; 
+            color: #000; 
+            font-weight: bold; 
+            cursor: pointer; 
+            font-size: 18px;
+        }
         button:hover { background: #00cc00; }
-        .pre-filled { background: #0a3a0a; padding: 10px; margin: 10px 0; text-align: left; border: 1px solid #00ff88; }
+        .pre-filled { 
+            background: #0a3a0a; 
+            padding: 14px; 
+            margin: 12px 0; 
+            text-align: left; 
+            border: 1px solid #00ff88; 
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
-    <h1>Submit to Community Map ☢️</h1>
+    <h1>Submit to Community Map</h1>
     <p>Share your marker with the wasteland! (MrCrazy will review.)</p>
     <form id="submitForm">
         <div class="pre-filled">
@@ -23,21 +59,20 @@
             Category: <span id="category"></span><br>
             Description: <span id="desc"></span>
         </div>
+
         <label>Your In-Game Name (optional):</label>
         <input type="text" id="playerName" placeholder="e.g., VaultDweller42">
-        
+
         <button type="submit">Submit Marker</button>
     </form>
 
     <script>
-    // Pre-fill from URL params
     const urlParams = new URLSearchParams(window.location.search);
     const lat = urlParams.get('lat');
     const lng = urlParams.get('lng');
     const category = urlParams.get('category') || 'misc';
     const desc = decodeURIComponent(urlParams.get('desc') || 'No description');
 
-    // SERVER-SAFE ICON MAPPING — TEXT ONLY (no emojis to avoid crashes)
     const categoryIcons = {
         'weapons': 'Weapon', 'armor': 'Armor', 'aid': 'Aid', 'food/drink': 'Food/Drink', 'ammunition': 'Ammo',
         'apparel': 'Apparel', 'plans': 'Plans', 'junk': 'Junk', 'holotapes': 'Holotapes', 'misc': 'Misc',
@@ -48,7 +83,7 @@
         'fishing locations': 'Fishing', 'workshops': 'Workshop', 'train stations': 'Train Station',
         'town locations': 'Town', 'event locations': 'Event', 'named locations': 'Named Location', 'regions': 'Region'
     };
-    const icon = categoryIcons[category.toLowerCase()] || 'Misc';  // Always text — 100% safe
+    const icon = categoryIcons[category.toLowerCase()] || 'Misc';
 
     document.getElementById('coords').textContent = lat + ', ' + lng;
     document.getElementById('category').textContent = category;
@@ -62,7 +97,7 @@
             lng: parseFloat(lng),
             category: category,
             desc: desc,
-            icon: icon,  // Text-only — server can't crash
+            icon: icon,
             submittedBy: name
         };
         try {
@@ -74,18 +109,18 @@
             const text = await response.text();
             if (response.ok || text.includes("PR")) {
                 document.body.innerHTML = `
-                    <h1>THANK YOU ❤️</h1>
+                    <h1>THANK YOU</h1>
                     <p>Your marker was submitted!<br>MrCrazy will review it soon.</p>
                     <p><strong>Category:</strong> ${category}<br>
                     <strong>Icon:</strong> ${icon}</p>
-                    <a href="javascript:window.close()" style="color:#00ff88;">Close Window</a>`;
+                    <a href="javascript:window.close()" style="color:#00ff88; text-decoration:underline;">Close Window</a>`;
             } else {
-                alert('Submit failed: ' + text + '\n\n(If it mentions "emoji" or "btoa", contact MrCrazy.)');
+                alert('Submit failed: ' + text);
             }
         } catch (err) {
-            alert('Network error: ' + err.message + '\n\nTry again or contact support.');
+            alert('Network error: ' + err.message);
         }
     });
-</script>
+    </script>
 </body>
 </html>
