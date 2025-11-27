@@ -3056,6 +3056,23 @@
       "startTime": null,
       "popupTimer": null,
       "keepBtnBound": false
+    },
+    {
+      "id": "id-c2552e66-c90e-4cd9-9dfd-05fdc44a4f03",
+      "cid": "treasure maps_add_me_grid_b8_x_566_y_3108_3108_566",
+      "category": "treasure maps",
+      "desc": "add me\nGrid B8 (X: 566, Y: 3108)",
+      "lat": 3107.9785750650467,
+      "lng": 565.6127131728747,
+      "icon": "TreasureMap",
+      "addedTime": 1764254194902,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": true,
+      "wasCommunityKept": false
     }
   ]
 }
