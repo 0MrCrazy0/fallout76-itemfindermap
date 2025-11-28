@@ -3056,6 +3056,23 @@
       "startTime": null,
       "popupTimer": null,
       "keepBtnBound": false
+    },
+    {
+      "id": "id-7f573264-b0f6-447c-b7a8-17ae88fff829",
+      "cid": "eggs_syntax_error_in_10203132401_grid_b2_x_698_y_815_815_698",
+      "category": "eggs",
+      "desc": "syntax error in 10-20-31-32-401\nGrid B2 (X: 698, Y: 815)",
+      "lat": 815.3333740234375,
+      "lng": 697.6157207341384,
+      "icon": "Egg",
+      "addedTime": 1764300255886,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": true,
+      "wasCommunityKept": false
     }
   ]
 }
