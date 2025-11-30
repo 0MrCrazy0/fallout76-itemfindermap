@@ -976,6 +976,12 @@ nukeStyle.textContent = `
 }
 #searchSuggestions .category-match { font-weight: bold; color: #aaffaa; }
 #searchSuggestions .desc-match { opacity: 0.9; }
+}
+.force-pink,
+.force-pink .marker-background {
+    --category-color: #ff1493 !important;
+    background-color: #ff1493 !important;
+}
     </style>
 </head>
 <body>
@@ -1317,7 +1323,7 @@ communityVersion = getCurrentCommunityVersion();
         'nuke silos': '🚀', 'magazines': '📚', 'bobbleheads': '🎎', 'safe locations': '🗄️',
         'terminal locations': '🖥️', 'treasure maps': '🗺️', 'resource deposits': '⛏️',
         'fishing locations': '🎣', 'workshops': '🔧', 'train stations': '🚂', 'town locations': '🏫',
-        'event locations': '🎉', 'named locations': '🚩', 'regions': '📍'
+        'event locations': '🎉', 'named locations': '🚩', 'regions': '📍', 'postcard': '📬',
         };
 		const textToEmojiMap = {
     'Notepad': '📝', 'Weapon': '🔫', 'Armor': '🛡️', 'Aid': '💉', 'FoodDrink': '🍽️',
@@ -1344,7 +1350,7 @@ function getDisplayIcon(storedIcon) {
             'nuke silos': '#dc143c', 'magazines': '#ff69b4', 'bobbleheads': '#00b7eb',
             'treasure maps': '#d2b48c', 'resource deposits': '#696969', 'fishing locations': '#1e90ff',
             'workshops': '#b8860b', 'train stations': '#a9a9a9', 'town locations': '#228b22',
-            'regions': '#00ff00', 'named locations': '#ffffff'
+            'regions': '#00ff00', 'named locations': '#ffffff', 'postcard': '#ff1493',
         };
         let categoryColors = { ...defaultCategoryColors };
         const map = L.map('map', {
@@ -1941,7 +1947,7 @@ map.on('contextmenu', function(e) {
                 document.getElementById('createPostcardBtn')?.addEventListener('click', () => {
             const msg = document.getElementById('postcardMessage')?.value.trim() || 'Check this spot!';
             if (!currentPostcardLatLng) return;
-            const loc = createNewLocation(currentPostcardLatLng.lat, currentPostcardLatLng.lng, 'misc', msg, true);
+            const loc = createNewLocation(currentPostcardLatLng.lat, currentPostcardLatLng.lng, 'postcard', msg, true);
             locations.push(loc);
             saveLocations();
             forceReload();
@@ -2047,35 +2053,37 @@ map.on('contextmenu', function(e) {
         }
 
         function showPostcardMarker(loc) {
-            const existing = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === loc.id);
-            if (existing) existing.remove();
-            const marker = L.marker([loc.lat, loc.lng], {
-                icon: L.divIcon({
-                    className: 'custom-icon postcard-only',
-                    html: `<div class="marker-background" style="--category-color:${categoryColors['postcard'] || '#ff1493'};">
-         <span style="font-size:18px;">📬</span></div>`,
-                    iconSize: [30, 30],
-                    iconAnchor: [15, 15]
-                })
-            }).addTo(nonClusteredMarkers);
-            marker.options.id = loc.id;
-            const popup = L.popup({ maxWidth: 320, offset: [0, -20] });
-            marker.bindPopup(popup);
-            marker.on('popupopen', () => {
-                popup.setContent(createPopupContent(loc));
-                setTimeout(() => bindKeepButton(loc), 50);
-                const timerEl = document.getElementById(`postcardTimer_${loc.id}`);
-                if (timerEl) {
-                    const start = loc.startTime || Date.now();
-                    const timeLeft = Math.max(0, 300000 - (Date.now() - start));
-                    const mins = Math.floor(timeLeft / 60000);
-                    const secs = Math.floor((timeLeft % 60000) / 1000).toString().padStart(2, '0');
-                    timerEl.textContent = `${mins}:${secs}`;
-                }
-                startPostcardTicker();
-            });
-            marker.openPopup();
+    // Remove any previous postcard with same ID
+    const existing = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === loc.id);
+    if (existing) existing.remove();
+
+    // Now it uses the normal createMarkerIcon() → automatically PINK because category = 'postcard'
+    const marker = L.marker([loc.lat, loc.lng], {
+        icon: createMarkerIcon(loc),
+        id: loc.id
+    }).addTo(nonClusteredMarkers);
+
+    const popup = L.popup({ maxWidth: 320, offset: [0, -20] });
+    marker.bindPopup(popup);
+
+    marker.on('popupopen', () => {
+        popup.setContent(createPopupContent(loc));
+        setTimeout(() => bindKeepButton(loc), 50);
+
+        // Update timer inside popup
+        const timerEl = document.getElementById(`postcardTimer_${loc.id}`);
+        if (timerEl) {
+            const start = loc.startTime || Date.now();
+            const timeLeft = Math.max(0, 300000 - (Date.now() - start));
+            const mins = Math.floor(timeLeft / 60000);
+            const secs = Math.floor((timeLeft % 60000) / 1000).toString().padStart(2, '0');
+            timerEl.textContent = `${mins}:${secs}`;
         }
+        startPostcardTicker();
+    });
+
+    marker.openPopup();
+}
 
         function bindKeepButton(loc) {
             const keepBtn = document.getElementById(`keepPostcardBtn_${loc.id}`);
@@ -3252,25 +3260,32 @@ function createPermanentShare(markersToShare) {
     });
 }
 
-// === NEW: Handle short ?share= links (replaces the huge permshare ones) ===
+// === PERMANENT SHORT SHARE LINKS (?share=...) - FIXED & WORKING ===
 if (urlParams.has('share')) {
     const encoded = urlParams.get('share');
     try {
-        const decoded = decodeURIComponent(escape(atob(encoded.replace(/-/g,'+').replace(/_/g,'/') + '=='.substring(0, (4 - encoded.length % 4) % 4))));
-        const tinyList = JSON.parse(decoded);
+        let padded = encoded.replace(/-/g, '+').replace(/_/g, '/');
+        const padlen = (4 - padded.length % 4) % 4;
+        padded += '='.repeat(padlen);
+        const raw = atob(padded);
+        const json = decodeURIComponent(escape(raw));
+        const tinyList = JSON.parse(json);
         const imported = [];
         tinyList.forEach(item => {
             const loc = locations.find(l => l.id === item.id);
             if (loc) {
-                loc.category = item.cat; // ← restores correct color!
+                loc.category = item.cat; // restores correct color
                 imported.push(loc);
             }
         });
-        if (imported.length) {
-            showTempMessage(`Shared map loaded — ${imported.length} markers restored!`, 5000);
+        if (imported.length > 0) {
+            showTempMessage(`Shared map loaded — ${imported.length} marker${imported.length > 1 ? 's' : ''} restored!`, 5000);
             forceReload();
         }
-    } catch(e) { console.error('Bad share link'); }
+    } catch (e) {
+        console.error('Invalid share link:', e);
+        showTempMessage('Invalid or corrupted share link', 5000);
+    }
     history.replaceState(null, null, location.pathname);
 }
 
