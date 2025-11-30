@@ -560,7 +560,6 @@
 .custom-icon,
 .custom-icon.glowing,
 .custom-icon.glowing .marker-background {
-    background: transparent !important;
     box-shadow: none !important;
     border: none !important;
     outline: none !important;
@@ -771,6 +770,14 @@
         0%, 100% { filter: brightness(1); }
         50%      { filter: brightness(1.4); }
     }
+	
+	/* POSTCARD GLOW PINK
+.postcard-only.postcard-glowing .marker-background {
+    filter: drop-shadow(0 0 14px #ff1493) 
+            drop-shadow(0 0 26px #ff1493) 
+            brightness(1.6) !important;
+    animation: glowPulse 1.8s infinite ease-in-out !important;
+}
 
     /* SHARE BUBBLE */
     .share-spot {
@@ -876,7 +883,6 @@ nukeStyle.textContent = `
 }
 
 .custom-icon.glowing .marker-background {
-    background: transparent !important;
     box-shadow: none !important;
     border: none !important;
 }
@@ -885,7 +891,6 @@ nukeStyle.textContent = `
 }
 
 .custom-icon.glowing {
-    background: transparent !important;
     filter: drop-shadow(0 0 12px #00ff00) drop-shadow(0 0 20px #00ff00) brightness(1.4);
     animation: glowPulse 1.5s infinite ease-in-out;
 }
@@ -2046,8 +2051,9 @@ map.on('contextmenu', function(e) {
             if (existing) existing.remove();
             const marker = L.marker([loc.lat, loc.lng], {
                 icon: L.divIcon({
-                    className: 'custom-icon glowing',
-                    html: `<div class="marker-background" style="background:transparent;box-shadow:none;"><span style="font-size:18px;">📬</span></div>`,
+                    className: 'custom-icon postcard-only',
+                    html: `<div class="marker-background" style="--category-color:${categoryColors['postcard'] || '#ff1493'};">
+         <span style="font-size:18px;">📬</span></div>`,
                     iconSize: [30, 30],
                     iconAnchor: [15, 15]
                 })
@@ -2078,6 +2084,7 @@ map.on('contextmenu', function(e) {
                 e.stopPropagation();
                 const index = locations.findIndex(l => l.id === loc.id);
                 if (index === -1) return;
+				locations[index].category = 'misc';
                 locations[index].isPostcard = false;
                 locations[index].isTemp = false;
                 locations[index].locked = true;
@@ -2448,13 +2455,25 @@ map.on('contextmenu', function(e) {
 
     // After glow fades, drop back to normal
     if (isGlowingNow) {
+    // Add glowing class immediately for postcards
+    if (loc.isPostcard) {
         setTimeout(() => {
-            if (!isTextMarker) {
-                marker.setZIndexOffset(0);
+            const marker = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === loc.id);
+            if (marker?._icon) {
+                marker._icon.classList.add('postcard-glowing');
             }
-            marker.setIcon(createMarkerIcon(loc));
-        }, 120000); // 2 minutes, matches glow duration
+        }, 100);
     }
+
+    setTimeout(() => {
+        marker.setZIndexOffset(0);
+        if (loc.isPostcard) {
+            const m = [...nonClusteredMarkers.getLayers()].find(x => x.options.id === loc.id);
+            if (m?._icon) m._icon.classList.remove('postcard-glowing');
+        }
+        marker.setIcon(createMarkerIcon(loc)); // Forces correct color
+    }, 120000);
+}
 
     if (lastMovedMarker && lastMovedMarker.options.id === loc.id) {
         setTimeout(() => {
@@ -3210,20 +3229,49 @@ showConfirmModal(
 };
 
 function createPermanentShare(markersToShare) {
-    if (markersToShare.length === 0) return;
-    const shareData = { version: 1.0, locations: markersToShare };
-    const jsonString = JSON.stringify(shareData);
-    const encoded = utf8ToBase64(jsonString)  // Use the safe encoder here
-                    .replace(/\+/g, '-')
-                    .replace(/\//g, '_')
-                    .replace(/=+$/, '');
-    const shareUrl = location.origin + location.pathname + '?permshare=' + encoded;
-    navigator.clipboard.writeText(shareUrl).then(() => {
-        showTempMessage('Permanent link copied!', 6000);
+    if (markersToShare.length === 0) {
+        showTempMessage('No markers to share!', 3000);
+        return;
+    }
+
+    // Create a tiny array of just the IDs + category (so color restores perfectly)
+    const tiny = markersToShare.map(m => ({
+        id: m.id,
+        cat: m.category
+    }));
+
+    const json = JSON.stringify(tiny);
+    const encoded = btoa(unescape(encodeURIComponent(json)))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+    const shortUrl = location.origin + location.pathname + '?share=' + encoded;
+
+    navigator.clipboard.writeText(shortUrl).then(() => {
+        showTempMessage(`Link copied! (${markersToShare.length} markers)`, 5000);
         playSound('postcard');
-    }).catch(() => {
-        prompt('Copy this link (it works everywhere):', shareUrl);
     });
+}
+
+// === NEW: Handle short ?share= links (replaces the huge permshare ones) ===
+if (urlParams.has('share')) {
+    const encoded = urlParams.get('share');
+    try {
+        const decoded = decodeURIComponent(escape(atob(encoded.replace(/-/g,'+').replace(/_/g,'/') + '=='.substring(0, (4 - encoded.length % 4) % 4))));
+        const tinyList = JSON.parse(decoded);
+        const imported = [];
+        tinyList.forEach(item => {
+            const loc = locations.find(l => l.id === item.id);
+            if (loc) {
+                loc.category = item.cat; // ← restores correct color!
+                imported.push(loc);
+            }
+        });
+        if (imported.length) {
+            showTempMessage(`Shared map loaded — ${imported.length} markers restored!`, 5000);
+            forceReload();
+        }
+    } catch(e) { console.error('Bad share link'); }
+    history.replaceState(null, null, location.pathname);
 }
 
 document.getElementById('shareMyMapBtn').onclick = () => {
