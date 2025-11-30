@@ -1265,6 +1265,7 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
 
         // ——— FINAL BULLETPROOF SHARE IMPORT v76.5.1 — NO MORE ERRORS EVER ———
+// ——— FINAL FULL MARKER SHARE v76.6.0 — FULL DATA + NO CRASH + CORRECT ICONS ———
 {
     const params = new URLSearchParams(window.location.search);
     if (params.has('share')) {
@@ -1274,40 +1275,34 @@ document.addEventListener('DOMContentLoaded', function() {
             while (padded.length % 4) padded += '=';
             const raw = atob(padded);
             const json = decodeURIComponent(raw);
-            if (!json || json === 'null') throw new Error('Empty data');
-            const tinyList = JSON.parse(json);
-
-            const SAFE_ICONS = {
-                'weapons': '🔫', 'armor': '🛡️', 'aid': '💉', 'food/drink': '🍽️', 'ammunition': '💥',
-        'apparel': '👕', 'plans': '📜', 'junk': '🗑️', 'holotapes': '📀', 'misc': '📝',
-        'plants': '🌿', 'eggs': '🥚', 'creatures': '🐺', 'vendors': '💰', 'exchanges': '⚖️',
-        'vaults': '⚙️', 'power armor': '👨‍🚀', 'fusion core': '🔋', 'nuke drop zones': '☢️',
-        'nuke silos': '🚀', 'magazines': '📚', 'bobbleheads': '🎎', 'safe locations': '🗄️',
-        'terminal locations': '🖥️', 'treasure maps': '🗺️', 'resource deposits': '⛏️',
-        'fishing locations': '🎣', 'workshops': '🔧', 'train stations': '🚂', 'town locations': '🏫',
-        'event locations': '🎉', 'named locations': '🚩', 'regions': '📍', 'postcard': '📬',
-            };
+            const markers = JSON.parse(json); // now expects full objects
 
             const imported = [];
             const oldState = JSON.stringify(locations);
 
-            tinyList.forEach(item => {
-                let loc = locations.find(l => l.id === item.id);
+            markers.forEach(m => {
+                // If marker already exists by ID → just restore category (for updates)
+                let loc = locations.find(l => l.id === m.id);
                 if (loc) {
-                    loc.category = item.cat;
+                    loc.category = m.c;
+                    loc.desc = m.d || loc.desc;
+                    loc.lat = m.y || loc.lat;
+                    loc.lng = m.x || loc.lng;
+                    loc.icon = m.i || loc.icon;
                     imported.push(loc);
                 } else {
+                    // Full new marker from share
                     loc = {
-                        id: item.id,
-                        lat: 2048,
-                        lng: 2048,
-                        category: item.cat,
-                        desc: `Shared marker - ${item.cat}`,
-                        icon: SAFE_ICONS[item.cat] || 'Note',
+                        id: m.id,
+                        lat: m.y,
+                        lng: m.x,
+                        category: m.c,
+                        desc: m.d || `Shared: ${m.c}`,
+                        icon: m.i || 'Note',
                         addedTime: Date.now(),
                         userEdited: true,
                         locked: true,
-                        cid: generateCid({lat: 2048, lng: 2048, category: item.cat, desc: ''}),
+                        cid: generateCid({lat:m.y, lng:m.x, category:m.c, desc:m.d || ''}),
                         isTemp: false,
                         isPostcard: false
                     };
@@ -1322,21 +1317,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     oldState: oldState
                 };
             }
-
         } catch (e) {
-            console.log('Share link failed:', e);
+            console.error('Share decode failed:', e);
             window.shareImportReady = { error: true };
         }
         history.replaceState(null, null, location.pathname);
     }
 }
 
-// ——— FINAL SHARE IMPORT EXECUTION — RUNS AFTER EVERYTHING IS READY ———
+// FINAL EXECUTION — runs after DOM ready
 if (window.shareImportReady) {
     setTimeout(() => {
         if (window.shareImportReady.error) {
-            showTempMessage('Invalid or empty share link', 6000);
+            showTempMessage('Invalid share link', 6000);
         } else {
+            const oldState = window.shareImportReady.oldState;
+
             saveLocations();
             forceReload();
 
@@ -1346,7 +1342,7 @@ if (window.shareImportReady) {
             if (undoBtn) {
                 undoBtn.style.display = 'block';
                 undoBtn.onclick = () => {
-                    locations = JSON.parse(window.shareImportReady.oldState);
+                    locations = JSON.parse(oldState);
                     saveLocations();
                     forceReload();
                     undoBtn.style.display = 'none';
@@ -1357,7 +1353,7 @@ if (window.shareImportReady) {
             }
         }
         delete window.shareImportReady;
-    }, 150);
+    }, 200);
 }
         // ————————————————————————————————
 
@@ -3317,28 +3313,30 @@ function createPermanentShare(markersToShare) {
         showTempMessage('No markers to share!', 3000);
         return;
     }
+
     const tiny = markersToShare.map(m => ({
         id: m.id,
-        cat: m.category
+        c: m.category,
+        d: m.desc,
+        x: Math.round(m.lng),
+        y: Math.round(m.lat),
+        i: m.icon
     }));
+
     const json = JSON.stringify(tiny);
     const encoded = btoa(unescape(encodeURIComponent(json)))
         .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
-    // FIXED: Use real origin or fallback to https://mrcrazy.github.io
-    const baseUrl = location.origin !== "null" 
-        ? location.origin + location.pathname 
-        : "https://mrcrazy.github.io/fallout76-itemfindermap/";
-    
-    const shortUrl = baseUrl + '?share=' + encoded;
+    const baseUrl = location.origin === "null" 
+        ? "https://0mrcrazy0.github.io/fallout76-itemfindermap/" 
+        : location.origin + location.pathname;
 
-    navigator.clipboard.writeText(shortUrl).then(() => {
-        showTempMessage(`Link copied! (${markersToShare.length} marker${markersToShare.length > 1 ? 's' : ''})`, 5000);
+    const url = baseUrl + '?share=' + encoded;
+
+    navigator.clipboard.writeText(url).then(() => {
+        showTempMessage(`Full share link copied! (${markersToShare.length} marker${markersToShare.length > 1 ? 's' : ''})`, 6000);
         playSound('postcard');
-    }).catch(() => {
-        // Fallback if clipboard fails
-        prompt("Copy this link manually:", shortUrl);
-    });
+    }).catch(() => prompt("Copy this link:", url));
 }
 
 document.getElementById('shareMyMapBtn').onclick = () => {
