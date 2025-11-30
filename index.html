@@ -2068,74 +2068,85 @@ document.getElementById('createPostcardBtn')?.addEventListener('click', () => {
 });
 
                 const urlParams = new URLSearchParams(window.location.search);
-        let pendingPostcard = null;
+let pendingPostcard = null;
 
-        // Handle old postcard links (?postcard=...) — extract data
-        if (urlParams.has('postcard')) {
-            const id = urlParams.get('postcard');
-            const lat = parseFloat(urlParams.get('lat'));
-            const lng = parseFloat(urlParams.get('lng'));
-            const msg = urlParams.has('msg')
-                ? decodeURIComponent(urlParams.get('msg').replace(/\+/g, ' '))
-                : '';
-            if (!isNaN(lat) && !isNaN(lng)) {
-                pendingPostcard = { id, lat, lng, msg };
+// Handle old postcard links (?postcard=...)
+if (urlParams.has('postcard')) {
+    const id = urlParams.get('postcard');
+    const lat = parseFloat(urlParams.get('lat'));
+    const lng = parseFloat(urlParams.get('lng'));
+    const msg = urlParams.has('msg')
+        ? decodeURIComponent(urlParams.get('msg').replace(/\+/g, ' '))
+        : '';
+    if (!isNaN(lat) && !isNaN(lng)) {
+        pendingPostcard = { id, lat, lng, msg };
+    }
+}
+
+const originalLoadData = loadData;
+loadData = function (search = '', catFilter = '') {
+    originalLoadData.call(this, search, catFilter);
+
+    if (pendingPostcard && !pendingPostcard.processed) {
+        const { id, lat, lng, msg } = pendingPostcard;
+        pendingPostcard.processed = true;
+
+        const existing = locations.find(l => l.id === id);
+        let created = false;
+
+        if (!existing || !existing.isPostcard || (existing.postcardExpire && Date.now() > existing.postcardExpire)) {
+            if (existing) {
+                const idx = locations.indexOf(existing);
+                if (idx > -1) locations.splice(idx, 1);
             }
+
+            // ADD COORDS TO DESCRIPTION
+            const grid = getGridFromLatLng(lat, lng);
+            const x = Math.round(lng);
+            const y = Math.round(lat);
+            const coords = grid ? `Grid ${grid} (X: ${x}, Y: ${y})` : `X: ${x}, Y: ${y}`;
+            const userMsg = msg.trim();
+            const finalDesc = userMsg
+                ? (userMsg.includes('Grid') || userMsg.includes('X:') ? userMsg : `${userMsg}\n${coords}`)
+                : coords;
+
+            const loc = createNewLocation(lat, lng, 'postcard', finalDesc, true);
+            loc.id = id;
+            loc.startTime = Date.now() - 1000;
+            loc.postcardExpire = Date.now() + 300000;
+            locations.push(loc);
+            saveLocations();
+            created = true;
+            showTempMessage('Postcard received! (5-minute timer started)', 6000);
+            playSound('postcard');
         }
 
-        const originalLoadData = loadData;
-        loadData = function (search = '', catFilter = '') {
-            originalLoadData.call(this, search, catFilter);
+        // FINAL FIX: Show real postcard popup for receiver
+        setTimeout(() => {
+            safeFlyTo(lat, lng, 4);
 
-            if (pendingPostcard && !pendingPostcard.processed) {
-                const { id, lat, lng, msg } = pendingPostcard;
-                pendingPostcard.processed = true;
+            const waitForMarker = setInterval(() => {
+                const marker = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === id);
+                if (marker) {
+                    clearInterval(waitForMarker);
 
-                const existing = locations.find(l => l.id === id);
-                let created = false;
+                    // Force postcard popup with timer + Keep It
+                    marker.unbindPopup();
+                    marker.bindPopup(createPopupContent(loc), { maxWidth: 320, offset: [0, -20] });
 
-                if (!existing || !existing.isPostcard || (existing.postcardExpire && Date.now() > existing.postcardExpire)) {
-                    if (existing) {
-                        const idx = locations.indexOf(existing);
-                        if (idx > -1) locations.splice(idx, 1);
-                    }
+                    marker.on('popupopen', () => {
+                        setTimeout(() => bindKeepButton(loc), 100);
+                        startPostcardTicker();
+                    });
 
-                    // ADD COORDINATES TO RECEIVED POSTCARD
-                    const grid = getGridFromLatLng(lat, lng);
-                    const x = Math.round(lng);
-                    const y = Math.round(lat);
-                    const coords = grid ? `Grid ${grid} (X: ${x}, Y: ${y})` : `X: ${x}, Y: ${y}`;
-
-                    const userMsg = msg.trim();
-                    const finalDesc = userMsg
-                        ? (userMsg.includes('Grid') || userMsg.includes('X:') ? userMsg : `${userMsg}\n${coords}`)
-                        : coords;
-
-                    const loc = createNewLocation(lat, lng, 'postcard', finalDesc, true);
-                    loc.id = id;
-                    loc.startTime = Date.now() - 1000;
-                    loc.postcardExpire = Date.now() + 300000;
-                    locations.push(loc);
-                    saveLocations();
-                    created = true;
-                    showTempMessage('Postcard received! (5-minute timer started)', 6000);
-                    playSound('postcard');
+                    marker.openPopup();
                 }
+            }, 100);
+        }, 800);
 
-                setTimeout(() => {
-                    safeFlyTo(lat, lng, 4);
-                    setTimeout(() => {
-                        const marker = nonClusteredMarkers.getLayers()
-                            .find(m => m.options.id === id);
-                        if (marker) {
-                            marker.openPopup();
-                        }
-                    }, 800);
-                }, 600);
-
-                pendingPostcard = null;
-            }
-        };
+        pendingPostcard = null;
+    }
+};
 
         if (!pendingPostcard && urlParams.has('lat') && urlParams.has('lng')) {
             const lat = parseFloat(urlParams.get('lat'));
