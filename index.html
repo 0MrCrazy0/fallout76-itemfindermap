@@ -1319,9 +1319,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             if (imported.length > 0) {
-                saveLocations();
                 showTempMessage(`Shared map loaded — ${imported.length} marker${imported.length > 1 ? 's' : ''} imported!`, 6000);
-                forceReload();
 
                 setTimeout(() => {
                     const undoBtn = document.getElementById('undoImportBtn');
@@ -4371,6 +4369,15 @@ window.keepCommunityMarker = function(markerId) {
         }
     );
 };
+
+// ——— DELAY SHARE SAVE UNTIL DOM READY ———
+if (typeof sharedPending !== 'undefined') {
+    setTimeout(() => {
+        saveLocations();
+        forceReload();
+        showTempMessage(sharedPending.message, sharedPending.duration);
+    }, 100);  // Wait for DOM elements to initialize
+}
 
         console.log('%cFallout 76 Item Finder Map v76.5.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
