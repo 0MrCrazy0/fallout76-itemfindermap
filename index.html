@@ -1298,7 +1298,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         lng: m.x,
                         category: m.c,
                         desc: m.d || `Shared: ${m.c}`,
-                        icon: m.i || 'Note',
+                        icon: categoryIcons[m.c] || 'Note',
                         addedTime: Date.now(),
                         userEdited: true,
                         locked: true,
@@ -3320,7 +3320,6 @@ function createPermanentShare(markersToShare) {
         d: m.desc,
         x: Math.round(m.lng),
         y: Math.round(m.lat),
-        i: m.icon
     }));
 
     const json = JSON.stringify(tiny);
