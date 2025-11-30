@@ -1265,6 +1265,7 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
 
         // ——— FINAL BULLETPROOF SHARE IMPORT (SINGLE + MY MAP) ———
+// ——— FINAL SHARE IMPORT — CORRECT ICONS + NO CRASH ———
 {
     const params = new URLSearchParams(window.location.search);
     if (params.has('share')) {
@@ -1277,27 +1278,38 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!json || json === 'null') throw new Error('Empty data');
             const tinyList = JSON.parse(json);
 
+            // HARDCODED ICON MAP — GUARANTEED TO EXIST EVEN IN FRESH BROWSER
+            const SAFE_ICONS = {
+                'weapons': '🔫', 'armor': '🛡️', 'aid': '💉', 'food/drink': '🍽️', 'ammunition': '💥',
+        'apparel': '👕', 'plans': '📜', 'junk': '🗑️', 'holotapes': '📀', 'misc': '📝',
+        'plants': '🌿', 'eggs': '🥚', 'creatures': '🐺', 'vendors': '💰', 'exchanges': '⚖️',
+        'vaults': '⚙️', 'power armor': '👨‍🚀', 'fusion core': '🔋', 'nuke drop zones': '☢️',
+        'nuke silos': '🚀', 'magazines': '📚', 'bobbleheads': '🎎', 'safe locations': '🗄️',
+        'terminal locations': '🖥️', 'treasure maps': '🗺️', 'resource deposits': '⛏️',
+        'fishing locations': '🎣', 'workshops': '🔧', 'train stations': '🚂', 'town locations': '🏫',
+        'event locations': '🎉', 'named locations': '🚩', 'regions': '📍', 'postcard': '📬',
+            };
+
             const imported = [];
-            const oldState = JSON.stringify(locations);  // For undo
+            const oldState = JSON.stringify(locations);
+
             tinyList.forEach(item => {
                 let loc = locations.find(l => l.id === item.id);
                 if (loc) {
-                    // Restore category on existing marker
                     loc.category = item.cat;
                     imported.push(loc);
                 } else {
-                    // Create new marker if not exists (fresh browser case)
                     loc = {
                         id: item.id,
-                        lat: 2048,  // Default center (Appalachia middle)
+                        lat: 2048,
                         lng: 2048,
                         category: item.cat,
                         desc: `Shared marker - ${item.cat}`,
-                        icon: categoryIcons[item.cat] || '📝',
+                        icon: SAFE_ICONS[item.cat] || 'Note',  // ← EXACT SAME ICON AS SENDER
                         addedTime: Date.now(),
-                        userEdited: true,  // Allow editing
+                        userEdited: true,
                         locked: true,
-                        cid: generateCid(loc),
+                        cid: generateCid({lat: 2048, lng: 2048, category: item.cat, desc: ''}),
                         isTemp: false,
                         isPostcard: false
                     };
@@ -1307,11 +1319,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             if (imported.length > 0) {
-                saveLocations();  // Save immediately
+                saveLocations();
                 showTempMessage(`Shared map loaded — ${imported.length} marker${imported.length > 1 ? 's' : ''} imported!`, 6000);
                 forceReload();
 
-                // Undo button for 60s
                 setTimeout(() => {
                     const undoBtn = document.getElementById('undoImportBtn');
                     if (undoBtn) {
@@ -1327,8 +1338,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         setTimeout(() => undoBtn.style.display = 'none', 60000);
                     }
                 }, 100);
-            } else {
-                showTempMessage('No markers to import', 5000);
             }
         } catch (e) {
             console.log('Share link failed:', e);
