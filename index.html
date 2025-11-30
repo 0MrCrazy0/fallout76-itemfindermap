@@ -1277,23 +1277,44 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!json || json === 'null') throw new Error('Empty data');
             const tinyList = JSON.parse(json);
 
-            const restored = [];
+            const imported = [];
+            const oldState = JSON.stringify(locations);  // For undo
             tinyList.forEach(item => {
-                const loc = locations.find(l => l.id === item.id);
+                let loc = locations.find(l => l.id === item.id);
                 if (loc) {
+                    // Restore category on existing marker
                     loc.category = item.cat;
-                    restored.push(loc);
+                    imported.push(loc);
+                } else {
+                    // Create new marker if not exists (fresh browser case)
+                    loc = {
+                        id: item.id,
+                        lat: 2048,  // Default center (Appalachia middle)
+                        lng: 2048,
+                        category: item.cat,
+                        desc: `Shared marker - ${item.cat}`,
+                        icon: categoryIcons[item.cat] || '📝',
+                        addedTime: Date.now(),
+                        userEdited: true,  // Allow editing
+                        locked: true,
+                        cid: generateCid(loc),
+                        isTemp: false,
+                        isPostcard: false
+                    };
+                    locations.push(loc);
+                    imported.push(loc);
                 }
             });
 
-            if (restored.length > 0) {
-                showTempMessage(`Shared map loaded — ${restored.length} marker${restored.length > 1 ? 's' : ''} restored!`, 6000);
+            if (imported.length > 0) {
+                saveLocations();  // Save immediately
+                showTempMessage(`Shared map loaded — ${imported.length} marker${imported.length > 1 ? 's' : ''} imported!`, 6000);
                 forceReload();
 
+                // Undo button for 60s
                 setTimeout(() => {
                     const undoBtn = document.getElementById('undoImportBtn');
                     if (undoBtn) {
-                        const oldState = JSON.stringify(locations);
                         undoBtn.style.display = 'block';
                         undoBtn.onclick = () => {
                             locations = JSON.parse(oldState);
@@ -1307,10 +1328,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }, 100);
             } else {
-                showTempMessage('No matching markers found on your map', 5000);
+                showTempMessage('No markers to import', 5000);
             }
         } catch (e) {
-            console.log('Share link failed (invalid/empty/corrupted)');
+            console.log('Share link failed:', e);
             showTempMessage('Invalid or empty share link', 6000);
         }
         history.replaceState(null, null, location.pathname);
