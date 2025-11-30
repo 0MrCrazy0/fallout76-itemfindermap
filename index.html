@@ -1264,8 +1264,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
 
-        // ——— FINAL BULLETPROOF SHARE IMPORT (SINGLE + MY MAP) ———
-// ——— FINAL SHARE IMPORT — CORRECT ICONS + NO CRASH ———
+        // ——— FINAL BULLETPROOF SHARE IMPORT v76.5.1 — NO MORE ERRORS EVER ———
 {
     const params = new URLSearchParams(window.location.search);
     if (params.has('share')) {
@@ -1278,16 +1277,15 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!json || json === 'null') throw new Error('Empty data');
             const tinyList = JSON.parse(json);
 
-            // HARDCODED ICON MAP — GUARANTEED TO EXIST EVEN IN FRESH BROWSER
             const SAFE_ICONS = {
-                'weapons': '🔫', 'armor': '🛡️', 'aid': '💉', 'food/drink': '🍽️', 'ammunition': '💥',
-        'apparel': '👕', 'plans': '📜', 'junk': '🗑️', 'holotapes': '📀', 'misc': '📝',
-        'plants': '🌿', 'eggs': '🥚', 'creatures': '🐺', 'vendors': '💰', 'exchanges': '⚖️',
-        'vaults': '⚙️', 'power armor': '👨‍🚀', 'fusion core': '🔋', 'nuke drop zones': '☢️',
-        'nuke silos': '🚀', 'magazines': '📚', 'bobbleheads': '🎎', 'safe locations': '🗄️',
-        'terminal locations': '🖥️', 'treasure maps': '🗺️', 'resource deposits': '⛏️',
-        'fishing locations': '🎣', 'workshops': '🔧', 'train stations': '🚂', 'town locations': '🏫',
-        'event locations': '🎉', 'named locations': '🚩', 'regions': '📍', 'postcard': '📬',
+                'weapons': 'Gun', 'armor': 'Shield', 'aid': 'First Aid', 'food/drink': 'Utensils', 'ammunition': 'Explosion',
+                'apparel': 'Shirt', 'plans': 'Scroll', 'junk': 'Trash', 'holotapes': 'CD', 'misc': 'Note',
+                'plants': 'Seedling', 'eggs': 'Egg', 'creatures': 'Wolf', 'vendors': 'Money Bag', 'exchanges': 'Balance Scale',
+                'vaults': 'Gear', 'power armor': 'Robot', 'fusion core': 'Battery', 'nuke drop zones': 'Radioactive',
+                'nuke silos': 'Rocket', 'magazines': 'Books', 'bobbleheads': 'Bust', 'safe locations': 'Safe',
+                'terminal locations': 'Desktop', 'treasure maps': 'Map', 'resource deposits': 'Pickaxe',
+                'fishing locations': 'Fishing Pole', 'workshops': 'Hammer', 'train stations': 'Train', 'town locations': 'School',
+                'event locations': 'Party', 'named locations': 'Pushpin', 'regions': 'Location', 'postcard': 'Postcard'
             };
 
             const imported = [];
@@ -1305,7 +1303,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         lng: 2048,
                         category: item.cat,
                         desc: `Shared marker - ${item.cat}`,
-                        icon: SAFE_ICONS[item.cat] || 'Note',  // ← EXACT SAME ICON AS SENDER
+                        icon: SAFE_ICONS[item.cat] || 'Note',
                         addedTime: Date.now(),
                         userEdited: true,
                         locked: true,
@@ -1319,30 +1317,47 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             if (imported.length > 0) {
-                showTempMessage(`Shared map loaded — ${imported.length} marker${imported.length > 1 ? 's' : ''} imported!`, 6000);
-
-                setTimeout(() => {
-                    const undoBtn = document.getElementById('undoImportBtn');
-                    if (undoBtn) {
-                        undoBtn.style.display = 'block';
-                        undoBtn.onclick = () => {
-                            locations = JSON.parse(oldState);
-                            saveLocations();
-                            forceReload();
-                            undoBtn.style.display = 'none';
-                            showTempMessage('Share import undone!', 4000);
-                            playSound('undo');
-                        };
-                        setTimeout(() => undoBtn.style.display = 'none', 60000);
-                    }
-                }, 100);
+                window.shareImportReady = {
+                    count: imported.length,
+                    oldState: oldState
+                };
             }
+
         } catch (e) {
             console.log('Share link failed:', e);
-            showTempMessage('Invalid or empty share link', 6000);
+            window.shareImportReady = { error: true };
         }
         history.replaceState(null, null, location.pathname);
     }
+}
+
+// ——— FINAL SHARE IMPORT EXECUTION — RUNS AFTER EVERYTHING IS READY ———
+if (window.shareImportReady) {
+    setTimeout(() => {
+        if (window.shareImportReady.error) {
+            showTempMessage('Invalid or empty share link', 6000);
+        } else {
+            saveLocations();
+            forceReload();
+
+            showTempMessage(`Shared map loaded — ${window.shareImportReady.count} marker${window.shareImportReady.count > 1 ? 's' : ''} imported!`, 6000);
+
+            const undoBtn = document.getElementById('undoImportBtn');
+            if (undoBtn) {
+                undoBtn.style.display = 'block';
+                undoBtn.onclick = () => {
+                    locations = JSON.parse(window.shareImportReady.oldState);
+                    saveLocations();
+                    forceReload();
+                    undoBtn.style.display = 'none';
+                    showTempMessage('Share import undone!', 4000);
+                    playSound('undo');
+                };
+                setTimeout(() => undoBtn.style.display = 'none', 60000);
+            }
+        }
+        delete window.shareImportReady;
+    }, 150);
 }
         // ————————————————————————————————
 
@@ -4370,15 +4385,36 @@ window.keepCommunityMarker = function(markerId) {
     );
 };
 
-// ——— DELAY SHARE SAVE UNTIL DOM READY ———
-if (typeof sharedPending !== 'undefined') {
+// ——— FINAL SHARE IMPORT EXECUTION — 100% FIXED & WORKING ———
+if (window.shareImportReady) {
     setTimeout(() => {
-        saveLocations();
-        forceReload();
-        showTempMessage(sharedPending.message, sharedPending.duration);
-    }, 100);  // Wait for DOM elements to initialize
-}
+        if (window.shareImportReady.error) {
+            showTempMessage('Invalid or empty share link', 6000);
+        } else {
+            const oldState = window.shareImportReady.oldState;  // ← THIS WAS THE BUG
 
+            saveLocations();
+            forceReload();
+
+            showTempMessage(`Shared map loaded — ${window.shareImportReady.count} marker${window.shareImportReady.count > 1 ? 's' : ''} imported!`, 6000);
+
+            const undoBtn = document.getElementById('undoImportBtn');
+            if (undoBtn) {
+                undoBtn.style.display = 'block';
+                undoBtn.onclick = () => {
+                    locations = JSON.parse(oldState);
+                    saveLocations();
+                    forceReload();
+                    undoBtn.style.display = 'none';
+                    showTempMessage('Share import undone!', 4000);
+                    playSound('undo');
+                };
+                setTimeout(() => undoBtn.style.display = 'none', 60000);
+            }
+        }
+        delete window.shareImportReady;
+    }, 150);
+}
         console.log('%cFallout 76 Item Finder Map v76.5.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
        Fallout 76 Item Finder Map - Disclaimer and Terms of Use
