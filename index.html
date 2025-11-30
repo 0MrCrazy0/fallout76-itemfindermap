@@ -1309,6 +1309,8 @@ localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
         function stopPostcardTicker() {
             if (postcardTicker) { clearInterval(postcardTicker); postcardTicker = null; }
         }
+		
+		
         let customCategories = JSON.parse(localStorage.getItem(CUSTOM_CATEGORIES_KEY)) || {};
         let communityVersion = "1.0";
 function getCurrentCommunityVersion() {
@@ -1994,7 +1996,7 @@ map.on('contextmenu', function(e) {
                         const idx = locations.indexOf(existing);
                         if (idx > -1) locations.splice(idx, 1);
                     }
-                    const loc = createNewLocation(lat, lng, 'misc', msg, true);
+                    const loc = createNewLocation(lat, lng, 'postcard', msg, true);
                     loc.id = id;
                     loc.startTime = Date.now();
                     loc.postcardExpire = Date.now() + 300000;
@@ -3260,35 +3262,6 @@ function createPermanentShare(markersToShare) {
     });
 }
 
-// === PERMANENT SHORT SHARE LINKS (?share=...) - FIXED & WORKING ===
-if (urlParams.has('share')) {
-    const encoded = urlParams.get('share');
-    try {
-        let padded = encoded.replace(/-/g, '+').replace(/_/g, '/');
-        const padlen = (4 - padded.length % 4) % 4;
-        padded += '='.repeat(padlen);
-        const raw = atob(padded);
-        const json = decodeURIComponent(escape(raw));
-        const tinyList = JSON.parse(json);
-        const imported = [];
-        tinyList.forEach(item => {
-            const loc = locations.find(l => l.id === item.id);
-            if (loc) {
-                loc.category = item.cat; // restores correct color
-                imported.push(loc);
-            }
-        });
-        if (imported.length > 0) {
-            showTempMessage(`Shared map loaded — ${imported.length} marker${imported.length > 1 ? 's' : ''} restored!`, 5000);
-            forceReload();
-        }
-    } catch (e) {
-        console.error('Invalid share link:', e);
-        showTempMessage('Invalid or corrupted share link', 5000);
-    }
-    history.replaceState(null, null, location.pathname);
-}
-
 document.getElementById('shareMyMapBtn').onclick = () => {
     playSound('click');
     const myMarkers = locations.filter(l => l.userEdited === true && !l.isPostcard);
@@ -4405,6 +4378,34 @@ window.keepCommunityMarker = function(markerId) {
         }
     );
 };
+
+if (urlParams.has('share')) {
+    const encoded = urlParams.get('share');
+    try {
+        let padded = encoded.replace(/-/g, '+').replace(/_/g, '/');
+        const padlen = (4 - padded.length % 4) % 4;
+        padded += '='.repeat(padlen);
+        const raw = atob(padded);
+        const json = decodeURIComponent(escape(raw));
+        const tinyList = JSON.parse(json);
+        const imported = [];
+        tinyList.forEach(item => {
+            const loc = locations.find(l => l.id === item.id);
+            if (loc) {
+                loc.category = item.cat; // restores correct color
+                imported.push(loc);
+            }
+        });
+        if (imported.length > 0) {
+            showTempMessage(`Shared map loaded — ${imported.length} marker${imported.length > 1 ? 's' : ''} restored!`, 5000);
+            forceReload();
+        }
+    } catch (e) {
+        console.error('Invalid share link:', e);
+        showTempMessage('Invalid or corrupted share link', 5000);
+    }
+    history.replaceState(null, null, location.pathname);
+}
 
         console.log('%cFallout 76 Item Finder Map v76.5.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
