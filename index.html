@@ -2017,27 +2017,42 @@ map.on('contextmenu', function(e) {
     playSound('click');
 });
 
-                // ——— POSTCARD HOTFIX — FORCE FULL DATA SO THEY SURVIVE RELOAD ———
+   
 document.getElementById('createPostcardBtn')?.addEventListener('click', () => {
-    const msg = document.getElementById('postcardMessage')?.value.trim() || 'Check this spot!';
+    const rawMsg = document.getElementById('postcardMessage')?.value.trim();
     if (!currentPostcardLatLng) return;
 
-    const loc = createNewLocation(currentPostcardLatLng.lat, currentPostcardLatLng.lng, 'postcard', msg, true);
-    locations.push(loc);
-    saveLocations();           // ← THIS LINE WAS MISSING / BROKEN BEFORE
-    forceReload();             // ← this triggers the reload
-    postcardModal.style.display = 'none';
+    const lat = currentPostcardLatLng.lat;
+    const lng = currentPostcardLatLng.lng;
+    const grid = getGridFromLatLng(lat, lng);
+    const x = Math.round(lng);
+    const y = Math.round(lat);
+    const coords = grid ? `Grid ${grid} (X: ${x}, Y: ${y})` : `X: ${x}, Y: ${y}`;
 
-    // Generate a FULL share link (so if someone reloads, postcard survives)
+    // Build final description BEFORE creating the location
+    const userMsg = rawMsg || '';
+    const finalDesc = userMsg 
+        ? (userMsg.includes('Grid') || userMsg.includes('X:') ? userMsg : `${userMsg}\n${coords}`)
+        : coords;
+
+    // Create location with correct description from the start
+    const loc = createNewLocation(lat, lng, 'postcard', finalDesc, true);
+
+    locations.push(loc);
+    saveLocations();
+
+    // Generate share link with real description
     const fullShare = [{
         id: loc.id,
         c: 'postcard',
-        d: msg,
-        x: Math.round(loc.lng),
-        y: Math.round(loc.lat)
+        d: finalDesc,
+        x: Math.round(lng),
+        y: Math.round(lat)
     }];
+
     const json = JSON.stringify(fullShare);
-    const encoded = btoa(unescape(encodeURIComponent(json))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    const encoded = btoa(unescape(encodeURIComponent(json)))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     const url = location.origin + location.pathname + '?share=' + encoded;
 
     navigator.clipboard.writeText(url).then(() => {
@@ -2045,21 +2060,24 @@ document.getElementById('createPostcardBtn')?.addEventListener('click', () => {
         playSound('postcard');
     });
 
+    postcardModal.style.display = 'none';
+    forceReload(); // Now safe — loc is already saved with correct desc
+
     setTimeout(() => showPostcardMarker(loc), 500);
     startPostcardTicker();
 });
 
-        const urlParams = new URLSearchParams(window.location.search);
+                const urlParams = new URLSearchParams(window.location.search);
         let pendingPostcard = null;
 
+        // Handle old postcard links (?postcard=...) — extract data
         if (urlParams.has('postcard')) {
             const id = urlParams.get('postcard');
             const lat = parseFloat(urlParams.get('lat'));
             const lng = parseFloat(urlParams.get('lng'));
             const msg = urlParams.has('msg')
                 ? decodeURIComponent(urlParams.get('msg').replace(/\+/g, ' '))
-                : 'Postcard from a friend!';
-
+                : '';
             if (!isNaN(lat) && !isNaN(lng)) {
                 pendingPostcard = { id, lat, lng, msg };
             }
@@ -2081,29 +2099,38 @@ document.getElementById('createPostcardBtn')?.addEventListener('click', () => {
                         const idx = locations.indexOf(existing);
                         if (idx > -1) locations.splice(idx, 1);
                     }
-                    const loc = createNewLocation(lat, lng, 'postcard', msg, true);
+
+                    // ADD COORDINATES TO RECEIVED POSTCARD
+                    const grid = getGridFromLatLng(lat, lng);
+                    const x = Math.round(lng);
+                    const y = Math.round(lat);
+                    const coords = grid ? `Grid ${grid} (X: ${x}, Y: ${y})` : `X: ${x}, Y: ${y}`;
+
+                    const userMsg = msg.trim();
+                    const finalDesc = userMsg
+                        ? (userMsg.includes('Grid') || userMsg.includes('X:') ? userMsg : `${userMsg}\n${coords}`)
+                        : coords;
+
+                    const loc = createNewLocation(lat, lng, 'postcard', finalDesc, true);
                     loc.id = id;
-                    loc.startTime = Date.now();
+                    loc.startTime = Date.now() - 1000;
                     loc.postcardExpire = Date.now() + 300000;
                     locations.push(loc);
                     saveLocations();
                     created = true;
-                    showTempMessage('Postcard received!', 5000);
+                    showTempMessage('Postcard received! (5-minute timer started)', 6000);
                     playSound('postcard');
                 }
 
                 setTimeout(() => {
-                    safeFlyTo(lat, lng, 1);
+                    safeFlyTo(lat, lng, 4);
                     setTimeout(() => {
-                        const marker = [...nonClusteredMarkers.getLayers(), ...clusteredMarkers.getLayers()]
+                        const marker = nonClusteredMarkers.getLayers()
                             .find(m => m.options.id === id);
-                        if (marker || created) {
-                            const displayMsg = created ? msg : 'Check this spot!';
-                            marker?.unbindPopup();
-                            marker?.bindPopup(createPopupContent({ desc: displayMsg, id: id }), { maxWidth: 320, offset: [0, -20] });
-                            marker?.openPopup();
+                        if (marker) {
+                            marker.openPopup();
                         }
-                    }, 1800);
+                    }, 800);
                 }, 600);
 
                 pendingPostcard = null;
