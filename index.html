@@ -3712,35 +3712,41 @@ document.getElementById('shareOneBtn').onclick = () => {
     });
 
     map.on('click', e => {
-        if (isDraggingAny) {
-            isDraggingAny = false;
-            return;
-        }
+    if (isDraggingAny) {
+        isDraggingAny = false;
+        return;
+    }
 
-        const clickedOnSpiderfied = e.originalEvent.target.closest('.leaflet-marker-icon');
-        if (clickedOnSpiderfied) {
-            return;
-        }
+    // Close spiderfied clusters
+    if (currentlySpiderfied) {
+        currentlySpiderfied.unspiderfy();
+        currentlySpiderfied = null;
+        currentClusterPopup = null;
+    }
 
-        combinedSearch.value = '';
-        loadData('', categoryFilter.value);
+    // Close any open popup
+    map.closePopup();
 
-        if (!gridEnabled) {
-            const lat = e.latlng.lat;
-            const lng = e.latlng.lng;
-            const grid = getGridFromLatLng(lat, lng);
-            const x = Math.round(lng);
-            const y = Math.round(lat);
-            coordHoverControl.getContainer().innerHTML = `Grid: ${grid || 'N/A'} (X: ${x}, Y: ${y})`;
-            coordHoverControl.getContainer().classList.add('show');
-            setTimeout(() => coordHoverControl.getContainer().classList.remove('show'), 3000);
-        }
-        if (gridEnabled) {
-            const grid = getGridFromLatLng(e.latlng.lat, e.latlng.lng);
-            if (grid) showGridNotification(grid);
-        }
-        playSound('click');
-    });
+    // Show grid coordinates (only if grid is off — your original behavior)
+    if (!gridEnabled) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        const grid = getGridFromLatLng(lat, lng);
+        const x = Math.round(lng);
+        const y = Math.round(lat);
+        coordHoverControl.getContainer().innerHTML = `Grid: ${grid || 'N/A'} (X: ${x}, Y: ${y})`;
+        coordHoverControl.getContainer().classList.add('show');
+        setTimeout(() => coordHoverControl.getContainer().classList.remove('show'), 3000);
+    }
+
+    // Show grid notification only when grid is ON
+    if (gridEnabled) {
+        const grid = getGridFromLatLng(e.latlng.lat, e.latlng.lng);
+        if (grid) showGridNotification(grid);
+    }
+
+    playSound('click');
+});
 
     map.doubleClickZoom.enable();
 map.on('dblclick', e => {
