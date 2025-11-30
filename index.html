@@ -2140,11 +2140,7 @@ document.getElementById('createPostcardBtn')?.addEventListener('click', () => {
         }
 
         function showPostcardMarker(loc) {
-    // Remove any previous postcard with same ID
-    const existing = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === loc.id);
-    if (existing) existing.remove();
 
-    // Now it uses the normal createMarkerIcon() → automatically PINK because category = 'postcard'
     const marker = L.marker([loc.lat, loc.lng], {
         icon: createMarkerIcon(loc),
         id: loc.id
@@ -2157,7 +2153,6 @@ document.getElementById('createPostcardBtn')?.addEventListener('click', () => {
         popup.setContent(createPopupContent(loc));
         setTimeout(() => bindKeepButton(loc), 50);
 
-        // Update timer inside popup
         const timerEl = document.getElementById(`postcardTimer_${loc.id}`);
         if (timerEl) {
             const start = loc.startTime || Date.now();
