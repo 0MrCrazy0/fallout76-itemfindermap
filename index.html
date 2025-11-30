@@ -566,13 +566,39 @@
         50% { box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff00; }
     }
 
-    /* DEV NOTE: MARKER BACKGROUND — ROUND */
-    .marker-background {
-        width: 30px; height: 30px;
-        border-radius: 50% !important;
-        display: flex; align-items: center; justify-content: center;
-        background-color: #808080;
-    }
+    /* DEV NOTE: MARKER GLOW ANIMATION */
+.custom-icon,
+.custom-icon.glowing,
+.custom-icon.glowing .marker-background {
+    box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
+}
+
+.custom-icon.glowing {
+    filter: drop-shadow(0 0 14px #00ff00)
+            drop-shadow(0 0 26px #00ff00)
+            brightness(1.6) !important;
+    animation: glowPulse 1.8s infinite ease-in-out;
+}
+
+/* THIS IS THE FINAL, PERFECT VERSION — colored dot + perfect glow */
+.marker-background {
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    
+    
+    /* Slightly translucent so the green glow bleeds through beautifully */
+    opacity: 0.90 !important;
+    
+    /* Thin black rim = maximum pop on any map background */
+    border: 1.5px solid #000 !important;
+    box-sizing: border-box !important;
+}
 
     /* DEV NOTE: CATEGORY LIST — VERTICAL + SPACED */
     #categoryCheckboxes label {
