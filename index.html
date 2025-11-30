@@ -2679,48 +2679,53 @@ tr.oncontextmenu = e => {
             playSound('click');
         };
 
-        setInterval(() => {
-            if (document.visibilityState === 'visible' && !window.isDraggingAnyMarker) {
-                let popupIsOpen = false;
-                let spiderfiedActive = false;
+        // ——— FIXED INTERVAL — NO MORE POSTCARD MURDER ———
+setInterval(() => {
+    if (document.visibilityState !== 'visible' || window.isDraggingAnyMarker) return;
 
-                map.eachLayer(layer => {
-                    if (layer.getPopup && layer.getPopup() && layer.getPopup().isOpen()) {
-                        popupIsOpen = true;
-                    }
+    let popupIsOpen = false;
+    let spiderfiedActive = false;
 
-                    if (layer.spiderfy && layer._spiderfied) {
-                        spiderfiedActive = true;
-                    }
-                });
+    map.eachLayer(layer => {
+        if (layer.getPopup && layer.getPopup() && layer.getPopup().isOpen()) {
+            popupIsOpen = true;
+        }
+        if (layer.spiderfy && layer._spiderfied) {
+            spiderfiedActive = true;
+        }
+    });
 
-                if (!popupIsOpen && !spiderfiedActive) {
-                    loadData(combinedSearch.value || '', categoryFilter.value || '');
-                }
+    // ONLY update glow and dragging — NEVER reload data
+    [clusteredMarkers, nonClusteredMarkers].forEach(group => {
+        group.eachLayer(m => {
+            const loc = locations.find(l => l.id === m.options.id);
+            if (!loc) return;
 
-                [clusteredMarkers, nonClusteredMarkers].forEach(g => g.eachLayer(m => {
-                    const loc = locations.find(l => l.id === m.options.id);
-                    if (!loc) return;
-                    const glow = isGlowing(loc);
-                    const icon = m.getIcon();
-                    if (glow && !icon.options.className?.includes('glowing')) {
-                        m.setIcon(createMarkerIcon(loc));
-                        m.setZIndexOffset(10000);
-                    } else if (!glow && icon.options.className?.includes('glowing')) {
-                        m.setIcon(createMarkerIcon(loc));
-                        m.setZIndexOffset(0);
-                    }
-                    if (loc.locked || loc.isPostcard) {
-                        m.dragging?.disable();
-                    } else {
-                        m.dragging?.enable();
-                    }
-                }));
+            const shouldGlow = isGlowing(loc);
+            const icon = m.getIcon();
 
-                refreshTable(combinedSearch?.value || '', categoryFilter?.value || '');
-                updateLockAllBtn?.();
+            if (shouldGlow && !icon.options.className?.includes('glowing')) {
+                m.setIcon(createMarkerIcon(loc));
+                m.setZIndexOffset(10000);
+            } else if (!shouldGlow && icon.options.className?.includes('glowing')) {
+                m.setIcon(createMarkerIcon(loc));
+                m.setZIndexOffset(0);
             }
-        }, 1000);
+
+            // Re-enable dragging if unlocked
+            if (!loc.locked && !loc.isPostcard) {
+                m.dragging?.enable();
+            } else {
+                m.dragging?.disable();
+            }
+        });
+    });
+
+    // Only refresh table — never touch markers
+    refreshTable(combinedSearch?.value || '', categoryFilter?.value || '');
+    updateLockAllBtn?.();
+
+}, 1000);
 
         function renderCategoryToggles() {
             const box = document.getElementById('categoryCheckboxes');
