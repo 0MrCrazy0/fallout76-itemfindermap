@@ -2526,7 +2526,7 @@ if (submitBtn) {
     const bar = document.getElementById('xpProgress');
     bar.classList.add('level-up');
     setTimeout(() => bar.classList.remove('level-up'), 10000);
-        if (level % 10 === 0) triggerNuke();
+    triggerNuke();
     }
     localStorage.setItem('fo76_level', level);
     localStorage.setItem('fo76_xp', xp);
