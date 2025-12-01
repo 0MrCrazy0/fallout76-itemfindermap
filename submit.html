@@ -41,37 +41,38 @@
     const lng = urlParams.get('lng');
     const category = urlParams.get('category') || 'misc';
     const descRaw = urlParams.get('desc') || 'No description';
-    const icon = urlParams.get('icon') || 'Notepad';
+    const icon = urlParams.get('icon') || '📍'; // fallback emoji
 
-    // Decode and extract Submitted By name if it exists
+    // Decode description
     const desc = decodeURIComponent(descRaw);
-    let prefilledName = '';
 
+    // Extract name if already in description
+    let prefilledName = '';
     const submittedByMatch = desc.match(/Submitted By\s+(.+)$/i);
     if (submittedByMatch) {
         prefilledName = submittedByMatch[1].trim();
     }
 
-    // Fill the fields
+    // Fill the fields — THIS IS THE FIX
     document.getElementById('coords').textContent = `${parseFloat(lat).toFixed(2)}, ${parseFloat(lng).toFixed(2)}`;
-    document.getElementById('category').textContent = category;
-    document.getElementById('desc').textContent = desc.replace(/\nSubmitted By.+$/i, ''); // clean display
+    document.getElementById('category').textContent = `${icon} ${category.toUpperCase()}`; // ← emoji + category
+    document.getElementById('desc').textContent = desc.replace(/\nSubmitted By.+$/i, '').trim();
 
-    // ← THIS IS THE FIX: pre-fill the name field!
     const nameInput = document.getElementById('playerName');
-    if (prefilledName) {
-        nameInput.value = prefilledName;
-    }
+    if (prefilledName) nameInput.value = prefilledName;
 
     document.getElementById('submitForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = nameInput.value.trim() || 'Anonymous Wastelander';
 
+        const cleanDesc = desc.replace(/\nSubmitted By.+$/i, '').trim();
+        const finalDesc = cleanDesc + `\nSubmitted By ${name}`;
+
         const marker = {
             lat: parseFloat(lat),
             lng: parseFloat(lng),
             category: category,
-            desc: desc.replace(/\nSubmitted By.+$/i, '') + `\nSubmitted By ${name}`,
+            desc: finalDesc,
             icon: icon
         };
 
@@ -88,7 +89,8 @@
                     <h1>THANK YOU</h1>
                     <p>Your marker has been submitted!</p>
                     <p>MrCrazy will review and merge it soon.</p>
-                    <p><strong>Submitted as:</strong> ${name}</p>
+                    <p><strong>Submitted as:</strong> ${icon} ${category.toUpperCase()}<br>
+                       <strong>By:</strong> ${name}</p>
                     <br>
                     <a href="javascript:window.close()" style="color:#00ff88;text-decoration:underline;font-size:1.2em;font-weight:bold;">
                         Close Window
