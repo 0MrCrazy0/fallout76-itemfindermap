@@ -3299,8 +3299,9 @@ document.getElementById('submitCommunityBtn').onclick = () => {
     const finalDesc = loc.desc.includes('Submitted By')
         ? loc.desc
         : `${loc.desc}\nSubmitted By ${playerName}`;
-		
-    const iconToSend = categoryIcons[loc.category] || loc.icon || '📍';
+
+    // THIS LINE SENDS THE REAL EMOJI
+    const iconToSend = categoryIcons[loc.category] || loc.icon || '📝';
 
     const params = new URLSearchParams({
         lat: loc.lat,
