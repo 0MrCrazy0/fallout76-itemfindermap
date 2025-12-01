@@ -3653,6 +3653,23 @@
       "keepBtnBound": false,
       "userEdited": true,
       "wasCommunityKept": false
+    },
+    {
+      "id": "id-c693f60c-ce7a-44aa-9794-6b7e5769afde",
+      "cid": "named locations_test_grid_c2_x_982_y_621_submitted_by_mrcrazy_621_982",
+      "category": "named locations",
+      "desc": "test\nGrid C2 (X: 982, Y: 621)\nSubmitted By MrCrazy",
+      "lat": 621.1636033669798,
+      "lng": 982.0747458749433,
+      "icon": "NamedLocation",
+      "addedTime": 1764599805086,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": true,
+      "wasCommunityKept": false
     }
   ]
 }
