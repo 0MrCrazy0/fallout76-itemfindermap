@@ -4,7 +4,7 @@
     <!-- DEV NOTE: Meta tags for mobile + PWA support -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Fallout 76 Item Finder Map v76.6.6</title>
+    <title>Fallout 76 Item Finder Map v76.6.7</title>
 
 	<link rel="manifest" href="manifest.json?v=3">
 
@@ -1135,7 +1135,7 @@ nukeStyle.textContent = `
                 <button id="resetAppBtn" class="reset-btn">Reset App (deletes everything)</button>
             </div>
             <p class="small"><br>❤️ the Item Finder Map? Support MrCrazy with a <a href="https://buymeacoffee.com/mrcrazy" target="_blank">Nuka-Cola</a>!</p>
-            <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version v76.6.6 Made By MrCrazy</p>
+            <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version v76.6.7 Made By MrCrazy</p>
         </div>
     </div>
     <!-- DEV NOTE: NUKE CODES MODAL -->
@@ -1221,8 +1221,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const STORAGE_KEY = 'fo76_locations';
         const CUSTOM_CATEGORIES_KEY = '76_custom_categories';
         const MAP_VERSION_KEY = 'fo76_map_version';
-        const CURRENT_UPDATE_VERSION = 'v76.6.6';
-        const APP_VERSION = "v76.6.6";
+        const CURRENT_UPDATE_VERSION = 'v76.6.7';
+        const APP_VERSION = "v76.6.7";
         let soundsEnabled = localStorage.getItem('soundsEnabled') !== 'false';
         const baseSounds = {
             click: new Audio("https://rpg.hamsterrepublic.com/wiki-images/8/84/Select8-Bit.ogg"),
@@ -2308,7 +2308,7 @@ map.on('popupclose', () => {
     }
 }
         function updateCounterDisplay() {
-    const appVersion = "76.6.6";
+    const appVersion = "76.6.7";
     const communityVer = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
     const total = locations.filter(l => activeCategories.has(l.category)).length;
     const userTotal = locations.filter(l => l.userEdited === true && !l.isPostcard).length;
@@ -2678,7 +2678,7 @@ if (submitBtn) {
         () => {
             // FULL BACKUP
             const fullBackup = {
-                version: "full-v76.6.6",
+                version: "full-v76.6.7",
                 timestamp: new Date().toISOString(),
                 communityVersion,
                 locations: locations.filter(l => !l.isPostcard),
@@ -3519,7 +3519,7 @@ function syncToggleButtonStates() {
                     ☢ FALLOUT 76 ITEM FINDER MAP ☢
                 </h1>
                 <p style="margin:8px 0 0; font-size:1.3em; color:#0f0;">
-                    v76.6.6 — Built with ❤️ by MrCrazy
+                    v76.6.7 — Built with ❤️ by MrCrazy
                 </p>
             </div>
 
@@ -3576,7 +3576,7 @@ function syncToggleButtonStates() {
                 </div>
                 <div style="padding:30px; text-align:center; line-height:1.8;">
                     <ul style="text-align:left; display:inline-block; margin:25px 0; padding-left:30px; font-size:1.2em;">
-                        <li>Welcome To Version 76.6.6</li>
+                        <li>Welcome To Version 76.6.7</li>
                         <li>This is The Latest Update — Reset Your App if needed.<br>
                             Find this tip in the "How to Use" section.</li>
                         <li>Made With ❤️</li>
@@ -3611,7 +3611,7 @@ function syncToggleButtonStates() {
         if (!localStorage.getItem(WELCOME_KEY)) {
             setTimeout(showWelcomeModal, 800);
         }
-        if (localStorage.getItem(LAST_VERSION_KEY) !== 'v76.6.6') {
+        if (localStorage.getItem(LAST_VERSION_KEY) !== 'v76.6.7') {
             setTimeout(checkForUpdate, 1400);
         }
 const searchInput = document.getElementById('combinedSearch');
@@ -3828,7 +3828,7 @@ if (urlParams.has('permshare')) {
 
         document.getElementById('backupAllBtn')?.addEventListener('click', () => {
     const fullBackup = {
-        version: "full-v76.6.6",
+        version: "full-v76.6.7",
         timestamp: new Date().toISOString(),
         communityVersion: localStorage.getItem('fo76_map_version') || '1.0',
         locations: locations,
@@ -4104,7 +4104,7 @@ if (playerNameInput) {
     });
 }
 
-        console.log('%cFallout 76 Item Finder Map v76.6.6 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
+        console.log('%cFallout 76 Item Finder Map v76.6.7 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
        Fallout 76 Item Finder Map - Disclaimer and Terms of Use
        --------------------------------------------------------------------------
