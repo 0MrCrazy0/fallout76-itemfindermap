@@ -3300,7 +3300,9 @@ document.getElementById('submitCommunityBtn').onclick = () => {
         ? loc.desc
         : `${loc.desc}\nSubmitted By ${playerName}`;
 		
-    const iconToSend = categoryIcons[loc.category] || loc.icon || '📍';
+    const iconToSend = loc.icon && loc.icon.length > 4 
+    ? categoryIcons[loc.category] || '📍'
+    : loc.icon || categoryIcons[loc.category] || '📍';
 
     const params = new URLSearchParams({
         lat: loc.lat,
