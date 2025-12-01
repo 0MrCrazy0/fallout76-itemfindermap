@@ -3653,6 +3653,23 @@
       "keepBtnBound": false,
       "userEdited": true,
       "wasCommunityKept": false
+    },
+    {
+      "id": "id-972b9f63-cccc-4d53-8435-9f4b29be8054",
+      "cid": "fusion core_test_grid_b2_x_578_y_479_submitted_by_mrcrazy_479_578",
+      "category": "fusion core",
+      "desc": "test\nGrid B2 (X: 578, Y: 479)\nSubmitted By MrCrazy",
+      "lat": 479.0814555327655,
+      "lng": 577.8992173200467,
+      "icon": "FusionCore",
+      "addedTime": 1764603623535,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": true,
+      "wasCommunityKept": false
     }
   ]
 }
