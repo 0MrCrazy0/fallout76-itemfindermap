@@ -1325,20 +1325,7 @@ communityVersion = getCurrentCommunityVersion();
         'fishing locations': '🎣', 'workshops': '🔧', 'train stations': '🚂', 'town locations': '🏫',
         'event locations': '🎉', 'named locations': '🚩', 'regions': '📍'
         };
-const textToEmojiMap = {
-    'misc': '📝', 'weapons': '🔫', 'armor': '🛡️', 'aid': '💉', 'food/drink': '🍽️',
-    'ammunition': '💥', 'apparel': '👕', 'plans': '📜', 'junk': '🗑️', 'holotapes': '📀',
-    'plants': '🌿', 'eggs': '🥚', 'creatures': '🐺', 'vendors': '💰', 'exchanges': '⚖️',
-    'vaults': '⚙️', 'power armor': '👨‍🚀', 'fusion core': '🔋', 'nuke drop zones': '☢️',
-    'nuke silos': '🚀', 'magazines': '📚', 'bobbleheads': '🎎', 'safe locations': '🗄️',
-    'terminal locations': '🖥️', 'treasure maps': '🗺️', 'resource deposits': '⛏️',
-    'fishing locations': '🎣', 'workshops': '🔧', 'train stations': '🚂', 'town locations': '🏫',
-    'event locations': '🎉', 'named locations': '🚩', 'regions': '📍',
-    'custom': '❓' // fallback for player-made categories
-};
-function getDisplayIcon(storedIcon) {
-    return textToEmojiMap[storedIcon] || storedIcon; // converts "Notepad" → "📝"
-}
+
         let categoryIcons = { ...defaultCategoryIcons, ...customCategories };
         const defaultCategoryColors = {
             'weapons': '#ff4444', 'armor': '#4682b4', 'aid': '#32cd32', 'food/drink': '#adff2f',
@@ -2051,7 +2038,7 @@ map.on('popupclose', () => {
             zIndexOffset: 1000
         });
     } else {
-        const base = `<div class="marker-background" style="background-color:${categoryColors[loc.category] || '#808080'};"><span style="font-size:18px;">${getDisplayIcon(loc.icon) || categoryIcons[loc.category] || '📝'}</span></div>`;
+        const base = `<div class="marker-background" style="background-color:${categoryColors[loc.category] || '#808080'};"><span style="font-size:18px;">${ categoryIcons[loc.category] || '📝'}</span></div>`;
         return L.divIcon({
             className: isGlowing(loc) ? 'custom-icon glowing' : 'custom-icon',
             html: base,
