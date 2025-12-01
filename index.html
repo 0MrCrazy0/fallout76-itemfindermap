@@ -4,7 +4,7 @@
     <!-- DEV NOTE: Meta tags for mobile + PWA support -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Fallout 76 Item Finder Map v76.5.0</title>
+    <title>Fallout 76 Item Finder Map v76.6.0</title>
 
 	<link rel="manifest" href="manifest.json?v=3">
 
@@ -941,6 +941,15 @@ nukeStyle.textContent = `
 }
 #searchSuggestions .category-match { font-weight: bold; color: #aaffaa; }
 #searchSuggestions .desc-match { opacity: 0.9; }
+}
+
+.leaflet-popup-tip-container {
+    left: 70% !important;
+    transform: translateX(-50%);
+}
+.leaflet-popup-tip {
+    margin-left: 18% !important;
+}
     </style>
 </head>
 <body>
@@ -1072,7 +1081,7 @@ nukeStyle.textContent = `
                 <button id="resetAppBtn" class="reset-btn">Reset App (deletes everything)</button>
             </div>
             <p class="small"><br>❤️ the Item Finder? Support MrCrazy with a <a href="https://buymeacoffee.com/mrcrazy" target="_blank">Nuka-Cola</a>!</p>
-            <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version v76.5.0 Made By MrCrazy</p>
+            <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version v76.6.0 Made By MrCrazy</p>
         </div>
     </div>
     <!-- DEV NOTE: NUKE CODES MODAL -->
@@ -1158,8 +1167,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const STORAGE_KEY = 'fo76_locations';
         const CUSTOM_CATEGORIES_KEY = '76_custom_categories';
         const MAP_VERSION_KEY = 'fo76_map_version';
-        const CURRENT_UPDATE_VERSION = 'v76.5.0';
-        const APP_VERSION = "v76.5.0";
+        const CURRENT_UPDATE_VERSION = 'v76.6.0';
+        const APP_VERSION = "v76.6.0";
         let soundsEnabled = localStorage.getItem('soundsEnabled') !== 'false';
         const baseSounds = {
             click: new Audio("https://rpg.hamsterrepublic.com/wiki-images/8/84/Select8-Bit.ogg"),
@@ -1907,27 +1916,29 @@ map.on('popupclose', () => {
             marker.openPopup();
         }
         function bindKeepButton(loc) {
-            const keepBtn = document.getElementById(`keepPostcardBtn_${loc.id}`);
-            if (!keepBtn) return;
-            keepBtn.onclick = (e) => {
-                e.stopPropagation();
-                const index = locations.findIndex(l => l.id === loc.id);
-                if (index === -1) return;
-                locations[index].isPostcard = false;
-                locations[index].isTemp = false;
-                locations[index].locked = true;
-                locations[index].userEdited = true;
-                locations[index].postcardExpire = null;
-                locations[index].addedTime = Date.now();
-                locations[index].startTime = null;
-locations[index].icon = '📝';
-                saveLocations();
-                recalculateXP();
-                forceReload();
-                showTempMessage('Postcard kept!', 4000);
-                playSound('saving');
-            };
-        }
+    const keepBtn = document.getElementById(`keepPostcardBtn_${loc.id}`);
+    if (!keepBtn) return;
+    keepBtn.onclick = (e) => {
+        e.stopPropagation();
+        const index = locations.findIndex(l => l.id === loc.id);
+        if (index === -1) return;
+        // Update description with grid/coord before keeping
+        locations[index].desc = updateDescWithGrid(loc.desc, loc.lat, loc.lng);
+        locations[index].isPostcard = false;
+        locations[index].isTemp = false;
+        locations[index].locked = true;
+        locations[index].userEdited = true;
+        locations[index].postcardExpire = null;
+        locations[index].addedTime = Date.now();
+        locations[index].startTime = null;
+        locations[index].icon = '📝';
+        saveLocations();
+        recalculateXP();
+        forceReload();
+        showTempMessage('Postcard kept!', 4000);
+        playSound('saving');
+    };
+}
         function dustPostcard(id) {
             const loc = locations.find(l => l.id === id);
             if (!loc) return;
@@ -2186,37 +2197,83 @@ locations[index].icon = '📝';
     });
 }
         function addMarkerToMap(loc) {
-            const marker = L.marker([loc.lat, loc.lng], {
-                icon: createMarkerIcon(loc),
-                id: loc.id,
-                draggable: !loc.locked && !loc.isPostcard,
-                autoPan: true,                    // ← NEW: auto-pan when dragged to edge
-                autoPanPadding: [80, 80],         // ← start panning 80 px from border
-                autoPanSpeed: 30                  // ← super smooth & fast
-            });
-            attachDragHandler(marker, loc);
-            const textOnly = ['named locations', 'regions'].includes(loc.category);
-            (clusteringEnabled && !textOnly ? clusteredMarkers : nonClusteredMarkers).addLayer(marker);
-            if (isGlowing(loc)) {
-                setTimeout(() => {
-                    marker.setZIndexOffset(10000);
-                    marker.setIcon(createMarkerIcon(loc));
-                }, 100);
+    const marker = L.marker([loc.lat, loc.lng], {
+        icon: createMarkerIcon(loc),
+        id: loc.id,
+        draggable: !loc.locked && !loc.isPostcard,
+        autoPan: true,
+        autoPanPadding: [80, 80],
+        autoPanSpeed: 30
+    });
+    attachDragHandler(marker, loc);
+
+    const textOnly = ['named locations', 'regions'].includes(loc.category);
+
+    // Add to correct layer (clustered or not)
+    (clusteringEnabled && !textOnly ? clusteredMarkers : nonClusteredMarkers).addLayer(marker);
+
+    // ——— NEW: NAMED LOCATIONS & REGIONS ALWAYS ON TOP ———
+    if (textOnly) {
+        marker.setZIndexOffset(20000); // Extremely high — always above everything
+    } else if (isGlowing(loc)) {
+        marker.setZIndexOffset(10000); // Glowing markers still high, but below named locations
+    } else {
+        marker.setZIndexOffset(0);     // Normal markers at bottom
+    }
+
+    // Keep glowing refresh (now respects named locations priority)
+    if (isGlowing(loc)) {
+        setTimeout(() => {
+            // Re-apply correct z-index after glow icon update
+            if (textOnly) {
+                marker.setZIndexOffset(20000);
+            } else {
+                marker.setZIndexOffset(10000);
             }
-            if (lastMovedMarker && lastMovedMarker.options.id === loc.id) {
-                setTimeout(() => {
+            marker.setIcon(createMarkerIcon(loc));
+        }, 100);
+    }
+
+        if (lastMovedMarker && lastMovedMarker.options.id === loc.id) {
+        setTimeout(() => {
+            marker.openPopup();
+            lastMovedMarker = null;
+        }, 800);
+    }
+
+    if (marker._icon) {
+        // Block browser context menu (inspect, save page, etc.)
+        L.DomEvent.on(marker._icon, 'contextmenu', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        // Make right-click / long-press behave like left-click (open popup)
+        L.DomEvent.on(marker._icon, 'contextmenu', function() {
+            marker.openPopup();
+        });
+
+        // Mobile: block long-press browser menu
+        let longPressTimer;
+        L.DomEvent.on(marker._icon, 'touchstart', function(e) {
+            if (e.touches.length === 1) {
+                longPressTimer = setTimeout(() => {
                     marker.openPopup();
-                    lastMovedMarker = null;
-                }, 800);
+                }, 500);
             }
-        }
+        });
+        L.DomEvent.on(marker._icon, 'touchend touchmove touchcancel', function() {
+            clearTimeout(longPressTimer);
+        });
+    }
+}
         function updateCounterDisplay() {
-    const appVersion = "76.5.0";
+    const appVersion = "76.6.0";
     const communityVer = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
     const total = locations.filter(l => activeCategories.has(l.category)).length;
     const userTotal = locations.filter(l => l.userEdited === true && !l.isPostcard).length;
     counter.innerHTML = `
-        <strong>Fallout 76 Item Finder v${appVersion}</strong><br>
+        <strong>FO76-IFM v${appVersion}</strong><br>
         Community Map v${communityVer} — <strong style="color:#00ff88;">Total Logged: ${total}</strong><br>
         <strong style="color:#00ff88;">You Logged → ${userTotal}</strong><br>
         <strong style="color:#00ff88;">You Are Level → ${level}</strong>
@@ -2576,7 +2633,7 @@ if (submitBtn) {
         () => {
             // FULL BACKUP
             const fullBackup = {
-                version: "full-v76.5.0",
+                version: "full-v76.6.0",
                 timestamp: new Date().toISOString(),
                 communityVersion,
                 locations: locations.filter(l => !l.isPostcard),
@@ -3407,7 +3464,7 @@ function syncToggleButtonStates() {
                     ☢ FALLOUT 76 ITEM FINDER ☢
                 </h1>
                 <p style="margin:8px 0 0; font-size:1.3em; color:#0f0;">
-                    v76.5.0 — Built with ❤️ by MrCrazy
+                    v76.6.0 — Built with ❤️ by MrCrazy
                 </p>
             </div>
 
@@ -3464,7 +3521,7 @@ function syncToggleButtonStates() {
                 </div>
                 <div style="padding:30px; text-align:center; line-height:1.8;">
                     <ul style="text-align:left; display:inline-block; margin:25px 0; padding-left:30px; font-size:1.2em;">
-                        <li>Welcome To Version 76.5.0</li>
+                        <li>Welcome To Version 76.6.0</li>
                         <li>This is The Latest Update — Reset Your App if needed.<br>
                             Find this tip in the "How to Use" section.</li>
                         <li>Made With ❤️</li>
@@ -3499,7 +3556,7 @@ function syncToggleButtonStates() {
         if (!localStorage.getItem(WELCOME_KEY)) {
             setTimeout(showWelcomeModal, 800);
         }
-        if (localStorage.getItem(LAST_VERSION_KEY) !== 'v76.5.0') {
+        if (localStorage.getItem(LAST_VERSION_KEY) !== 'v76.6.0') {
             setTimeout(checkForUpdate, 1400);
         }
 const searchInput = document.getElementById('combinedSearch');
@@ -3716,7 +3773,7 @@ if (urlParams.has('permshare')) {
 
         document.getElementById('backupAllBtn')?.addEventListener('click', () => {
     const fullBackup = {
-        version: "full-v76.5.0",
+        version: "full-v76.6.0",
         timestamp: new Date().toISOString(),
         communityVersion: localStorage.getItem('fo76_map_version') || '1.0',
         locations: locations,
@@ -3974,14 +4031,15 @@ window.keepCommunityMarker = function(markerId) {
             marker.wasCommunityKept = true;
 
             saveLocations();
+            recalculateXP();
             forceReload();
-            showTempMessage('Marker kept! Now yours (locked — unlock to edit)', 5000);
+            showTempMessage(`Marker kept! +100 XP — Level ${level}`, 5000);
             playSound('saving');
         }
     );
 };
 
-        console.log('%cFallout 76 Item Finder Map v76.5.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
+        console.log('%cFallout 76 Item Finder Map v76.6.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
        Fallout 76 Item Finder Map - Disclaimer and Terms of Use
        --------------------------------------------------------------------------
