@@ -3299,13 +3299,15 @@ document.getElementById('submitCommunityBtn').onclick = () => {
     const finalDesc = loc.desc.includes('Submitted By')
         ? loc.desc
         : `${loc.desc}\nSubmitted By ${playerName}`;
+		
+    const iconToSend = loc.icon || categoryIcons[loc.category] || '📝';
 
     const params = new URLSearchParams({
         lat: loc.lat,
         lng: loc.lng,
         category: loc.category,
         desc: finalDesc,
-        icon: loc.icon || "Notepad",
+        icon: iconToSend,
         id: loc.id,
         cid: loc.cid || generateCid(loc),
         userEdited: loc.userEdited || false,
