@@ -1326,15 +1326,15 @@ communityVersion = getCurrentCommunityVersion();
         'event locations': '🎉', 'named locations': '🚩', 'regions': '📍'
         };
 const textToEmojiMap = {
-    'Notepad': '📝', 'Weapon': '🔫', 'Armor': '🛡️', 'Aid': '💉', 'FoodDrink': '🍽️',
-    'Ammo': '💥', 'Apparel': '👕', 'Plans': '📜', 'Junk': '🗑️', 'Holotapes': '📀',
-    'Plant': '🌿', 'Egg': '🥚', 'Creature': '🐺', 'Vendor': '💰', 'Exchange': '⚖️',
-    'Vault': '⚙️', 'PowerArmor': '👨‍🚀', 'FusionCore': '🔋', 'NukeZone': '☢️',
-    'NukeSilo': '🚀', 'Magazine': '📚', 'Bobblehead': '🎎', 'Safe': '🗄️',
-    'Terminal': '🖥️', 'TreasureMap': '🗺️', 'Resource': '⛏️',
-    'Fishing': '🎣', 'Workshop': '🔧', 'TrainStation': '🚂', 'Town': '🏫',
-    'Event': '🎉', 'NamedLocation': '🚩', 'Region': '📍',
-    'Custom': '❓' // fallback for player-made categories
+    'misc': '📝', 'weapons': '🔫', 'armor': '🛡️', 'aid': '💉', 'food/drink': '🍽️',
+    'ammunition': '💥', 'apparel': '👕', 'plans': '📜', 'junk': '🗑️', 'holotapes': '📀',
+    'plants': '🌿', 'eggs': '🥚', 'creatures': '🐺', 'vendors': '💰', 'exchanges': '⚖️',
+    'vaults': '⚙️', 'power armor': '👨‍🚀', 'fusion core': '🔋', 'nuke drop zones': '☢️',
+    'nuke silos': '🚀', 'magazines': '📚', 'bobbleheads': '🎎', 'safe locations': '🗄️',
+    'terminal locations': '🖥️', 'treasure maps': '🗺️', 'resource deposits': '⛏️',
+    'fishing locations': '🎣', 'workshops': '🔧', 'train stations': '🚂', 'town locations': '🏫',
+    'event locations': '🎉', 'named locations': '🚩', 'regions': '📍',
+    'custom': '❓' // fallback for player-made categories
 };
 function getDisplayIcon(storedIcon) {
     return textToEmojiMap[storedIcon] || storedIcon; // converts "Notepad" → "📝"
@@ -3300,9 +3300,7 @@ document.getElementById('submitCommunityBtn').onclick = () => {
         ? loc.desc
         : `${loc.desc}\nSubmitted By ${playerName}`;
 		
-    const iconToSend = loc.icon && loc.icon.length > 4 
-    ? categoryIcons[loc.category] || '📍'
-    : loc.icon || categoryIcons[loc.category] || '📍';
+    const iconToSend = categoryIcons[loc.category] || loc.icon || '📍';
 
     const params = new URLSearchParams({
         lat: loc.lat,
