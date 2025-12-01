@@ -3636,6 +3636,23 @@
       "startTime": null,
       "popupTimer": null,
       "keepBtnBound": false
+    },
+    {
+      "id": "id-96ee42a7-b24f-4ec3-88e8-47c94e891171",
+      "cid": "misc_grid_b1_x_659_y_390_390_659",
+      "category": "misc",
+      "desc": "Grid B1 (X: 659, Y: 390)",
+      "lat": 389.70445416558493,
+      "lng": 658.6809094024161,
+      "icon": "Notepad",
+      "addedTime": 1764564504713,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": true,
+      "wasCommunityKept": false
     }
   ]
 }
