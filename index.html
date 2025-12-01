@@ -4,7 +4,7 @@
     <!-- DEV NOTE: Meta tags for mobile + PWA support -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Fallout 76 Item Finder Map v76.6.5</title>
+    <title>Fallout 76 Item Finder Map v76.6.6</title>
 
 	<link rel="manifest" href="manifest.json?v=3">
 
@@ -1005,6 +1005,13 @@ nukeStyle.textContent = `
         <button id="toggleTitleBtn">-</button>
     </div>
     <h1 id="mainTitle">The Fallout 76 Item Finder Map! Quickly log items while exploring Appalachia.</h1>
+	<!-- PLAYER NAME INPUT — PERSISTENT -->
+<div style="text-align:center; margin:10px auto 20px; max-width:420px;">
+  <input type="text" id="playerNameInput" placeholder="Your In-Game Name (optional)" 
+         style="width:100%; padding:12px; background:#000; color:#0f0; border:2px solid #0f0; 
+                font-family:'Courier New',monospace; font-size:16px; text-align:center; 
+                box-sizing:border-box;">
+</div>
     <!-- DEV NOTE: MAIN MAP CONTAINER -->
     <div id="map">
         <div id="mapLoadingOverlay" style="position:absolute;top:0;left:0;right:0;bottom:0;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;pointer-events:none;opacity:0;transition:opacity 0.6s;">
@@ -1128,7 +1135,7 @@ nukeStyle.textContent = `
                 <button id="resetAppBtn" class="reset-btn">Reset App (deletes everything)</button>
             </div>
             <p class="small"><br>❤️ the Item Finder Map? Support MrCrazy with a <a href="https://buymeacoffee.com/mrcrazy" target="_blank">Nuka-Cola</a>!</p>
-            <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version v76.6.5 Made By MrCrazy</p>
+            <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version v76.6.6 Made By MrCrazy</p>
         </div>
     </div>
     <!-- DEV NOTE: NUKE CODES MODAL -->
@@ -1214,8 +1221,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const STORAGE_KEY = 'fo76_locations';
         const CUSTOM_CATEGORIES_KEY = '76_custom_categories';
         const MAP_VERSION_KEY = 'fo76_map_version';
-        const CURRENT_UPDATE_VERSION = 'v76.6.5';
-        const APP_VERSION = "v76.6.5";
+        const CURRENT_UPDATE_VERSION = 'v76.6.6';
+        const APP_VERSION = "v76.6.6";
         let soundsEnabled = localStorage.getItem('soundsEnabled') !== 'false';
         const baseSounds = {
             click: new Audio("https://rpg.hamsterrepublic.com/wiki-images/8/84/Select8-Bit.ogg"),
@@ -2314,7 +2321,7 @@ map.on('popupclose', () => {
     }
 }
         function updateCounterDisplay() {
-    const appVersion = "76.6.5";
+    const appVersion = "76.6.6";
     const communityVer = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
     const total = locations.filter(l => activeCategories.has(l.category)).length;
     const userTotal = locations.filter(l => l.userEdited === true && !l.isPostcard).length;
@@ -2684,7 +2691,7 @@ if (submitBtn) {
         () => {
             // FULL BACKUP
             const fullBackup = {
-                version: "full-v76.6.5",
+                version: "full-v76.6.6",
                 timestamp: new Date().toISOString(),
                 communityVersion,
                 locations: locations.filter(l => !l.isPostcard),
@@ -3281,23 +3288,30 @@ document.getElementById('shareOneBtn').onclick = () => {
 document.getElementById('submitCommunityBtn').onclick = () => {
     const loc = locations[currentIndex];
     if (!loc?.locked) {
-        showTempMessage('LOCK THE MARKER FIRST!', 5000);
+        showTempMessage('LOCK THE MARKER FIRST', 5000);
         playSound('error');
         return;
     }
-    // FULL DATA — 100% future-proof
+
+    const playerNameInput = document.getElementById('playerNameInput');
+    const playerName = playerNameInput?.value.trim() || 'Anonymous Wastelander';
+
+    const finalDesc = loc.desc.includes('Submitted By')
+        ? loc.desc
+        : `${loc.desc}\nSubmitted By ${playerName}`;
+
     const params = new URLSearchParams({
         lat: loc.lat,
         lng: loc.lng,
         category: loc.category,
-        desc: loc.desc,
+        desc: finalDesc,
         icon: loc.icon || "Notepad",
         id: loc.id,
-        cid: loc.cid || generateCid(loc), // ensures cid is always sent
+        cid: loc.cid || generateCid(loc),
         userEdited: loc.userEdited || false,
         wasCommunityKept: loc.wasCommunityKept || false
     });
-    // CACHE-BUSTER = always loads the latest submit.html
+
     const url = `https://0mrcrazy0.github.io/fallout76-itemfindermap/submit.html?v=${Date.now()}&${params.toString()}`;
     window.open(url, '_blank', 'width=500,height=720,scrollbars=yes');
 };
@@ -3515,7 +3529,7 @@ function syncToggleButtonStates() {
                     ☢ FALLOUT 76 ITEM FINDER MAP ☢
                 </h1>
                 <p style="margin:8px 0 0; font-size:1.3em; color:#0f0;">
-                    v76.6.5 — Built with ❤️ by MrCrazy
+                    v76.6.6 — Built with ❤️ by MrCrazy
                 </p>
             </div>
 
@@ -3572,7 +3586,7 @@ function syncToggleButtonStates() {
                 </div>
                 <div style="padding:30px; text-align:center; line-height:1.8;">
                     <ul style="text-align:left; display:inline-block; margin:25px 0; padding-left:30px; font-size:1.2em;">
-                        <li>Welcome To Version 76.6.5</li>
+                        <li>Welcome To Version 76.6.6</li>
                         <li>This is The Latest Update — Reset Your App if needed.<br>
                             Find this tip in the "How to Use" section.</li>
                         <li>Made With ❤️</li>
@@ -3607,7 +3621,7 @@ function syncToggleButtonStates() {
         if (!localStorage.getItem(WELCOME_KEY)) {
             setTimeout(showWelcomeModal, 800);
         }
-        if (localStorage.getItem(LAST_VERSION_KEY) !== 'v76.6.5') {
+        if (localStorage.getItem(LAST_VERSION_KEY) !== 'v76.6.6') {
             setTimeout(checkForUpdate, 1400);
         }
 const searchInput = document.getElementById('combinedSearch');
@@ -3824,7 +3838,7 @@ if (urlParams.has('permshare')) {
 
         document.getElementById('backupAllBtn')?.addEventListener('click', () => {
     const fullBackup = {
-        version: "full-v76.6.5",
+        version: "full-v76.6.6",
         timestamp: new Date().toISOString(),
         communityVersion: localStorage.getItem('fo76_map_version') || '1.0',
         locations: locations,
@@ -4090,7 +4104,25 @@ window.keepCommunityMarker = function(markerId) {
     );
 };
 
-        console.log('%cFallout 76 Item Finder Map v76.6.5 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
+// ——— IN-GAME NAME PERSISTENCE — FINAL FIX (WORKS 100%) ———
+document.addEventListener('DOMContentLoaded', () => {
+    const playerNameInput = document.getElementById('playerNameInput');
+    if (playerNameInput) {
+        // Load saved name immediately
+        const saved = localStorage.getItem('fo76_playerName');
+        if (saved) playerNameInput.value = saved;
+
+        // Save whenever they type or blur
+        playerNameInput.addEventListener('input', () => {
+            localStorage.setItem('fo76_playerName', playerNameInput.value.trim());
+        });
+        playerNameInput.addEventListener('change', () => {
+            localStorage.setItem('fo76_playerName', playerNameInput.value.trim());
+        });
+    }
+});
+
+        console.log('%cFallout 76 Item Finder Map v76.6.6 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
        Fallout 76 Item Finder Map - Disclaimer and Terms of Use
        --------------------------------------------------------------------------
