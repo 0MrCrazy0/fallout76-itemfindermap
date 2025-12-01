@@ -4104,23 +4104,15 @@ window.keepCommunityMarker = function(markerId) {
     );
 };
 
-// ——— IN-GAME NAME PERSISTENCE — FINAL FIX (WORKS 100%) ———
-document.addEventListener('DOMContentLoaded', () => {
-    const playerNameInput = document.getElementById('playerNameInput');
-    if (playerNameInput) {
-        // Load saved name immediately
-        const saved = localStorage.getItem('fo76_playerName');
-        if (saved) playerNameInput.value = saved;
-
-        // Save whenever they type or blur
-        playerNameInput.addEventListener('input', () => {
-            localStorage.setItem('fo76_playerName', playerNameInput.value.trim());
-        });
-        playerNameInput.addEventListener('change', () => {
-            localStorage.setItem('fo76_playerName', playerNameInput.value.trim());
-        });
-    }
-});
+// ——— IN-GAME NAME PERSISTENCE
+const playerNameInput = document.getElementById('playerNameInput');
+if (playerNameInput) {
+    const saved = localStorage.getItem('fo76_playerName') || '';
+    playerNameInput.value = saved;
+    playerNameInput.addEventListener('input', () => {
+        localStorage.setItem('fo76_playerName', playerNameInput.value.trim());
+    });
+}
 
         console.log('%cFallout 76 Item Finder Map v76.6.6 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
