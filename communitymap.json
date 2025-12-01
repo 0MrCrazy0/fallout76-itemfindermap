@@ -3653,6 +3653,23 @@
       "keepBtnBound": false,
       "userEdited": true,
       "wasCommunityKept": false
+    },
+    {
+      "id": "id-7b5ab984-33fe-433e-9e75-3f27338f4923",
+      "cid": "misc_test_test_grid_c2_x_978_y_624_submitted_by_mrcrazy_624_978",
+      "category": "misc",
+      "desc": "TEST TEST\nGrid C2 (X: 978, Y: 624)\nSubmitted By MrCrazy",
+      "lat": 624.0244707746342,
+      "lng": 978.2182333944315,
+      "icon": "Notepad",
+      "addedTime": 1764609555779,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": true,
+      "wasCommunityKept": false
     }
   ]
 }
