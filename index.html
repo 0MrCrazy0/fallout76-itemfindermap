@@ -111,10 +111,10 @@
         color: #000;
     }
 
-    /* FINAL PYRAMID — CENTERED, COMPACT, NO SCROLLING */
+    /* FINAL MOBILE-PERFECT PYRAMID — CENTERED ON EVERY PHONE */
 #buttonGroup {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);     /* ← 2 columns */
+    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
     justify-items: center;
     align-items: center;
@@ -123,11 +123,13 @@
     background: rgba(0,0,0,0.5);
     border: 1px solid #0f0;
     border-radius: 8px;
-    max-width: 420px;          /* ← Fits perfectly on phone */
+    max-width: 420px;
+    width: 95%;               /* ← THIS FIXES THE RIGHT-PUSH */
+    box-sizing: border-box;   /* ← Ensures padding doesn't push it */
 }
 
 #buttonGroup button {
-    width: 190px !important;   /* ← All buttons same size */
+    width: 190px !important;
     height: 48px !important;
     padding: 8px 12px !important;
     margin: 0 !important;
@@ -144,15 +146,16 @@
     justify-content: center;
 }
 
-/* Make Voice Search span both columns — sits perfectly on top like a header */
 #voiceSearchBtn {
-    grid-column: 1 / -1;       /* ← Spans full width */
-    width: 390px !important;  /* ← Full width of panel */
+    grid-column: 1 / -1;
+    width: 100% !important;   /* ← Full width on mobile */
+    max-width: 390px !important;
     font-size: 16px !important;
 }
-    #buttonGroup.hidden {
-        display: none !important;
-    }
+
+#buttonGroup.hidden {
+    display: none !important;
+}
 
     /* DEV NOTE: FORM CONTROLS — GREEN BORDERS, BLACK INPUTS */
     .controls { 
