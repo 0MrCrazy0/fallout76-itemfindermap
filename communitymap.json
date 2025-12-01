@@ -3653,6 +3653,23 @@
       "keepBtnBound": false,
       "userEdited": true,
       "wasCommunityKept": false
+    },
+    {
+      "id": "id-5ee2764f-25cc-41a3-8b2f-3c42964fb05e",
+      "cid": "fishing locations_good_fishing_spot_grid_f6_x_2437_y_2107_submitted_by_mrcrazy_2107_2437",
+      "category": "fishing locations",
+      "desc": "good fishing spot.\nGrid F6 (X: 2437, Y: 2107)\nSubmitted By MrCrazy",
+      "lat": 2107.4493492119987,
+      "lng": 2436.7069076085104,
+      "icon": "Fishing",
+      "addedTime": 1764597152137,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": true,
+      "wasCommunityKept": false
     }
   ]
 }
