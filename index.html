@@ -4,7 +4,7 @@
     <!-- DEV NOTE: Meta tags for mobile + PWA support -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Fallout 76 Item Finder Map v76.6.0</title>
+    <title>Fallout 76 Item Finder Map v76.6.5</title>
 
 	<link rel="manifest" href="manifest.json?v=3">
 
@@ -111,19 +111,45 @@
         color: #000;
     }
 
-    /* DEV NOTE: TOOLS PANEL — HIDDEN BY DEFAULT */
-    #buttonGroup {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        justify-content: center;
-        margin: 10px auto;
-        padding: 10px;
-        background: rgba(0,0,0,0.5);
-        border: 1px solid #0f0;
-        border-radius: 8px;
-        max-width: 90%;
-    }
+    /* FINAL PYRAMID — CENTERED, COMPACT, NO SCROLLING */
+#buttonGroup {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);     /* ← 2 columns */
+    gap: 10px;
+    justify-items: center;
+    align-items: center;
+    margin: 15px auto;
+    padding: 16px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid #0f0;
+    border-radius: 8px;
+    max-width: 420px;          /* ← Fits perfectly on phone */
+}
+
+#buttonGroup button {
+    width: 190px !important;   /* ← All buttons same size */
+    height: 48px !important;
+    padding: 8px 12px !important;
+    margin: 0 !important;
+    font-size: 14px !important;
+    font-weight: bold;
+    text-align: center !important;
+    line-height: 1.4;
+    white-space: normal;
+    word-wrap: break-word;
+    box-sizing: border-box !important;
+    font-family: 'Courier New', monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Make Voice Search span both columns — sits perfectly on top like a header */
+#voiceSearchBtn {
+    grid-column: 1 / -1;       /* ← Spans full width */
+    width: 390px !important;  /* ← Full width of panel */
+    font-size: 16px !important;
+}
     #buttonGroup.hidden {
         display: none !important;
     }
@@ -436,28 +462,38 @@
 
     /* DEV NOTE: GRID NOTIFICATION POPUP */
     #gridNotification {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: #0a3a0a;
-        color: #00ff00;
-        padding: 14px 22px;
-        border: 2px solid #00ff00;
-        border-radius: 0;
-        font-weight: bold;
-        font-family: 'Courier New', monospace;
-        font-size: 15px;
-        box-shadow: 0 0 20px #00ff00, 0 0 40px rgba(0, 255, 0, 0.3);
-        z-index: 10000;
-        opacity: 0;
-        transform: translateY(20px);
-        transition: opacity 0.4s ease, transform 0.3s ease;
-        pointer-events: none;
-    }
-    #gridNotification.show {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    position: fixed;
+    bottom: 120px !important;   /* ← Moved way up from bottom */
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 40, 0, 0.95);
+    color: #00ff00;
+    padding: 16px 28px;
+    border: 3px solid #00ff00;
+    border-radius: 0;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    font-size: 18px;
+    box-shadow: 0 0 30px #00ff00, inset 0 0 20px rgba(0, 255, 0, 0.4);
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+    backdrop-filter: blur(4px);
+    text-shadow: 0 0 10px #00ff00;
+}
+
+#gridNotification.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-10px);
+    animation: gridPulse 1.5s ease-out;
+}
+
+@keyframes gridPulse {
+    0% { box-shadow: 0 0 30px #00ff00; }
+    50% { box-shadow: 0 0 50px #00ff88; }
+    100% { box-shadow: 0 0 30px #00ff00; }
+}
 
     /* DEV NOTE: DARK MODE — FULL BLACK TERMINAL */
     body.dark-mode {
@@ -950,6 +986,17 @@ nukeStyle.textContent = `
 .leaflet-popup-tip {
     margin-left: 18% !important;
 }
+/* ONLY THE PROGRESS BAR GLOWS ON LEVEL UP — NOTHING ELSE */
+#xpProgress.level-up {
+    animation: barGlow 2.5s ease-out forwards;
+    box-shadow: 0 0 25px #00ff88 !important;
+}
+
+@keyframes barGlow {
+    0%   { box-shadow: 0 0 25px #00ff88; }
+    50%  { box-shadow: 0 0 50px #00ff88; }
+    100% { box-shadow: 0 0 0px transparent; }
+}
     </style>
 </head>
 <body>
@@ -957,7 +1004,7 @@ nukeStyle.textContent = `
     <div id="titleToggleContainer">
         <button id="toggleTitleBtn">-</button>
     </div>
-    <h1 id="mainTitle">The Fallout 76 Item Finder! Quickly log items while exploring Appalachia.</h1>
+    <h1 id="mainTitle">The Fallout 76 Item Finder Map! Quickly log items while exploring Appalachia.</h1>
     <!-- DEV NOTE: MAIN MAP CONTAINER -->
     <div id="map">
         <div id="mapLoadingOverlay" style="position:absolute;top:0;left:0;right:0;bottom:0;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;pointer-events:none;opacity:0;transition:opacity 0.6s;">
@@ -1013,9 +1060,9 @@ nukeStyle.textContent = `
     </div>
     <!-- DEV NOTE: XP PROGRESS BAR -->
     <div id="xpStatus" style="text-align:center; margin:10px; color:#0f0; font-weight:bold;">
-        Explorer Level: <span id="levelSpan">1</span><br>
-        XP: <progress id="xpProgress" value="0" max="1000" style="width:200px;"></progress> <span id="xpText">0 / 1000</span>
-    </div>
+    Explorer Level: <span id="levelSpan">1</span><br>
+    XP: <progress id="xpProgress" value="0" max="1000" style="width:200px;"></progress> <span id="xpText">0 / 1000</span>
+</div>
     <!-- DEV NOTE: CONTENT INVENTORY TABLE -->
     <h2 style="text-align:center; margin:15px 0 5px;">Content Inventory</h2>
     <p id="counter" class="counter"></p>
@@ -1056,7 +1103,7 @@ nukeStyle.textContent = `
     <div id="instructionsModal" class="modal">
         <div class="modal-content">
             <span class="close">X</span>
-            <h1>Fallout 76 Item Finder Info</h1>
+            <h1>Fallout 76 Item Finder Map Info</h1>
             <p><strong>Double-Left-Click</strong> the map (or <strong>Double-Tap</strong> on mobile) to log a new permanent marker.</p>
     <p><strong>Right-Click</strong> the map (or <strong>Long-Press</strong> on mobile) to open the <strong>Postcard</strong> menu → type a message → click <strong>Copy Link</strong> to share a temporary postcard (expires in 5 minutes).</p>
     <p>New markers are automatically <strong>LOCKED</strong> and <strong>Glow Green for 2 Minutes</strong>.</p>
@@ -1080,8 +1127,8 @@ nukeStyle.textContent = `
             <div style="text-align:center; margin:15px 0;">
                 <button id="resetAppBtn" class="reset-btn">Reset App (deletes everything)</button>
             </div>
-            <p class="small"><br>❤️ the Item Finder? Support MrCrazy with a <a href="https://buymeacoffee.com/mrcrazy" target="_blank">Nuka-Cola</a>!</p>
-            <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version v76.6.0 Made By MrCrazy</p>
+            <p class="small"><br>❤️ the Item Finder Map? Support MrCrazy with a <a href="https://buymeacoffee.com/mrcrazy" target="_blank">Nuka-Cola</a>!</p>
+            <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version v76.6.5 Made By MrCrazy</p>
         </div>
     </div>
     <!-- DEV NOTE: NUKE CODES MODAL -->
@@ -1167,8 +1214,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const STORAGE_KEY = 'fo76_locations';
         const CUSTOM_CATEGORIES_KEY = '76_custom_categories';
         const MAP_VERSION_KEY = 'fo76_map_version';
-        const CURRENT_UPDATE_VERSION = 'v76.6.0';
-        const APP_VERSION = "v76.6.0";
+        const CURRENT_UPDATE_VERSION = 'v76.6.5';
+        const APP_VERSION = "v76.6.5";
         let soundsEnabled = localStorage.getItem('soundsEnabled') !== 'false';
         const baseSounds = {
             click: new Audio("https://rpg.hamsterrepublic.com/wiki-images/8/84/Select8-Bit.ogg"),
@@ -1322,7 +1369,6 @@ function getDisplayIcon(storedIcon) {
             const timer = document.getElementById('loadTimer');
             if (!overlay || !timer || !mapContainer) return;
 
-            // Force overlay to exactly match map size
             overlay.style.position = 'absolute';
             overlay.style.top = '0';
             overlay.style.left = '0';
@@ -1558,7 +1604,7 @@ map.on('popupclose', () => {
                 return terms.every(term => text.includes(term));
             });
             if (found && val) {
-                showTempMessage('Item Found! Check The Content Inventory!', 3000);
+                showTempMessage('ITEM LOCATED — CHECK CONTENT INVENTORY', 3000);
                 combinedSearch.style.boxShadow = '0 0 8px #0f0';
                 setTimeout(() => combinedSearch.style.boxShadow = '', 1500);
             }
@@ -1612,7 +1658,7 @@ map.on('popupclose', () => {
             const lat = Math.round(loc.lat), lng = Math.round(loc.lng);
             const url = `${location.origin}${location.pathname}?lat=${lat}&lng=${lng}`;
             navigator.clipboard.writeText(url).then(() => {
-                showTempMessage('View link copied!', 3000);
+                showTempMessage('MAP VIEW LINK COPIED', 3000);
                 playSound('click');
             });
         };
@@ -1624,7 +1670,7 @@ map.on('popupclose', () => {
             saveLocations();
             forceReload();
             map.closePopup();
-            showTempMessage(loc.locked ? '🔐':'🔓', 3000);
+            showTempMessage(loc.locked ? '🔐 LOCKED' : '🔓 UNLOCKED', 3000);
             playSound('click');
         };
         duplicateBtn.onclick = () => {
@@ -1657,7 +1703,7 @@ map.on('popupclose', () => {
     forceReload();
     closeModal(itemModal);
     safeFlyTo(newLat, newLng, map.getZoom() + 1); // zoom in a bit so user sees the separation
-    showTempMessage('Duplicated + Original Re-Locked!', 4000);
+    showTempMessage('MARKER DUPLICATED — ORIGINAL RE-LOCKED', 4000);
     playSound('duplicate');
 };
         function drawGrid() {
@@ -1802,7 +1848,7 @@ map.on('popupclose', () => {
             const encodedMsg = encodeURIComponent(msg);
             const url = `${window.location.origin}${window.location.pathname}?postcard=${loc.id}&lat=${Math.round(loc.lat)}&lng=${Math.round(loc.lng)}&msg=${encodedMsg}`;
             navigator.clipboard.writeText(url).then(() => {
-                showTempMessage('Postcard link with your message copied!', 4000);
+                showTempMessage('POSTCARD LINK COPIED', 4000);
                 playSound('postcard');
             });
             setTimeout(() => showPostcardMarker(loc), 500);
@@ -1841,7 +1887,7 @@ map.on('popupclose', () => {
                     locations.push(loc);
                     saveLocations();
                     created = true;
-                    showTempMessage('Postcard received!', 5000);
+                    showTempMessage('POSTCARD RECEIVED', 5000);
                     playSound('postcard');
                 }
                 setTimeout(() => {
@@ -1866,7 +1912,7 @@ map.on('popupclose', () => {
             if (!isNaN(lat) && !isNaN(lng)) {
                 setTimeout(() => {
                     safeFlyTo(lat, lng, 4);
-                    showTempMessage('Shared view loaded!', 3000);
+                    showTempMessage('SHARED VIEW LOADED', 3000);
                     playSound('click');
                 }, 1200);
             }
@@ -1955,7 +2001,7 @@ map.on('popupclose', () => {
                     if (index !== -1) locations.splice(index, 1);
                     saveLocations();
                     forceReload();
-                    showTempMessage('Postcard turned to dust!', 4000);
+                    showTempMessage('POSTCARD EXPIRED — TURNED TO DUST', 4000);
                     playSound('dust');
                     if (!locations.some(l => l.isPostcard)) stopPostcardTicker();
                 }, 1500);
@@ -1965,7 +2011,7 @@ map.on('popupclose', () => {
                     locations.splice(index, 1);
                     saveLocations();
                     forceReload();
-                    showTempMessage('Postcard turned to dust!', 4000);
+                    showTempMessage('POSTCARD EXPIRED — TURNED TO DUST', 4000);
                     playSound('dust');
                     if (!locations.some(l => l.isPostcard)) stopPostcardTicker();
                 }
@@ -2115,7 +2161,7 @@ map.on('popupclose', () => {
             lastMovedMarker = marker;
             saveLocations();
             playSound('saving');
-            showTempMessage(`Moved + saved + LOCKED! ${loc.icon}`, 4000);
+            showTempMessage(`MARKER MOVED — SAVED & LOCKED ${loc.icon}`, 4000);
             safeFlyTo(lat, lng);
             forceReload();
         };
@@ -2268,7 +2314,7 @@ map.on('popupclose', () => {
     }
 }
         function updateCounterDisplay() {
-    const appVersion = "76.6.0";
+    const appVersion = "76.6.5";
     const communityVer = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
     const total = locations.filter(l => activeCategories.has(l.category)).length;
     const userTotal = locations.filter(l => l.userEdited === true && !l.isPostcard).length;
@@ -2350,7 +2396,7 @@ map.on('popupclose', () => {
             loc.addedTime = Date.now();
             saveLocations();
             forceReload();
-            showTempMessage(loc.locked?'🔐':'🔓',4000);
+            showTempMessage(loc.locked?'🔐 LOCKED' : '🔓 UNLOCKED',4000);
             playSound('click');
         };
         setInterval(() => {
@@ -2415,7 +2461,7 @@ map.on('popupclose', () => {
         function openModal(title, idx = -1) {
             const loc = idx >= 0 ? locations[idx] : null;
             const isCurrentlyLocked = loc ? loc.locked : false;
-            modalTitle.innerHTML = `${title} <span id="modalLockToggle" style="font-size:22px;cursor:pointer;margin-left:10px;">${isCurrentlyLocked ? '🔐':'🔓'}</span>`;
+            modalTitle.innerHTML = `${title} <span id="modalLockToggle" style="font-size:22px;cursor:pointer;margin-left:10px;">${isCurrentlyLocked ? '🔐 LOCKED' : '🔓 UNLOCKED'}</span>`;
             currentIndex = idx;
             itemCategorySelect.value = loc?.category || 'misc';
             itemDescInput.value = loc?.desc || '';
@@ -2437,14 +2483,14 @@ if (submitBtn) {
         ? 'inline-block'
         : 'none';
 }
-                    modalToggle.textContent = loc.locked ? '🔐':'🔓';
+                    modalToggle.textContent = loc.locked ? '🔐 LOCKED' : '🔓 UNLOCKED';
                     itemCategorySelect.disabled = loc.locked;
                     itemDescInput.disabled = loc.locked;
                     deleteBtn.style.display = loc.locked ? 'none' : 'inline-block';
                     duplicateBtn.style.display = loc.locked ? 'none' : 'inline-block';
                     saveLocations();
                     forceReload();
-                    showTempMessage(loc.locked ? '🔐':'🔓', 2000);
+                    showTempMessage(loc.locked ? '🔐 LOCKED' : '🔓 UNLOCKED', 2000);
                     playSound('click');
                 };
             }
@@ -2474,7 +2520,12 @@ if (submitBtn) {
     if (level > oldLevel) {
         playSound('levelUp');
         triggerConfetti();
-        showTempMessage(`LEVEL UP → ${level}!`, 5000);
+        showTempMessage(`LEVEL UP 🎉 — NOW LEVEL ${level}`, 5000);
+    
+    // ONLY THE BAR GLOWS — SUBTLE & CLEAN
+    const bar = document.getElementById('xpProgress');
+    bar.classList.add('level-up');
+    setTimeout(() => bar.classList.remove('level-up'), 10000);
         if (level % 10 === 0) triggerNuke();
     }
     localStorage.setItem('fo76_level', level);
@@ -2633,7 +2684,7 @@ if (submitBtn) {
         () => {
             // FULL BACKUP
             const fullBackup = {
-                version: "full-v76.6.0",
+                version: "full-v76.6.5",
                 timestamp: new Date().toISOString(),
                 communityVersion,
                 locations: locations.filter(l => !l.isPostcard),
@@ -2651,7 +2702,7 @@ if (submitBtn) {
             a.href = URL.createObjectURL(blob);
             a.download = `FO76_BACKUP_${locations.filter(l => !l.isPostcard).length}_markers_${new Date().toISOString().slice(0,10)}.json`;
             a.click();
-            showTempMessage('FULL backup downloaded!', 6000);
+            showTempMessage('FULL BACKUP DOWNLOADED', 6000);
 
             setTimeout(() => {
                 showConfirmModal(
@@ -2810,7 +2861,7 @@ if (submitBtn) {
                             saveLocations();
                             forceReload();
                             undoBtn.style.display = 'none';
-                            showTempMessage('Import undone!', 4000);
+                            showTempMessage('IMPORT UNDONE', 4000);
                             playSound('undo');
                         };
                         setTimeout(() => undoBtn.style.display = 'none', 60000);
@@ -2942,7 +2993,7 @@ showConfirmModal(
                 })
                 .catch(err => {
                     console.error('Fetch error:', err);
-                    showTempMessage('Update failed — check internet', 6000);
+                    showTempMessage('COMMUNITY UPDATE FAILED — CHECK CONNECTION', 6000);
                     playSound('error');
                 })
                 .finally(() => {
@@ -3175,7 +3226,7 @@ document.getElementById('shareOneBtn').onclick = () => {
     closeModal(itemModal);
     saveLocations();
     playSound('saving');
-    showTempMessage('Saved + LOCKED!', 4000);
+    showTempMessage('MARKER SAVED & LOCKED', 4000);
     forceReload();
     const submitBtn = document.getElementById('submitCommunityBtn');
     if (submitBtn) {
@@ -3200,7 +3251,7 @@ document.getElementById('shareOneBtn').onclick = () => {
             saveLocations();
             forceReload();
             undoBtn.style.display = 'inline-block';
-            showTempMessage('Deleted – Undo ready', 4000);
+            showTempMessage('MARKER DELETED — UNDO READY', 4000);
             playSound('delete');
         };
         undoBtn.onclick = () => {
@@ -3210,7 +3261,7 @@ document.getElementById('shareOneBtn').onclick = () => {
     saveLocations();
     forceReload();
     undoBtn.style.display = 'none';
-    showTempMessage('Undo complete!', 3000);
+    showTempMessage('MARKER RESTORED', 3000);
     playSound('undo');
     closeModal(itemModal);
     safeFlyTo(lastDeleted.lat, lastDeleted.lng, 4);
@@ -3224,7 +3275,7 @@ document.getElementById('shareOneBtn').onclick = () => {
             a.download = `fo76_marker_${getGridFromLatLng(loc.lat, loc.lng) || 'unknown'}_${new Date().toISOString().slice(0,10)}.json`;
             a.click();
             URL.revokeObjectURL(a.href);
-            showTempMessage('Single marker exported!', 3000);
+            showTempMessage('MARKER EXPORTED', 3000);
             playSound('saving');
         };
 document.getElementById('submitCommunityBtn').onclick = () => {
@@ -3424,7 +3475,7 @@ function syncToggleButtonStates() {
             };
             recognition.onerror = () => {
                 voiceSearchBtn.textContent = 'Voice Search';
-                showTempMessage('Voice failed. Try again or type.', 3000);
+                showTempMessage('VOICE RECOGNITION FAILED — TRY TYPING', 3000);
                 playSound('error');
             };
             recognition.onend = () => {
@@ -3461,10 +3512,10 @@ function syncToggleButtonStates() {
         <div class="modal-content" style="max-width:650px; background:#000; border:2px solid #00ff00; box-shadow:0 0 30px #00ff00;">
             <div style="background:#000; padding:15px; text-align:center; border-bottom:2px solid #00ff00;">
                 <h1 style="margin:0; font-size:2.5em; text-shadow:0 0 20px #00ff00;">
-                    ☢ FALLOUT 76 ITEM FINDER ☢
+                    ☢ FALLOUT 76 ITEM FINDER MAP ☢
                 </h1>
                 <p style="margin:8px 0 0; font-size:1.3em; color:#0f0;">
-                    v76.6.0 — Built with ❤️ by MrCrazy
+                    v76.6.5 — Built with ❤️ by MrCrazy
                 </p>
             </div>
 
@@ -3502,7 +3553,7 @@ function syncToggleButtonStates() {
         welcomeModal.remove();
         document.body.classList.remove('modal-open');
         playSound('levelUp');
-        showTempMessage('Welcome to Appalachia!', 5000);
+        showTempMessage('WELCOME TO APPALACHIA, VAULT DWELLER', 5000);
     };
 }
         function checkForUpdate() {
@@ -3521,7 +3572,7 @@ function syncToggleButtonStates() {
                 </div>
                 <div style="padding:30px; text-align:center; line-height:1.8;">
                     <ul style="text-align:left; display:inline-block; margin:25px 0; padding-left:30px; font-size:1.2em;">
-                        <li>Welcome To Version 76.6.0</li>
+                        <li>Welcome To Version 76.6.5</li>
                         <li>This is The Latest Update — Reset Your App if needed.<br>
                             Find this tip in the "How to Use" section.</li>
                         <li>Made With ❤️</li>
@@ -3532,7 +3583,7 @@ function syncToggleButtonStates() {
                         </div>
                     </div>
                     <p style="margin-top:20px; font-size:0.9em; opacity:0.8;">
-                        Thank you for using the Fallout 76 Item Finder!<br>
+                        Thank you for using the Fallout 76 Item Finder Map!<br>
                         <a href="https://buymeacoffee.com/mrcrazy" target="_blank" style="color:#00ff80;">Buy MrCrazy a Nuka-Cola ☕</a>
                     </p>
                 </div>
@@ -3556,7 +3607,7 @@ function syncToggleButtonStates() {
         if (!localStorage.getItem(WELCOME_KEY)) {
             setTimeout(showWelcomeModal, 800);
         }
-        if (localStorage.getItem(LAST_VERSION_KEY) !== 'v76.6.0') {
+        if (localStorage.getItem(LAST_VERSION_KEY) !== 'v76.6.5') {
             setTimeout(checkForUpdate, 1400);
         }
 const searchInput = document.getElementById('combinedSearch');
@@ -3773,7 +3824,7 @@ if (urlParams.has('permshare')) {
 
         document.getElementById('backupAllBtn')?.addEventListener('click', () => {
     const fullBackup = {
-        version: "full-v76.6.0",
+        version: "full-v76.6.5",
         timestamp: new Date().toISOString(),
         communityVersion: localStorage.getItem('fo76_map_version') || '1.0',
         locations: locations,
@@ -3999,10 +4050,10 @@ modal.innerHTML = `
             })
         })
     .then(r => r.ok ? r.text() : Promise.reject('Server rejected'))
-    .then(() => showTempMessage('REPORT SENT — THANK YOU!', 6000))
+    .then(() => showTempMessage('REPORT SENT — THANK YOU', 6000))
     .catch(err => {
         console.error("Report failed:", err);
-        showTempMessage('REPORT SENT OFFLINE — WILL BE REVIEWED!', 6000);
+        showTempMessage('REPORT SENT OFFLINE — WILL BE REVIEWED', 6000);
     });
 
     closeModal();
@@ -4033,13 +4084,13 @@ window.keepCommunityMarker = function(markerId) {
             saveLocations();
             recalculateXP();
             forceReload();
-            showTempMessage(`Marker kept! +100 XP — Level ${level}`, 5000);
+            showTempMessage(`MARKER KEPT — +100 XP (LEVEL ${level})`, 5000);
             playSound('saving');
         }
     );
 };
 
-        console.log('%cFallout 76 Item Finder Map v76.6.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
+        console.log('%cFallout 76 Item Finder Map v76.6.5 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
        Fallout 76 Item Finder Map - Disclaimer and Terms of Use
        --------------------------------------------------------------------------
@@ -4049,7 +4100,7 @@ window.keepCommunityMarker = function(markerId) {
        This app is provided "as is" for personal, non-commercial use by Fallout 76 players to track in-game items.
        The author is not responsible for any damages or losses resulting from the use of this application. Use at your own risk.
        For inquiries or permission requests, call someone who cares.
-       Last updated: November 17, 2025
+       Last updated: December 1, 2025
        -------------------------------------------------------------------------- */
     })();
 });
