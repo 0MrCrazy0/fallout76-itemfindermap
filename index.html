@@ -111,12 +111,12 @@
         color: #000;
     }
 
-    /* FINAL MOBILE-PERFECT PYRAMID — CENTERED ON EVERY PHONE */
+/* FINAL — PERFECT ON EVERY MOBILE PHONE */
 #buttonGroup {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr 1fr;   /* 2 equal columns */
     gap: 10px;
-    justify-items: center;
+    justify-items: stretch;           /* buttons fill their cell */
     align-items: center;
     margin: 15px auto;
     padding: 16px;
@@ -124,12 +124,13 @@
     border: 1px solid #0f0;
     border-radius: 8px;
     max-width: 420px;
-    width: 95%;               /* ← THIS FIXES THE RIGHT-PUSH */
-    box-sizing: border-box;   /* ← Ensures padding doesn't push it */
+    width: calc(100% - 32px);         /* full width minus padding */
+    box-sizing: border-box;
+    place-self: center;
 }
 
 #buttonGroup button {
-    width: 190px !important;
+    width: 100% !important;           /* fill the cell */
     height: 48px !important;
     padding: 8px 12px !important;
     margin: 0 !important;
@@ -147,9 +148,9 @@
 }
 
 #voiceSearchBtn {
-    grid-column: 1 / -1;
-    width: 100% !important;   /* ← Full width on mobile */
-    max-width: 390px !important;
+    grid-column: 1 / -1;              /* spans both columns */
+    width: 100% !important;
+    max-width: none !important;
     font-size: 16px !important;
 }
 
