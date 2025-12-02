@@ -3672,6 +3672,23 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-b3083e4b-172a-4fd2-a032-965648b66bb3",
+      "cid": "misc_eydfurtweteyey_grid_a9_x_401_y_3600_submitted_by_caliber_280_3600_401",
+      "category": "misc",
+      "desc": "eydfurtweteyey\nGrid A9 (X: 401, Y: 3600)\nSubmitted By Caliber 280",
+      "lat": 3600,
+      "lng": 400.9270788912586,
+      "icon": "Notepad",
+      "addedTime": 1764657893755,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": true,
+      "wasCommunityKept": false
     }
   ]
 }
