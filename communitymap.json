@@ -3680,15 +3680,16 @@
       "desc": "burning springs. the post-war southeastern region of rural ohio.\nGrid B7 (X: 439, Y: 2507)\nSubmitted By MrCrazy",
       "lat": 2507.3040432234975,
       "lng": 438.5887249107405,
-      "icon": "Region",
+      "icon": "📍",
       "addedTime": 1764949151991,
       "locked": true,
       "isPostcard": false,
       "isTemp": false,
       "startTime": null,
       "keepBtnBound": false,
-      "userEdited": true,
+      "userEdited": false,
       "wasCommunityKept": false
+      "isCommunity": true
     }
   ]
 }
