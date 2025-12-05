@@ -2947,11 +2947,11 @@ playSound('saving');
                 incoming.forEach(imp => {
                     const existing = locations.find(l => l.cid === imp.cid);
 
+                    // === PERSONAL BACKUP (full backup) ===
                     if (existing && isPersonalFile) {
                         skipped++;
                         return;
                     }
-
                     if (isPersonalFile) {
                         if (existing) {
                             Object.assign(existing, imp);
@@ -2971,12 +2971,21 @@ playSound('saving');
                             });
                             added++;
                         }
-                    } else {
-
+                    } 
+                    // === SINGLE MARKER / PERMSHARE / COMMUNITY IMPORT ===
+                    else {
                         if (existing && existing.userEdited) {
                             skipped++;
                             return;
                         }
+
+                        // === FIX: Import custom category from single marker ===
+                        if (imp.category && imp.icon && !defaultCategoryIcons[imp.category]) {
+                            customCategories[imp.category] = imp.icon;
+                            categoryIcons[imp.category] = imp.icon;
+                            categoryColors[imp.category] = '#f0e68c'; // fallback color
+                        }
+
                         if (existing) {
                             Object.assign(existing, imp);
                             existing.userEdited = false;
@@ -2996,6 +3005,12 @@ playSound('saving');
                     }
                 });
 
+                // Save any new custom categories from single marker imports
+                if (!isPersonalFile && Object.keys(customCategories).length > Object.keys(defaultCategoryIcons).length) {
+                    localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+                }
+
+                // Handle full backup custom categories
                 if (data.customCategories) {
                     customCategories = { ...customCategories, ...data.customCategories };
                     localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
@@ -3006,12 +3021,13 @@ playSound('saving');
                 forceReload();
 
                 showTempMessage(`IMPORTED ${added + updated} MARKER${added + updated === 1 ? '' : 'S'}`, 8000);
-
-triggerEpicFlash("🧬", "IMPORT COMPLETE",
-    `${added + updated} marker${added + updated === 1 ? '' : 's'} loaded!`,
-    skipped > 0 ? `${skipped} protected` : "Ready to explore");
+                triggerEpicFlash("🧬", "IMPORT COMPLETE",
+                    `${added + updated} marker${added + updated === 1 ? '' : 's'} loaded!`,
+                    skipped > 0 ? `${skipped} protected` : "Ready to explore"
+                );
                 playSound('saving');
 
+                // Undo button
                 setTimeout(() => {
                     const undoBtn = document.getElementById('undoImportBtn');
                     if (undoBtn && (added + updated > 0)) {
@@ -3038,7 +3054,6 @@ triggerEpicFlash("🧬", "IMPORT COMPLETE",
                     </div>`,
                     null
                 );
-
             } catch (err) {
                 console.error("Import failed:", err);
                 showTempMessage('INVALID FILE', 5000);
