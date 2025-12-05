@@ -1,4 +1,4 @@
-const CACHE_NAME = "fo76-ifm-v76.6.9";   // ← CHANGE THIS EVERY DEPLOY
+const CACHE_NAME = "fo76-ifm-v76.7.0";   // ← CHANGE THIS EVERY DEPLOY
 
 self.addEventListener("install", e => {
   e.waitUntil(self.skipWaiting());
@@ -31,3 +31,4 @@ self.addEventListener("fetch", e => {
     caches.match(e.request).then(cached => cached || fetch(e.request))
   );
 });
+
