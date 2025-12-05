@@ -3690,6 +3690,23 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-006aac8d-e7d5-4de8-b89f-f241c4a0a23f",
+      "cid": "misc_grid_b2_x_627_y_651_submitted_by_mrcrazy_651_627",
+      "category": "misc",
+      "desc": "Grid B2 (X: 627, Y: 651)\nSubmitted By MrCrazy",
+      "lat": 650.6511131622734,
+      "lng": 627.1901975301791,
+      "icon": "Notepad",
+      "addedTime": 1764951358602,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": true,
+      "wasCommunityKept": false
     }
   ]
 }
