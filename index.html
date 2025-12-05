@@ -2963,7 +2963,8 @@ playSound('saving');
                                 isPostcard: false,
                                 isTemp: false,
                                 userEdited: true,
-                                wasCommunityKept: false
+                                wasCommunityKept: true,
+								isCommunity: false
                             });
                             added++;
                         }
@@ -2991,7 +2992,9 @@ playSound('saving');
                                 locked: true,
                                 isPostcard: false,
                                 isTemp: false,
-                                userEdited: false
+								isCommunity: false,
+								wasCommunityKept: true,
+                                userEdited: true
                             });
                             added++;
                         }
@@ -3973,6 +3976,7 @@ if (urlParams.has('permshare')) {
                         locked: true,
                         userEdited: true,
                         isCommunity: false,
+						wasCommunityKept: true,
                         isTemp: false,
                         isPostcard: false
                     });
