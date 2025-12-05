@@ -3579,6 +3579,13 @@ map.on('dblclick', e => {
         updateXPBar();
         playSound('selectcategory');
 syncToggleButtonStates();
+// One-time community update hint
+if (!localStorage.getItem('seenCommunityHint')) {
+    setTimeout(() => {
+        showTempMessage('👋 Tip: Click “Update Community Map” for the latest public markers!', 15000);
+    }, 9000);
+    localStorage.setItem('seenCommunityHint', 'true');
+}
         setTimeout(() => document.body.classList.add('map-ready'), 1000);
         toggleDarkModeBtn.onclick = () => {
             darkMode = !darkMode;
