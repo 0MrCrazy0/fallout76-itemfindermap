@@ -2938,16 +2938,12 @@ playSound('saving');
                 const incoming = data.locations || (Array.isArray(data) ? data : []);
                 let added = 0, updated = 0, skipped = 0;
                 const beforeState = JSON.stringify(locations);
-
                 const isPersonalFile = data.level !== undefined ||
                                        data.xp !== undefined ||
                                        file.name.includes('MyBackup') ||
                                        file.name.includes('Shared_Markers');
-
                 incoming.forEach(imp => {
                     const existing = locations.find(l => l.cid === imp.cid);
-
-                    // === PERSONAL BACKUP (full backup) ===
                     if (existing && isPersonalFile) {
                         skipped++;
                         return;
@@ -2971,21 +2967,18 @@ playSound('saving');
                             });
                             added++;
                         }
-                    } 
-                    // === SINGLE MARKER / PERMSHARE / COMMUNITY IMPORT ===
-                    else {
+                    } else {
                         if (existing && existing.userEdited) {
                             skipped++;
                             return;
                         }
-
-                        // === FIX: Import custom category from single marker ===
+                        // Merge custom category from single marker
                         if (imp.category && imp.icon && !defaultCategoryIcons[imp.category]) {
                             customCategories[imp.category] = imp.icon;
                             categoryIcons[imp.category] = imp.icon;
-                            categoryColors[imp.category] = '#f0e68c'; // fallback color
+                            categoryColors[imp.category] = '#f0e68c';
+                            activeCategories.add(imp.category); // ← THIS MAKES IT VISIBLE BY DEFAULT
                         }
-
                         if (existing) {
                             Object.assign(existing, imp);
                             existing.userEdited = false;
@@ -3004,29 +2997,22 @@ playSound('saving');
                         }
                     }
                 });
-
-                // Save any new custom categories from single marker imports
-                if (!isPersonalFile && Object.keys(customCategories).length > Object.keys(defaultCategoryIcons).length) {
-                    localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-                }
-
-                // Handle full backup custom categories
+                // Save custom categories and active set
+                localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+                localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
                 if (data.customCategories) {
                     customCategories = { ...customCategories, ...data.customCategories };
                     localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
                 }
-
                 recalculateXP();
                 saveLocations();
                 forceReload();
-
                 showTempMessage(`IMPORTED ${added + updated} MARKER${added + updated === 1 ? '' : 'S'}`, 8000);
                 triggerEpicFlash("🧬", "IMPORT COMPLETE",
                     `${added + updated} marker${added + updated === 1 ? '' : 's'} loaded!`,
                     skipped > 0 ? `${skipped} protected` : "Ready to explore"
                 );
                 playSound('saving');
-
                 // Undo button
                 setTimeout(() => {
                     const undoBtn = document.getElementById('undoImportBtn');
@@ -3044,7 +3030,6 @@ playSound('saving');
                         setTimeout(() => undoBtn.style.display = 'none', 60000);
                     }
                 }, 100);
-
                 showConfirmModal(
                     '💾IMPORT COMPLETED💾',
                     `<div style="text-align:left;line-height:1.9;font-size:1.1em;">
@@ -3960,26 +3945,27 @@ if (urlParams.has('permshare')) {
         history.replaceState(null, null, location.pathname);
         return;
     }
-
     if (raw) {
         try {
             const shareData = JSON.parse(raw);
             const incoming = shareData.locations || [];
             const beforeCount = locations.length;
             const undoState = JSON.stringify(locations);
-
             incoming.forEach(imp => {
                 const existing = locations.find(l => l.cid === imp.cid);
-
                 if (existing && existing.userEdited) return;
-
+                // Merge custom category from shared marker
+                if (imp.category && imp.icon && !defaultCategoryIcons[imp.category]) {
+                    customCategories[imp.category] = imp.icon;
+                    categoryIcons[imp.category] = imp.icon;
+                    categoryColors[imp.category] = '#f0e68c';
+                    activeCategories.add(imp.category); // Make visible by default
+                }
                 if (existing) {
- 
                     Object.assign(existing, imp);
                     existing.userEdited = true;
                     existing.isCommunity = false;
                 } else {
-
                     locations.push({
                         ...imp,
                         id: generateUniqueId(),
@@ -3992,14 +3978,14 @@ if (urlParams.has('permshare')) {
                     });
                 }
             });
-
             const added = locations.length - beforeCount;
+            localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+            localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
             saveLocations();
             forceReload();
-
-            showTempMessage(`SHARED MARKERS IMPORTED: ${added + updated} — READY TO EDIT`, 6000);
+            showTempMessage(`SHARED MARKERS IMPORTED: ${added} — READY TO EDIT`, 6000);
             playSound('saving');
-
+            // Undo button
             const undoBtn = document.getElementById('undoImportBtn');
             if (undoBtn && added > 0) {
                 undoBtn.style.display = 'block';
@@ -4013,7 +3999,6 @@ if (urlParams.has('permshare')) {
                 };
                 setTimeout(() => undoBtn.style.display = 'none', 60000);
             }
-
             history.replaceState(null, null, location.pathname);
         } catch (e) {
             showTempMessage('SINGLE MARKER IMPORTED — READY TO EDIT', 5000);
