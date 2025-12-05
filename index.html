@@ -3583,13 +3583,31 @@ map.on('dblclick', e => {
         updateXPBar();
         playSound('selectcategory');
 syncToggleButtonStates();
-// One-time community update hint
+
+// One-time community update hint — now bulletproof (shows AFTER welcome modal)
 if (!localStorage.getItem('seenCommunityHint')) {
-    setTimeout(() => {
-        showTempMessage('👋 Tip: Click “Update Community Map” for the latest public markers!', 15000);
-    }, 9000);
-    localStorage.setItem('seenCommunityHint', 'true');
+    const showHintAfterWelcome = () => {
+        setTimeout(() => {
+            showTempMessage('👋 Tip: Click “Update Community Map” for the latest public markers!', 20000);
+            localStorage.setItem('seenCommunityHint', 'true');
+        }, 10000);
+    };
+
+    if (localStorage.getItem('fo76_welcome_accepted')) {
+        // Welcome already seen → show hint immediately after delay
+        showHintAfterWelcome();
+    } else {
+        // Wait for player to click "ENTER THE WASTELAND"
+        const observer = new MutationObserver((mutations, obs) => {
+            if (!document.getElementById('welcomeModal')) {
+                obs.disconnect();
+                showHintAfterWelcome();
+            }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
 }
+
         setTimeout(() => document.body.classList.add('map-ready'), 1000);
         toggleDarkModeBtn.onclick = () => {
             darkMode = !darkMode;
@@ -4361,4 +4379,3 @@ if (playerNameInput) {
 </script>
 </body>
 </html>
-
