@@ -3434,8 +3434,8 @@
       "startTime": null,
       "popupTimer": null,
       "keepBtnBound": false,
-      "wasCommunityKept": true,
-      "isCommunity": false
+      "wasCommunityKept": false,
+      "isCommunity": true
     },
     {
       "id": "id-dd21b18a-e3a1-4dc9-93d8-e1ea8b43a78e",
@@ -3592,8 +3592,8 @@
       "startTime": null,
       "popupTimer": null,
       "keepBtnBound": false,
-      "isCommunity": false,
-      "wasCommunityKept": true
+      "isCommunity": true,
+      "wasCommunityKept": false
     },
     {
       "id": "id-4449c5e4-3d60-4d34-a3e2-fe7a460328a5",
