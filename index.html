@@ -3459,13 +3459,16 @@ document.getElementById('submitCommunityBtn').onclick = () => {
         return;
     }
 
+    // ← (force correct flags for community submission)
+    loc.userEdited = false;
+    loc.wasCommunityKept = false;
+    loc.isCommunity = true;
+
     const playerNameInput = document.getElementById('playerNameInput');
     const playerName = playerNameInput?.value.trim() || 'Anonymous Wastelander';
-
     const finalDesc = loc.desc.includes('Submitted By')
         ? loc.desc
         : `${loc.desc}\nSubmitted By ${playerName}`;
-
     const iconToSend = categoryIcons[loc.category] || '📝';
 
     const params = new URLSearchParams({
@@ -3476,8 +3479,9 @@ document.getElementById('submitCommunityBtn').onclick = () => {
         icon: iconToSend,
         id: loc.id,
         cid: loc.cid || generateCid(loc),
-        userEdited: loc.userEdited || false,
-        wasCommunityKept: loc.wasCommunityKept || false
+        userEdited: false,
+        wasCommunityKept: false,
+        isCommunity: true
     });
 
     const url = `https://0mrcrazy0.github.io/fallout76-itemfindermap/submit.html?v=${Date.now()}&${params.toString()}`;
