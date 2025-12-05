@@ -4,7 +4,7 @@
     <!-- DEV NOTE: Meta tags for mobile + PWA support -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Fallout 76 Item Finder Map v76.6.9</title>
+    <title>Fallout 76 Item Finder Map v76.7.0</title>
 
 	<link rel="manifest" href="manifest.json?v=3">
 
@@ -543,6 +543,10 @@
         background-color: #1a3c34 !important;
         color: #00ff00 !important;
     }
+	.modal-content button#exportMineBtn,
+    .modal-content button#fullBackupBtn {
+    color: #000000 !important;
+}
 
     /* DEV NOTE: ZOOM BUTTONS — FALLOUT 76 STYLE + SAFE POSITION */
     .leaflet-control-zoom {
@@ -1001,6 +1005,10 @@ nukeStyle.textContent = `
     50%  { box-shadow: 0 0 50px #00ff88; }
     100% { box-shadow: 0 0 0px transparent; }
 }
+@keyframes pulse {
+    0%,100% { transform:scale(1); }
+    50% { transform:scale(1.15); }
+}
     </style>
 </head>
 <body>
@@ -1066,8 +1074,6 @@ nukeStyle.textContent = `
         <button id="saveMapJpegBtn">Save Map as JPEG</button>
         <button id="toggleDarkModeBtn">Dark Mode: Off</button>
         <button id="lockAllBtn">Lock All</button>
-<button id="backupAllBtn">Backup All Data</button>
-        <button id="restoreAllBtn">Restore All Data</button>
     </div>
     <!-- DEV NOTE: XP PROGRESS BAR -->
     <div id="xpStatus" style="text-align:center; margin:10px; color:#0f0; font-weight:bold;">
@@ -1139,7 +1145,7 @@ nukeStyle.textContent = `
                 <button id="resetAppBtn" class="reset-btn">Reset App (deletes everything)</button>
             </div>
             <p class="small"><br>❤️ the Item Finder Map? Support MrCrazy with a <a href="https://buymeacoffee.com/mrcrazy" target="_blank">Nuka-Cola</a>!</p>
-            <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version v76.6.9 Made By MrCrazy</p>
+            <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version v76.7.0 Made By MrCrazy</p>
         </div>
     </div>
     <!-- DEV NOTE: NUKE CODES MODAL -->
@@ -1225,8 +1231,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const STORAGE_KEY = 'fo76_locations';
         const CUSTOM_CATEGORIES_KEY = '76_custom_categories';
         const MAP_VERSION_KEY = 'fo76_map_version';
-        const CURRENT_UPDATE_VERSION = 'v76.6.9';
-        const APP_VERSION = "v76.6.9";
+        const CURRENT_UPDATE_VERSION = 'v76.7.0';
+        const APP_VERSION = "v76.7.0";
         let soundsEnabled = localStorage.getItem('soundsEnabled') !== 'false';
         const baseSounds = {
             click: new Audio("https://rpg.hamsterrepublic.com/wiki-images/8/84/Select8-Bit.ogg"),
@@ -1256,11 +1262,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const lng = Math.round(loc.lng);
             return `${loc.category}_${desc}_${lat}_${lng}`;
         }
-// Unicode-safe Base64 encoder for permanent shares
+
 function utf8ToBase64(str) {
     return btoa(unescape(encodeURIComponent(str)));
 }
-// Unicode-safe Base64 decoder (for completeness, though not used in your code)
+
 function base64ToUtf8(str) {
     return decodeURIComponent(escape(atob(str)));
 }
@@ -1277,8 +1283,6 @@ function base64ToUtf8(str) {
     if (loc.startTime === undefined) loc.startTime = loc.postcardExpire - 300000;
     if (loc.keepBtnBound === undefined) loc.keepBtnBound = false;
     if (loc.userEdited === undefined) loc.userEdited = true;
-    // ETERNAL PROTECTION
-    // If user has ever kept this marker (even in old versions), protect it forever
     if (loc.userEdited && loc.isCommunity === false && loc.wasCommunityKept === undefined) {
         loc.wasCommunityKept = true;
     }
@@ -1354,9 +1358,9 @@ communityVersion = getCurrentCommunityVersion();
         });
         const imageBounds = [[0, 0], [4096, 4096]];
         const mapUrls = {
-            named: 'https://i.postimg.cc/HpqMVWjB/Mappalachia-Map-of-Appalachia.jpg',
-            noName: 'https://i.postimg.cc/y6W7JMKB/Mappalachia-Map-of-Appalachia-no-name.jpg'
-        };
+    named: 'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
+    noName: 'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
+};
         let currentMap = localStorage.getItem('currentMap') || 'named';
         let imageOverlay = L.imageOverlay(mapUrls[currentMap], imageBounds).addTo(map);
         map.fitBounds(imageBounds);
@@ -1651,15 +1655,19 @@ map.on('popupclose', () => {
         };
         shareItemBtn.textContent = 'Share Map View';
         shareItemBtn.onclick = () => {
-            const loc = locations[currentIndex];
-            if (!loc) return;
-            const lat = Math.round(loc.lat), lng = Math.round(loc.lng);
-            const url = `${location.origin}${location.pathname}?lat=${lat}&lng=${lng}`;
-            navigator.clipboard.writeText(url).then(() => {
-                showTempMessage('MAP VIEW LINK COPIED', 3000);
-                playSound('click');
-            });
-        };
+    const loc = locations[currentIndex];
+    if (!loc) return;
+    const lat = Math.round(loc.lat);
+    const lng = Math.round(loc.lng);
+
+    const url = window.location.href.split('?')[0].split('#')[0] + 
+                `?lat=${lat}&lng=${lng}`;
+
+    navigator.clipboard.writeText(url).then(() => {
+        showTempMessage('MAP VIEW LINK COPIED', 3000);
+        playSound('click');
+    });
+};
         window.toggleLockFromPopup = i => {
             const loc = locations[i];
             if (loc.isPostcard) return;
@@ -1675,32 +1683,29 @@ map.on('popupclose', () => {
     if (currentIndex < 0) return;
     const loc = locations[currentIndex];
     if (loc.locked) {
-        showTempMessage('Unlock first!', 4000);
+        showTempMessage('UNLOCK FIRST!', 4000);
         playSound('error');
         return;
     }
-    // --- CHAINED OFFSET + CLUSTER-PROOF DISTANCE ---
     const sameCidMarkers = locations.filter(l => l.cid === loc.cid);
     const reference = sameCidMarkers.length > 0 ? sameCidMarkers[sameCidMarkers.length - 1] : loc;
-    // MASSIVE offset when clustering is on — guarantees no stacking even at zoom 0
-    const baseO = clusteringEnabled ? 160 : 60; // 160px base = no cluster ever again
+    const baseO = clusteringEnabled ? 160 : 60; 
     const o = baseO / Math.pow(2, map.getZoom());
-    const a = sameCidMarkers.length * (55 * Math.PI / 180); // tighter spiral, looks cleaner
+    const a = sameCidMarkers.length * (55 * Math.PI / 180); 
     const newLat = reference.lat + o * Math.sin(a);
     const newLng = reference.lng + o * Math.cos(a);
     const newDesc = updateDescWithGrid(loc.desc, newLat, newLng);
     const dup = createNewLocation(newLat, newLng, loc.category, newDesc);
     dup.userEdited = true;
-    dup.locked = false; // new duplicate starts unlocked (ready to move if wanted)
-    // --- RE-LOCK THE ORIGINAL MARKER FOR SAFETY ---
-    loc.locked = true; // ← CRITICAL: prevent accidental move
-    loc.addedTime = Date.now(); // make it glow again briefly
+    dup.locked = false; 
+    loc.locked = true; 
+    loc.addedTime = Date.now(); 
     locations.push(dup);
     recalculateXP();
     saveLocations();
     forceReload();
     closeModal(itemModal);
-    safeFlyTo(newLat, newLng, map.getZoom() + 1); // zoom in a bit so user sees the separation
+    safeFlyTo(newLat, newLng, map.getZoom() + 1); 
     showTempMessage('MARKER DUPLICATED — ORIGINAL RE-LOCKED', 4000);
     playSound('duplicate');
 };
@@ -1799,6 +1804,7 @@ map.on('popupclose', () => {
                 icon: isTemp ? '📬' : (categoryIcons[category] || '📝'),
                 addedTime: isTemp ? null : now,
                 userEdited: !isTemp,
+				wasCommunityKept: !isTemp,
                 locked: !isTemp,
                 cid: generateCid({ category, desc, lat, lng }),
                 isTemp: isTemp,
@@ -1844,7 +1850,7 @@ map.on('popupclose', () => {
             forceReload();
             postcardModal.style.display = 'none';
             const encodedMsg = encodeURIComponent(msg);
-            const url = `${window.location.origin}${window.location.pathname}?postcard=${loc.id}&lat=${Math.round(loc.lat)}&lng=${Math.round(loc.lng)}&msg=${encodedMsg}`;
+            const url = `${window.location.href.split('?')[0].split('#')[0]}?postcard=${loc.id}&lat=${Math.round(loc.lat)}&lng=${Math.round(loc.lng)}&msg=${encodedMsg}`;
             navigator.clipboard.writeText(url).then(() => {
                 showTempMessage('POSTCARD LINK COPIED', 4000);
                 playSound('postcard');
@@ -1894,7 +1900,7 @@ map.on('popupclose', () => {
                         const marker = [...nonClusteredMarkers.getLayers(), ...clusteredMarkers.getLayers()]
                             .find(m => m.options.id === id);
                         if (marker || created) {
-                            const displayMsg = created ? msg : 'Check this spot!';
+                            const displayMsg = created ? msg : 'CHECK THIS SPOT!';
                             marker?.unbindPopup();
                             marker?.bindPopup(createPopupContent({ desc: displayMsg, id: id }), { maxWidth: 320, offset: [0, -20] });
                             marker?.openPopup();
@@ -1966,7 +1972,6 @@ map.on('popupclose', () => {
         e.stopPropagation();
         const index = locations.findIndex(l => l.id === loc.id);
         if (index === -1) return;
-        // Update description with grid/coord before keeping
         locations[index].desc = updateDescWithGrid(loc.desc, loc.lat, loc.lng);
         locations[index].isPostcard = false;
         locations[index].isTemp = false;
@@ -1979,7 +1984,7 @@ map.on('popupclose', () => {
         saveLocations();
         recalculateXP();
         forceReload();
-        showTempMessage('Postcard kept!', 4000);
+        showTempMessage('POSTCARD KEPT!', 4000);
         playSound('saving');
     };
 }
@@ -1999,7 +2004,7 @@ map.on('popupclose', () => {
                     if (index !== -1) locations.splice(index, 1);
                     saveLocations();
                     forceReload();
-                    showTempMessage('POSTCARD EXPIRED — TURNED TO DUST', 4000);
+                    showTempMessage('POSTCARD! EXPIRED — TURNED TO DUST!', 4000);
                     playSound('dust');
                     if (!locations.some(l => l.isPostcard)) stopPostcardTicker();
                 }, 1500);
@@ -2009,7 +2014,7 @@ map.on('popupclose', () => {
                     locations.splice(index, 1);
                     saveLocations();
                     forceReload();
-                    showTempMessage('POSTCARD EXPIRED — TURNED TO DUST', 4000);
+                    showTempMessage('POSTCARD EXPIRED! — TURNED TO DUST!', 4000);
                     playSound('dust');
                     if (!locations.some(l => l.isPostcard)) stopPostcardTicker();
                 }
@@ -2253,22 +2258,18 @@ map.on('popupclose', () => {
 
     const textOnly = ['named locations', 'regions'].includes(loc.category);
 
-    // Add to correct layer (clustered or not)
     (clusteringEnabled && !textOnly ? clusteredMarkers : nonClusteredMarkers).addLayer(marker);
 
-    // ——— NEW: NAMED LOCATIONS & REGIONS ALWAYS ON TOP ———
     if (textOnly) {
-        marker.setZIndexOffset(20000); // Extremely high — always above everything
+        marker.setZIndexOffset(20000);
     } else if (isGlowing(loc)) {
-        marker.setZIndexOffset(10000); // Glowing markers still high, but below named locations
+        marker.setZIndexOffset(10000);
     } else {
-        marker.setZIndexOffset(0);     // Normal markers at bottom
+        marker.setZIndexOffset(0);
     }
 
-    // Keep glowing refresh (now respects named locations priority)
     if (isGlowing(loc)) {
         setTimeout(() => {
-            // Re-apply correct z-index after glow icon update
             if (textOnly) {
                 marker.setZIndexOffset(20000);
             } else {
@@ -2286,18 +2287,15 @@ map.on('popupclose', () => {
     }
 
     if (marker._icon) {
-        // Block browser context menu (inspect, save page, etc.)
         L.DomEvent.on(marker._icon, 'contextmenu', function(e) {
             e.preventDefault();
             e.stopPropagation();
         });
 
-        // Make right-click / long-press behave like left-click (open popup)
         L.DomEvent.on(marker._icon, 'contextmenu', function() {
             marker.openPopup();
         });
 
-        // Mobile: block long-press browser menu
         let longPressTimer;
         L.DomEvent.on(marker._icon, 'touchstart', function(e) {
             if (e.touches.length === 1) {
@@ -2312,7 +2310,7 @@ map.on('popupclose', () => {
     }
 }
         function updateCounterDisplay() {
-    const appVersion = "76.6.9";
+    const appVersion = "76.7.0";
     const communityVer = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
     const total = locations.filter(l => activeCategories.has(l.category)).length;
     const userTotal = locations.filter(l => l.userEdited === true && !l.isPostcard).length;
@@ -2473,7 +2471,7 @@ map.on('popupclose', () => {
                 modalToggle.onclick = (e) => {
                     e.stopPropagation();
                     loc.locked = !loc.locked;
-// Show Submit to Community button only when marker is locked and not already community
+
 const submitBtn = document.getElementById('submitCommunityBtn');
 if (submitBtn) {
     submitBtn.style.display = 
@@ -2492,7 +2490,7 @@ if (submitBtn) {
                     playSound('click');
                 };
             }
-// Show Submit to Community button only when marker is locked and not already community
+
 const submitBtn = document.getElementById('submitCommunityBtn');
 if (submitBtn) {
     submitBtn.style.display = 
@@ -2520,7 +2518,7 @@ if (submitBtn) {
         triggerConfetti();
         showTempMessage(`LEVEL UP 🎉 — NOW LEVEL ${level}`, 5000);
     
-    // ONLY THE BAR GLOWS — SUBTLE & CLEAN
+
     const bar = document.getElementById('xpProgress');
     bar.classList.add('level-up');
     setTimeout(() => bar.classList.remove('level-up'), 10000);
@@ -2559,7 +2557,7 @@ if (submitBtn) {
     const flash = document.createElement('div');
     flash.style.cssText = `
         position:fixed;top:0;left:0;width:100vw;height:100vh;
-        background:#fff;z-index:99999;pointer-events:none;
+        background:#fff;z-index:999999;pointer-events:none;
         animation: quickFlash 0.7s ease-out forwards;
     `;
     document.body.appendChild(flash);
@@ -2568,16 +2566,16 @@ if (submitBtn) {
         const overlay = document.createElement('div');
         overlay.style.cssText = `
             position:fixed;top:0;left:0;width:100vw;height:100vh;
-            background:#000;z-index:99998;pointer-events:none;
+            background:#000;z-index:999999;pointer-events:none;
             display:flex;flex-direction:column;align-items:center;justify-content:center;
             gap:20px;padding:20px;box-sizing:border-box;
             font-family:'Courier New',monospace;text-align:center;
         `;
 
         overlay.innerHTML = `
-            <div class="nuke-symbol">☢</div>
+            <div class="nuke-symbol">🎉</div>
             <h1 class="nuke-title">LEVEL ${level} ACHIEVED</h1>
-            <p class="nuke-subtitle">${level % 10 === 0 ? 'NUKE DETONATED!' : 'RANK UP!'}</p>
+            <p class="nuke-subtitle">${level % 5 === 0 ? '🚀NUKE DETONATED!☢️' : 'RANK UP!'}</p>
         `;
 
         document.body.appendChild(overlay);
@@ -2677,16 +2675,20 @@ if (submitBtn) {
         }
         resetAppBtn.onclick = () => {
     showConfirmModal(
-        '⚠️ FULL APP RESET ⚠️',
-        'This will delete ALL markers, XP, settings & community version.<br><br>First we create a FULL backup for you.<br><br>Continue?',
+        '☢FULL APP RESET☢',
+        'This will wipe everything and start fresh.<br><br>' +
+        'Your personal markers, XP, level & settings will be saved first.<br><br>' +
+        'After the nuke → import backup → Update Community Map → back in seconds.<br><br>' +
+        'Ready?',
         () => {
-            // FULL BACKUP
-            const fullBackup = {
-                version: "full-v76.6.9",
+
+            const userMarkers = locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard);
+            const personalBackup = {
+                version: "personal-v76.7.0",
                 timestamp: new Date().toISOString(),
                 communityVersion,
-                locations: locations.filter(l => !l.isPostcard),
                 customCategories,
+                locations: userMarkers,
                 level,
                 xp,
                 settings: {
@@ -2695,57 +2697,108 @@ if (submitBtn) {
                     activeCategories: [...activeCategories]
                 }
             };
-            const blob = new Blob([JSON.stringify(fullBackup, null, 2)], { type: 'application/json' });
+            const blob = new Blob([JSON.stringify(personalBackup, null, 2)], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `FO76_BACKUP_${locations.filter(l => !l.isPostcard).length}_markers_${new Date().toISOString().slice(0,10)}.json`;
+            a.download = `FO76_MyBackup_Level_${level}_${userMarkers.length}_markers_${new Date().toISOString().slice(0,10)}.json`;
             a.click();
-            showTempMessage('FULL BACKUP DOWNLOADED', 6000);
+            showTempMessage('PERSONAL BACKUP SAVED!', 4000);
 
             setTimeout(() => {
-                showConfirmModal(
-                    '⚠️ FINAL STEP — NUCLEAR WIPE ⚠️',
-                    'Your reports are preserved.<br><br>This will erase everything else.<br><br>Launch the nuke?',
-                    () => {
-                        const savedReports = {};
-                        for (let i = 0; i < localStorage.length; i++) {
-                            const key = localStorage.key(i);
-                            if (key?.startsWith("reported_cid_")) {
-                                savedReports[key] = localStorage.getItem(key);
-                            }
-                        }
-                        localStorage.clear();
-                        Object.keys(savedReports).forEach(k => localStorage.setItem(k, savedReports[k]));
-                        if ('serviceWorker' in navigator) {
-                            navigator.serviceWorker.getRegistrations().then(r => r.forEach(reg => reg.unregister()));
-                        }
-                        location.reload();
+                const nuke = document.createElement('div');
+                nuke.style.cssText = `
+                    position:fixed;top:0;left:0;width:100vw;height:100vh;
+                    background:#000;z-index:999999;display:flex;
+                    align-items:center;justify-content:center;flex-direction:column;
+                    gap:30px;font-family:'Courier New',monospace;color:#0f0;
+                    pointer-events:none;
+                `;
+                nuke.innerHTML = `
+                    <div class="nuke-symbol">🚀</div>
+                    <h1 style="font-size:clamp(28px,8vw,60px);margin:0;text-shadow:0 0 30px #0f0;letter-spacing:6px;">
+                        NUCLEAR WIPE
+                    </h1>
+                    <p style="font-size:clamp(18px,5vw,36px);margin:0;opacity:0.9;">
+                        Detonation in 3...
+                    </p>
+                `;
+                document.body.appendChild(nuke);
+                playSound('levelUp');
+
+                let count = 3;
+                const countdown = setInterval(() => {
+                    count--;
+                    if (count > 0) {
+                        nuke.querySelector('p').textContent = `Detonation in ${count}...`;
+                    } else {
+                        clearInterval(countdown);
+                        nuke.querySelector('p').textContent = 'BOOM!';
+                        nuke.style.background = '#fff';
+                        setTimeout(() => {
+                            nuke.innerHTML = `
+                                <div class="nuke-symbol">☢️</div>
+                                <h1 style="font-size:clamp(28px,8vw,60px);margin:0;text-shadow:0 0 30px #0f0;">
+                                    APPALACHIA REBORN
+                                </h1>
+                                <p style="font-size:clamp(18px,5vw,36px);margin:0;opacity:0.9;">
+                                    Reloading...
+                                </p>
+                            `;
+                            nuke.style.background = '#000';
+                        }, 300);
                     }
-                );
-            }, 1300);
+                }, 1000);
+
+                setTimeout(() => {
+                    const savedReports = {};
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key?.startsWith("reported_cid_")) savedReports[key] = localStorage.getItem(key);
+                    }
+                    localStorage.clear();
+                    Object.keys(savedReports).forEach(k => localStorage.setItem(k, savedReports[k]));
+
+                    if ('serviceWorker' in navigator) {
+                        navigator.serviceWorker.getRegistrations().then(r => r.forEach(reg => reg.unregister()));
+                    }
+
+                    nuke.style.transition = 'opacity 1.2s';
+                    nuke.style.opacity = '0';
+                    setTimeout(() => location.reload(), 1200);
+                }, 4500);
+            }, 800);
         }
     );
 };
         exportBtn.onclick = () => {
     playSound('click');
+
+    const userMarkers = locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard).length;
+
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'block';
     modal.innerHTML = `
-        <div class="modal-content" style="max-width:500px;">
+        <div class="modal-content" style="max-width:540px;">
             <span class="close">×</span>
-            <h2>EXPORT MARKERS</h2>
-            <p style="text-align:center; line-height:1.8; margin:20px 0;">
-                Choose what to export:
-            </p>
-            <div style="display:flex; flex-direction:column; gap:15px; align-items:center;">
-                <button id="exportAllBtn" style="background:#00ff00; color:#000; padding:12px 30px; font-size:1.1em; width:80%;">
-                    <strong>EXPORT ALL MARKERS</strong><br>
-                    <small style="font-size:0.9em; opacity:0.9;">Yours + Community (${locations.filter(l => !l.isPostcard).length} total)</small>
-                </button>
-                <button id="exportMineBtn" style="background:#ffa500; color:#000; padding:12px 30px; font-size:1.1em; width:80%;">
-                    <strong>EXPORT MINE ONLY</strong><br>
-                    <small style="font-size:0.9em; opacity:0.9;">Only your created/edited markers (${locations.filter(l => l.userEdited && !l.isPostcard).length})</small>
+            <h2>Backup Your Progress</h2>
+           
+            <div style="background:rgba(0,255,0,0.1);border:1px solid #0f0;padding:15px;border-radius:8px;margin:15px 0;text-align:center;">
+                <div style="font-size:1.4em;font-weight:bold;margin-bottom:8px;">
+                    Your Current Progress
+                </div>
+                <div style="line-height:1.6;font-size:1.05em;">
+                    • <strong>Level ${level}</strong> — ${xp} / 1000 XP<br>
+                    • <strong>Logged: ${userMarkers} marker${userMarkers === 1 ? '' : 's'}</strong> (yours + kept)<br>
+                    • Dark Mode: ${darkMode ? 'On' : 'Off'} | Sounds: ${soundsEnabled ? 'On' : 'Off'}<br>
+                    • Clustering: ${clusteringEnabled ? 'On' : 'Off'} | Grid: ${gridEnabled ? 'On' : 'Off'}
+                </div>
+            </div>
+
+            <div style="text-align:center;margin-top:20px;">
+                <button id="fullBackupBtn" style="background:#00ff00;color:#000;padding:18px;font-size:1.5em;width:90%;font-weight:bold;">
+                    DOWNLOAD FULL BACKUP<br>
+                    <small style="opacity:0.9;">Logged: ${userMarkers} marker${userMarkers === 1 ? '' : 's'} + Level ${level} + XP + All Settings</small>
                 </button>
             </div>
         </div>
@@ -2753,51 +2806,47 @@ if (submitBtn) {
     document.body.appendChild(modal);
     document.body.classList.add('modal-open');
 
-    const closeModal = () => {
+    modal.querySelector('.close').onclick = () => {
         modal.remove();
         document.body.classList.remove('modal-open');
         playSound('modalClose');
     };
 
-    modal.querySelector('.close').onclick = closeModal;
-
-    const performExport = (all) => {
-        const data = {
-            version: 1.0,
+    document.getElementById('fullBackupBtn').onclick = () => {
+        const playerMarkers = locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard);
+        const fullBackup = {
+            version: "personal-v76.7.0",
+            timestamp: new Date().toISOString(),
             communityVersion,
             customCategories,
-            locations: all
-                ? locations.filter(l => !l.isPostcard)
-                : locations.filter(l => l.userEdited && !l.isPostcard)
+            locations: playerMarkers,
+            level,
+            xp,
+            settings: {
+                clusteringEnabled,
+                gridEnabled,
+                currentMap,
+                darkMode,
+                soundsEnabled,
+                titleVisible,
+                toolsVisible,
+                activeCategories: [...activeCategories]
+            }
         };
-
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const blob = new Blob([JSON.stringify(fullBackup, null, 2)], { type: 'application/json' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `fo76_${all ? 'all' : 'user'}_${data.locations.length}_markers_${new Date().toISOString().slice(0,10)}.json`;
+        a.download = `FO76_MyBackup_Level_${level}_${userMarkers}_markers_${new Date().toISOString().slice(0,10)}.json`;
         a.click();
+modal.remove();
+document.body.classList.remove('modal-open');
 
-        const overlay = document.createElement('div');
-        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"Courier New",monospace;color:#00ff00;text-align:center;gap:20px;';
-        overlay.innerHTML = `
-            <div style="font-size:clamp(60px,15vw,180px);text-shadow:0 0 40px #00ff00;">💾</div>
-            <h1 style="font-size:clamp(28px,8vw,70px);margin:0;text-shadow:0 0 30px #00ff00;">
-                EXPORT COMPLETE
-            </h1>
-            <p style="font-size:clamp(18px,5vw,40px);margin:0;">
-                ${data.locations.length} marker${data.locations.length===1?'':'s'} saved!
-            </p>
-            <p style="font-size:clamp(14px,4vw,28px);opacity:0.9;">
-                ${all ? 'ALL markers exported' : 'Only YOUR markers'}
-            </p>
-        `;
-        document.body.appendChild(overlay);
-        playSound('saving');
-        setTimeout(() => overlay.remove(), 3000);
-        closeModal();
+showTempMessage('FULL BACKUP DOWNLOADED — YOU ARE SAFE!', 7000);
+triggerEpicFlash("💾", "BACKUP COMPLETE", 
+    `${playerMarkers.length} marker${playerMarkers.length === 1 ? '' : 's'} saved!`,
+    `Level ${level} + XP + All Settings`);
+playSound('saving');
     };
-    document.getElementById('exportAllBtn').onclick = () => performExport(true);
-    document.getElementById('exportMineBtn').onclick = () => performExport(false);
 };
         importBtn.onclick = () => {
     const input = document.createElement('input');
@@ -2812,30 +2861,62 @@ if (submitBtn) {
                 const data = JSON.parse(ev.target.result);
                 const incoming = data.locations || (Array.isArray(data) ? data : []);
                 let added = 0, updated = 0, skipped = 0;
-
                 const beforeState = JSON.stringify(locations);
+
+                const isPersonalFile = data.level !== undefined ||
+                                       data.xp !== undefined ||
+                                       file.name.includes('MyBackup') ||
+                                       file.name.includes('Shared_Markers');
 
                 incoming.forEach(imp => {
                     const existing = locations.find(l => l.cid === imp.cid);
-                    if (existing && existing.userEdited) {
+
+                    if (existing && isPersonalFile) {
                         skipped++;
                         return;
                     }
-                    if (existing) {
-                        Object.assign(existing, imp);
-                        existing.userEdited = false;
-                        updated++;
+
+                    if (isPersonalFile) {
+                        if (existing) {
+                            Object.assign(existing, imp);
+                            existing.userEdited = true;
+                            existing.wasCommunityKept = true;
+                            updated++;
+                        } else {
+                            locations.push({
+                                ...imp,
+                                id: generateUniqueId(),
+                                addedTime: Date.now(),
+                                locked: true,
+                                isPostcard: false,
+                                isTemp: false,
+                                userEdited: true,
+                                wasCommunityKept: false
+                            });
+                            added++;
+                        }
                     } else {
-                        locations.push({
-                            ...imp,
-                            id: generateUniqueId(),
-                            addedTime: Date.now(),
-                            locked: true,
-                            isPostcard: false,
-                            isTemp: false,
-                            userEdited: false
-                        });
-                        added++;
+
+                        if (existing && existing.userEdited) {
+                            skipped++;
+                            return;
+                        }
+                        if (existing) {
+                            Object.assign(existing, imp);
+                            existing.userEdited = false;
+                            updated++;
+                        } else {
+                            locations.push({
+                                ...imp,
+                                id: generateUniqueId(),
+                                addedTime: Date.now(),
+                                locked: true,
+                                isPostcard: false,
+                                isTemp: false,
+                                userEdited: false
+                            });
+                            added++;
+                        }
                     }
                 });
 
@@ -2844,11 +2925,16 @@ if (submitBtn) {
                     localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
                 }
 
-                showTempMessage(`Imported ${added + updated} marker${added + updated === 1 ? '' : 's'}!`, 6000);
                 recalculateXP();
                 saveLocations();
                 forceReload();
-                updateCounterDisplay();
+
+                showTempMessage(`IMPORTED ${added + updated} MARKER${added + updated === 1 ? '' : 'S'}`, 8000);
+
+triggerEpicFlash("🧬", "IMPORT COMPLETE",
+    `${added + updated} marker${added + updated === 1 ? '' : 's'} loaded!`,
+    skipped > 0 ? `${skipped} protected` : "Ready to explore");
+                playSound('saving');
 
                 setTimeout(() => {
                     const undoBtn = document.getElementById('undoImportBtn');
@@ -2856,6 +2942,7 @@ if (submitBtn) {
                         undoBtn.style.display = 'block';
                         undoBtn.onclick = () => {
                             locations = JSON.parse(beforeState);
+                            recalculateXP();
                             saveLocations();
                             forceReload();
                             undoBtn.style.display = 'none';
@@ -2867,19 +2954,18 @@ if (submitBtn) {
                 }, 100);
 
                 showConfirmModal(
-    '💾Import Complete💾',
-    `<div style="text-align:left; line-height:1.9; font-size:1.1em;">
-        Added: <strong style="color:#00ff88;">${added}</strong> added: new markers added.<br>
-        Updated: <strong style="color:#00ff88;">${updated}</strong> updated: existing community markers checked & updated.<br>
-        Skipped: <strong style="color:#ffa500;">${skipped}</strong> skipped: your "keep", "edited", and user-created markers are protected.
-    </div>`,
-    null
-);
-                playSound('saving');
+                    '💾IMPORT COMPLETED💾',
+                    `<div style="text-align:left;line-height:1.9;font-size:1.1em;">
+                        Added: <strong style="color:#00ff88;">${added}</strong><br>
+                        Updated: <strong style="color:#00ff88;">${updated}</strong><br>
+                        Skipped: <strong style="color:#ffa500;">${skipped}</strong> (protected)
+                    </div>`,
+                    null
+                );
 
             } catch (err) {
                 console.error("Import failed:", err);
-                showTempMessage('Invalid or corrupted file', 5000);
+                showTempMessage('INVALID FILE', 5000);
                 playSound('error');
             }
         };
@@ -2907,7 +2993,6 @@ if (submitBtn) {
                     let added = 0, updated = 0, skipped = 0;
                     incoming.forEach(imp => {
                         const existing = locations.find(l => l.cid === imp.cid);
-                        // ETERNAL PROTECTION
                         if (existing && (existing.userEdited || existing.wasCommunityKept)) {
                             skipped++;
                             return;
@@ -2952,24 +3037,23 @@ showConfirmModal(
     '☢ COMMUNITY MAP UPDATED ☢',
     `<div style="text-align:left; line-height:1.9; font-size:1.1em;">
         <strong style="color:#00ff88;">${added}</strong> added: new markers added.<br>
-        <strong style="color:#00ff88;">${updated}</strong> updated: existing community markers checked & updated.<br>
-        <strong style="color:#ffa500;">${skipped}</strong> skipped: your "keep", "edited", and user-created markers are protected.<br><br>
+        <strong style="color:#00ff88;">${updated}</strong> updated: existing community markers refreshed.<br>
+        <strong style="color:#ffa500;">${skipped}</strong> skipped: your kept community markers, edited, and user-created markers are protected.<br><br>
         <strong style="color:#00ff00;">Total on your map: ${locations.length}</strong><br>
         <strong>You're all set — happy exploring!</strong>
     </div>`,
     null
 );
                     playSound('saving');
-                    // EPIC NUKE EFFECT FOR BIG UPDATES
                     if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
                         localStorage.setItem('seenCommunityNuke', 'true');
                         setTimeout(() => {
                             const flash = document.createElement('div');
-                            flash.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#fff;z-index:99999;pointer-events:none;animation:quickFlash 0.7s ease-out forwards;';
+                            flash.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#fff;z-index:999999;pointer-events:none;animation:quickFlash 0.7s ease-out forwards;';
                             document.body.appendChild(flash);
                             setTimeout(() => {
                                 const overlay = document.createElement('div');
-                                overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:99998;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;padding:20px;box-sizing:border-box;font-family:"Courier New",monospace;text-align:center;';
+                                overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;padding:20px;box-sizing:border-box;font-family:"Courier New",monospace;text-align:center;';
                                 overlay.innerHTML = `
                                     <div class="nuke-symbol">☢️</div>
                                     <h1 class="nuke-title">COMMUNITY MAP NUKED!</h1>
@@ -3005,16 +3089,19 @@ function createPermanentShare(markersToShare) {
     if (markersToShare.length === 0) return;
     const shareData = { version: 1.0, locations: markersToShare };
     const jsonString = JSON.stringify(shareData);
-    const encoded = utf8ToBase64(jsonString) // Use the safe encoder here
+    const encoded = utf8ToBase64(jsonString)
                     .replace(/\+/g, '-')
                     .replace(/\//g, '_')
                     .replace(/=+$/, '');
-    const shareUrl = location.origin + location.pathname + '?permshare=' + encoded;
+
+    const base = window.location.href.split('?')[0].split('#')[0];
+    const shareUrl = base + '?permshare=' + encoded;
+
     navigator.clipboard.writeText(shareUrl).then(() => {
-        showTempMessage('Permanent link copied!', 6000);
+        showTempMessage('PERMANENT LINK COPIED', 6000);
         playSound('postcard');
     }).catch(() => {
-        prompt('Copy this link (it works everywhere):', shareUrl);
+        prompt('Copy this link (works everywhere):', shareUrl);
     });
 }
 document.getElementById('shareOneBtn').onclick = () => {
@@ -3033,7 +3120,7 @@ document.getElementById('shareOneBtn').onclick = () => {
                 a.href = canvas.toDataURL('image/jpeg', 0.9);
                 a.download = `fo76_map_${new Date().toISOString().slice(0,10)}.jpg`;
                 a.click();
-                showTempMessage('Map saved to Downloads!', 4000);
+                showTempMessage('MAP SAVED TO DOWNLOADS!', 4000);
             });
         };
         prevPageBtn.onclick = () => {
@@ -3132,7 +3219,7 @@ document.getElementById('shareOneBtn').onclick = () => {
             const name = document.getElementById('newCategoryName').value.trim();
             const emoji = document.getElementById('newCategoryEmoji').value.trim();
             if (!name || !emoji || !isValidEmoji(emoji) || defaultCategoryIcons[name]) {
-                showTempMessage('Invalid name or emoji', 4000);
+                showTempMessage('INVALID NAME OR EMOJI!', 4000);
                 return;
             }
             customCategories[name] = emoji;
@@ -3144,7 +3231,7 @@ document.getElementById('shareOneBtn').onclick = () => {
             updateCategoryDropdowns();
             renderCategoryToggles();
             closeModal(document.getElementById('createCategoryModal'));
-            showTempMessage('Category created!', 3000);
+            showTempMessage('CATEGORY CREATED!', 3000);
             playSound('saving');
         };
         document.getElementById('confirmDeleteCategoryBtn').onclick = () => {
@@ -3164,7 +3251,7 @@ document.getElementById('shareOneBtn').onclick = () => {
             saveLocations();
             forceReload();
             closeModal(document.getElementById('deleteCategoryModal'));
-            showTempMessage(`Category "${name}" deleted → markers reassigned`, 5000);
+            showTempMessage(`CATEGORY "${name}" DELETED → MARKERS REASSIGNED!`, 5000);
             playSound('delete');
         }
     );
@@ -3179,14 +3266,14 @@ document.getElementById('shareOneBtn').onclick = () => {
             lat = tempLatLng.lat;
             lng = tempLatLng.lng;
         } else {
-            showTempMessage('No location selected! Double-click map first.', 4000);
+            showTempMessage('NO LOCATION SELECTED! DOUBLE-CLICK MAP FIRST.', 4000);
             playSound('error');
             return;
         }
     } else {
         const loc = locations[currentIndex];
         if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number') {
-            showTempMessage('Invalid location data!', 4000);
+            showTempMessage('INVALID LOCATION DATA!', 4000);
             playSound('error');
             return;
         }
@@ -3205,7 +3292,7 @@ document.getElementById('shareOneBtn').onclick = () => {
     if (currentIndex >= 0) {
         const loc = locations[currentIndex];
         if (loc.locked) {
-            showTempMessage('Unlock first!', 4000);
+            showTempMessage('UNLOCK FIRST!', 4000);
             playSound('error');
             return;
         }
@@ -3238,7 +3325,7 @@ document.getElementById('shareOneBtn').onclick = () => {
             if (currentIndex < 0) return;
             const loc = locations[currentIndex];
             if (loc.locked) {
-                showTempMessage('Unlock first!', 4000);
+                showTempMessage('UNLOCK FIRST!', 4000);
                 playSound('error');
                 return;
             }
@@ -3263,7 +3350,7 @@ document.getElementById('shareOneBtn').onclick = () => {
     playSound('undo');
     closeModal(itemModal);
     safeFlyTo(lastDeleted.lat, lastDeleted.lng, 4);
-    lastDeleted = null; // ← now perfectly safe + clean
+    lastDeleted = null;
 };
         exportOneBtn.onclick = () => {
             const loc = locations[currentIndex];
@@ -3291,7 +3378,6 @@ document.getElementById('submitCommunityBtn').onclick = () => {
         ? loc.desc
         : `${loc.desc}\nSubmitted By ${playerName}`;
 
-    // THIS LINE SENDS THE REAL EMOJI
     const iconToSend = categoryIcons[loc.category] || '📝';
 
     const params = new URLSearchParams({
@@ -3380,7 +3466,7 @@ document.getElementById('submitCommunityBtn').onclick = () => {
         const desc = grid ? `Grid ${grid} (X: ${x}, Y: ${y})` : `X: ${x}, Y: ${y}`;
         const url = `${window.location.origin}${window.location.pathname}?lat=${y}&lng=${x}&grid=${grid}&desc=${encodeURIComponent(desc)}`;
         navigator.clipboard.writeText(url).then(() => {
-            showTempMessage('Sending A Postcard location copied!', 3000);
+            showTempMessage('SENDING A POSTCARD LOCATION LINK COPIED SHARE THE LINK!', 3000);
             playSound('click');
         }).catch(() => {
             prompt('Copy this link:', url);
@@ -3494,7 +3580,7 @@ function syncToggleButtonStates() {
             voiceSearchBtn.title = 'Voice Search requires Chrome or Edge';
             voiceSearchBtn.disabled = true;
             voiceSearchBtn.onclick = () => {
-                showTempMessage('Voice Search only works in Chrome or Edge', 4000);
+                showTempMessage('VOICE SEARCH ONLY WORKS IN CHROME OR EDGE.', 4000);
                 playSound('error');
             };
         }
@@ -3523,7 +3609,7 @@ function syncToggleButtonStates() {
                     ☢ FALLOUT 76 ITEM FINDER MAP ☢
                 </h1>
                 <p style="margin:8px 0 0; font-size:1.3em; color:#0f0;">
-                    v76.6.9 — Built with ❤️ by MrCrazy
+                    v76.7.0 — Built with ❤️ by MrCrazy
                 </p>
             </div>
 
@@ -3580,7 +3666,7 @@ function syncToggleButtonStates() {
                 </div>
                 <div style="padding:30px; text-align:center; line-height:1.8;">
                     <ul style="text-align:left; display:inline-block; margin:25px 0; padding-left:30px; font-size:1.2em;">
-                        <li>Welcome To Version 76.6.9</li>
+                        <li>Welcome To Version 76.7.0</li>
                         <li>This is The Latest Update — Reset Your App if needed.<br>
                             Find this tip in the "How to Use" section.</li>
                         <li>Made With ❤️</li>
@@ -3600,7 +3686,6 @@ function syncToggleButtonStates() {
         document.body.appendChild(updateModal);
         document.body.classList.add('modal-open');
 
-        // BUTTON WORKS INSTANTLY
         const btn = document.getElementById('updateGotItBtn');
         if (btn) {
             btn.onclick = () => {
@@ -3615,7 +3700,7 @@ function syncToggleButtonStates() {
         if (!localStorage.getItem(WELCOME_KEY)) {
             setTimeout(showWelcomeModal, 800);
         }
-        if (localStorage.getItem(LAST_VERSION_KEY) !== 'v76.6.9') {
+        if (localStorage.getItem(LAST_VERSION_KEY) !== 'v76.7.0') {
             setTimeout(checkForUpdate, 1400);
         }
 const searchInput = document.getElementById('combinedSearch');
@@ -3729,7 +3814,7 @@ banner.style.cssText = `
     position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
     background:#001100; color:#00ff00; padding:14px 20px; border:2px solid #00ff00;
     border-radius:8px; font:bold 16px 'Courier New',monospace; text-align:center;
-    z-index:99999; box-shadow:0 0 20px #00ff00; max-width:90%;
+    z-index:999999; box-shadow:0 0 20px #00ff00; max-width:90%;
 `;
 
 const isMobile = /Mobi|Android|iPhone|iPad|iPod/.test(navigator.userAgent);
@@ -3762,7 +3847,7 @@ if (urlParams.has('permshare')) {
         raw = atob(decoded + '=='.substring(0, (4 - decoded.length % 4) % 4));
         raw = decodeURIComponent(escape(raw));
     } catch (e) {
-        showTempMessage('Invalid share link', 5000);
+        showTempMessage('INVALID SHARE LINK!', 5000);
         history.replaceState(null, null, location.pathname);
         return;
     }
@@ -3777,23 +3862,22 @@ if (urlParams.has('permshare')) {
             incoming.forEach(imp => {
                 const existing = locations.find(l => l.cid === imp.cid);
 
-                // Never overwrite a user's own edited marker
                 if (existing && existing.userEdited) return;
 
                 if (existing) {
-                    // Update existing marker but make it fully owned
+ 
                     Object.assign(existing, imp);
                     existing.userEdited = true;
                     existing.isCommunity = false;
                 } else {
-                    // NEW: Treat shared markers as user-edited from the start
+
                     locations.push({
                         ...imp,
                         id: generateUniqueId(),
                         addedTime: Date.now(),
                         locked: true,
-                        userEdited: true,      // ← This gives immediate edit/lock UI
-                        isCommunity: false,    // ← No "Keep" button needed
+                        userEdited: true,
+                        isCommunity: false,
                         isTemp: false,
                         isPostcard: false
                     });
@@ -3804,10 +3888,9 @@ if (urlParams.has('permshare')) {
             saveLocations();
             forceReload();
 
-            showTempMessage(`Imported ${added} marker${added === 1 ? '' : 's'} from shared link! (Ready to edit)`, 6000);
+            showTempMessage(`SHARED MARKERS IMPORTED: ${added + updated} — READY TO EDIT`, 6000);
             playSound('saving');
 
-            // Undo button (unchanged)
             const undoBtn = document.getElementById('undoImportBtn');
             if (undoBtn && added > 0) {
                 undoBtn.style.display = 'block';
@@ -3816,7 +3899,7 @@ if (urlParams.has('permshare')) {
                     saveLocations();
                     forceReload();
                     undoBtn.style.display = 'none';
-                    showTempMessage('Import undone!', 4000);
+                    showTempMessage('IMPORT UNDONE!', 4000);
                     playSound('undo');
                 };
                 setTimeout(() => undoBtn.style.display = 'none', 60000);
@@ -3824,7 +3907,7 @@ if (urlParams.has('permshare')) {
 
             history.replaceState(null, null, location.pathname);
         } catch (e) {
-            showTempMessage('Corrupted share data', 5000);
+            showTempMessage('SINGLE MARKER IMPORTED — READY TO EDIT', 5000);
             console.error('Permshare import error:', e);
         }
     }
@@ -3832,7 +3915,7 @@ if (urlParams.has('permshare')) {
 
         document.getElementById('backupAllBtn')?.addEventListener('click', () => {
     const fullBackup = {
-        version: "full-v76.6.9",
+        version: "full-v76.7.0",
         timestamp: new Date().toISOString(),
         communityVersion: localStorage.getItem('fo76_map_version') || '1.0',
         locations: locations,
@@ -3855,7 +3938,7 @@ if (urlParams.has('permshare')) {
     a.href = URL.createObjectURL(blob);
     a.download = `FO76_FULL_BACKUP_${new Date().toISOString().slice(0,10)}.json`;
     a.click();
-    showTempMessage('FULL BACKUP downloaded!', 5000);
+    showTempMessage('FULL BACKUP DOWNLOADED!', 6000);
     playSound('saving');
 });
 
@@ -3911,7 +3994,7 @@ if (urlParams.has('permshare')) {
                             const successOverlay = document.createElement('div');
                             successOverlay.style.cssText = `
                                 position:fixed;top:0;left:0;width:100vw;height:100vh;
-                                background:#000;z-index:99999;display:flex;
+                                background:#000;z-index:999999;display:flex;
                                 flex-direction:column;align-items:center;justify-content:center;
                                 font-family:'Courier New',monospace;color:#00ff00;
                                 text-align:center;gap:30px;
@@ -3943,11 +4026,11 @@ if (urlParams.has('permshare')) {
                         }
                     );
                 } else {
-                    showTempMessage('ERROR: Not a valid full backup file', 5000);
+                    showTempMessage('ERROR: NOT A VALID FULL BACKUP FILE!', 5000);
                     playSound('error');
                 }
             } catch (err) {
-                showTempMessage('ERROR: Invalid or corrupted backup file', 5000);
+                showTempMessage('ERROR: INVALID OR CORRUPTED BACKUP FILE!', 5000);
                 playSound('error');
                 console.error(err);
             }
@@ -3961,7 +4044,7 @@ let reportTimer = null;
 window.startReport = function(markerId) {
     const marker = locations.find(l => l.id === markerId);
     if (!marker) {
-        showTempMessage('ERROR: Marker not found!', 5000);
+        showTempMessage('ERROR: MARKER NOT FOUND!', 5000);
         return;
     }
     // Guarantee cid exists
@@ -4080,23 +4163,58 @@ window.keepCommunityMarker = function(markerId) {
     if (!marker || !marker.isCommunity) return;
 
     showConfirmModal(
-        '👍KEEP THIS MARKER💾',
-        'This community marker will become yours forever.<br><br>You will be able to edit, move, or delete it.<br><br>Continue?',
+        '👍Keep This Community Marker?💾',
+        '<strong>This marker will become yours permanently:</strong><br><br>' +
+        '• You gain +100 XP<br>' +
+        '• You can edit, move, or delete it<br>' +
+        '• It will <strong>NOT</strong> receive future community updates<br>' +
+        '• You will no longer be able to report it<br><br>' +
+        'You can always delete it and re-download the updated version later.',
         () => {
             marker.isCommunity = false;
             marker.userEdited = true;
+            marker.wasCommunityKept = true;
             marker.locked = true;
             marker.addedTime = Date.now();
-            marker.wasCommunityKept = true;
 
             saveLocations();
             recalculateXP();
             forceReload();
             showTempMessage(`MARKER KEPT — +100 XP (LEVEL ${level})`, 5000);
             playSound('saving');
-        }
+        },
+        'Yes — Keep It',
+        'Cancel'
     );
 };
+
+function triggerEpicFlash(icon = "CHECKMARK", title = "ACTION COMPLETE", line1 = "", line2 = "") {
+    const flash = document.createElement('div');
+    flash.style.cssText = `
+        position:fixed;top:0;left:0;width:100vw;height:100vh;
+        background:#000;z-index:9999999;display:flex;
+        align-items:center;justify-content:center;flex-direction:column;
+        gap:30px;font-family:'Courier New',monospace;color:#00ff00;
+        pointer-events:none;opacity:0;transition:opacity 0.6s;
+    `;
+    flash.innerHTML = `
+        <div style="font-size:clamp(80px,20vw,200px);text-shadow:0 0 80px #00ff00;animation:pulse 2s infinite;">
+            ${icon}
+        </div>
+        <h1 style="font-size:clamp(36px,10vw,90px);margin:0;text-shadow:0 0 50px #00ff00;letter-spacing:8px;">
+            ${title}
+        </h1>
+        ${line1 ? `<p style="font-size:clamp(20px,6vw,50px);margin:10px 0;">${line1}</p>` : ''}
+        ${line2 ? `<p style="font-size:clamp(16px,5vw,38px);margin:0;opacity:0.9;">${line2}</p>` : ''}
+    `;
+    document.body.appendChild(flash);
+    playSound('saving');
+    setTimeout(() => flash.style.opacity = '1', 100);
+    setTimeout(() => {
+        flash.style.opacity = '0';
+        setTimeout(() => flash.remove(), 1000);
+    }, 3500);
+}
 
 // ——— IN-GAME NAME PERSISTENCE
 const playerNameInput = document.getElementById('playerNameInput');
@@ -4108,7 +4226,7 @@ if (playerNameInput) {
     });
 }
 
-        console.log('%cFallout 76 Item Finder Map v76.6.9 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
+        console.log('%cFallout 76 Item Finder Map v76.7.0 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
 		/* --------------------------------------------------------------------------
        Fallout 76 Item Finder Map - Disclaimer and Terms of Use
        --------------------------------------------------------------------------
