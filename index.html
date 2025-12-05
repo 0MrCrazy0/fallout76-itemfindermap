@@ -3005,13 +3005,19 @@ playSound('saving');
                 localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
                 if (data.customCategories) {
     customCategories = { ...customCategories, ...data.customCategories };
-    categoryIcons = { ...defaultCategoryIcons, ...customCategories }; // ← ADD THIS
+    categoryIcons = { ...defaultCategoryIcons, ...customCategories }; // ← you have this
     localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+    
+    updateCategoryDropdowns();
+    renderCategoryToggles();
+}
+// Restore active categories from backup
+if (data.settings?.activeCategories) {
+    activeCategories = new Set(data.settings.activeCategories);
+    localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
 }
                 recalculateXP();
                 saveLocations();
-				updateCategoryDropdowns();
-                renderCategoryToggles();
                 forceReload();
                 showTempMessage(`IMPORTED ${added + updated} MARKER${added + updated === 1 ? '' : 'S'}`, 8000);
                 triggerEpicFlash("🧬", "IMPORT COMPLETE",
