@@ -3690,6 +3690,23 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-7905efd3-135f-42e8-9bc9-5191ab448c9d",
+      "cid": "holotapes_test_grid_b2_x_719_y_529_submitted_by_mrcrazy_529_719",
+      "category": "holotapes",
+      "desc": "test\nGrid B2 (X: 719, Y: 529)\nSubmitted By MrCrazy",
+      "lat": 528.6723571563032,
+      "lng": 719.1898434271598,
+      "icon": "Holotapes",
+      "addedTime": 1764951318780,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": true,
+      "wasCommunityKept": false
     }
   ]
 }
