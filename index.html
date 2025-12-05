@@ -960,17 +960,24 @@ nukeStyle.textContent = `
 }
 /* AUTO-COMPLETE DROPDOWN */
 #searchSuggestions {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    max-height: 300px;
-    overflow-y: auto;
-    background: #0a2a2a;
-    border: 2px solid #00ff00;
-    z-index: 10000;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    max-height: 300px !important;
+    overflow-y: auto !important;
+    background: #0a2a2a !important;
+    border: 2px solid #00ff00 !important;
+    z-index: 999999 !important;        /* ← THIS IS THE KEY */
     display: none;
-    box-shadow: 0 0 15px #00ff00;
+    box-shadow: 0 0 15px #00ff00 !important;
+    pointer-events: auto !important;
+}
+
+/* Make sure the parent doesn't clip it */
+#searchBar {
+    position: relative !important;     /* ← This makes z-index work */
+    z-index: 10 !important;
 }
 #searchSuggestions div {
     padding: 10px;
@@ -1581,39 +1588,108 @@ map.on('popupclose', () => {
             playSound('click');
         };
         combinedSearch.addEventListener('input', () => {
-            const val = combinedSearch.value.trim();
-            clearBtn.style.display = val ? 'block' : 'none';
-            playSound('type');
-            const gridMatch = val.toUpperCase().match(/^([A-J])\s*([1-9]|10)$/);
-            if (gridMatch) {
-                const gridStr = `${gridMatch[1]}${gridMatch[2]}`;
-                const center = gridToCenter(gridStr);
-                if (center) {
-                    safeFlyTo(center.lat, center.lng, 4);
-                    showGridNotification(gridStr);
-                    const inGrid = locations.filter(l => getGridFromLatLng(l.lat, l.lng) === gridStr);
-                    if (inGrid.length) {
-                        setTimeout(() => {
-                            const m = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()].find(m => inGrid.some(ig => ig.id === m.options.id));
-                            if (m) m.openPopup();
-                        }, 800);
-                    }
-                }
+    const val = combinedSearch.value.trim();
+    clearBtn.style.display = val ? 'block' : 'none';
+    playSound('type');
+
+    // === GRID SEARCH ===
+    const gridMatch = val.toUpperCase().match(/^([A-J])\s*([1-9]|10)$/);
+    if (gridMatch) {
+        const gridStr = `${gridMatch[1]}${gridMatch[2]}`;
+        const center = gridToCenter(gridStr);
+        if (center) {
+            safeFlyTo(center.lat, center.lng, 4);
+            showGridNotification(gridStr);
+            const inGrid = locations.filter(l => getGridFromLatLng(l.lat, l.lng) === gridStr);
+            if (inGrid.length) {
+                setTimeout(() => {
+                    const m = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()].find(m => inGrid.some(ig => ig.id === m.options.id));
+                    if (m) m.openPopup();
+                }, 800);
             }
-            const terms = val.toLowerCase().split(/\s+/).filter(t => t.length > 1);
-            const found = terms.length > 0 && locations.some(l => {
-                const text = (l.desc + ' ' + l.category).toLowerCase();
-                return terms.every(term => text.includes(term));
-            });
-            if (found && val) {
-                showTempMessage('ITEM LOCATED — CHECK CONTENT INVENTORY', 3000);
-                combinedSearch.style.boxShadow = '0 0 8px #0f0';
-                setTimeout(() => combinedSearch.style.boxShadow = '', 1500);
+        }
+    }
+
+    // === TEXT SEARCH + SUGGESTIONS DROPDOWN ===
+    const q = val.toLowerCase();
+    suggestionsBox.innerHTML = '';
+    
+    if (q.length === 0) {
+        suggestionsBox.style.display = 'none';
+    } else {
+        const matches = [];
+        locations.forEach(loc => {
+            const descLower = loc.desc.toLowerCase();
+            const catLower = (loc.category || '').toLowerCase();
+            if (descLower.includes(q) || catLower.includes(q)) {
+                const displayText = loc.desc.length > 50 ? loc.desc.substring(0,47) + '...' : loc.desc;
+                matches.push({
+                    display: displayText,
+                    desc: loc.desc,
+                    lat: loc.lat,
+                    lng: loc.lng,
+                    id: loc.id
+                });
             }
-            refreshTable(val, categoryFilter.value);
-            loadData(combinedSearch.value, categoryFilter.value);
-            playSound('selectcategory');
         });
+
+        // Remove duplicates
+        const seen = new Set();
+        const unique = matches.filter(item => {
+            const key = item.desc + item.lat + item.lng;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        }).slice(0, 12);
+
+        if (unique.length > 0) {
+            unique.forEach(item => {
+                const div = document.createElement('div');
+                div.textContent = item.display;
+                div.style.padding = '12px';
+                div.style.cursor = 'pointer';
+                div.style.borderBottom = '1px solid #00ff33';
+                div.onclick = () => {
+                    combinedSearch.value = '';
+                    suggestionsBox.style.display = 'none';
+                    loadData('', categoryFilter.value);
+                    safeFlyTo(item.lat, item.lng, 4);
+                    map.once('moveend', () => {
+                        setTimeout(() => {
+                            const m = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
+                                .find(m => m.options.id === item.id);
+                            if (m) {
+                                m.openPopup();
+                                playSound('click');
+                            }
+                        }, 200);
+                    });
+                    playSound('click');
+                };
+                suggestionsBox.appendChild(div);
+            });
+            suggestionsBox.style.display = 'block';
+        } else {
+            suggestionsBox.style.display = 'none';
+        }
+    }
+
+    // === ITEM LOCATED MESSAGE ===
+    const terms = q.split(/\s+/).filter(t => t.length > 1);
+    const found = terms.length > 0 && locations.some(l => {
+        const text = (l.desc + ' ' + l.category).toLowerCase();
+        return terms.every(term => text.includes(term));
+    });
+    if (found && val) {
+        showTempMessage('ITEM LOCATED — CHECK CONTENT INVENTORY', 3000);
+        combinedSearch.style.boxShadow = '0 0 8px #0f0';
+        setTimeout(() => combinedSearch.style.boxShadow = '', 1500);
+    }
+
+    refreshTable(val, categoryFilter.value);
+    loadData(combinedSearch.value, categoryFilter.value);
+    playSound('selectcategory');
+});
         categoryFilter.onchange = () => {
             loadData(combinedSearch.value, categoryFilter.value);
             playSound('selectcategory');
@@ -3542,48 +3618,66 @@ function syncToggleButtonStates() {
             };
         });
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition && voiceSearchBtn) {
-            const recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = 'en-US';
-            voiceSearchBtn.onclick = () => {
-                if (voiceSearchBtn.textContent === 'LISTENING...') {
-                    recognition.stop();
-                    voiceSearchBtn.textContent = 'Voice Search';
-                    return;
-                }
-                if (combinedSearch) combinedSearch.value = '';
-                combinedSearch.focus();
-                recognition.start();
-                voiceSearchBtn.textContent = 'LISTENING...';
-                playSound('click');
-            };
-            recognition.onresult = e => {
-                const transcript = e.results[0][0].transcript.trim();
-                if (combinedSearch) combinedSearch.value = transcript;
-                document.getElementById('combinedSearch').dispatchEvent(new Event('input'));
-                voiceSearchBtn.textContent = 'Voice Search';
-                showTempMessage(`Heard: "${transcript}"`, 4000);
-                playSound('selectcategory');
-            };
-            recognition.onerror = () => {
-                voiceSearchBtn.textContent = 'Voice Search';
-                showTempMessage('VOICE RECOGNITION FAILED — TRY TYPING', 3000);
-                playSound('error');
-            };
-            recognition.onend = () => {
-                voiceSearchBtn.textContent = 'Voice Search';
-            };
-        } else if (voiceSearchBtn) {
-            voiceSearchBtn.textContent = 'Voice Search (Chrome/Edge only)';
-            voiceSearchBtn.title = 'Voice Search requires Chrome or Edge';
-            voiceSearchBtn.disabled = true;
-            voiceSearchBtn.onclick = () => {
-                showTempMessage('VOICE SEARCH ONLY WORKS IN CHROME OR EDGE.', 4000);
-                playSound('error');
-            };
+if (SpeechRecognition && voiceSearchBtn) {
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    voiceSearchBtn.onclick = () => {
+        if (voiceSearchBtn.textContent === 'LISTENING...') {
+            recognition.stop();
+            voiceSearchBtn.textContent = 'Voice Search';
+            return;
         }
+        if (combinedSearch) combinedSearch.value = '';
+        combinedSearch.focus();
+        recognition.start();
+        voiceSearchBtn.textContent = 'LISTENING...';
+        playSound('click');
+    };
+
+    recognition.onresult = e => {
+    let transcript = e.results[0][0].transcript.trim();
+    
+    // Remove Chrome's auto-period and extra spaces
+    transcript = transcript.replace(/[.\s]+$/, '').trim();
+
+    if (combinedSearch) {
+        combinedSearch.value = transcript;
+        
+        // THE REAL FIX — force the suggestions to re-run after value is set
+        combinedSearch.dispatchEvent(new Event('input', { bubbles: true }));
+        
+        // Force suggestions to update immediately
+        setTimeout(() => {
+            combinedSearch.dispatchEvent(new Event('input', { bubbles: true }));
+        }, 150);
+    }
+
+    voiceSearchBtn.textContent = 'Voice Search';
+    showTempMessage(`Heard: "${transcript}"`, 4000);
+    playSound('selectcategory');
+};
+
+    recognition.onerror = () => {
+        voiceSearchBtn.textContent = 'Voice Search';
+        showTempMessage('VOICE RECOGNITION FAILED — TRY TYPING', 3000);
+        playSound('error');
+    };
+
+    recognition.onend = () => {
+        voiceSearchBtn.textContent = 'Voice Search';
+    };
+} else if (voiceSearchBtn) {
+    voiceSearchBtn.textContent = 'Voice Search (Chrome/Edge only)';
+    voiceSearchBtn.title = 'Voice Search requires Chrome or Edge';
+    voiceSearchBtn.disabled = true;
+    voiceSearchBtn.onclick = () => {
+        showTempMessage('VOICE SEARCH ONLY WORKS IN CHROME OR EDGE.', 4000);
+        playSound('error');
+    };
+}
         resetAppBtn.style.color = '#000';
         function addTypeSound(input) {
             input.addEventListener('input', () => playSound('type'));
