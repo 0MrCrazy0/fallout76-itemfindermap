@@ -3690,6 +3690,23 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-7f83cc88-d4f4-43d1-9784-fe602e521629",
+      "cid": "test_grid_b2_x_536_y_528_submitted_by_mrcrazy_528_536",
+      "category": "test",
+      "desc": "Grid B2 (X: 536, Y: 528)\nSubmitted By MrCrazy",
+      "lat": 528.3643039881352,
+      "lng": 535.597152562602,
+      "icon": "Custom",
+      "addedTime": 1764951442384,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": true,
+      "wasCommunityKept": false
     }
   ]
 }
