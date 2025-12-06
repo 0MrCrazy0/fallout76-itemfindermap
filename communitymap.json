@@ -3690,6 +3690,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-8b20f565-eda4-4918-8ede-69a769a19f32",
+      "cid": "misc_are_syntax_error_in_00_list_in_102_grid_a5_x_402_y_1750_submitted_by_caliber_280_1750_402",
+      "category": "misc",
+      "desc": "are syntax error in 00\nlist in 102\nGrid A5 (X: 402, Y: 1750)\nSubmitted By Caliber 280",
+      "lat": 1750.333251953125,
+      "lng": 402.0784648187632,
+      "icon": "Notepad",
+      "addedTime": 1764979902791,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
