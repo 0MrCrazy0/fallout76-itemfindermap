@@ -1651,6 +1651,7 @@ map.on('popupclose', () => {
                 div.style.borderBottom = '1px solid #00ff33';
                 div.onclick = () => {
                     combinedSearch.value = '';
+					clearBtn.style.display = 'none';
                     suggestionsBox.style.display = 'none';
                     loadData('', categoryFilter.value);
                     safeFlyTo(item.lat, item.lng, 4);
@@ -3686,6 +3687,7 @@ if (SpeechRecognition && voiceSearchBtn) {
 
     if (combinedSearch) {
         combinedSearch.value = transcript;
+		clearBtn.style.display = 'block';
         
         // THE REAL FIX — force the suggestions to re-run after value is set
         combinedSearch.dispatchEvent(new Event('input', { bubbles: true }));
