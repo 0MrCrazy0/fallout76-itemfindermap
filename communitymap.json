@@ -3690,6 +3690,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-7b3e8fdf-3e11-4ee1-a89d-1fb10b298941",
+      "cid": "misc_grid_b1_x_677_y_381_submitted_by_anonymous_wastelander_381_677",
+      "category": "misc",
+      "desc": "Grid B1 (X: 677, Y: 381)\nSubmitted By Anonymous Wastelander",
+      "lat": 381.15853557212495,
+      "lng": 676.7329897606683,
+      "icon": "Notepad",
+      "addedTime": 1765029179207,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
