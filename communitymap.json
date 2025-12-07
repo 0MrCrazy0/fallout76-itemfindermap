@@ -3726,6 +3726,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-38107132-0626-433e-9641-35dedf657ff9",
+      "cid": "named locations_the_rust_kingdom_headquarters_for_the_rust_kings_army_grid_a5_x_396_y_1996_submitted_by_mrcrazy_1996_396",
+      "category": "named locations",
+      "desc": "the rust kingdom. headquarters for the rust king's army.\nGrid A5 (X: 396, Y: 1996)\nSubmitted By MrCrazy",
+      "lat": 1995.8727692754314,
+      "lng": 396.0611355121416,
+      "icon": "🚩",
+      "addedTime": 1765092329774,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
