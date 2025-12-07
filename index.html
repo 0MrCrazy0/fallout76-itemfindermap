@@ -1068,19 +1068,20 @@ nukeStyle.textContent = `
     <!-- DEV NOTE: TOOLS PANEL — HIDDEN BY DEFAULT -->
     <div id="buttonGroup" class="hidden">
         <button id="voiceSearchBtn">Voice Search</button>
+		<button id="lockAllBtn">Lock All</button>
         <button id="toggleClusterBtn">Clustering: On</button>
         <button id="toggleMapBtn">Show No-Name Map</button>
         <button id="toggleGridBtn">Grid: Off</button>
+		<button id="toggleSoundsBtn">Sounds: On</button>
+		<button id="toggleDarkModeBtn">Dark Mode: Off</button>
+		<button id="toggleMyMarkersBtn">My Markers: All</button>
         <button id="howToUseBtn">How to Use</button>
         <button id="nukeCodesBtn">Nuke Codes</button>
-        <button id="toggleSoundsBtn">Sounds: On</button>
         <button id="exportJsonBtn">Export Markers</button>
         <button id="importBtn">Import Markers</button>
         <button id="downloadCommunityBtn">Update Community Map</button>
-        <button id="undoImportBtn" style="display:none;">UNDO LAST IMPORT</button>
+		<button id="undoImportBtn" style="display:none; background:#cc8400 !important; color:#000 !important;">UNDO LAST IMPORT <span id="undoTimer"></span></button>
         <button id="saveMapJpegBtn">Save Map as JPEG</button>
-        <button id="toggleDarkModeBtn">Dark Mode: Off</button>
-        <button id="lockAllBtn">Lock All</button>
     </div>
     <!-- DEV NOTE: XP PROGRESS BAR -->
     <div id="xpStatus" style="text-align:center; margin:10px; color:#0f0; font-weight:bold;">
@@ -1524,6 +1525,46 @@ map.on('popupclose', () => {
     });
     currentPopupMarkerId = null;
 });
+
+// ——— UNDO IMPORT BUTTON WITH 2-MINUTE COUNTDOWN ———
+let undoTimerInterval = null;
+let undoSecondsLeft = 0;
+
+function showUndoButton() {
+    const btn = document.getElementById('undoImportBtn');
+    const timer = document.getElementById('undoTimer');
+    if (!btn || !timer) return;
+
+    btn.style.display = 'block';
+    undoSecondsLeft = 120;  // 2 minutes
+
+    timer.textContent = `(${undoSecondsLeft}s)`;
+
+    // Clear any old timer
+    if (undoTimerInterval) clearInterval(undoTimerInterval);
+
+    undoTimerInterval = setInterval(() => {
+        undoSecondsLeft--;
+        timer.textContent = `(${undoSecondsLeft}s)`;
+
+        if (undoSecondsLeft <= 0) {
+            clearInterval(undoTimerInterval);
+            btn.style.display = 'none';
+        }
+    }, 1000);
+}
+
+// ——— TOGGLE ONLY MY MARKERS (DEFAULT: OFF) ———
+let showOnlyMyMarkers = false;  // Off by default — shows all markers
+
+document.getElementById('toggleMyMarkersBtn').onclick = () => {
+    showOnlyMyMarkers = !showOnlyMyMarkers;
+    document.getElementById('toggleMyMarkersBtn').textContent = 
+        showOnlyMyMarkers ? 'My Markers: ON' : 'My Markers: All';
+    
+    loadData(combinedSearch.value, categoryFilter.value);  // Refresh map
+    playSound('click');
+};
         const itemModal = document.getElementById('itemModal');
         const deleteBtn = document.getElementById('deleteItemBtn');
         const undoBtn = document.getElementById('undoItemBtn');
@@ -2402,6 +2443,9 @@ map.on('popupclose', () => {
     const tbody = document.querySelector('#locationsTable tbody');
     tbody.innerHTML = '';
     let list = locations.filter(l => activeCategories.has(l.category) && (!cat || l.category === cat));
+    if (showOnlyMyMarkers) {
+        list = list.filter(l => l.userEdited || l.wasCommunityKept);  // ← FILTER HERE
+    }
     if (search) {
         const normalizedSearch = normalizeString(search);
         list = list.filter(l => {
@@ -2677,25 +2721,20 @@ if (submitBtn) {
     clusteredMarkers.clearLayers();
     nonClusteredMarkers.clearLayers();
     const currentLocations = [...locations];
-
-    const filtered = currentLocations.filter(loc => {
+    let filtered = currentLocations.filter(loc => {
         if (!activeCategories.has(loc.category)) return false;
         if (catFilter && loc.category !== catFilter) return false;
+        if (showOnlyMyMarkers && loc.isCommunity && !loc.wasCommunityKept && !loc.userEdited) return false;  // ← FILTER HERE
         if (!search) return true;
-
         const normalizedSearch = normalizeString(search);
         const normalizedDesc = normalizeString(loc.desc);
         const normalizedCat = loc.category ? normalizeString(loc.category) : '';
-
-        return normalizedDesc.includes(normalizedSearch) || 
+        return normalizedDesc.includes(normalizedSearch) ||
                normalizedSearch.includes(normalizedDesc) ||
                normalizedCat.includes(normalizedSearch);
     });
-
     filtered.forEach(addMarkerToMap);
-
     refreshTable(search, catFilter);
-
     updateXPBar();
     drawGrid();
     saveAppState();
@@ -3027,22 +3066,22 @@ if (data.settings?.activeCategories) {
                 );
                 playSound('saving');
                 // Undo button
-                setTimeout(() => {
-                    const undoBtn = document.getElementById('undoImportBtn');
-                    if (undoBtn && (added + updated > 0)) {
-                        undoBtn.style.display = 'block';
-                        undoBtn.onclick = () => {
-                            locations = JSON.parse(beforeState);
-                            recalculateXP();
-                            saveLocations();
-                            forceReload();
-                            undoBtn.style.display = 'none';
-                            showTempMessage('IMPORT UNDONE', 4000);
-                            playSound('undo');
-                        };
-                        setTimeout(() => undoBtn.style.display = 'none', 60000);
-                    }
-                }, 100);
+                // Undo button (only if markers were added/updated)
+setTimeout(() => {
+    const undoBtn = document.getElementById('undoImportBtn');
+    if (undoBtn && (added + updated > 0)) {
+        undoBtn.onclick = () => {
+            locations = JSON.parse(beforeState);
+            recalculateXP();
+            saveLocations();
+            forceReload();
+            undoBtn.style.display = 'none';
+            showTempMessage('IMPORT UNDONE', 4000);
+            playSound('undo');
+        };
+        showUndoButton();  // ← Integrate timer here
+    }
+}, 100);
                 showConfirmModal(
                     '💾IMPORT COMPLETED💾',
                     `<div style="text-align:left;line-height:1.9;font-size:1.1em;">
@@ -3437,6 +3476,15 @@ document.getElementById('shareOneBtn').onclick = () => {
         };
         undoBtn.onclick = () => {
     if (!lastDeleted) return;
+    
+    // ← NEW: If the deleted marker already exists (re-imported), don't restore it
+    if (locations.some(loc => loc.cid === lastDeleted.cid)) {
+        showTempMessage('MARKER ALREADY RESTORED FROM COMMUNITY', 4000);
+        lastDeleted = null;
+        undoBtn.style.display = 'none';
+        return;
+    }
+
     locations.push(lastDeleted);
     recalculateXP();
     saveLocations();
@@ -4037,19 +4085,22 @@ if (urlParams.has('permshare')) {
             showTempMessage(`SHARED MARKERS IMPORTED: ${added} — READY TO EDIT`, 6000);
             playSound('saving');
             // Undo button
-            const undoBtn = document.getElementById('undoImportBtn');
-            if (undoBtn && added > 0) {
-                undoBtn.style.display = 'block';
-                undoBtn.onclick = () => {
-                    locations = JSON.parse(undoState);
-                    saveLocations();
-                    forceReload();
-                    undoBtn.style.display = 'none';
-                    showTempMessage('IMPORT UNDONE!', 4000);
-                    playSound('undo');
-                };
-                setTimeout(() => undoBtn.style.display = 'none', 60000);
-            }
+            // Undo button (only if markers were added/updated)
+setTimeout(() => {
+    const undoBtn = document.getElementById('undoImportBtn');
+    if (undoBtn && (added + updated > 0)) {
+        undoBtn.onclick = () => {
+            locations = JSON.parse(beforeState);
+            recalculateXP();
+            saveLocations();
+            forceReload();
+            undoBtn.style.display = 'none';
+            showTempMessage('IMPORT UNDONE', 4000);
+            playSound('undo');
+        };
+        showUndoButton();  // ← Integrate timer here
+    }
+}, 100);
             history.replaceState(null, null, location.pathname);
         } catch (e) {
             showTempMessage('SINGLE MARKER IMPORTED — READY TO EDIT', 5000);
