@@ -3762,6 +3762,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-e019be50-241a-427b-a833-e407edcb2d06",
+      "cid": "treasure maps_the_mire_treasure_map_4_dig_site_to_to_find_this_treasure_you_have_to_go_to_the_bridge_near_crevasse_dam_west_of_the_bridge_down_the_riverbank_you_will_find_the_mound_with_the_treasure_grid_i7_x_3283_y_2599_submitted_by_mrcrazy_2599_3283",
+      "category": "treasure maps",
+      "desc": "the mire treasure map #4 dig site To to find this treasure, you have to go to the bridge near crevasse dam. West of the bridge, down the riverbank, you will find the mound with the treasure.\nGrid I7 (X: 3283, Y: 2599)\nSubmitted By MrCrazy",
+      "lat": 2598.8530978516833,
+      "lng": 3282.9162277026635,
+      "icon": "🗺️",
+      "addedTime": 1765099800369,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
