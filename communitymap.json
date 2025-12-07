@@ -3690,6 +3690,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-f26c3a94-ff99-4f38-a3da-8d65f519c244",
+      "cid": "train stations_train_station_yup_a_train_station_grid_a7_x_242_y_2604_submitted_by_mrcrazy_2604_242",
+      "category": "train stations",
+      "desc": "train station yup a train station.\nGrid A7 (X: 242, Y: 2604)\nSubmitted By MrCrazy",
+      "lat": 2604.0140390454617,
+      "lng": 241.50880746415294,
+      "icon": "🚂",
+      "addedTime": 1765089284278,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
