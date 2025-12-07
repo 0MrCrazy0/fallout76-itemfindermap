@@ -3692,6 +3692,23 @@
       "isCommunity": true
     },
     {
+  "id": "id-2aaa1658-ef84-4fa4-bfc4-e0414d8847ce",
+  "cid": "fishing locations_test_grid_b2_x_540_y_540_submitted_by_mrcrazy_540_540",
+  "category": "fishing locations",
+  "desc": "test\nGrid B2 (X: 540, Y: 540)\nSubmitted By MrCrazy",
+  "lat": 539.808350782416,
+  "lng": 539.8131711814734,
+  "icon": "🎣",
+  "addedTime": 1765078182249,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+},
       "id": "id-03196d0f-9b08-4f87-ba2c-e3bfa9535ab1",
       "cid": "cool test_test_grid_b2_x_544_y_570_submitted_by_mrcrazy_570_544",
       "category": "cool test",
