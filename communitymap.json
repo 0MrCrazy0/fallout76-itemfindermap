@@ -3870,6 +3870,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-a02c42a2-9f12-4a01-9fdc-4f052a7a8a6a",
+      "cid": "armor_grid_a8_x_354_y_3262_submitted_by_mrcrazy_3262_354",
+      "category": "armor",
+      "desc": "Grid A8 (X: 354, Y: 3262)\nSubmitted By MrCrazy",
+      "lat": 3261.829594776446,
+      "lng": 354.1259514401228,
+      "icon": "🛡️",
+      "addedTime": 1765123719376,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
