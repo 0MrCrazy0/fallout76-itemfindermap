@@ -3870,6 +3870,23 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-082a837d-341e-4a6d-8a81-986ec3d1e974",
+      "category": "fishing locations",
+      "desc": "good fishing spot.\nGrid B8 (X: 430, Y: 3271)\nSubmitted By MrCrazy",
+      "lat": 3271.035181803751,
+      "lng": 430.0754749116306,
+      "icon": "🎣",
+      "addedTime": 1765124188689,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
