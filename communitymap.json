@@ -3870,6 +3870,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-dbe00800-8b65-4d29-a043-888415404366",
+      "cid": "misc_grid_a9_x_329_y_3282_3282_329",
+      "category": "misc",
+      "desc": "Grid A9 (X: 329, Y: 3282)\nSubmitted By MrCrazy",
+      "lat": 3282.1933089046174,
+      "lng": 328.7044813235899,
+      "icon": "📝",
+      "addedTime": 1765128520929,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
