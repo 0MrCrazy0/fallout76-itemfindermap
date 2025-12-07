@@ -1342,58 +1342,6 @@ communityVersion = getCurrentCommunityVersion();
         };
 
         let categoryIcons = { ...defaultCategoryIcons, ...customCategories };
-		// ——— FINAL ICON FIX — REAL EMOJIS — 100% WORKING ———
-const safeTextToEmoji = {
-    'Notepad': '📝',
-    'Weapon': '🔫',
-    'Armor': '🛡️',
-    'Aid': '💉',
-    'FoodDrink': '🍽️',
-    'Ammo': '💥',
-    'Apparel': '👕',
-    'Plans': '📜',
-    'Junk': '🗑️',
-    'Holotapes': '📀',
-    'Plant': '🌿',
-    'Egg': '🥚',
-    'Creature': '🐺',
-    'Vendor': '💰',
-    'Exchange': '⚖️',
-    'Vault': '⚙️',
-    'PowerArmor': '👨‍🚀',
-    'FusionCore': '🔋',
-    'NukeZone': '☢️',
-    'NukeSilo': '🚀',
-    'Magazine': '📚',
-    'Bobblehead': '🎎',
-    'Safe': '🗄️',
-    'Terminal': '🖥️',
-    'TreasureMap': '🗺️',
-    'Resource': '⛏️',
-    'Fishing': '🎣',
-    'Workshop': '🔧',
-    'TrainStation': '🚂',
-    'Town': '🏫',
-    'Event': '🎉',
-    'NamedLocation': '🚩',
-    'Region': '📍'
-};
-
-function fixIcons() {
-    locations.forEach(loc => {
-        if (safeTextToEmoji[loc.icon]) {
-            loc.icon = safeTextToEmoji[loc.icon];
-        }
-    });
-}
-
-const oldLoadData = loadData;
-loadData = function(...args) {
-    oldLoadData.apply(this, args);
-    fixIcons();
-};
-
-fixIcons(); // run once now
         const defaultCategoryColors = {
             'weapons': '#ff4444', 'armor': '#4682b4', 'aid': '#32cd32', 'food/drink': '#adff2f',
             'ammunition': '#ff8c00', 'apparel': '#dda0dd', 'plans': '#a0522d', 'junk': '#808080',
@@ -4439,7 +4387,7 @@ console.log('%cWelcome, Vault Dweller!\n' +
     'color:#00ff88; font-family:monospace; font-size:13px; line-height:1.7; background:#000; padding:6px 0;');
 
 console.log('%cCopyright © 2025 MrCrazy — All rights reserved\n' +
-            'Last updated: December 2025',
+            'Last updated: 7 December 2025',
     'color:#aaaaaa; font-family:monospace; font-size:12px; background:#000; padding:4px 0;');
     })();
 });
