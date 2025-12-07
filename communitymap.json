@@ -3870,6 +3870,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-4f9de4bf-a31a-4248-b7ac-34fb459cae79",
+      "cid": "creatures_grid_b8_x_453_y_3198_3198_453",
+      "category": "creatures",
+      "desc": "Grid A9 (X: 333, Y: 3310)\nSubmitted By MrCrazy",
+      "lat": 3310.1095336236895,
+      "lng": 332.75,
+      "icon": "🐺",
+      "addedTime": 1765126066525,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
