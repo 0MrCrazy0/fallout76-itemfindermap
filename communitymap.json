@@ -3762,6 +3762,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-4a56e490-fde8-4ac5-8eb8-839ade3463ed",
+      "cid": "treasure maps_the_mire_treasure_map_2_dig_site_you_have_to_go_to_a_railroad_tracks_and_there_are_not_many_in_the_area_marked_on_the_map_you_can_see_where_you_have_to_go_to_retrieve_the_treasure_it_is_located_to_the_right_of_the_tunnel_entrance_and_the_overturned_train_on_the_stone_wall_grid_h5_x_3057_y_1860_submitted_by_mrcrazy_1860_3057",
+      "category": "treasure maps",
+      "desc": "the mire treasure map #2 dig site you have to go to a railroad tracks – and there are not many in the area. marked on the map you can see where you have to go to retrieve the treasure – it is located to the right of the tunnel entrance and the overturned train on the stone wall.\nGrid H5 (X: 3057, Y: 1860)\nSubmitted By MrCrazy",
+      "lat": 1860.4224481637068,
+      "lng": 3057.164480508605,
+      "icon": "🗺️",
+      "addedTime": 1765098199036,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
