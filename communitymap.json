@@ -3762,6 +3762,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-d38e229c-6813-4638-acfa-9d9803ce2dcd",
+      "cid": "treasure maps_the_mire_treasure_map_3_dig_site_this_treasure_can_be_found_very_close_to_the_point_where_route_65_crosses_the_river_good_starting_points_are_eg_harpers_ferry_or_the_thunder_mountain_substation_tm01_take_the_road_to_the_northeast_look_for_a_spot_on_the_road_where_there_are_two_large_holes_in_quick_succession_and_a_yellow_truck_is_left_this_scene_is_also_drawn_on_the_treasure_map_at_the_right_roadside_you_will_find_the_mound_with_the_treasure_grid_h6_x_3180_y_2172_submitted_by_mrcrazy_2172_3180",
+      "category": "treasure maps",
+      "desc": "the mire treasure map #3 dig site this treasure can be found very close to the point where route 65 crosses the river. good starting points are e.g. harpers ferry or the thunder mountain substation tm-01.\n\ntake the road to the northeast. look for a spot on the road where there are two large holes in quick succession and a yellow truck is left (this scene is also drawn on the treasure map). At the right roadside, you will find the mound with the treasure.\nGrid H6 (X: 3180, Y: 2172)\nSubmitted By MrCrazy",
+      "lat": 2172.1049358138957,
+      "lng": 3179.5378509154684,
+      "icon": "🗺️",
+      "addedTime": 1765098500904,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
