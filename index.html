@@ -3248,7 +3248,7 @@ document.getElementById('shareOneBtn').onclick = () => {
                 playSound('click');
             }, 100);
         };
-        toggleMapBtn.onclick = () => {
+                toggleMapBtn.onclick = () => {
             currentMap = currentMap === 'named' ? 'noName' : 'named';
             localStorage.setItem('currentMap', currentMap);
             toggleMapBtn.textContent = currentMap === 'named' ? 'Show No-Name Map' : 'Show Named Map';
@@ -3256,6 +3256,13 @@ document.getElementById('shareOneBtn').onclick = () => {
             imageOverlay = L.imageOverlay(mapUrls[currentMap], imageBounds).addTo(map);
             playSound('saving');
         };
+        function initMapToggleButton() {
+            if (toggleMapBtn) {
+                toggleMapBtn.textContent = currentMap === 'named' ? 'Show No-Name Map' : 'Show Named Map';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', initMapToggleButton);
+        initMapToggleButton();
         toggleGridBtn.onclick = () => {
             gridEnabled = !gridEnabled;
             localStorage.setItem('gridEnabled', gridEnabled);
@@ -4364,18 +4371,24 @@ if (playerNameInput) {
     });
 }
 
-        console.log('%cFallout 76 Item Finder Map v76.7.6 — \nMade with ❤️ by MrCrazy','color:#00ff00;font-size:14px;font-weight:bold');
-		/* --------------------------------------------------------------------------
-       Fallout 76 Item Finder Map - Disclaimer and Terms of Use
-       --------------------------------------------------------------------------
-       Copyright (c) 2025 MrCrazy. All rights reserved.
-       This application, including all code, design, content, and the map images is the intellectual property of MrCrazy.
-       Unauthorized use, copying, modification, distribution, or monetization of this application or any part thereof is strictly prohibited without explicit written permission from the author.
-       This app is provided "as is" for personal, non-commercial use by Fallout 76 players to track in-game items.
-       The author is not responsible for any damages or losses resulting from the use of this application. Use at your own risk.
-       For inquiries or permission requests, call someone who cares.
-       Last updated: December 6, 2025
-       -------------------------------------------------------------------------- */
+        console.log('%c╔══════════════════════════════════════════════════════════════╗\n' +
+            '║           FALLOUT 76 ITEM FINDER MAP v76.7.6                ║\n' +
+            '║                     Made with ❤️ by MrCrazy                 ║\n' +
+            '╚══════════════════════════════════════════════════════════════╝',
+    'color:#00ff00; font-family:monospace; font-size:14px; font-weight:bold; background:#000; padding:4px 0;');
+
+console.log('%cWelcome, Vault Dweller!\n' +
+            '──────────────────────────────────────────────────────────────\n' +
+            '• Personal, non-commercial use only\n' +
+            '• No copying, selling, or redistribution without permission\n' +
+            '• Community-sourced markers — use at your own risk\n' +
+            '• Always click "Update Community Map" for the latest data\n' +
+            '• Have fun exploring Appalachia — and share the love! ❤️',
+    'color:#00ff88; font-family:monospace; font-size:13px; line-height:1.7; background:#000; padding:6px 0;');
+
+console.log('%cCopyright © 2025 MrCrazy — All rights reserved\n' +
+            'Last updated: December 2025',
+    'color:#aaaaaa; font-family:monospace; font-size:12px; background:#000; padding:4px 0;');
     })();
 });
 </script>
