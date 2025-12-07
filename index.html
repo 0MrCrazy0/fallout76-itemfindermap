@@ -3437,6 +3437,7 @@ document.getElementById('shareOneBtn').onclick = () => {
         loc.addedTime = Date.now();
         loc.userEdited = true;
         loc.locked = true;
+		loc.cid = loc.cid || generateCid(loc);
     } else {
         const newLoc = createNewLocation(lat, lng, cat, desc);
         newLoc.locked = true;
