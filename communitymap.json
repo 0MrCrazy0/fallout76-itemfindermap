@@ -3888,6 +3888,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-3a09f44a-d13d-456d-ad12-2c1a036d2845",
+      "cid": "safe locations_test_grid_c2_x_985_y_628_628_985",
+      "category": "safe locations",
+      "desc": "test\nGrid C2 (X: 985, Y: 628)\nSubmitted By Anonymous Wastelander",
+      "lat": 628.341286770426,
+      "lng": 984.8816874589138,
+      "icon": "🗄️",
+      "addedTime": 1765133992848,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
