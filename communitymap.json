@@ -3690,6 +3690,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-4c6149c8-7448-4625-804a-a8e44a66a6e3",
+      "cid": "fishing locations_test_grid_b2_x_511_y_567_submitted_by_mrcrazy_567_511",
+      "category": "fishing locations",
+      "desc": "test\nGrid B2 (X: 511, Y: 567)\nSubmitted By MrCrazy",
+      "lat": 567.3645924201662,
+      "lng": 511.2899977029659,
+      "icon": "Fishing",
+      "addedTime": 1765073663775,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
