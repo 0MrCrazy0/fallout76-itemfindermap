@@ -1342,6 +1342,58 @@ communityVersion = getCurrentCommunityVersion();
         };
 
         let categoryIcons = { ...defaultCategoryIcons, ...customCategories };
+		// ——— FINAL ICON FIX — REAL EMOJIS — 100% WORKING ———
+const safeTextToEmoji = {
+    'Notepad': '📝',
+    'Weapon': '🔫',
+    'Armor': '🛡️',
+    'Aid': '💉',
+    'FoodDrink': '🍽️',
+    'Ammo': '💥',
+    'Apparel': '👕',
+    'Plans': '📜',
+    'Junk': '🗑️',
+    'Holotapes': '📀',
+    'Plant': '🌿',
+    'Egg': '🥚',
+    'Creature': '🐺',
+    'Vendor': '💰',
+    'Exchange': '⚖️',
+    'Vault': '⚙️',
+    'PowerArmor': '👨‍🚀',
+    'FusionCore': '🔋',
+    'NukeZone': '☢️',
+    'NukeSilo': '🚀',
+    'Magazine': '📚',
+    'Bobblehead': '🎎',
+    'Safe': '🗄️',
+    'Terminal': '🖥️',
+    'TreasureMap': '🗺️',
+    'Resource': '⛏️',
+    'Fishing': '🎣',
+    'Workshop': '🔧',
+    'TrainStation': '🚂',
+    'Town': '🏫',
+    'Event': '🎉',
+    'NamedLocation': '🚩',
+    'Region': '📍'
+};
+
+function fixIcons() {
+    locations.forEach(loc => {
+        if (safeTextToEmoji[loc.icon]) {
+            loc.icon = safeTextToEmoji[loc.icon];
+        }
+    });
+}
+
+const oldLoadData = loadData;
+loadData = function(...args) {
+    oldLoadData.apply(this, args);
+    fixIcons();
+};
+
+fixIcons(); // run once now
         const defaultCategoryColors = {
             'weapons': '#ff4444', 'armor': '#4682b4', 'aid': '#32cd32', 'food/drink': '#adff2f',
             'ammunition': '#ff8c00', 'apparel': '#dda0dd', 'plans': '#a0522d', 'junk': '#808080',
