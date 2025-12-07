@@ -3690,6 +3690,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-03196d0f-9b08-4f87-ba2c-e3bfa9535ab1",
+      "cid": "cool test_test_grid_b2_x_544_y_570_submitted_by_mrcrazy_570_544",
+      "category": "cool test",
+      "desc": "test\nGrid B2 (X: 544, Y: 570)\nSubmitted By MrCrazy",
+      "lat": 569.806027220569,
+      "lng": 543.8128734330886,
+      "icon": "😎",
+      "addedTime": 1765078197677,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
