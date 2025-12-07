@@ -3762,6 +3762,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-08595980-9292-4049-99ec-9f17450f1a31",
+      "cid": "treasure maps_the_mire_treasure_map_5_dig_site_to_find_this_treasure_prepared_for_some_searching_because_the_mound_is_not_really_easy_to_spot_because_it_adapts_to_the_grassy_environment_grid_i7_x_3332_y_2782_submitted_by_mrcrazy_2782_3332",
+      "category": "treasure maps",
+      "desc": "the mire treasure map #5 dig site To find this treasure, prepared for some searching, because the mound is not really easy to spot because it adapts to the grassy environment.\nGrid I7 (X: 3332, Y: 2782)\nSubmitted By MrCrazy",
+      "lat": 2781.786478967577,
+      "lng": 3331.806199280821,
+      "icon": "🗺️",
+      "addedTime": 1765099370249,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
