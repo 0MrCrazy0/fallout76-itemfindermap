@@ -3690,6 +3690,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-afc30c53-d9bd-4842-b42d-c34a65d4d694",
+      "cid": "vendors_vendors_buy_or_sell_grid_a7_x_256_y_2599_submitted_by_mrcrazy_2599_256",
+      "category": "vendors",
+      "desc": "vendors buy or sell.\nGrid A7 (X: 256, Y: 2599)\nSubmitted By MrCrazy",
+      "lat": 2599.140964282421,
+      "lng": 256.38740571521265,
+      "icon": "💰",
+      "addedTime": 1765089254907,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
