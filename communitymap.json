@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": "1.5",
+  "communityVersion": "1.6",
   "customCategories": {},
   "locations": [
     {
@@ -3746,22 +3746,22 @@
       "isCommunity": true
     },
     {
-  "id": "id-0cc8ec09-e522-4470-9617-5d6f18f8c6d7",
-  "cid": "named locations_highway_town_merchants_clark_chems_mac_general_goods_may_food_splint_weapons_windy_park_gold_bullion_items_grid_b7_x_418_y_2742_submitted_by_mrcrazy_2742_418",
-  "category": "named locations",
-  "desc": "highway town. \nmerchants\nclark - chems\nmac - general goods\nmay - food\nsplint - weapons\nwindy park - gold bullion items.\nGrid B7 (X: 418, Y: 2742)\nSubmitted By MrCrazy",
-  "lat": 2742.3106079567815,
-  "lng": 418.4946675913592,
-  "icon": "🚩",
-  "addedTime": 1765092532360,
-  "locked": true,
-  "isPostcard": false,
-  "isTemp": false,
-  "startTime": null,
-  "keepBtnBound": false,
-  "userEdited": false,
-  "wasCommunityKept": false,
-  "isCommunity": true
-   }
+      "id": "id-0cc8ec09-e522-4470-9617-5d6f18f8c6d7",
+      "cid": "named locations_highway_town_merchants_clark_chems_mac_general_goods_may_food_splint_weapons_windy_park_gold_bullion_items_grid_b7_x_418_y_2742_submitted_by_mrcrazy_2742_418",
+      "category": "named locations",
+      "desc": "highway town. \nmerchants\nclark - chems\nmac - general goods\nmay - food\nsplint - weapons\nwindy park - gold bullion items.\nGrid B7 (X: 418, Y: 2742)\nSubmitted By MrCrazy",
+      "lat": 2742.3106079567815,
+      "lng": 418.4946675913592,
+      "icon": "🚩",
+      "addedTime": 1765092532360,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
+    }
   ]
 }
