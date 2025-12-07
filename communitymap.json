@@ -3762,6 +3762,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-22759923-ce1d-4358-801a-ba71db09c5af",
+      "cid": "treasure maps_the_mire_treasure_map_1_dig_site_this_treasure_can_be_found_in_the_hills_west_of_the_thunder_mountain_power_plant_head_west_from_the_power_plant_to_a_cabin_in_the_hills_from_which_you_can_see_the_reactor_towers_as_drawn_on_the_treasure_map_in_front_of_the_cabin_near_the_toilet_you_will_find_the_mound_with_the_treasure_grid_h7_x_3040_y_2830_submitted_by_mrcrazy_2830_3040",
+      "category": "treasure maps",
+      "desc": "the mire treasure Map #1 dig site this treasure can be found in the hills west of the thunder mountain power plant. head west from the power plant to a cabin in the hills from which you can see the reactor towers as drawn on the treasure map. In front of the cabin (near the toilet) you will find the mound with the treasure.\nGrid H7 (X: 3040, Y: 2830)\nSubmitted By MrCrazy",
+      "lat": 2829.823220814755,
+      "lng": 3040.314925489229,
+      "icon": "🗺️",
+      "addedTime": 1765097877935,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
