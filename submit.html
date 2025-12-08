@@ -82,21 +82,9 @@
 
             const text = await response.text();
 
-            // ← SHOW WORKER'S BEAUTIFUL HTML DIRECTLY (COOLDOWN OR ALREADY SUBMITTED)
-            if (text.includes("wait") || text.includes("already submitted") || text.includes("under review") || text.includes("COOLDOWN") || text.includes("Already Submitted")) {
-                document.body.innerHTML = text;
-            } else if (response.ok || text.includes("PR")) {
-                document.body.innerHTML = `
-                    <h1>THANK YOU</h1>
-                    <p>Your marker has been submitted!</p>
-                    <p>MrCrazy will review and merge it soon.</p>
-                    <strong>Submitted as:</strong> ${icon} ${category}<br>
-                       <strong>By:</strong> ${name}</p>
-                    <br>
-                    <a href="javascript:window.close()">Close Window</a>`;
-            } else {
-                alert('Submit failed: ' + text);
-            }
+            // ← SHOW THE WORKER'S BEAUTIFUL HTML FOR EVERYTHING
+            document.body.innerHTML = text;
+
         } catch (err) {
             alert('Network error: ' + err.message);
         }
