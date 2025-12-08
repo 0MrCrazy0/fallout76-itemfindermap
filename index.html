@@ -3533,7 +3533,7 @@ document.getElementById('submitCommunityBtn').onclick = () => {
     const url = `https://0mrcrazy0.github.io/fallout76-itemfindermap/submit.html?v=${Date.now()}&${params.toString()}`;
     window.open(url, '_blank', 'width=500,height=720,scrollbars=yes');
 
-    showTempMessage('SUBMITTED — AWAITING MERGE', 5000);
+    showTempMessage('SHARE YOUR MARKER — IT WILL BE REVIEWED.', 5000);
 };
         /* DEV NOTE: MAP INTERACTIONS */
     map.on('dragstart', () => { isDraggingAny = true; });
@@ -4329,10 +4329,10 @@ modal.innerHTML = `
             })
         })
     .then(r => r.ok ? r.text() : Promise.reject('Server rejected'))
-    .then(() => showTempMessage('REPORT SENT — THANK YOU', 6000))
+    .then(() => showTempMessage('REPORT SENT — THANK YOU IT WILL BE REVIEWED.', 6000))
     .catch(err => {
         console.error("Report failed:", err);
-        showTempMessage('REPORT SENT OFFLINE — WILL BE REVIEWED', 6000);
+        showTempMessage('REPORT SENT FAILED — GITHUB OFFLINE.', 6000);
     });
 
     closeModal();
