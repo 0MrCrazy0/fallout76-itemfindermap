@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Submit to Community Map</title>
     <style>
-        body{font-family:'Courier New',monospace;background:#0a2a2a;color:#00ff00;padding:20px;text-align:center;margin:0}
-        form{max-width:420px;margin:0 auto;background:#1a3c34;padding:28px;border:3px solid #00ff00;box-sizing:border-box}
+        body{font-family:'Courier New',monospace;background:#0a2a2a;color:#00ff00;padding:20px;text-align:center;margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh}
+        form{max-width:420px;margin:0 auto;background:#1a3c34;padding:28px;border:3px solid #00ff00;box-sizing:border-box;width:100%}
         h1{margin:0 0 16px;font-size:2em;text-shadow:0 0 12px #00ff00}
         p{margin:10px 0 24px;font-size:1.1em}
         label{display:block;text-align:center;font-weight:bold;margin:20px 0 8px;color:#00ff88}
@@ -15,90 +15,92 @@
         button{background:#00ff00;color:#000;font-weight:bold;font-size:18px;cursor:pointer;margin-top:20px;transition:background .3s}
         button:hover{background:#00cc00}
         .pre-filled{background:#0a3a0a;padding:16px;margin:20px 0;text-align:left;border:1px solid #00ff88;font-size:14px;line-height:1.6}
+        a{color:#00ff88;text-decoration:underline;font-weight:bold;font-size:1.4em}
     </style>
 </head>
 <body>
-    <h1>Submit Marker</h1>
-    <p>Share your discovery with the wasteland!<br>MrCrazy will review and merge it soon.</p>
-    <form id="submitForm">
-        <div class="pre-filled">
-            <strong>Pre-filled from your marker:</strong><br>
-            Location: <span id="coords"></span><br>
-            Category: <span id="category"></span><br>
-            Description: <span id="desc"></span>
-        </div>
-        <label>Your In-Game Name (optional)</label>
-        <input type="text" id="playerName" placeholder="e.g., VaultDweller42">
-        <button type="submit">SUBMIT MARKER</button>
-    </form>
+    <div id="content">
+        <h1>Submit Marker</h1>
+        <p>Share your discovery with the wasteland!<br>MrCrazy will review and merge it soon.</p>
+        <form id="submitForm">
+            <div class="pre-filled">
+                <strong>Pre-filled from your marker:</strong><br>
+                Location: <span id="coords"></span><br>
+                Category: <span id="category"></span><br>
+                Description: <span id="desc"></span>
+            </div>
+            <label>Your In-Game Name (optional)</label>
+            <input type="text" id="playerName" placeholder="e.g., VaultDweller42">
+            <button type="submit">SUBMIT MARKER</button>
+        </form>
+    </div>
+
     <script>
-const urlParams = new URLSearchParams(window.location.search);
-const lat = urlParams.get('lat');
-const lng = urlParams.get('lng');
-const category = urlParams.get('category') || 'misc';
-const descRaw = urlParams.get('desc') || 'No description';
-const icon = urlParams.get('icon') || '📝';
-const cid = urlParams.get('cid');
+    const urlParams = new URLSearchParams(window.location.search);
+    const lat = urlParams.get('lat');
+    const lng = urlParams.get('lng');
+    const category = urlParams.get('category') || 'misc';
+    const descRaw = urlParams.get('desc') || 'No description';
+    const icon = urlParams.get('icon') || '📝';
+    const cid = urlParams.get('cid');
 
-const desc = decodeURIComponent(descRaw);
-let prefilledName = '';
-const submittedByMatch = desc.match(/Submitted By\s+(.+)$/i);
-if (submittedByMatch) prefilledName = submittedByMatch[1].trim();
+    const desc = decodeURIComponent(descRaw);
+    let prefilledName = '';
+    const submittedByMatch = desc.match(/Submitted By\s+(.+)$/i);
+    if (submittedByMatch) prefilledName = submittedByMatch[1].trim();
 
-document.getElementById('coords').textContent = `${parseFloat(lat).toFixed(2)}, ${parseFloat(lng).toFixed(2)}`;
-document.getElementById('category').textContent = `${icon} ${category}`;
-document.getElementById('desc').textContent = desc.replace(/\nSubmitted By.+$/i, '').trim();
-const nameInput = document.getElementById('playerName');
-if (prefilledName) nameInput.value = prefilledName;
+    document.getElementById('coords').textContent = `${parseFloat(lat).toFixed(2)}, ${parseFloat(lng).toFixed(2)}`;
+    document.getElementById('category').textContent = `${icon} ${category}`;
+    document.getElementById('desc').textContent = desc.replace(/\nSubmitted By.+$/i, '').trim();
+    const nameInput = document.getElementById('playerName');
+    if (prefilledName) nameInput.value = prefilledName;
 
-document.getElementById('submitForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = nameInput.value.trim() || 'Anonymous Wastelander';
-    const cleanDesc = desc.replace(/\nSubmitted By.+$/i, '').trim();
-    const finalDesc = cleanDesc + `\nSubmitted By ${name}`;
+    document.getElementById('submitForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = nameInput.value.trim() || 'Anonymous Wastelander';
+        const cleanDesc = desc.replace(/\nSubmitted By.+$/i, '').trim();
+        const finalDesc = cleanDesc + `\nSubmitted By ${name}`;
 
-    const marker = {
-        lat: parseFloat(lat),
-        lng: parseFloat(lng),
-        category: category,
-        desc: finalDesc,
-        icon: icon,
-        cid: cid,
-        isCommunity: true,
-        userEdited: false,
-        wasCommunityKept: false
-    };
+        const marker = {
+            lat: parseFloat(lat),
+            lng: parseFloat(lng),
+            category: category,
+            desc: finalDesc,
+            icon: icon,
+            cid: cid,
+            isCommunity: true,
+            userEdited: false,
+            wasCommunityKept: false
+        };
 
-    try {
-        const response = await fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'submit', marker, name })
-        });
+        try {
+            const response = await fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'submit', marker, name })
+            });
 
-        const text = await response.text();
+            const text = await response.text();
 
-        // ← SHOW WORKER'S BEAUTIFUL GREEN POPUP FOR COOLDOWN OR ALREADY SUBMITTED
-        if (text.includes("wait") || text.includes("already submitted") || text.includes("under review")) {
-            document.body.innerHTML = text;
-        } else if (response.ok || text.includes("PR")) {
-            document.body.innerHTML = `
-                <h1>THANK YOU</h1>
-                <p>Your marker has been submitted!</p>
-                <p>MrCrazy will review and merge it soon.</p>
-                <strong>Submitted as:</strong> ${icon} ${category}<br>
-                   <strong>By:</strong> ${name}</p>
-                <br>
-                <a href="javascript:window.close()" style="color:#00ff88;text-decoration:underline;font-size:1.2em;font-weight:bold;">
-                    Close Window
-                </a>`;
-        } else {
-            alert('Submit failed: ' + text);
+            // ← SHOW WORKER'S BEAUTIFUL HTML DIRECTLY (COOLDOWN OR ALREADY SUBMITTED)
+            if (text.includes("wait") || text.includes("already submitted") || text.includes("under review") || text.includes("COOLDOWN") || text.includes("Already Submitted")) {
+                document.body.innerHTML = text;
+            } else if (response.ok || text.includes("PR")) {
+                document.body.innerHTML = `
+                    <h1>THANK YOU</h1>
+                    <p>Your marker has been submitted!</p>
+                    <p>MrCrazy will review and merge it soon.</p>
+                    <strong>Submitted as:</strong> ${icon} ${category}<br>
+                       <strong>By:</strong> ${name}</p>
+                    <br>
+                    <a href="javascript:window.close()">Close Window</a>`;
+            } else {
+                alert('Submit failed: ' + text);
+            }
+        } catch (err) {
+            alert('Network error: ' + err.message);
         }
-    } catch (err) {
-        alert('Network error: ' + err.message);
-    }
-});
-</script>
+    });
+    </script>
 </body>
 </html>
