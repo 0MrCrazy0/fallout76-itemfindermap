@@ -4,9 +4,9 @@
     <!-- DEV NOTE: Meta tags for mobile + PWA support -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Fallout 76 Item Finder Map v76.7.7</title>
+    <title>Fallout 76 Item Finder Map v76.7.8</title>
 
-	<link rel="manifest" href="manifest.json?v=5">
+	<link rel="manifest" href="manifest.json?v=6">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1153,7 +1153,7 @@ nukeStyle.textContent = `
                 <button id="resetAppBtn" class="reset-btn">Reset App (deletes everything)</button>
             </div>
             <p class="small"><br>❤️ the Item Finder Map? Support MrCrazy with a <a href="https://buymeacoffee.com/mrcrazy" target="_blank">Nuka-Cola</a>!</p>
-            <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version v76.7.7 Made By MrCrazy</p>
+            <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version v76.7.8 Made By MrCrazy</p>
         </div>
     </div>
     <!-- DEV NOTE: NUKE CODES MODAL -->
@@ -1239,8 +1239,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const STORAGE_KEY = 'fo76_locations';
         const CUSTOM_CATEGORIES_KEY = '76_custom_categories';
         const MAP_VERSION_KEY = 'fo76_map_version';
-        const CURRENT_UPDATE_VERSION = 'v76.7.7';
-        const APP_VERSION = "v76.7.7";
+        const CURRENT_UPDATE_VERSION = 'v76.7.8';
+        const APP_VERSION = "v76.7.8";
         let soundsEnabled = localStorage.getItem('soundsEnabled') !== 'false';
         const baseSounds = {
             click: new Audio("https://rpg.hamsterrepublic.com/wiki-images/8/84/Select8-Bit.ogg"),
@@ -1344,17 +1344,66 @@ communityVersion = getCurrentCommunityVersion();
 
         let categoryIcons = { ...defaultCategoryIcons, ...customCategories };
         const defaultCategoryColors = {
-            'weapons': '#ff4444', 'armor': '#4682b4', 'aid': '#32cd32', 'food/drink': '#adff2f',
-            'ammunition': '#ff8c00', 'apparel': '#dda0dd', 'plans': '#a0522d', 'junk': '#808080',
-            'holotapes': '#f0e68c', 'misc': '#f0e68c', 'plants': '#228b22', 'eggs': '#f5f5dc',
-            'creatures': '#8b0000', 'vendors': '#ffd700', 'exchanges': '#20b2aa', 'vaults': '#4682b4',
-            'power armor': '#b22222', 'fusion core': '#ff4500', 'nuke drop zones': '#ff0000',
-            'nuke silos': '#dc143c', 'magazines': '#ff69b4', 'bobbleheads': '#00b7eb',
-            'treasure maps': '#d2b48c', 'resource deposits': '#696969', 'fishing locations': '#1e90ff',
-            'workshops': '#b8860b', 'train stations': '#a9a9a9', 'town locations': '#228b22',
-            'regions': '#00ff00', 'named locations': '#ffffff'
-        };
+    'weapons':            '#FF1744', // Neon Red — guns & danger
+    'armor':              '#3D5AFE', // Indigo Blue — steel & protection
+    'aid':                '#00E676', // Electric Green — stimpaks & healing
+    'food/drink':         '#FFD600', // Nuka-Cola Amber Yellow
+    'ammunition':         '#FF6D00', // Bullet Brass Orange
+    'apparel':            '#D500F9', // Vibrant Purple — outfits & fashion
+    'plans':              '#8B4513', // Saddle Brown — old blueprints
+    'junk':               '#B0BEC5', // Cold Scrap Gray
+    'holotapes':          '#FFAB00', // Retro Cassette Amber
+    'misc':               '#00B8D4', // Bright Cyan — catch-all
+    'plants':             '#1B5E20', // Deep Forest Green
+    'eggs':               '#FF4081', // Alien Pink
+    'creatures':          '#B71C1C', // Blood Red
+    'vendors':            '#FFD740', // Caps Gold
+    'exchanges':          '#009688', // Trading Teal
+    'vaults':             '#304FFE', // Vault-Tec Electric Blue
+    'power armor':        '#424242', // T-51b Dark Titanium
+    'fusion core':        '#FF9100', // Glowing Fusion Orange
+    'nuke drop zones':    '#D50000', // Nuclear Warning Red
+    'nuke silos':         '#880E4F', // Deep Silo Purple-Red
+    'magazines':          '#E040FB', // Comic-Book Magenta
+    'bobbleheads':        '#00E5FF', // Shiny Turquoise
+    'treasure maps':      '#FF8F00', // Buried Treasure Gold
+    'resource deposits':  '#607D8B', // Ore Blue-Gray
+    'fishing locations':  '#01579B', // Deep Water Blue
+    'workshops':          '#6D4C41', // Workshop Wood Brown
+    'train stations':     '#455A64', // Industrial Slate
+    'town locations':     '#FFB300', // Settlement Warm Orange
+    'event locations':    '#F50057', // Event Hot Pink
+    'named locations':    '#FFFFFF', // Pure White text
+    'regions':            '#76FF03', // Highlight Lime
+    'terminal locations': '#1DE9B6', // Terminal Bright Teal — STANDS OUT
+    'safe locations':     '#C6FF00'  // Safe-Zone Lime Yellow
+};
         let categoryColors = { ...defaultCategoryColors };
+		// ——— CUSTOM CATEGORIES GET 100% UNIQUE, BEAUTIFUL COLORS — GUARANTEED DIFFERENT ———
+let usedHues = new Set(); // Track used hues to avoid duplicates
+
+function generateUniqueCustomColor(categoryName) {
+    let hash = 0;
+    for (let i = 0; i < categoryName.length; i++) {
+        hash = categoryName.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    let hue = Math.abs(hash) % 360;
+
+    // If hue is already used, find the next free one
+    while (usedHues.has(hue)) {
+        hue = (hue + 37) % 360; // 37 is prime — avoids patterns
+    }
+    usedHues.add(hue);
+
+    return `hsl(${hue}, 90%, 60%)`;
+}
+
+// Apply unique color to every custom category
+Object.keys(customCategories).forEach(cat => {
+    if (!categoryColors[cat]) {
+        categoryColors[cat] = generateUniqueCustomColor(cat);
+    }
+});
         const map = L.map('map', {
             crs: L.CRS.Simple,
             minZoom: -3,
@@ -1845,8 +1894,9 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
                     const centerY = row * cellSize + cellSize / 2;
                     const label = `${letters[col]}${row + 1}`;
                     L.marker([centerY, centerX], {
-                        icon: L.divIcon({ className: 'grid-label', html: label, iconSize: [30, 30], iconAnchor: [15, 15] })
-                    }).addTo(gridLayer);
+                        icon: L.divIcon({ className: 'grid-label', html: label, iconSize: [30, 30], iconAnchor: [15, 15] }),
+                zIndexOffset: 10000  // THIS IS THE KEY — forces label above everything
+            }).addTo(gridLayer);
                 }
             }
         }
@@ -2428,7 +2478,7 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
     }
 }
         function updateCounterDisplay() {
-    const appVersion = "76.7.7";
+    const appVersion = "76.7.8";
     const communityVer = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
     const total = locations.filter(l => activeCategories.has(l.category)).length;
     const userTotal = locations.filter(l => l.userEdited === true && !l.isPostcard).length;
@@ -2800,7 +2850,7 @@ if (submitBtn) {
 
             const userMarkers = locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard);
             const personalBackup = {
-                version: "personal-v76.7.7",
+                version: "personal-v76.7.8",
                 timestamp: new Date().toISOString(),
                 communityVersion,
                 customCategories,
@@ -2931,7 +2981,7 @@ if (submitBtn) {
     document.getElementById('fullBackupBtn').onclick = () => {
         const playerMarkers = locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard);
         const fullBackup = {
-            version: "personal-v76.7.7",
+            version: "personal-v76.7.8",
             timestamp: new Date().toISOString(),
             communityVersion,
             customCategories,
@@ -3793,7 +3843,7 @@ if (SpeechRecognition && voiceSearchBtn) {
                     ☢ FALLOUT 76 ITEM FINDER MAP ☢
                 </h1>
                 <p style="margin:8px 0 0; font-size:1.3em; color:#0f0;">
-                    v76.7.7 — Built with ❤️ by MrCrazy
+                    v76.7.8 — Built with ❤️ by MrCrazy
                 </p>
             </div>
 
@@ -3850,7 +3900,7 @@ if (SpeechRecognition && voiceSearchBtn) {
                 </div>
                 <div style="padding:30px; text-align:center; line-height:1.8;">
                     <ul style="text-align:left; display:inline-block; margin:25px 0; padding-left:30px; font-size:1.2em;">
-                        <li>Welcome To Version 76.7.7</li>
+                        <li>Welcome To Version 76.7.8</li>
                         <li>This is The Latest Update — Reset Your App if needed.<br>
                             Find this tip in the "How to Use" section.</li>
                         <li>Made With ❤️</li>
@@ -3884,7 +3934,7 @@ if (SpeechRecognition && voiceSearchBtn) {
         if (!localStorage.getItem(WELCOME_KEY)) {
             setTimeout(showWelcomeModal, 800);
         }
-        if (localStorage.getItem(LAST_VERSION_KEY) !== 'v76.7.7') {
+        if (localStorage.getItem(LAST_VERSION_KEY) !== 'v76.7.8') {
             setTimeout(checkForUpdate, 1400);
         }
 const searchInput = document.getElementById('combinedSearch');
@@ -4103,7 +4153,7 @@ setTimeout(() => {
 
         document.getElementById('backupAllBtn')?.addEventListener('click', () => {
     const fullBackup = {
-        version: "full-v76.7.7",
+        version: "full-v76.7.8",
         timestamp: new Date().toISOString(),
         communityVersion: localStorage.getItem('fo76_map_version') || '1.0',
         locations: locations,
@@ -4415,7 +4465,7 @@ if (playerNameInput) {
 }
 
         console.log('%c╔══════════════════════════════════════════════════════════════╗\n' +
-            '║           FALLOUT 76 ITEM FINDER MAP v76.7.7                ║\n' +
+            '║           FALLOUT 76 ITEM FINDER MAP v76.7.8                ║\n' +
             '║                     Made with ❤️ by MrCrazy                 ║\n' +
             '╚══════════════════════════════════════════════════════════════╝',
     'color:#00ff00; font-family:monospace; font-size:14px; font-weight:bold; background:#000; padding:4px 0;');
