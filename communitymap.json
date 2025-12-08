@@ -3888,6 +3888,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-5039a7b6-0f62-40a1-9446-eb92c0da607c",
+      "cid": "test_grid_b2_x_601_y_581_581_601",
+      "category": "test",
+      "desc": "Grid B2 (X: 601, Y: 581)\nSubmitted By MrCrazy",
+      "lat": 580.819126499229,
+      "lng": 600.9695538373009,
+      "icon": "😍",
+      "addedTime": 1765219380633,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
