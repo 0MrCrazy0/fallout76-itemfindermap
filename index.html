@@ -2165,7 +2165,7 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
             zIndexOffset: 1000
         });
     } else {
-        const base = `<div class="marker-background" style="background-color:${categoryColors[loc.category] || '#808080'};"><span style="font-size:18px;">${ categoryIcons[loc.category] || '📝'}</span></div>`;
+        const base = `<div class="marker-background" style="background-color:${categoryColors[loc.category] || '#808080'};"><span style="font-size:18px;">${ loc.icon || categoryIcons[loc.category] || '📝' }</span></div>`;
         return L.divIcon({
             className: isGlowing(loc) ? 'custom-icon glowing' : 'custom-icon',
             html: base,
