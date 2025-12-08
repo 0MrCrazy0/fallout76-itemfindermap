@@ -3888,6 +3888,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-e272328d-ca39-4cfc-9b9b-0e54034ea081",
+      "cid": "exchanges_grid_b2_x_668_y_731_731_668",
+      "category": "exchanges",
+      "desc": "Grid B2 (X: 668, Y: 731)\nSubmitted By MrCrazy",
+      "lat": 730.7010289208747,
+      "lng": 667.9622304132079,
+      "icon": "⚖️",
+      "addedTime": 1765207990144,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
