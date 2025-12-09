@@ -1344,64 +1344,45 @@ communityVersion = getCurrentCommunityVersion();
 
         let categoryIcons = { ...defaultCategoryIcons, ...customCategories };
         const defaultCategoryColors = {
-    'weapons':            '#FF1744', // Neon Red — guns & danger
-    'armor':              '#3D5AFE', // Indigo Blue — steel & protection
-    'aid':                '#00E676', // Electric Green — stimpaks & healing
-    'food/drink':         '#FFD600', // Nuka-Cola Amber Yellow
-    'ammunition':         '#FF6D00', // Bullet Brass Orange
-    'apparel':            '#D500F9', // Vibrant Purple — outfits & fashion
-    'plans':              '#8B4513', // Saddle Brown — old blueprints
-    'junk':               '#B0BEC5', // Cold Scrap Gray
-    'holotapes':          '#FFAB00', // Retro Cassette Amber
-    'misc':               '#00B8D4', // Bright Cyan — catch-all
-    'plants':             '#1B5E20', // Deep Forest Green
-    'eggs':               '#FF4081', // Alien Pink
-    'creatures':          '#B71C1C', // Blood Red
-    'vendors':            '#FFD740', // Caps Gold
-    'exchanges':          '#009688', // Trading Teal
-    'vaults':             '#304FFE', // Vault-Tec Electric Blue
-    'power armor':        '#424242', // T-51b Dark Titanium
-    'fusion core':        '#FF9100', // Glowing Fusion Orange
-    'nuke drop zones':    '#D50000', // Nuclear Warning Red
-    'nuke silos':         '#880E4F', // Deep Silo Purple-Red
-    'magazines':          '#E040FB', // Comic-Book Magenta
-    'bobbleheads':        '#00E5FF', // Shiny Turquoise
-    'treasure maps':      '#FF8F00', // Buried Treasure Gold
-    'resource deposits':  '#607D8B', // Ore Blue-Gray
-    'fishing locations':  '#01579B', // Deep Water Blue
-    'workshops':          '#6D4C41', // Workshop Wood Brown
-    'train stations':     '#455A64', // Industrial Slate
-    'town locations':     '#FFB300', // Settlement Warm Orange
-    'event locations':    '#F50057', // Event Hot Pink
+    'weapons':            '#FFFFFF', // Neon Red — guns & danger
+    'armor':              '#FFFFFF', // Indigo Blue — steel & protection
+    'aid':                '#FFFFFF', // Electric Green — stimpaks & healing
+    'food/drink':         '#FFFFFF', // Nuka-Cola Amber Yellow
+    'ammunition':         '#FFFFFF', // Bullet Brass Orange
+    'apparel':            '#FFFFFF', // Vibrant Purple — outfits & fashion
+    'plans':              '#FFFFFF', // Saddle Brown — old blueprints
+    'junk':               '#FFFFFF', // Cold Scrap Gray
+    'holotapes':          '#FFFFFF', // Retro Cassette Amber
+    'misc':               '#FFFFFF', // Bright Cyan — catch-all
+    'plants':             '#FFFFFF', // Deep Forest Green
+    'eggs':               '#FFFFFF', // Alien Pink
+    'creatures':          '#FFFFFF', // Blood Red
+    'vendors':            '#FFFFFF', // Caps Gold
+    'exchanges':          '#FFFFFF', // Trading Teal
+    'vaults':             '#FFFFFF', // Vault-Tec Electric Blue
+    'power armor':        '#FFFFFF', // T-51b Dark Titanium
+    'fusion core':        '#FFFFFF', // Glowing Fusion Orange
+    'nuke drop zones':    '#FFFFFF', // Nuclear Warning Red
+    'nuke silos':         '#FFFFFF', // Deep Silo Purple-Red
+    'magazines':          '#FFFFFF', // Comic-Book Magenta
+    'bobbleheads':        '#FFFFFF', // Shiny Turquoise
+    'treasure maps':      '#FFFFFF', // Buried Treasure Gold
+    'resource deposits':  '#FFFFFF', // Ore Blue-Gray
+    'fishing locations':  '#FFFFFF', // Deep Water Blue
+    'workshops':          '#FFFFFF', // Workshop Wood Brown
+    'train stations':     '#FFFFFF', // Industrial Slate
+    'town locations':     '#FFFFFF', // Settlement Warm Orange
+    'event locations':    '#FFFFFF', // Event Hot Pink
     'named locations':    '#FFFFFF', // Pure White text
-    'regions':            '#76FF03', // Highlight Lime
-    'terminal locations': '#1DE9B6', // Terminal Bright Teal — STANDS OUT
-    'safe locations':     '#C6FF00'  // Safe-Zone Lime Yellow
+    'regions':            '#FFFFFF', // Highlight Lime
+    'terminal locations': '#FFFFFF', // Terminal Bright Teal — STANDS OUT
+    'safe locations':     '#FFFFFF'  // Safe-Zone Lime Yellow
 };
         let categoryColors = { ...defaultCategoryColors };
-		// ——— CUSTOM CATEGORIES GET 100% UNIQUE, BEAUTIFUL COLORS — GUARANTEED DIFFERENT ———
-let usedHues = new Set(); // Track used hues to avoid duplicates
-
-function generateUniqueCustomColor(categoryName) {
-    let hash = 0;
-    for (let i = 0; i < categoryName.length; i++) {
-        hash = categoryName.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    let hue = Math.abs(hash) % 360;
-
-    // If hue is already used, find the next free one
-    while (usedHues.has(hue)) {
-        hue = (hue + 37) % 360; // 37 is prime — avoids patterns
-    }
-    usedHues.add(hue);
-
-    return `hsl(${hue}, 90%, 60%)`;
-}
-
-// Apply unique color to every custom category
+		// ——— CUSTOM CATEGORIES USE PURE WHITE ONLY ———
 Object.keys(customCategories).forEach(cat => {
     if (!categoryColors[cat]) {
-        categoryColors[cat] = generateUniqueCustomColor(cat);
+        categoryColors[cat] = '#FFFFFF'; // Pure white — clean, readable, beautiful
     }
 });
         const map = L.map('map', {
