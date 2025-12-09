@@ -3906,6 +3906,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-2ba14cf1-0670-478e-855c-686fd60288c1",
+      "cid": "bobbleheads_bobblehead_under_the_bar_grid_e7_x_2028_y_2629_2629_2028",
+      "category": "bobbleheads",
+      "desc": "bobblehead look inside the mouth.\nGrid E9 (X: 1756, Y: 3424)\nSubmitted By MrCrazy",
+      "lat": 3424.0363876641495,
+      "lng": 1755.75,
+      "icon": "🎎",
+      "addedTime": 1765253370750,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
