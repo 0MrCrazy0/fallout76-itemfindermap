@@ -3924,6 +3924,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-ba75596d-7a8a-4e6c-bb84-67452289f297",
+      "cid": "magazines_magazine_sometimes_found_here_grid_e9_x_1761_y_3425_3425_1761",
+      "category": "magazines",
+      "desc": "magazine sometimes found here.\nGrid E9 (X: 1761, Y: 3425)\nSubmitted By MrCrazy",
+      "lat": 3424.519437276639,
+      "lng": 1761.375,
+      "icon": "📚",
+      "addedTime": 1765257076986,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
