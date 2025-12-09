@@ -3888,6 +3888,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-e294a57c-578c-4838-b8ee-d0ca95312b72",
+      "cid": "named locations_radiant_hills_is_a_settlement_built_on_top_of_and_within_a_nuclear_missile_silo_in_the_northern_hills_of_the_savage_divide_in_appalachia_like_some_other_silos_in_the_appalachian_region_there_were_discreet_unobtrusive_buildings_on_the_property_masking_an_elevator_into_the_silo_though_the_area_was_still_fencedoff_and_marked_as_us_government_property_with_a_hatch_for_the_missiles_nearby_grid_i10_x_3287_y_3698_3698_3287",
+      "category": "named locations",
+      "desc": "radiant hills is a settlement built on top of and within a nuclear missile silo in the northern hills of the savage divide in appalachia. like some other silos in the appalachian region, there were discreet, unobtrusive buildings on the property, masking an elevator into the silo, though the area was still fenced-off and marked as u.s. government property, with a hatch for the missiles nearby.\nGrid I10 (X: 3308, Y: 3695)\nSubmitted By MrCrazy",
+      "lat": 3695.3121703214993,
+      "lng": 3307.5,
+      "icon": "🚩",
+      "addedTime": 1765249656533,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
