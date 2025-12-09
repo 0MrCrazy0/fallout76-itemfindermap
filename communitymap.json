@@ -3888,6 +3888,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-ca677f7b-ea3f-4f27-883b-a6d69f4573b1",
+      "cid": "misc_sdfrxvr_grid_a10_x_362_y_3762_3762_362",
+      "category": "misc",
+      "desc": "sdfrxvr\nGrid A10 (X: 362, Y: 3762)\nSubmitted By Anonymous Wastelander",
+      "lat": 3762.3333435058594,
+      "lng": 361.7867803837953,
+      "icon": "📝",
+      "addedTime": 1765242136416,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
