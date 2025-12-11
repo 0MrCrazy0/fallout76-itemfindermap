@@ -3942,6 +3942,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-e97f2b55-2ff4-4055-9ecf-f415c4c80836",
+      "cid": "treasure maps_grid_c8_x_1206_y_2888_2888_1206",
+      "category": "treasure maps",
+      "desc": "forest treasure map #4 dig site look around and you will see the farm in the form of a yellow house. walk around the back of the house, you will find a plane left side of the plane is the mound.\nGrid C8 (X: 1206, Y: 2888)\nSubmitted By MrCrazy",
+      "lat": 2887.8030897526223,
+      "lng": 1206.0011338819677,
+      "icon": "🗺️",
+      "addedTime": 1765483712715,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
