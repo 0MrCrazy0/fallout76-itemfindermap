@@ -3944,6 +3944,24 @@
       "isCommunity": true
     },
     {
+      "id": "id-e97f2b55-2ff4-4055-9ecf-f415c4c80836",
+      "cid": "treasure maps_grid_c8_x_1206_y_2888_2888_1206",
+      "category": "treasure maps",
+      "desc": "forest treasure map #4 dig site look around and you will see the farm in the form of a yellow house. walk around the back of the house, you will find a plane left side of the plane is the mound.\nGrid C8 (X: 1206, Y: 2888)\nSubmitted By MrCrazy",
+      "lat": 2887.8030897526223,
+      "lng": 1206.0011338819677,
+      "icon": "🗺️",
+      "addedTime": 1765483712715,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
+    },
+	  {
       "id": "id-75b8ef6b-1aeb-416c-84e8-3cc8a45f7139",
       "cid": "treasure maps_forest_treasure_map_4_dig_site_look_around_and_you_will_see_the_farm_in_the_form_of_a_yellow_house_walk_around_the_back_of_the_house_you_will_find_a_plane_left_side_of_the_plane_is_the_mound_grid_d8_x_1275_y_2986_2986_1275",
       "category": "treasure maps",
@@ -3960,6 +3978,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
-    }
+    },
+	  {
+      "id": "id-7de690d4-4713-44ef-afb1-5ea74a6db0ee",
+      "cid": "treasure maps_forest_treasure_map_5_dig_site_go_to_charleston_trainyard_gate_look_and_head_west_over_the_train_tracks_look_for_a_broken_blue_train_carriage_tilted_the_mound_is_in_front_of_the_door_on_the_other_side_near_some_barrels_grid_d5_x_1263_y_1793_1793_1263",
+      "category": "treasure maps",
+      "desc": "savage divide treasure map #1 dig site near an overturned “caution” sign you will find the mound.\nGrid E3 (X: 1993, Y: 941)\nSubmitted By MrCrazy",
+      "lat": 941.1038113005933,
+      "lng": 1993,
+      "icon": "🗺️",
+      "addedTime": 1765484791818,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
+  	}
   ]
 }
