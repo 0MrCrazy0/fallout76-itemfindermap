@@ -1,5 +1,5 @@
 // ——— SERVICE WORKER ———
-const CACHE_NAME = "fo76-ifm-v76.8.0"; // ← ONLY CHANGE: on update!
+const CACHE_NAME = "fo76-ifm-v76.READY"; // ← ONLY CHANGE: on update!
 
 self.addEventListener("install", e => {
   e.waitUntil(self.skipWaiting());
@@ -32,4 +32,5 @@ self.addEventListener("fetch", e => {
     caches.match(e.request).then(cached => cached || fetch(e.request))
   );
 });
+
 
