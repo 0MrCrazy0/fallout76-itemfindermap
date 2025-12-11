@@ -1857,77 +1857,119 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
     showTempMessage('MARKER DUPLICATED — ORIGINAL RE-LOCKED', 4000);
     playSound('duplicate');
 };
-        function drawGrid() {
-            gridLayer.clearLayers();
-            if (!gridEnabled) return;
-            const gridSize = 10;
-            const cellSize = 4096 / gridSize;
-            for (let i = 0; i <= gridSize; i++) {
-                const x = i * cellSize;
-                L.polyline([[0, x], [4096, x]], { className: 'grid-line', color: '#0f0', weight: 1, opacity: 0.5 }).addTo(gridLayer);
-                const y = i * cellSize;
-                L.polyline([[y, 0], [y, 4096]], { className: 'grid-line', color: '#0f0', weight: 1, opacity: 0.5 }).addTo(gridLayer);
-            }
-            const letters = 'ABCDEFGHIJ'.split('');
-            for (let row = 0; row < gridSize; row++) {
-                for (let col = 0; col < gridSize; col++) {
-                    const centerX = col * cellSize + cellSize / 2;
-                    const centerY = row * cellSize + cellSize / 2;
-                    const label = `${letters[col]}${row + 1}`;
-                    L.marker([centerY, centerX], {
-                        icon: L.divIcon({ className: 'grid-label', html: label, iconSize: [30, 30], iconAnchor: [15, 15] }),
-                zIndexOffset: 10000  // THIS IS THE KEY — forces label above everything
-            }).addTo(gridLayer);
-                }
-            }
-        }
-                function getGridFromLatLng(lat, lng) {
-            const gridSize = 10;
-            const cellSize = 4096 / gridSize;
-            const col = Math.floor(lng / cellSize);
-            const row = Math.floor(lat / cellSize);
-            const letters = 'ABCDEFGHIJ';
-            if (col >= 0 && col < letters.length && row >= 0 && row < gridSize) {
-                return `${letters[col]}${row + 1}`;
-            }
-            return null;
-        }
-        function gridToCenter(grid) {
-            const letters = 'ABCDEFGHIJ';
-            const match = grid.toUpperCase().match(/^([A-J])([1-9]|10)$/);
-            if (!match) return null;
-            const col = letters.indexOf(match[1]);
-            const row = parseInt(match[2], 10) - 1;
-            const gridSize = 10;
-            const cellSize = 4096 / gridSize;
+        // ——— GRID FIX — NO MORE FLICKER AT LOW ZOOM ———
+// Create a dedicated high-z-index pane for the grid (above clusters!)
+if (!map.getPane('gridPane')) {
+    map.createPane('gridPane');
+    map.getPane('gridPane').style.zIndex = 650;        // Above marker pane (600) and clusters (700)
+    map.getPane('gridPane').style.pointerEvents = 'none'; // Click-through
+}
+
+function drawGrid() {
+    gridLayer.clearLayers();
+    if (!gridEnabled) return;
+
+    const gridSize = 10;
+    const cellSize = 4096 / gridSize;
+    const letters = 'ABCDEFGHIJ'.split('');
+
+    // Draw lines — using the dedicated pane
+    for (let i = 0; i <= gridSize; i++) {
+        const x = i * cellSize;
+        L.polyline([[0, x], [4096, x]], {
+            className: 'grid-line',
+            color: '#0f0',
+            weight: 1,
+            opacity: 0.5,
+            pane: 'gridPane'           // ← THIS STOPS FLICKER
+        }).addTo(gridLayer);
+
+        const y = i * cellSize;
+        L.polyline([[y, 0], [y, 4096]], {
+            className: 'grid-line',
+            color: '#0f0',
+            weight: 1,
+            opacity: 0.5,
+            pane: 'gridPane'
+        }).addTo(gridLayer);
+    }
+
+    // Draw labels — also in the same high pane + extra high zIndexOffset
+    for (let row = 0; row < gridSize; row++) {
+        for (let col = 0; col < gridSize; col++) {
             const centerX = col * cellSize + cellSize / 2;
             const centerY = row * cellSize + cellSize / 2;
-            return { lat: centerY, lng: centerX };
+            const label = `${letters[col]}${row + 1}`;
+
+            L.marker([centerY, centerX], {
+                icon: L.divIcon({
+                    className: 'grid-label',
+                    html: label,
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                }),
+                zIndexOffset: 20000,       // ← Extra insurance — always on top
+                pane: 'gridPane'           // ← Critical for stability
+            }).addTo(gridLayer);
         }
-        function showGridNotification(grid) {
-            let notif = document.getElementById('gridNotification');
-            if (!notif) {
-                notif = document.createElement('div');
-                notif.id = 'gridNotification';
-                notif.style.position = 'fixed';
-                notif.style.bottom = '20px';
-                notif.style.right = '20px';
-                notif.style.background = 'rgba(0,0,0,0.8)';
-                notif.style.color = '#0f0';
-                notif.style.padding = '10px 15px';
-                notif.style.border = '1px solid #0f0';
-                notif.style.borderRadius = '6px';
-                notif.style.font = 'bold 16px monospace';
-                notif.style.zIndex = '10000';
-                notif.style.opacity = '0';
-                notif.style.transition = 'opacity 0.5s';
-                document.body.appendChild(notif);
-            }
-            notif.textContent = `Grid: ${grid}`;
-            notif.style.opacity = '1';
-            clearTimeout(notif.hideTimeout);
-            notif.hideTimeout = setTimeout(() => { notif.style.opacity = '0'; }, 2000);
-        }
+    }
+
+    // Force redraw once after zoom/pan ends — eliminates any final flicker
+    map.once('moveend', () => {
+        gridLayer.eachLayer(layer => layer.redraw?.());
+    });
+}
+
+// Keep your other grid helpers exactly as they are (they're perfect)
+function getGridFromLatLng(lat, lng) {
+    const gridSize = 10;
+    const cellSize = 4096 / gridSize;
+    const col = Math.floor(lng / cellSize);
+    const row = Math.floor(lat / cellSize);
+    const letters = 'ABCDEFGHIJ';
+    if (col >= 0 && col < letters.length && row >= 0 && row < gridSize) {
+        return `${letters[col]}${row + 1}`;
+    }
+    return null;
+}
+
+function gridToCenter(grid) {
+    const letters = 'ABCDEFGHIJ';
+    const match = grid.toUpperCase().match(/^([A-J])([1-9]|10)$/);
+    if (!match) return null;
+    const col = letters.indexOf(match[1]);
+    const row = parseInt(match[2], 10) - 1;
+    const gridSize = 10;
+    const cellSize = 4096 / gridSize;
+    const centerX = col * cellSize + cellSize / 2;
+    const centerY = row * cellSize + cellSize / 2;
+    return { lat: centerY, lng: centerX };
+}
+
+function showGridNotification(grid) {
+    let notif = document.getElementById('gridNotification');
+    if (!notif) {
+        notif = document.createElement('div');
+        notif.id = 'gridNotification';
+        notif.style.position = 'fixed';
+        notif.style.bottom = '20px';
+        notif.style.right = '20px';
+        notif.style.background = 'rgba(0,0,0,0.8)';
+        notif.style.color = '#0f0';
+        notif.style.padding = '10px 15px';
+        notif.style.border = '1px solid #0f0';
+        notif.style.borderRadius = '6px';
+        notif.style.font = 'bold 16px monospace';
+        notif.style.zIndex = '10000';
+        notif.style.opacity = '0';
+        notif.style.transition = 'opacity 0.5s';
+        document.body.appendChild(notif);
+    }
+    notif.textContent = `Grid: ${grid}`;
+    notif.style.opacity = '1';
+    clearTimeout(notif.hideTimeout);
+    notif.hideTimeout = setTimeout(() => { notif.style.opacity = '0'; }, 2000);
+}
         function isValidEmoji(str) {
             if (!str || str.length === 0) return false;
             const emojiRegex = /^[\p{Emoji}]+$/u;
