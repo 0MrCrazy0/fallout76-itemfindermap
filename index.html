@@ -1861,7 +1861,7 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
 // Create a dedicated high-z-index pane for the grid (above clusters!)
 if (!map.getPane('gridPane')) {
     map.createPane('gridPane');
-    map.getPane('gridPane').style.zIndex = 650;        // Above marker pane (600) and clusters (700)
+    map.getPane('gridPane').style.zIndex = 800;        // Above marker pane (600) and clusters (700)
     map.getPane('gridPane').style.pointerEvents = 'none'; // Click-through
 }
 
@@ -4510,3 +4510,4 @@ console.log('%cCopyright © 2025 MrCrazy — All rights reserved\n' +
 </script>
 </body>
 </html>
+
