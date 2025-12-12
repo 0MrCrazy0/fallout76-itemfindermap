@@ -11,7 +11,7 @@ magazines, bobbleheads, plans, treasure maps, junk, power armor… whatever you 
 - filter by category
 - save everything in your browser
 - export / import your markers (JSON)
-- download community discoveries others share
+- download community submitted discoveries
 - works offline, dark mode & mobile-friendly
 - click the How to Use button in the tools section for more info
 
