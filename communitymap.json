@@ -4014,6 +4014,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-ee9c25f7-5d36-44f3-b15b-f545ac112ab1",
+      "cid": "treasure maps_forest_treasure_map_7_dig_site_look_for_the_big_billboard_looking_from_the_back_its_directly_right_is_the_mound_at_the_bottom_of_the_billboard_grid_d4_x_1518_y_1479_1479_1518",
+      "category": "treasure maps",
+      "desc": "savage divide treasure map #2 dig site go to the train station and then walk along the railway tracks to the north look for a red & blue train carriage off the tracks between these 2 is the mound i can see the top of the world tower from here.\nGrid F5 (X: 2160, Y: 1932)\nSubmitted By MrCrazy",
+      "lat": 1932.2543862019356,
+      "lng": 2160.068822031994,
+      "icon": "🗺️",
+      "addedTime": 1765583644376,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
