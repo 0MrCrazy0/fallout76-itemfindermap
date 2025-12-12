@@ -4014,6 +4014,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-e3173cf7-1ac0-48a5-a3ec-b36df6c075be",
+      "cid": "treasure maps_forest_treasure_map_4_dig_site_look_around_and_you_will_see_the_farm_in_the_form_of_a_yellow_house_walk_around_the_back_of_the_house_you_will_find_a_plane_left_side_of_the_plane_is_the_mound_grid_d8_x_1240_y_2937_2937_1240",
+      "category": "treasure maps",
+      "desc": "forest treasure map #6 dig site look behide the wayward on the rivers edge is the mound.\nGrid D6 (X: 1471, Y: 2387)\nSubmitted By MrCrazy",
+      "lat": 2386.938132995156,
+      "lng": 1471.2197274328967,
+      "icon": "🗺️",
+      "addedTime": 1765582493542,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
