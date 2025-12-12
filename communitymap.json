@@ -3961,7 +3961,7 @@
       "wasCommunityKept": false,
       "isCommunity": true
     },
-	  {
+    {
       "id": "id-75b8ef6b-1aeb-416c-84e8-3cc8a45f7139",
       "cid": "treasure maps_forest_treasure_map_4_dig_site_look_around_and_you_will_see_the_farm_in_the_form_of_a_yellow_house_walk_around_the_back_of_the_house_you_will_find_a_plane_left_side_of_the_plane_is_the_mound_grid_d8_x_1275_y_2986_2986_1275",
       "category": "treasure maps",
@@ -3979,7 +3979,7 @@
       "wasCommunityKept": false,
       "isCommunity": true
     },
-	  {
+    {
       "id": "id-7de690d4-4713-44ef-afb1-5ea74a6db0ee",
       "cid": "treasure maps_forest_treasure_map_5_dig_site_go_to_charleston_trainyard_gate_look_and_head_west_over_the_train_tracks_look_for_a_broken_blue_train_carriage_tilted_the_mound_is_in_front_of_the_door_on_the_other_side_near_some_barrels_grid_d5_x_1263_y_1793_1793_1263",
       "category": "treasure maps",
@@ -3996,6 +3996,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
-	  }
+    },
+    {
+      "id": "id-d226d937-c8eb-43c1-90ee-cdf5cd1733cf",
+      "cid": "bobbleheads_bobblehead_under_the_bar_grid_f7_x_2063_y_2678_2678_2063",
+      "category": "bobbleheads",
+      "desc": "bobblehead on the desk inside the house.\nGrid G6 (X: 2756, Y: 2370)\nSubmitted By MrCrazy",
+      "lat": 2369.637703381953,
+      "lng": 2755.877157118221,
+      "icon": "🎎",
+      "addedTime": 1765529920136,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
+    }
   ]
 }
