@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": "1.9",
+  "communityVersion": "2.0",
   "customCategories": {},
   "locations": [
     {
@@ -4014,6 +4014,60 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
-    }
+    },
+	{
+  "id": "id-e3173cf7-1ac0-48a5-a3ec-b36df6c075be",
+  "cid": "treasure maps_forest_treasure_map_4_dig_site_look_around_and_you_will_see_the_farm_in_the_form_of_a_yellow_house_walk_around_the_back_of_the_house_you_will_find_a_plane_left_side_of_the_plane_is_the_mound_grid_d8_x_1240_y_2937_2937_1240",
+  "category": "treasure maps",
+  "desc": "forest treasure map #6 dig site look behide the wayward on the rivers edge is the mound.\nGrid D6 (X: 1471, Y: 2387)\nSubmitted By MrCrazy",
+  "lat": 2386.938132995156,
+  "lng": 1471.2197274328967,
+  "icon": "🗺️",
+  "addedTime": 1765582493542,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+},
+{
+  "id": "id-7126ef2f-6785-4734-81d9-935a3dde37e9",
+  "cid": "treasure maps_forest_treasure_map_6_dig_site_look_behide_the_wayward_on_the_rivers_edge_is_the_mound_grid_d6_x_1473_y_2390_2390_1473",
+  "category": "treasure maps",
+  "desc": "forest treasure map #7 dig site look for the big billboard looking from the back its directly right is the mound at the bottom of the billboard.\nGrid D4 (X: 1501, Y: 1455)\nSubmitted By MrCrazy",
+  "lat": 1454.760631253349,
+  "lng": 1500.6369970764024,
+  "icon": "🗺️",
+  "addedTime": 1765582843817,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+},
+{
+  "id": "id-ee9c25f7-5d36-44f3-b15b-f545ac112ab1",
+  "cid": "treasure maps_forest_treasure_map_7_dig_site_look_for_the_big_billboard_looking_from_the_back_its_directly_right_is_the_mound_at_the_bottom_of_the_billboard_grid_d4_x_1518_y_1479_1479_1518",
+  "category": "treasure maps",
+  "desc": "savage divide treasure map #2 dig site go to the train station and then walk along the railway tracks to the north look for a red & blue train carriage off the tracks between these 2 is the mound i can see the top of the world tower from here.\nGrid F5 (X: 2160, Y: 1932)\nSubmitted By MrCrazy",
+  "lat": 1932.2543862019356,
+  "lng": 2160.068822031994,
+  "icon": "🗺️",
+  "addedTime": 1765583644376,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+}
   ]
 }
