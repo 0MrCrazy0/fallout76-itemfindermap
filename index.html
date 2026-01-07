@@ -1152,7 +1152,6 @@ nukeStyle.textContent = `
             <div style="text-align:center; margin:15px 0;">
                 <button id="resetAppBtn" class="reset-btn">Reset App (deletes everything)</button>
             </div>
-            <p class="small"><br>❤️ the Item Finder Map? Support MrCrazy with a <a href="https://buymeacoffee.com/mrcrazy" target="_blank">Nuka-Cola</a>!</p>
             <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version v76.READY Made By MrCrazy</p>
         </div>
     </div>
@@ -3872,15 +3871,15 @@ if (SpeechRecognition && voiceSearchBtn) {
 
             <div style="padding:20px; line-height:1.7;">
                 <p style="font-size:1.1em; margin-bottom:18px;">
-                    <strong>Welcome, Vault Dweller!</strong> By using this app you agree:
+                    <strong>Welcome, Vault Dweller!</strong>
                 </p>
 
                 <ul style="margin:20px 0; padding-left:30px; font-size:1.05em;">
-                    <li>This tool is for <strong>personal, non-commercial use only</strong>.</li>
-                    <li>No copying, selling, or redistributing without permission.</li>
-                    <li>Some markers are community-sourced — use at your own risk.</li>
-                    <li>Always hit <strong>"Update Community Map"</strong> for the latest data.</li>
-                    <li>Have fun exploring Appalachia — and share the love! ❤️</li>
+                    <li>This tool is for <strong>logging locations</strong>.</li>
+                    <li>Exploring Appalachia sometimes its hard to keep track of things.</li>
+                    <li>places you found, things you seen. this app was made just for that so start logging things.</li>
+                    <li>Click <strong>"Update Community Map"</strong> for the latest community data.</li>
+                    <li>Have fun exploring Appalachia — and share the app! ❤️</li>
                 </ul>
 
                 <div style="margin:25px 0; text-align:center;">
@@ -3890,8 +3889,7 @@ if (SpeechRecognition && voiceSearchBtn) {
                 </div>
 
                 <p style="text-align:center; margin-top:20px; font-size:0.9em; opacity:0.8;">
-                    Made with passion for the Fallout 76 community.<br>
-                    <a href="https://buymeacoffee.com/mrcrazy" target="_blank" style="color:#00ff80;">Buy MrCrazy a Nuka-Cola ☕</a> if you love it!
+                    Made for the Fallout 76 community.<br>
                 </p>
             </div>
         </div>
@@ -3926,7 +3924,6 @@ if (SpeechRecognition && voiceSearchBtn) {
                         <li>Welcome To Version 76.READY</li>
                         <li>This is The Latest Update — Reset Your App if needed.<br>
                             Find this tip in the "How to Use" section.</li>
-                        <li>Made With ❤️</li>
                     </ul>
                     <div style="margin:30px 0;">
                         <div id="updateGotItBtn" style="display:inline-block; padding:14px 50px; background:#000; border:3px solid #00ff00; color:#00ff00; font-size:1.6em; font-weight:bold; text-shadow:0 0 18px #00ff00; box-shadow:0 0 25px #00ff00; cursor:pointer;">
@@ -3935,7 +3932,6 @@ if (SpeechRecognition && voiceSearchBtn) {
                     </div>
                     <p style="margin-top:20px; font-size:0.9em; opacity:0.8;">
                         Thank you for using the Fallout 76 Item Finder Map!<br>
-                        <a href="https://buymeacoffee.com/mrcrazy" target="_blank" style="color:#00ff80;">Buy MrCrazy a Nuka-Cola ☕</a>
                     </p>
                 </div>
             </div>
@@ -4485,6 +4481,14 @@ if (playerNameInput) {
     playerNameInput.addEventListener('input', () => {
         localStorage.setItem('fo76_playerName', playerNameInput.value.trim());
     });
+// ——— IN-GAME NAME PERSISTENCE
+const playerNameInput = document.getElementById('playerNameInput');
+if (playerNameInput) {
+    const saved = localStorage.getItem('fo76_playerName') || '';
+    playerNameInput.value = saved;
+    playerNameInput.addEventListener('input', () => {
+        localStorage.setItem('fo76_playerName', playerNameInput.value.trim());
+    });
 }
 
         console.log('%c╔══════════════════════════════════════════════════════════════╗\n' +
@@ -4496,10 +4500,7 @@ if (playerNameInput) {
 console.log('%cWelcome, Vault Dweller!\n' +
             '──────────────────────────────────────────────────────────────\n' +
             '• Personal, non-commercial use only\n' +
-            '• No copying, selling, or redistribution without permission\n' +
-            '• Community-sourced markers — use at your own risk\n' +
-            '• Always click "Update Community Map" for the latest data\n' +
-            '• Have fun exploring Appalachia — and share the love! ❤️',
+            '• No copying, selling, or redistribution without permission\n',
     'color:#00ff88; font-family:monospace; font-size:13px; line-height:1.7; background:#000; padding:6px 0;');
 
 console.log('%cCopyright © 2025 MrCrazy — All rights reserved\n' +
