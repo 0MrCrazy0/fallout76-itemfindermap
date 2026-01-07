@@ -4481,14 +4481,6 @@ if (playerNameInput) {
     playerNameInput.addEventListener('input', () => {
         localStorage.setItem('fo76_playerName', playerNameInput.value.trim());
     });
-// ——— IN-GAME NAME PERSISTENCE
-const playerNameInput = document.getElementById('playerNameInput');
-if (playerNameInput) {
-    const saved = localStorage.getItem('fo76_playerName') || '';
-    playerNameInput.value = saved;
-    playerNameInput.addEventListener('input', () => {
-        localStorage.setItem('fo76_playerName', playerNameInput.value.trim());
-    });
 }
 
         console.log('%c╔══════════════════════════════════════════════════════════════╗\n' +
