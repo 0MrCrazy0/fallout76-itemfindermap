@@ -620,10 +620,10 @@
 }
 
 .custom-icon.glowing {
-    filter: drop-shadow(0 0 14px #00ff00)
-            drop-shadow(0 0 26px #00ff00)
-            brightness(1.6) !important;
-    animation: glowPulse 1.8s infinite ease-in-out;
+    filter: drop-shadow(0 0 2px #00ff00)
+            drop-shadow(0 0 2px #00ff00)
+            brightness(1.0) !important;
+    animation: glowPulse 1.5s infinite ease-in-out;
 }
 /* THIS IS THE FINAL, PERFECT VERSION — colored dot + perfect glow */
 .marker-background {
@@ -817,8 +817,8 @@
         animation: pulseGreen 1.5s infinite ease-in-out;
     }
     @keyframes pulseGreen {
-        0%, 100% { filter: brightness(1); }
-        50% { filter: brightness(1.4); }
+        0%, 100% { filter: brightness(0.5); }
+        50% { filter: brightness(0.6); }
     }
 
     /* SHARE BUBBLE */
@@ -927,7 +927,7 @@ nukeStyle.textContent = `
 }
 /* SOFT GLOW WHEN POPUP IS OPEN */
 .popup-glow {
-    filter: drop-shadow(0 0 12px #00ff00) brightness(1.4) !important;
+    filter: drop-shadow(0 0 12px #00ff00) brightness(0.6) !important;
     z-index: 10000 !important;
     animation: pulse-glow 2s infinite alternate;
 }
@@ -937,8 +937,8 @@ nukeStyle.textContent = `
     animation: pulse-glow 2s infinite alternate;
 }
 @keyframes pulse-glow {
-    from { filter: drop-shadow(0 0 12px #00ff00) brightness(1.4); }
-    to { filter: drop-shadow(0 0 18px #00ff80) brightness(1.5); }
+    from { filter: drop-shadow(0 0 12px #00ff00) brightness(0.6); }
+    to { filter: drop-shadow(0 0 18px #00ff80) brightness(1.2); }
 }
 /* FORCE BLACK TEXT ON BUTTONS — WORKS IN DARK MODE TOO */
 #exportAllBtn,
@@ -1349,39 +1349,39 @@ communityVersion = getCurrentCommunityVersion();
 
         let categoryIcons = { ...defaultCategoryIcons, ...customCategories };
         const defaultCategoryColors = {
-    'weapons':            '#FFFFFF', // Neon Red — guns & danger
-    'armor':              '#FFFFFF', // Indigo Blue — steel & protection
-    'aid':                '#FFFFFF', // Electric Green — stimpaks & healing
-    'food/drink':         '#FFFFFF', // Nuka-Cola Amber Yellow
-    'ammunition':         '#FFFFFF', // Bullet Brass Orange
-    'apparel':            '#FFFFFF', // Vibrant Purple — outfits & fashion
-    'plans':              '#FFFFFF', // Saddle Brown — old blueprints
-    'junk':               '#FFFFFF', // Cold Scrap Gray
-    'holotapes':          '#FFFFFF', // Retro Cassette Amber
-    'misc':               '#FFFFFF', // Bright Cyan — catch-all
-    'plants':             '#FFFFFF', // Deep Forest Green
-    'eggs':               '#FFFFFF', // Alien Pink
-    'creatures':          '#FFFFFF', // Blood Red
-    'vendors':            '#FFFFFF', // Caps Gold
-    'exchanges':          '#FFFFFF', // Trading Teal
-    'vaults':             '#FFFFFF', // Vault-Tec Electric Blue
-    'power armor':        '#FFFFFF', // T-51b Dark Titanium
-    'fusion core':        '#FFFFFF', // Glowing Fusion Orange
-    'nuke drop zones':    '#FFFFFF', // Nuclear Warning Red
-    'nuke silos':         '#FFFFFF', // Deep Silo Purple-Red
-    'magazines':          '#FFFFFF', // Comic-Book Magenta
-    'bobbleheads':        '#FFFFFF', // Shiny Turquoise
-    'treasure maps':      '#FFFFFF', // Buried Treasure Gold
-    'resource deposits':  '#FFFFFF', // Ore Blue-Gray
-    'fishing locations':  '#FFFFFF', // Deep Water Blue
-    'workshops':          '#FFFFFF', // Workshop Wood Brown
-    'train stations':     '#FFFFFF', // Industrial Slate
-    'town locations':     '#FFFFFF', // Settlement Warm Orange
-    'event locations':    '#FFFFFF', // Event Hot Pink
-    'named locations':    '#FFFFFF', // Pure White text
-    'regions':            '#FFFFFF', // Highlight Lime
-    'terminal locations': '#FFFFFF', // Terminal Bright Teal — STANDS OUT
-    'safe locations':     '#FFFFFF'  // Safe-Zone Lime Yellow
+    'weapons':            '#002F00', // Neon Red — guns & danger
+    'armor':              '#002F00', // Indigo Blue — steel & protection
+    'aid':                '#002F00', // Electric Green — stimpaks & healing
+    'food/drink':         '#002F00', // Nuka-Cola Amber Yellow
+    'ammunition':         '#002F00', // Bullet Brass Orange
+    'apparel':            '#002F00', // Vibrant Purple — outfits & fashion
+    'plans':              '#002F00', // Saddle Brown — old blueprints
+    'junk':               '#002F00', // Cold Scrap Gray
+    'holotapes':          '#002F00', // Retro Cassette Amber
+    'misc':               '#002F00', // Bright Cyan — catch-all
+    'plants':             '#002F00', // Deep Forest Green
+    'eggs':               '#002F00', // Alien Pink
+    'creatures':          '#002F00', // Blood Red
+    'vendors':            '#002F00', // Caps Gold
+    'exchanges':          '#002F00', // Trading Teal
+    'vaults':             '#002F00', // Vault-Tec Electric Blue
+    'power armor':        '#002F00', // T-51b Dark Titanium
+    'fusion core':        '#002F00', // Glowing Fusion Orange
+    'nuke drop zones':    '#002F00', // Nuclear Warning Red
+    'nuke silos':         '#002F00', // Deep Silo Purple-Red
+    'magazines':          '#002F00', // Comic-Book Magenta
+    'bobbleheads':        '#002F00', // Shiny Turquoise
+    'treasure maps':      '#002F00', // Buried Treasure Gold
+    'resource deposits':  '#002F00', // Ore Blue-Gray
+    'fishing locations':  '#002F00', // Deep Water Blue
+    'workshops':          '#002F00', // Workshop Wood Brown
+    'train stations':     '#002F00', // Industrial Slate
+    'town locations':     '#002F00', // Settlement Warm Orange
+    'event locations':    '#002F00', // Event Hot Pink
+    'named locations':    '#002F00', // Pure White text
+    'regions':            '#002F00', // Highlight Lime
+    'terminal locations': '#002F00', // Terminal Bright Teal — STANDS OUT
+    'safe locations':     '#002F00'  // Safe-Zone Lime Yellow
 };
         let categoryColors = { ...defaultCategoryColors };
 		// ——— CUSTOM CATEGORIES USE PURE WHITE ONLY ———
