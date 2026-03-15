@@ -1031,6 +1031,22 @@ nukeStyle.textContent = `
 .leaflet-marker-icon:not(:has(.grid-label)):hover::before {
     opacity: 1;
 }
+/* Prevents the popup from stealing mouse/touch focus from the cluster */
+.leaflet-popup {
+    pointer-events: none;
+}
+
+/* Once a user clicks a marker INSIDE, let them click links in the popup */
+.leaflet-popup-content-wrapper {
+    pointer-events: auto;
+}
+
+/* Removes the "Tap Highlight" gray box on mobile */
+.leaflet-interactive {
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+}
+
     </style>
 </head>
 <body>
@@ -1476,10 +1492,14 @@ const clusteredMarkers = L.markerClusterGroup({
     }
 });
 clusteredMarkers.on('clustermouseover clusterclick', function (a) {
-    if (a.layer._spiderfied) return;
+    // If this cluster is already open, don't do anything (prevents flashing)
+    if (a.layer === currentlySpiderfied) return;
+
+    // Open the cluster
     a.layer.spiderfy();
     currentlySpiderfied = a.layer;
 
+    // Optional: Hide the "Green Ring" cycle by delaying the popup slightly
     setTimeout(() => {
         const childMarkers = a.layer.getAllChildMarkers();
         if (childMarkers.length === 0) return;
@@ -1496,9 +1516,9 @@ clusteredMarkers.on('clustermouseover clusterclick', function (a) {
             }
         });
 
-        // Open popup with upward offset for cluster context
+        // This keeps your 100px offset logic intact
         closestMarker.openPopup({
-            offset: [0, -100]  // Moves popup 100px upward; increase to -120 or -150 if needed
+            offset: [0, -100]
         });
 
         currentClusterPopup = closestMarker;
@@ -1514,13 +1534,12 @@ clusteredMarkers.on('click', function (e) {
     currentClusterPopup = marker;
 });
 map.on('click', function (e) {
-    // FIX: Check if we are actually touching a marker or popup
+    // We check if the thing you clicked is NOT a marker, NOT a popup, and NOT a cluster
     const target = e.originalEvent.target;
-    const isMarkerOrPopup = target.closest('.leaflet-marker-icon, .leaflet-popup, .leaflet-marker-cluster');
-    
-    // Only close the cluster if we click the ACTUAL map background, 
-    // not just "near" a marker (this is what fixes the mobile issue).
-    if (currentlySpiderfied && !isMarkerOrPopup) {
+    const isUIElement = target.closest('.leaflet-marker-icon, .leaflet-popup, .leaflet-marker-cluster');
+
+    // If a cluster is open and we clicked the EMPTY map:
+    if (currentlySpiderfied && !isUIElement) {
         currentlySpiderfied.unspiderfy();
         currentlySpiderfied = null;
         currentClusterPopup = null;
@@ -4539,4 +4558,3 @@ console.log('%cCopyright © 2025 MrCrazy — All rights reserved\n' +
 </script>
 </body>
 </html>
-
