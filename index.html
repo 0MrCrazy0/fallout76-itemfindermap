@@ -1033,7 +1033,7 @@ nukeStyle.textContent = `
 }
 /* Prevents the popup from stealing mouse/touch focus from the cluster */
 .leaflet-popup {
-    pointer-events: none;
+    pointer-events: auto !important;
 }
 
 /* Once a user clicks a marker INSIDE, let them click links in the popup */
@@ -1045,6 +1045,12 @@ nukeStyle.textContent = `
 .leaflet-interactive {
     -webkit-tap-highlight-color: transparent;
     outline: none;
+}
+/* Add a tiny bit of padding to the cluster icons for easier tapping */
+.marker-cluster {
+    background-clip: padding-box;
+    border-radius: 20px;
+    touch-action: manipulation;
 }
 
     </style>
@@ -1533,16 +1539,24 @@ clusteredMarkers.on('click', function (e) {
     marker.openPopup();
     currentClusterPopup = marker;
 });
+map.on('popupclose', function() {
+    // We do nothing here. This prevents the "Unspiderfy" from triggering
+    // just because the speech bubble was closed.
+});
+
+// 2. STICKY FIX: Only close if we click the actual black map background
 map.on('click', function (e) {
-    // We check if the thing you clicked is NOT a marker, NOT a popup, and NOT a cluster
     const target = e.originalEvent.target;
+    
+    // Check if we hit a marker, a cluster, or any part of a popup
     const isUIElement = target.closest('.leaflet-marker-icon, .leaflet-popup, .leaflet-marker-cluster');
 
-    // If a cluster is open and we clicked the EMPTY map:
+    // ONLY unspiderfy if we clicked the EMPTY map (the black space)
     if (currentlySpiderfied && !isUIElement) {
         currentlySpiderfied.unspiderfy();
         currentlySpiderfied = null;
         currentClusterPopup = null;
+        isClusterHovered = false; // Reset the hover guard too
     }
 });
         const nonClusteredMarkers = L.layerGroup();
@@ -4558,3 +4572,4 @@ console.log('%cCopyright © 2025 MrCrazy — All rights reserved\n' +
 </script>
 </body>
 </html>
+
