@@ -1052,6 +1052,11 @@ nukeStyle.textContent = `
     border-radius: 20px;
     touch-action: manipulation;
 }
+/* Makes the popup close button 'solid' so touches don't bleed through to the map */
+.leaflet-popup-close-button {
+    pointer-events: auto !important;
+    z-index: 1000;
+}
 
     </style>
 </head>
@@ -1531,14 +1536,20 @@ clusteredMarkers.on('clustermouseover clusterclick', function (a) {
     }, 380);
 });
 clusteredMarkers.on('click', function (e) {
+    // FIX: Stops the click from reaching the map and triggering "unspiderfy"
+    L.DomEvent.stopPropagation(e); 
+
     const marker = e.layer;
     if (!currentlySpiderfied) return;
+
     if (currentClusterPopup && currentClusterPopup !== marker) {
         currentClusterPopup.closePopup();
     }
+    
     marker.openPopup();
     currentClusterPopup = marker;
 });
+
 map.on('popupclose', function() {
     // We do nothing here. This prevents the "Unspiderfy" from triggering
     // just because the speech bubble was closed.
