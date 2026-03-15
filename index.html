@@ -1514,8 +1514,13 @@ clusteredMarkers.on('click', function (e) {
     currentClusterPopup = marker;
 });
 map.on('click', function (e) {
-    const clickedOnMap = !e.originalEvent.target.closest('.leaflet-marker-icon, .leaflet-popup, .leaflet-marker-cluster');
-    if (currentlySpiderfied && clickedOnMap) {
+    // FIX: Check if we are actually touching a marker or popup
+    const target = e.originalEvent.target;
+    const isMarkerOrPopup = target.closest('.leaflet-marker-icon, .leaflet-popup, .leaflet-marker-cluster');
+    
+    // Only close the cluster if we click the ACTUAL map background, 
+    // not just "near" a marker (this is what fixes the mobile issue).
+    if (currentlySpiderfied && !isMarkerOrPopup) {
         currentlySpiderfied.unspiderfy();
         currentlySpiderfied = null;
         currentClusterPopup = null;
@@ -4534,3 +4539,4 @@ console.log('%cCopyright © 2025 MrCrazy — All rights reserved\n' +
 </script>
 </body>
 </html>
+
