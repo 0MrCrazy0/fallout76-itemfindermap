@@ -858,23 +858,6 @@
     color: #000 !important;
     background: #00ff00 !important;
     }
-.leaflet-marker-icon::before {
-    content: '';
-    position: absolute;
-    width: 50px;
-    height: 50px;
-    border: 2px solid rgba(0, 255, 0, 0.3);
-    border-radius: 50%;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.2s;
-}
-.leaflet-marker-icon:hover::before {
-    opacity: 1;
-}
 const nukeStyle = document.createElement('style');
 nukeStyle.textContent = `
     @keyframes nukeFlash {
@@ -1015,6 +998,38 @@ nukeStyle.textContent = `
 @keyframes pulse {
     0%,100% { transform:scale(1); }
     50% { transform:scale(1.15); }
+}
+/* Hover ring ONLY for normal map markers — completely exclude anything inside .grid-label */
+.leaflet-marker-icon:has(.grid-label) {
+    pointer-events: none !important;  /* Prevents hover entirely on grid icons */
+}
+
+/* Explicitly hide the ::before pseudo-element on grid-wrapped icons */
+.leaflet-marker-icon:has(.grid-label)::before,
+.leaflet-marker-icon:has(.grid-label):hover::before {
+    display: none !important;
+    opacity: 0 !important;
+    content: none !important;
+}
+
+/* Keep the ring working normally for all other markers */
+.leaflet-marker-icon:not(:has(.grid-label))::before {
+    content: '';
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border: 2px solid rgba(0, 255, 0, 0.3);
+    border-radius: 50%;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.leaflet-marker-icon:not(:has(.grid-label)):hover::before {
+    opacity: 1;
 }
     </style>
 </head>
@@ -1464,12 +1479,15 @@ clusteredMarkers.on('clustermouseover clusterclick', function (a) {
     if (a.layer._spiderfied) return;
     a.layer.spiderfy();
     currentlySpiderfied = a.layer;
+
     setTimeout(() => {
         const childMarkers = a.layer.getAllChildMarkers();
         if (childMarkers.length === 0) return;
+
         const clusterCenter = a.layer.getLatLng();
         let closestMarker = childMarkers[0];
         let closestDistance = clusterCenter.distanceTo(closestMarker.getLatLng());
+
         childMarkers.forEach(marker => {
             const dist = clusterCenter.distanceTo(marker.getLatLng());
             if (dist < closestDistance) {
@@ -1477,7 +1495,12 @@ clusteredMarkers.on('clustermouseover clusterclick', function (a) {
                 closestMarker = marker;
             }
         });
-        closestMarker.openPopup();
+
+        // Open popup with upward offset for cluster context
+        closestMarker.openPopup({
+            offset: [0, -100]  // Moves popup 100px upward; increase to -120 or -150 if needed
+        });
+
         currentClusterPopup = closestMarker;
     }, 380);
 });
@@ -1866,7 +1889,7 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
 // Create a dedicated high-z-index pane for the grid (above clusters!)
 if (!map.getPane('gridPane')) {
     map.createPane('gridPane');
-    map.getPane('gridPane').style.zIndex = 800;        // Above marker pane (600) and clusters (700)
+    map.getPane('gridPane').style.zIndex = 450;        // Above marker pane (600) and clusters (700)
     map.getPane('gridPane').style.pointerEvents = 'none'; // Click-through
 }
 
@@ -1914,7 +1937,8 @@ function drawGrid() {
                     iconAnchor: [15, 15]
                 }),
                 zIndexOffset: 20000,       // ← Extra insurance — always on top
-                pane: 'gridPane'           // ← Critical for stability
+                pane: 'gridPane',           // ← Critical for stability
+				interactive: false
             }).addTo(gridLayer);
         }
     }
@@ -4503,11 +4527,10 @@ console.log('%cWelcome, Vault Dweller!\n' +
     'color:#00ff88; font-family:monospace; font-size:13px; line-height:1.7; background:#000; padding:6px 0;');
 
 console.log('%cCopyright © 2025 MrCrazy — All rights reserved\n' +
-            'Last updated: 28 Feb 2026',
+            'Last updated: 15-3-2026',
     'color:#aaaaaa; font-family:monospace; font-size:12px; background:#000; padding:4px 0;');
     })();
 });
 </script>
 </body>
 </html>
-
