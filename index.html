@@ -1057,7 +1057,11 @@ nukeStyle.textContent = `
     pointer-events: auto !important;
     z-index: 1000;
 }
-
+/* Improve pinch-zoom smoothness on mobile when clusters are spiderfied */
+.leaflet-zoom-animated {
+    will-change: transform;
+    transform: translate3d(0,0,0);
+}
     </style>
 </head>
 <body>
@@ -1264,25 +1268,31 @@ nukeStyle.textContent = `
 <script>
 if ('serviceWorker' in navigator && !sessionStorage.getItem('recoveryDone')) {
     setTimeout(async () => {
-        const storedVersion = localStorage.getItem('fo76_map_version');
-
-        if (!storedVersion || storedVersion < '1.3') {
-            console.log('Old/broken install detected — auto-fixing once...');
-
+        const storedVersion = localStorage.getItem('fo76_map_version') || '0';
+        // Only recover for truly ancient versions (pre-v76)
+        if (parseFloat(storedVersion) < 76.0) {
+            console.log('Performing one-time SW/cache recovery for old version');
             sessionStorage.setItem('recoveryDone', 'true');
 
-            const regs = await navigator.serviceWorker.getRegistrations();
-            for (const reg of regs) await reg.unregister();
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const reg of registrations) await reg.unregister();
 
-            const keys = await caches.keys();
-            for (const key of keys) await caches.delete(key);
+            const cacheNames = await caches.keys();
+            for (const name of cacheNames) await caches.delete(name);
 
-            location.replace(location.href.split('?')[0] + '?recovered=' + Date.now());
+            window.location.reload(); // Clean reload
+        } else {
+            sessionStorage.setItem('recoveryDone', 'true');
+            console.log('Recovery check skipped: version is current');
         }
     }, 3000);
 }
 document.addEventListener('DOMContentLoaded', function() {
     (function() {
+        if (!localStorage.getItem('fo76_map_version')) {
+            localStorage.setItem('fo76_map_version', '76.READY');
+        }
+
         const STORAGE_KEY = 'fo76_locations';
         const CUSTOM_CATEGORIES_KEY = '76_custom_categories';
         const MAP_VERSION_KEY = 'fo76_map_version';
@@ -1535,39 +1545,118 @@ clusteredMarkers.on('clustermouseover clusterclick', function (a) {
         currentClusterPopup = closestMarker;
     }, 380);
 });
-clusteredMarkers.on('click', function (e) {
-    // FIX: Stops the click from reaching the map and triggering "unspiderfy"
-    L.DomEvent.stopPropagation(e); 
+// Cluster hover/click: spiderfy + auto-open topmost marker with offset
+clusteredMarkers.on('clustermouseover clusterclick', function (a) {
+    if (a.layer._spiderfied) return;
+    a.layer.spiderfy();
+    currentlySpiderfied = a.layer;
 
+    setTimeout(() => {
+        const childMarkers = a.layer.getAllChildMarkers();
+        if (childMarkers.length === 0) return;
+
+        // Sort: highest zIndexOffset first, then most recent addedTime
+        const sorted = childMarkers.slice().sort((a, b) => {
+            const offsetA = a.options.zIndexOffset || 0;
+            const offsetB = b.options.zIndexOffset || 0;
+            if (offsetA !== offsetB) return offsetB - offsetA;
+
+            const locA = locations.find(l => l.id === a.options.id);
+            const locB = locations.find(l => l.id === b.options.id);
+            const timeA = locA?.addedTime || 0;
+            const timeB = locB?.addedTime || 0;
+            return timeB - timeA; // newer first
+        });
+
+        const topMarker = sorted[0];
+        topMarker.openPopup({
+            offset: [0, -100]  // Keeps your upward offset for clusters
+        });
+        currentClusterPopup = topMarker;
+
+        // Brief highlight to show which marker was auto-selected
+        if (topMarker._icon) {
+            topMarker._icon.classList.add('marker-flash');
+            setTimeout(() => topMarker._icon.classList.remove('marker-flash'), 3000);
+        }
+    }, 380);
+});
+
+// When clicking a child marker inside a spiderfied cluster
+clusteredMarkers.on('click', function (e) {
+    L.DomEvent.stopPropagation(e);           // Prevents map click from firing
     const marker = e.layer;
     if (!currentlySpiderfied) return;
 
     if (currentClusterPopup && currentClusterPopup !== marker) {
         currentClusterPopup.closePopup();
     }
-    
+
     marker.openPopup();
     currentClusterPopup = marker;
 });
 
-map.on('popupclose', function() {
-    // We do nothing here. This prevents the "Unspiderfy" from triggering
-    // just because the speech bubble was closed.
+// Track ignore flag and last active cluster
+let ignoreNextMapClick = false;
+let lastPopupCluster = null;
+
+// Single popupclose handler — does BOTH jobs
+map.on('popupclose', function (e) {
+    L.DomEvent.stopPropagation(e);
+
+    // Remember which cluster had the popup (for distance check)
+    if (currentlySpiderfied) {
+        lastPopupCluster = currentlySpiderfied;
+    }
+
+    // Block next map click for a short window (handles delayed/bubbled clicks)
+    ignoreNextMapClick = true;
+    setTimeout(() => {
+        ignoreNextMapClick = false;
+    }, 400);  // 400 ms — safe margin
 });
 
-// 2. STICKY FIX: Only close if we click the actual black map background
+// Final collapse logic with both protections
 map.on('click', function (e) {
-    const target = e.originalEvent.target;
-    
-    // Check if we hit a marker, a cluster, or any part of a popup
-    const isUIElement = target.closest('.leaflet-marker-icon, .leaflet-popup, .leaflet-marker-cluster');
+    // Protection 1: ignore any click right after popup close
+    if (ignoreNextMapClick) {
+        ignoreNextMapClick = false;
+        return;
+    }
 
-    // ONLY unspiderfy if we clicked the EMPTY map (the black space)
-    if (currentlySpiderfied && !isUIElement) {
+    const target = e.originalEvent.target;
+
+    // Protection 2: standard UI exclusions
+    if (
+        target.closest('.leaflet-marker-icon') ||
+        target.closest('.leaflet-popup') ||
+        target.closest('.leaflet-popup-close-button') ||
+        target.closest('.leaflet-marker-cluster') ||
+        target.closest('.leaflet-zoom-animated')
+    ) {
+        return;
+    }
+
+    // Protection 3: distance check — if click still near last cluster → ignore
+    if (lastPopupCluster) {
+        const clusterCenter = lastPopupCluster.getLatLng();
+        const clickLatLng = e.latlng;
+        const distancePx = map.latLngToContainerPoint(clusterCenter)
+                              .distanceTo(map.latLngToContainerPoint(clickLatLng));
+
+        if (distancePx < 120) {
+            // Reset reference only after user clearly moved away
+            setTimeout(() => { lastPopupCluster = null; }, 800);
+            return;
+        }
+    }
+
+    // Only collapse if NONE of the protections matched
+    if (currentlySpiderfied) {
         currentlySpiderfied.unspiderfy();
         currentlySpiderfied = null;
         currentClusterPopup = null;
-        isClusterHovered = false; // Reset the hover guard too
+        lastPopupCluster = null;
     }
 });
         const nonClusteredMarkers = L.layerGroup();
@@ -2484,25 +2573,30 @@ function showGridNotification(grid) {
             });
         } else {
                             marker.bindPopup(`
-    <div style="font-family:monospace;max-width:320px">
+    <div style="font-family:monospace;max-width:120px">
       <strong style="font-size:1.4em">${loc.icon || categoryIcons[loc.category] || 'Position'} ${loc.category.toUpperCase()}</strong><br>
       <small style="white-space:pre-wrap">${escapeHtml(loc.desc)}</small>
       ${loc.isCommunity && !loc.userEdited ? `
-        <div style="margin-top:12px;text-align:center;">
-          <button onclick="keepCommunityMarker('${loc.id}')"
-                  style="background:#00ff00;color:#000;border:none;padding:8px 16px;border-radius:6px;font-weight:bold;margin:4px;">
-            Keep This Marker
-          </button>
-          <button onclick="startReport('${loc.id}')"
-                  style="background:#300;color:#f00;border:2px solid #f00;padding:8px 16px;border-radius:6px;font-weight:bold;margin:4px;">
-            Report Bad Marker
-          </button>
-          <div style="margin-top:8px;font-size:12px;color:#aaa;">
-            Keep = save to your map • Report = ask MrCrazy to remove
-          </div>
-        </div>
-        <hr style="border:1px dashed #0f0;margin:12px 0">
-      ` : ''}
+  <div style="margin-top:16px; text-align:center;">
+    <div style="margin-bottom:12px;">
+      <button onclick="keepCommunityMarker('${loc.id}')"
+              style="background:#00ff00;color:#000;border:none;padding:10px 24px;border-radius:6px;font-weight:bold;font-size:12px;min-width:120px;cursor:pointer;">
+        Keep This Marker
+      </button>
+    </div>
+    <div style="margin-bottom:12px;">
+      <button onclick="startReport('${loc.id}')"
+              style="background:#300;color:#f00;border:2px solid #f00;padding:10px 24px;border-radius:6px;font-weight:bold;font-size:12px;min-width:120px;cursor:pointer;">
+        Report Bad Marker
+      </button>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:#aaa;line-height:1.4;">
+      Keep = save to your map permanently (editable)<br>
+      Report = ask MrCrazy to review and remove if needed
+    </div>
+  </div>
+  <hr style="border:1px dashed #0f0;margin:12px 0">
+` : ''}
       ${loc.userEdited && !loc.isPostcard ? `
         <div style="margin:6px 0;text-align:center;">
           <span class="popup-lock-toggle" onclick="toggleLockFromPopup(${locations.indexOf(loc)})">${loc.locked ? 'Locked' : 'Unlocked'}</span>
@@ -4576,7 +4670,7 @@ console.log('%cWelcome, Vault Dweller!\n' +
     'color:#00ff88; font-family:monospace; font-size:13px; line-height:1.7; background:#000; padding:6px 0;');
 
 console.log('%cCopyright © 2025 MrCrazy — All rights reserved\n' +
-            'Last updated: 15-3-2026',
+            'Last updated: 16-3-2026',
     'color:#aaaaaa; font-family:monospace; font-size:12px; background:#000; padding:4px 0;');
     })();
 });
