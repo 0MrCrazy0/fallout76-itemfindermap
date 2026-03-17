@@ -26,7 +26,6 @@
     <meta name="theme-color" content="#00ff00">
 
     <style>
-    /* DEV NOTE: GLOBAL STYLES — FALLOUT 76 TERMINAL AESTHETIC */
     body { 
         font-family: 'Courier New', monospace; 
         margin: 20px; 
@@ -34,7 +33,6 @@
         color: #00ff00; 
         overflow-x: hidden; 
     }
-
     h1 { 
         color: #00ff00; 
         text-align: center; 
@@ -42,8 +40,6 @@
         font-size: 2.2em; 
         margin-bottom: 12px; 
     }
-
-    /* DEV NOTE: MAP STYLING — BLACK BACKGROUND, GREEN BORDER */
     #map { 
         height: 750px; 
         max-width: 95%; 
@@ -53,8 +49,6 @@
         background-color: #000000; 
         position: relative; 
     }
-
-    /* DEV NOTE: TITLE TOGGLE BUTTON — FIXED */
     #titleToggleContainer {
         text-align: center;
         margin-bottom: 8px;
@@ -74,8 +68,6 @@
         background: #00ff00;
         color: #000;
     }
-
-    /* DEV NOTE: SEARCH BAR — MOVED UNDER MAP */
     #searchBar {
         display: flex;
         align-items: center;
@@ -89,8 +81,6 @@
         border-radius: 8px;
         max-width: 90%;
     }
-
-    /* DEV NOTE: TOOLS TOGGLE — OUTSIDE TOOLS PANEL */
     #toolsToggleRow {
         text-align: center;
         margin: 10px 0;
@@ -110,13 +100,11 @@
         background: #00ff00;
         color: #000;
     }
-
-/* FINAL — PERFECT ON EVERY MOBILE PHONE */
 #buttonGroup {
     display: grid;
-    grid-template-columns: 1fr 1fr;   /* 2 equal columns */
+    grid-template-columns: 1fr 1fr; 
     gap: 10px;
-    justify-items: stretch;           /* buttons fill their cell */
+    justify-items: stretch;    
     align-items: center;
     margin: 15px auto;
     padding: 16px;
@@ -124,13 +112,13 @@
     border: 1px solid #0f0;
     border-radius: 8px;
     max-width: 420px;
-    width: calc(100% - 32px);         /* full width minus padding */
+    width: calc(100% - 32px); 
     box-sizing: border-box;
     place-self: center;
 }
 
 #buttonGroup button {
-    width: 100% !important;           /* fill the cell */
+    width: 100% !important;     
     height: 48px !important;
     padding: 8px 12px !important;
     margin: 0 !important;
@@ -148,7 +136,7 @@
 }
 
 #voiceSearchBtn {
-    grid-column: 1 / -1;              /* spans both columns */
+    grid-column: 1 / -1;     
     width: 100% !important;
     max-width: none !important;
     font-size: 16px !important;
@@ -157,8 +145,6 @@
 #buttonGroup.hidden {
     display: none !important;
 }
-
-    /* DEV NOTE: FORM CONTROLS — GREEN BORDERS, BLACK INPUTS */
     .controls { 
         margin-bottom: 20px; 
         text-align: center; 
@@ -195,8 +181,6 @@
     margin-left: -16.5px !important;
     margin-top: -16.5px !important;
 }
-
-    /* DEV NOTE: SEARCH BAR HIGHLIGHT ANIMATION */
     #combinedSearch { 
         max-width: 250px; 
         transition: background-color 0.3s, box-shadow 0.3s; 
@@ -210,8 +194,6 @@
         0%, 100% { box-shadow: 0 0 15px #00ff00, inset 0 0 10px rgba(0, 255, 0, 0.3); } 
         50% { box-shadow: 0 0 25px #00ff00, inset 0 0 15px rgba(0, 255, 0, 0.5); } 
     }
-
-    /* DEV NOTE: BUTTONS — UNIFIED GREEN + BOLD TEXT */
     button {
         padding: 8px 16px;
         width: 100%;
@@ -242,8 +224,6 @@
     #deleteItemBtn { background: #F7615E !important; color: #000 !important; }
     #undoItemBtn { background: #cc8400 !important; color: #000 !important; margin: 8px 8px !important; }
     #duplicateItemBtn { background: #5E99F7 !important; color: #000 !important; }
-
-    /* DEV NOTE: LOCK TOGGLE IN POPUP/MODAL */
     #modalLockToggle, .popup-lock-toggle {
         color: #ffa500;
         cursor: pointer;
@@ -251,8 +231,6 @@
     #modalLockToggle:hover, .popup-lock-toggle:hover {
         color: #00ff00;
     }
-
-    /* DEV NOTE: TABLE CONTAINER — CENTERED, RESPONSIVE */
     #tableContainer {
         width: 100%;
         max-width: 1000px;
@@ -276,8 +254,6 @@
 .leaflet-marker-icon {
     will-change: transform;
 }
-
-    /* DEV NOTE: PAGINATION — PERFECTLY CENTERED ON ALL DEVICES */
     .pagination {
         display: flex;
         flex-wrap: wrap;
@@ -289,16 +265,12 @@
         padding: 0 10px;
         box-sizing: border-box;
     }
-
-    /* DEV NOTE: COUNTER — YOUR CENTERING FIX RESTORED */
     .counter {
         width: 200px !important;
         margin: 10px auto !important;
         text-align: center !important;
         font-weight: bold !important;
     }
-
-    /* DEV NOTE: FAKE TABLE HEADER — VISUAL CLARITY */
     #customTableHeader {
         display: table !important;
         width: 100% !important;
@@ -319,8 +291,6 @@
         color: #0f0 !important;
         font-weight: bold !important;
     }
-
-    /* DEV NOTE: REAL TABLE — FLEX LAYOUT FOR MOBILE */
     #locationsTable {
         width: 100% !important;
         border-collapse: separate !important;
@@ -353,8 +323,6 @@
         0%, 100% { box-shadow: 0 0 12px #0f0, 0 0 20px #0f0; }
         50% { box-shadow: 0 0 18px #0f0, 0 0 30px #0f0; }
     }
-
-    /* DEV NOTE: TABLE CELL FLEX SIZING */
     #locationsTable tbody td {
         flex: 1;
         display: flex;
@@ -376,17 +344,14 @@
         justify-content: flex-start !important;
         padding-left: 15px !important;
     }
-
-    /* DEV NOTE: ICONS & LOCK TOGGLE */
     .icon-circle {
         width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 16px; font-weight: bold; color: #000;
     }
     .text-location {
         background: #000; color: #fff; padding: 2px 6px; border: 1px solid #0f0; border-radius: 3px; font-size: 11px; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; margin: 0 auto;
     }
-    .lock-toggle { font-size: 18px; cursor: pointer; display: block; margin: 0 auto; }
-
-    /* DEV NOTE: MODALS — FULLSCREEN, GREEN BORDER */
+    .lock-toggle { font-size: 18px; cursor: pointer; display: block; margin: 0 auto; 
+	}
     .modal {
         display: none;
         position: fixed;
@@ -420,8 +385,6 @@
         cursor: pointer;
     }
     .close:hover { color: #0a2a2a; }
-
-    /* DEV NOTE: MODAL BUTTONS — CENTERED & WRAPPED */
     #itemModal .modal-content > div:last-child {
         display: flex;
         flex-wrap: wrap;
@@ -438,15 +401,11 @@
     flex: 1;
     min-width: 120px;
 }
-
-    /* DEV NOTE: MARKER CLUSTERING */
     .marker-cluster div {
         width: 30px; height: 30px; margin-left: 5px; margin-top: 5px; text-align: center; border-radius: 15px;
         font: bold 12px/30px "Helvetica Neue", Arial, Helvetica, sans-serif;
         background-color: #ffff00; color: #000000;
     }
-
-    /* DEV NOTE: GRID LINES & LABELS */
     .grid-line {
         pointer-events: none;
         stroke: rgba(0, 255, 0, 0.35);
@@ -463,11 +422,9 @@
         text-anchor: middle;
         dominant-baseline: central;
     }
-
-    /* DEV NOTE: GRID NOTIFICATION POPUP */
     #gridNotification {
     position: fixed;
-    bottom: 120px !important;   /* ← Moved way up from bottom */
+    bottom: 120px !important;
     left: 50%;
     transform: translateX(-50%);
     background: rgba(0, 40, 0, 0.95);
@@ -486,20 +443,16 @@
     backdrop-filter: blur(4px);
     text-shadow: 0 0 10px #00ff00;
 }
-
 #gridNotification.show {
     opacity: 1;
     transform: translateX(-50%) translateY(-10px);
     animation: gridPulse 1.5s ease-out;
 }
-
 @keyframes gridPulse {
     0% { box-shadow: 0 0 30px #00ff00; }
     50% { box-shadow: 0 0 50px #00ff88; }
     100% { box-shadow: 0 0 30px #00ff00; }
 }
-
-    /* DEV NOTE: DARK MODE — FULL BLACK TERMINAL */
     body.dark-mode {
         background-color: #000000 !important;
     }
@@ -529,8 +482,6 @@
     body.dark-mode .grid-line {
         stroke: rgba(0, 255, 0, 0.4) !important;
     }
-
-    /* DEV NOTE: LEAFLET POPUP = ALWAYS LIGHT FALLOUT 76 STYLE */
     .leaflet-popup-content-wrapper,
     .leaflet-popup-tip {
         background-color: #1a3c34 !important;
@@ -547,8 +498,6 @@
     .modal-content button#fullBackupBtn {
     color: #000000 !important;
 }
-
-    /* DEV NOTE: ZOOM BUTTONS — FALLOUT 76 STYLE + SAFE POSITION */
     .leaflet-control-zoom {
         top: 60px !important;
         left: 60px !important;
@@ -574,8 +523,6 @@
         color: #000000 !important;
         box-shadow: 0 0 15px #00ff00, inset 0 0 10px #00ff00 !important;
     }
-
-    /* DEV NOTE: MOBILE POPUP BUTTON — VISIBLE IN LIGHT & DARK MODE */
     .leaflet-popup button {
         background: #00ff00 !important;
         color: #000 !important !important;
@@ -599,8 +546,6 @@
     body.dark-mode .leaflet-popup button:hover {
         background: #00cc00 !important;
     }
-
-    /* DEV NOTE: MARKER GLOW ANIMATION */
     .custom-icon.glowing {
         box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00 !important;
         animation: glowPulse 1.5s infinite ease-in-out;
@@ -609,8 +554,6 @@
         0%, 100% { box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00; }
         50% { box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff00; }
     }
-
-    /* DEV NOTE: MARKER GLOW ANIMATION */
 .custom-icon,
 .custom-icon.glowing,
 .custom-icon.glowing .marker-background {
@@ -625,7 +568,6 @@
             brightness(1.0) !important;
     animation: glowPulse 1.5s infinite ease-in-out;
 }
-/* THIS IS THE FINAL, PERFECT VERSION — colored dot + perfect glow */
 .marker-background {
     width: 30px !important;
     height: 30px !important;
@@ -633,16 +575,10 @@
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-   
-   
-    /* Slightly translucent so the green glow bleeds through beautifully */
     opacity: 0.90 !important;
-   
-    /* Thin black rim = maximum pop on any map background */
     border: 1.5px solid #000 !important;
     box-sizing: border-box !important;
 }
-    /* DEV NOTE: CATEGORY LIST — VERTICAL + SPACED */
     #categoryCheckboxes label {
         display: block !important;
         margin: 8px 0 !important;
@@ -650,8 +586,6 @@
         background: rgba(0,0,0,0.3);
         border-radius: 4px;
     }
-
-    /* DEV NOTE: NUKA-COLA LINK — READABLE */
     .small a {
         color: #00ff00 !important;
         text-decoration: underline;
@@ -661,8 +595,6 @@
         color: #00ff88 !important;
         text-shadow: 0 0 8px #00ff00;
     }
-
-    /* DEV NOTE: MOBILE RESPONSIVENESS */
     @media (max-width: 768px) {
         #map { height: 600px; max-width: 100%; }
         .controls { flex-direction: column; align-items: center; }
@@ -694,8 +626,6 @@
             left: 50px !important;
         }
     }
-
-    /* DEV NOTE: NUKE CODES EASTER EGG */
     .nuke-emoji-wrapper { text-align: center; margin: 12px 0; }
     .nuke-emoji-btn {
         display: inline-block;
@@ -716,13 +646,9 @@
         box-shadow: 0 0 22px #00ff00, 0 0 34px #00ff00;
     }
     .nuke-emoji-btn:active { transform: scale(0.96); }
-
-    /* DEV NOTE: VOICE SEARCH COMPATIBILITY */
     #voiceSearchBtn[disabled], #voiceSearchBtn[style*="opacity: 0.6"] {
         pointer-events: auto !important;
     }
-
-    /* DEV NOTE: UI LOADING FLASH PREVENTION */
     #searchBar, #buttonGroup, #toolsToggleRow, #topBar {
         visibility: hidden;
         opacity: 0;
@@ -732,23 +658,17 @@
     .map-ready #toolsToggleRow, .map-ready #topBar {
         visibility: visible; opacity: 1;
     }
-
-    /* DEV NOTE: CUSTOM UI LAYOUT FIXES */
     .top-bar.hidden { display: none; }
     .tools-toggle-row { display: flex; justify-content: center; margin: 10px 0; }
     .button-group.hidden { display: none !important; }
     #lockAllBtn { display: none; margin: 5px; }
     #toggleTableBtn { display: none !important; }
-
-    /* DEV NOTE: POPUP ARROW EVEN CLOSER */
     .leaflet-popup {
         margin-bottom: 25px !important;
     }
     .leaflet-popup-tip {
         margin-top: -6px !important;
     }
-
-    /* DEV NOTE: POPUP BUTTON — 100% VISIBLE ON MOBILE + DARK MODE */
     .leaflet-popup-content button,
     .leaflet-popup-content-wrapper button {
         all: unset !important;
@@ -782,8 +702,6 @@
     body.dark-mode .leaflet-popup-content-wrapper button:hover {
         background: #00cc00 !important;
     }
-
-    /* BIGGER DESCRIPTION BOX */
     #itemDesc, #itemModal textarea {
         height: 160px !important;
         width: 100% !important;
@@ -804,8 +722,6 @@
         background: #00ff00;
         border-radius: 0;
     }
-
-    /* MARKER FLASH & HOVER PULSE */
     .marker-flash {
         animation: flashGreen 3s ease-out forwards;
     }
@@ -820,8 +736,6 @@
         0%, 100% { filter: brightness(0.5); }
         50% { filter: brightness(0.6); }
     }
-
-    /* SHARE BUBBLE */
     .share-spot {
         position: fixed;
         top: 20%;
@@ -908,7 +822,6 @@ nukeStyle.textContent = `
     0% { opacity: 0; transform: translateY(20px); }
     100% { opacity: 1; transform: translateY(0); }
 }
-/* SOFT GLOW WHEN POPUP IS OPEN */
 .popup-glow {
     filter: drop-shadow(0 0 12px #00ff00) brightness(0.6) !important;
     z-index: 10000 !important;
@@ -923,7 +836,6 @@ nukeStyle.textContent = `
     from { filter: drop-shadow(0 0 12px #00ff00) brightness(0.6); }
     to { filter: drop-shadow(0 0 18px #00ff80) brightness(1.2); }
 }
-/* FORCE BLACK TEXT ON BUTTONS — WORKS IN DARK MODE TOO */
 #exportAllBtn,
 #exportMineBtn,
 #installYes,
@@ -936,12 +848,10 @@ nukeStyle.textContent = `
     color: #000000 !important;
     font-weight: bold !important;
 }
-/* Extra safety for the big export modal buttons */
 .modal-content button#exportAllBtn,
 .modal-content button#exportMineBtn {
     color: #000000 !important;
 }
-/* AUTO-COMPLETE DROPDOWN */
 #searchSuggestions {
     position: absolute !important;
     top: 100% !important;
@@ -951,15 +861,13 @@ nukeStyle.textContent = `
     overflow-y: auto !important;
     background: #0a2a2a !important;
     border: 2px solid #00ff00 !important;
-    z-index: 999999 !important;        /* ← THIS IS THE KEY */
+    z-index: 999999 !important;
     display: none;
     box-shadow: 0 0 15px #00ff00 !important;
     pointer-events: auto !important;
 }
-
-/* Make sure the parent doesn't clip it */
 #searchBar {
-    position: relative !important;     /* ← This makes z-index work */
+    position: relative !important;
     z-index: 10 !important;
 }
 #searchSuggestions div {
@@ -984,7 +892,6 @@ nukeStyle.textContent = `
 .leaflet-popup-tip {
     margin-left: 18% !important;
 }
-/* ONLY THE PROGRESS BAR GLOWS ON LEVEL UP — NOTHING ELSE */
 #xpProgress.level-up {
     animation: barGlow 2.5s ease-out forwards;
     box-shadow: 0 0 25px #00ff88 !important;
@@ -999,20 +906,15 @@ nukeStyle.textContent = `
     0%,100% { transform:scale(1); }
     50% { transform:scale(1.15); }
 }
-/* Hover ring ONLY for normal map markers — completely exclude anything inside .grid-label */
 .leaflet-marker-icon:has(.grid-label) {
-    pointer-events: none !important;  /* Prevents hover entirely on grid icons */
+    pointer-events: none !important;
 }
-
-/* Explicitly hide the ::before pseudo-element on grid-wrapped icons */
 .leaflet-marker-icon:has(.grid-label)::before,
 .leaflet-marker-icon:has(.grid-label):hover::before {
     display: none !important;
     opacity: 0 !important;
     content: none !important;
 }
-
-/* Keep the ring working normally for all other markers */
 .leaflet-marker-icon:not(:has(.grid-label))::before {
     content: '';
     position: absolute;
@@ -1031,33 +933,25 @@ nukeStyle.textContent = `
 .leaflet-marker-icon:not(:has(.grid-label)):hover::before {
     opacity: 1;
 }
-/* Prevents the popup from stealing mouse/touch focus from the cluster */
 .leaflet-popup {
     pointer-events: auto !important;
 }
-
-/* Once a user clicks a marker INSIDE, let them click links in the popup */
 .leaflet-popup-content-wrapper {
     pointer-events: auto;
 }
-
-/* Removes the "Tap Highlight" gray box on mobile */
 .leaflet-interactive {
     -webkit-tap-highlight-color: transparent;
     outline: none;
 }
-/* Add a tiny bit of padding to the cluster icons for easier tapping */
 .marker-cluster {
     background-clip: padding-box;
     border-radius: 20px;
     touch-action: manipulation;
 }
-/* Makes the popup close button 'solid' so touches don't bleed through to the map */
 .leaflet-popup-close-button {
     pointer-events: auto !important;
     z-index: 1000;
 }
-/* Improve pinch-zoom smoothness on mobile when clusters are spiderfied */
 .leaflet-zoom-animated {
     will-change: transform;
     transform: translate3d(0,0,0);
@@ -1065,6 +959,16 @@ nukeStyle.textContent = `
 .leaflet-container {
     image-rendering: crisp-edges;
 }
+    #proceedWipeBtn:hover {
+        box-shadow: 0 0 25px 5px rgba(255, 68, 68, 0.8) !important;
+        filter: brightness(1.2);
+        transition: all 0.2s ease;
+    }
+    #cancelSafetyBtn:hover {
+        box-shadow: 0 0 25px 5px rgba(0, 255, 0, 0.6) !important;
+        filter: brightness(1.2);
+        transition: all 0.2s ease;
+    }
     </style>
 </head>
 <body>
@@ -1274,7 +1178,6 @@ if ('serviceWorker' in navigator && !sessionStorage.getItem('recoveryDone')) {
         const storedVersion = localStorage.getItem('fo76_map_version') || '0';
         
         // Only recover for truly ancient versions (pre-v76)
-        // We now use string comparison so '76.READY' is treated as current
         if (storedVersion !== '76.READY' && parseFloat(storedVersion) < 76.0) {
             console.log('Performing one-time SW/cache recovery for old version');
             sessionStorage.setItem('recoveryDone', 'true');
@@ -1440,10 +1343,9 @@ communityVersion = getCurrentCommunityVersion();
     'safe locations':     '#002F00'  // Safe-Zone Lime Yellow
 };
         let categoryColors = { ...defaultCategoryColors };
-		// ——— CUSTOM CATEGORIES USE PURE WHITE ONLY ———
 Object.keys(customCategories).forEach(cat => {
     if (!categoryColors[cat]) {
-        categoryColors[cat] = '#FFFFFF'; // Pure white — clean, readable, beautiful
+        categoryColors[cat] = '#002F00';
     }
 });
         const map = L.map('map', {
@@ -1517,14 +1419,9 @@ const clusteredMarkers = L.markerClusterGroup({
     }
 });
 clusteredMarkers.on('clustermouseover clusterclick', function (a) {
-    // If this cluster is already open, don't do anything (prevents flashing)
     if (a.layer === currentlySpiderfied) return;
-
-    // Open the cluster
     a.layer.spiderfy();
     currentlySpiderfied = a.layer;
-
-    // Optional: Hide the "Green Ring" cycle by delaying the popup slightly
     setTimeout(() => {
         const childMarkers = a.layer.getAllChildMarkers();
         if (childMarkers.length === 0) return;
@@ -1544,7 +1441,6 @@ clusteredMarkers.on('clustermouseover clusterclick', function (a) {
         currentClusterPopup = closestMarker;
     }, 380);
 });
-// Cluster hover/click: spiderfy + auto-open topmost marker with offset
 clusteredMarkers.on('clustermouseover clusterclick', function (a) {
     if (a.layer._spiderfied) return;
     a.layer.spiderfy();
@@ -1553,8 +1449,6 @@ clusteredMarkers.on('clustermouseover clusterclick', function (a) {
     setTimeout(() => {
         const childMarkers = a.layer.getAllChildMarkers();
         if (childMarkers.length === 0) return;
-
-        // Sort: highest zIndexOffset first, then most recent addedTime
         const sorted = childMarkers.slice().sort((a, b) => {
             const offsetA = a.options.zIndexOffset || 0;
             const offsetB = b.options.zIndexOffset || 0;
@@ -1564,26 +1458,22 @@ clusteredMarkers.on('clustermouseover clusterclick', function (a) {
             const locB = locations.find(l => l.id === b.options.id);
             const timeA = locA?.addedTime || 0;
             const timeB = locB?.addedTime || 0;
-            return timeB - timeA; // newer first
+            return timeB - timeA;
         });
 
         const topMarker = sorted[0];
         topMarker.openPopup({
-            offset: [0, -100]  // Keeps your upward offset for clusters
+            offset: [0, -100]
         });
         currentClusterPopup = topMarker;
-
-        // Brief highlight to show which marker was auto-selected
         if (topMarker._icon) {
             topMarker._icon.classList.add('marker-flash');
             setTimeout(() => topMarker._icon.classList.remove('marker-flash'), 3000);
         }
     }, 380);
 });
-
-// When clicking a child marker inside a spiderfied cluster
 clusteredMarkers.on('click', function (e) {
-    L.DomEvent.stopPropagation(e);           // Prevents map click from firing
+    L.DomEvent.stopPropagation(e); 
     const marker = e.layer;
     if (!currentlySpiderfied) return;
 
@@ -1595,29 +1485,25 @@ clusteredMarkers.on('click', function (e) {
     currentClusterPopup = marker;
 });
 
-// Track ignore flag and last active cluster
 let ignoreNextMapClick = false;
 let lastPopupCluster = null;
 
-// Single popupclose handler — does BOTH jobs
 map.on('popupclose', function (e) {
     L.DomEvent.stopPropagation(e);
 
-    // Remember which cluster had the popup (for distance check)
     if (currentlySpiderfied) {
         lastPopupCluster = currentlySpiderfied;
     }
 
-    // Block next map click for a short window (handles delayed/bubbled clicks)
     ignoreNextMapClick = true;
     setTimeout(() => {
         ignoreNextMapClick = false;
-    }, 400);  // 400 ms — safe margin
+    }, 400);
 });
 
-// Final collapse logic with both protections
+
 map.on('click', function (e) {
-    // Protection 1: ignore any click right after popup close
+
     if (ignoreNextMapClick) {
         ignoreNextMapClick = false;
         return;
@@ -1625,7 +1511,6 @@ map.on('click', function (e) {
 
     const target = e.originalEvent.target;
 
-    // Protection 2: standard UI exclusions
     if (
         target.closest('.leaflet-marker-icon') ||
         target.closest('.leaflet-popup') ||
@@ -1636,7 +1521,6 @@ map.on('click', function (e) {
         return;
     }
 
-    // Protection 3: distance check — if click still near last cluster → ignore
     if (lastPopupCluster) {
         const clusterCenter = lastPopupCluster.getLatLng();
         const clickLatLng = e.latlng;
@@ -1644,13 +1528,12 @@ map.on('click', function (e) {
                               .distanceTo(map.latLngToContainerPoint(clickLatLng));
 
         if (distancePx < 120) {
-            // Reset reference only after user clearly moved away
+
             setTimeout(() => { lastPopupCluster = null; }, 800);
             return;
         }
     }
 
-    // Only collapse if NONE of the protections matched
     if (currentlySpiderfied) {
         currentlySpiderfied.unspiderfy();
         currentlySpiderfied = null;
@@ -1721,7 +1604,6 @@ map.on('popupclose', () => {
     currentPopupMarkerId = null;
 });
 
-// ——— UNDO IMPORT BUTTON WITH 2-MINUTE COUNTDOWN ———
 let undoTimerInterval = null;
 let undoSecondsLeft = 0;
 
@@ -1735,7 +1617,6 @@ function showUndoButton() {
 
     timer.textContent = `(${undoSecondsLeft}s)`;
 
-    // Clear any old timer
     if (undoTimerInterval) clearInterval(undoTimerInterval);
 
     undoTimerInterval = setInterval(() => {
@@ -1749,15 +1630,15 @@ function showUndoButton() {
     }, 1000);
 }
 
-// ——— TOGGLE ONLY MY MARKERS (DEFAULT: OFF) ———
-let showOnlyMyMarkers = false;  // Off by default — shows all markers
+
+let showOnlyMyMarkers = false;
 
 document.getElementById('toggleMyMarkersBtn').onclick = () => {
     showOnlyMyMarkers = !showOnlyMyMarkers;
     document.getElementById('toggleMyMarkersBtn').textContent = 
         showOnlyMyMarkers ? 'My Markers: ON' : 'My Markers: All';
     
-    loadData(combinedSearch.value, categoryFilter.value);  // Refresh map
+    loadData(combinedSearch.value, categoryFilter.value);
     playSound('click');
 };
         const itemModal = document.getElementById('itemModal');
@@ -1869,7 +1750,6 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
             }
         });
 
-        // Remove duplicates
         const seen = new Set();
         const unique = matches.filter(item => {
             const key = item.desc + item.lat + item.lng;
@@ -2022,12 +1902,11 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
     showTempMessage('MARKER DUPLICATED — ORIGINAL RE-LOCKED', 4000);
     playSound('duplicate');
 };
-        // ——— GRID FIX — NO MORE FLICKER AT LOW ZOOM ———
-// Create a dedicated high-z-index pane for the grid (above clusters!)
+
 if (!map.getPane('gridPane')) {
     map.createPane('gridPane');
-    map.getPane('gridPane').style.zIndex = 450;        // Above marker pane (600) and clusters (700)
-    map.getPane('gridPane').style.pointerEvents = 'none'; // Click-through
+    map.getPane('gridPane').style.zIndex = 450; 
+    map.getPane('gridPane').style.pointerEvents = 'none'; 
 }
 
 function drawGrid() {
@@ -2038,7 +1917,6 @@ function drawGrid() {
     const cellSize = 4096 / gridSize;
     const letters = 'ABCDEFGHIJ'.split('');
 
-    // Draw lines — using the dedicated pane
     for (let i = 0; i <= gridSize; i++) {
         const x = i * cellSize;
         L.polyline([[0, x], [4096, x]], {
@@ -2046,7 +1924,7 @@ function drawGrid() {
             color: '#0f0',
             weight: 1,
             opacity: 0.5,
-            pane: 'gridPane'           // ← THIS STOPS FLICKER
+            pane: 'gridPane' 
         }).addTo(gridLayer);
 
         const y = i * cellSize;
@@ -2059,7 +1937,6 @@ function drawGrid() {
         }).addTo(gridLayer);
     }
 
-    // Draw labels — also in the same high pane + extra high zIndexOffset
     for (let row = 0; row < gridSize; row++) {
         for (let col = 0; col < gridSize; col++) {
             const centerX = col * cellSize + cellSize / 2;
@@ -2073,8 +1950,8 @@ function drawGrid() {
                     iconSize: [30, 30],
                     iconAnchor: [15, 15]
                 }),
-                zIndexOffset: 20000,       // ← Extra insurance — always on top
-                pane: 'gridPane',           // ← Critical for stability
+                zIndexOffset: 20000,   
+                pane: 'gridPane',  
 				interactive: false
             }).addTo(gridLayer);
         }
@@ -3091,12 +2968,15 @@ if (submitBtn) {
                             No recovery will be possible after this point.
                         </div>
                         <div style="text-align:center;margin-top:30px;display:flex;justify-content:center;gap:30px;flex-wrap:wrap;">
-                            <button id="cancelSafetyBtn" style="background:#00ff00;color:#000;padding:12px 30px;border:none;border-radius:6px;font-weight:bold;font-size:1.2em;min-width:180px;cursor:pointer;">
-                                CANCEL — BACKUP NOT SAVED
-                            </button>
-                            <button id="proceedWipeBtn" style="background:#ff4444;color:#000;padding:12px 30px;border:none;border-radius:6px;font-weight:bold;font-size:1.2em;min-width:180px;cursor:pointer;box-shadow:0 0 15px #ff4444;">
-                                PROCEED WITH WIPE (IRREVERSIBLE)
-                            </button>
+                            <!-- CANCEL BUTTON -->
+<button id="cancelSafetyBtn" style="color-scheme: only light; background:#00ff00; color:#000 !important; padding:12px 30px; border:none; border-radius:6px; font-weight:bold; font-size:1.2em; min-width:180px; cursor:pointer;box-shadow: 0 0 15px #00ff00;">
+    CANCEL — BACKUP NOT SAVED
+</button>
+
+<!-- WIPE BUTTON -->
+<button id="proceedWipeBtn" style="color-scheme: only light; background:#ff4444; color:#000 !important; padding:12px 30px; border:none; border-radius:6px; font-weight:bold; font-size:1.2em; min-width:180px; cursor:pointer; box-shadow: 0 0 15px #00ff00;">
+    PROCEED WITH WIPE (IRREVERSIBLE)
+</button>
                         </div>
                     </div>
                 `;
@@ -3834,7 +3714,6 @@ document.getElementById('submitCommunityBtn').onclick = () => {
 
     showTempMessage('SHARE YOUR MARKER — IT WILL BE REVIEWED.', 5000);
 };
-        /* DEV NOTE: MAP INTERACTIONS */
     map.on('dragstart', () => { isDraggingAny = true; });
     map.on('dragend', () => { setTimeout(() => { isDraggingAny = false; }, 400); });
     map.on('movestart', () => { isDraggingAny = true; });
@@ -3931,7 +3810,6 @@ map.on('dblclick', e => {
         playSound('selectcategory');
 syncToggleButtonStates();
 
-// One-time community update hint — now bulletproof (shows AFTER welcome modal)
 if (!localStorage.getItem('seenCommunityHint')) {
     const showHintAfterWelcome = () => {
         setTimeout(() => {
@@ -3941,7 +3819,6 @@ if (!localStorage.getItem('seenCommunityHint')) {
     };
 
     if (localStorage.getItem('fo76_welcome_accepted')) {
-        // Welcome already seen → show hint immediately after delay
         showHintAfterWelcome();
     } else {
         // Wait for player to click "ENTER THE WASTELAND"
@@ -3983,7 +3860,6 @@ function syncToggleButtonStates() {
         }
         syncToggleButtonStates();
 		
-		// Show confirmation after reset & reload
 if (localStorage.getItem('postResetMessageShown') === 'true') {
     localStorage.removeItem('postResetMessageShown');
     setTimeout(() => {
@@ -4043,17 +3919,14 @@ if (SpeechRecognition && voiceSearchBtn) {
     recognition.onresult = e => {
     let transcript = e.results[0][0].transcript.trim();
     
-    // Remove Chrome's auto-period and extra spaces
     transcript = transcript.replace(/[.\s]+$/, '').trim();
 
     if (combinedSearch) {
         combinedSearch.value = transcript;
 		clearBtn.style.display = 'block';
         
-        // THE REAL FIX — force the suggestions to re-run after value is set
         combinedSearch.dispatchEvent(new Event('input', { bubbles: true }));
         
-        // Force suggestions to update immediately
         setTimeout(() => {
             combinedSearch.dispatchEvent(new Event('input', { bubbles: true }));
         }, 150);
@@ -4738,7 +4611,7 @@ console.log('%cWelcome, Vault Dweller!\n' +
     'color:#00ff88; font-family:monospace; font-size:13px; line-height:1.7; background:#000; padding:6px 0;');
 
 console.log('%cCopyright © 2026 MrCrazy — All rights reserved\n' +
-            'Last updated: 17-3-2026 Made with ❤️ by MrCrazy ',
+            'Last updated: 18-3-2026 Made with ❤️ by MrCrazy ',
     'color:#aaaaaa; font-family:monospace; font-size:12px; background:#000; padding:4px 0;');
     })();
 });
