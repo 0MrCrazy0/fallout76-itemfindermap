@@ -11,8 +11,7 @@ magazines, bobbleheads, plans, treasure maps, junk, power armor… whatever you 
 - filter by category
 - save everything in your browser
 - export / import your markers (JSON)
-- download community submitted discoveries
-- works offline, dark mode & mobile-friendly
+- download community map submitted discoveries by users
 - click the How to Use button in the tools section for more info
 
 just open the link and start logging locations. No account needed.
