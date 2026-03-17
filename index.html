@@ -1062,6 +1062,9 @@ nukeStyle.textContent = `
     will-change: transform;
     transform: translate3d(0,0,0);
 }
+.leaflet-container {
+    image-rendering: crisp-edges;
+}
     </style>
 </head>
 <body>
@@ -1269,21 +1272,22 @@ nukeStyle.textContent = `
 if ('serviceWorker' in navigator && !sessionStorage.getItem('recoveryDone')) {
     setTimeout(async () => {
         const storedVersion = localStorage.getItem('fo76_map_version') || '0';
+        
         // Only recover for truly ancient versions (pre-v76)
-        if (parseFloat(storedVersion) < 76.0) {
+        // We now use string comparison so '76.READY' is treated as current
+        if (storedVersion !== '76.READY' && parseFloat(storedVersion) < 76.0) {
             console.log('Performing one-time SW/cache recovery for old version');
             sessionStorage.setItem('recoveryDone', 'true');
-
+            
             const registrations = await navigator.serviceWorker.getRegistrations();
             for (const reg of registrations) await reg.unregister();
-
             const cacheNames = await caches.keys();
             for (const name of cacheNames) await caches.delete(name);
-
-            window.location.reload(); // Clean reload
+            
+            window.location.reload(); // only for old users
         } else {
             sessionStorage.setItem('recoveryDone', 'true');
-            console.log('Recovery check skipped: version is current');
+            console.log('Recovery check skipped: version is current (76.READY)');
         }
     }, 3000);
 }
@@ -1535,11 +1539,6 @@ clusteredMarkers.on('clustermouseover clusterclick', function (a) {
                 closestDistance = dist;
                 closestMarker = marker;
             }
-        });
-
-        // This keeps your 100px offset logic intact
-        closestMarker.openPopup({
-            offset: [0, -100]
         });
 
         currentClusterPopup = closestMarker;
@@ -3036,13 +3035,17 @@ if (submitBtn) {
         }
         resetAppBtn.onclick = () => {
     showConfirmModal(
-        '☢FULL APP RESET☢',
-        'This will wipe everything and start fresh.<br><br>' +
-        'Your personal markers, XP, level & settings will be saved first.<br><br>' +
-        'After the nuke → import backup → Update Community Map → back in seconds.<br><br>' +
-        'Ready?',
+        '☢ FULL APP RESET ☢',
+        'This will wipe ALL data from your device, including:<br>' +
+        '<strong style="color:#ff4444;">• Your personal markers and edits</strong><br>' +
+        '<strong style="color:#ff4444;">• All community markers (they will be removed)</strong><br>' +
+        '<strong style="color:#ff4444;">• Your XP, level, and app settings</strong><br><br>' +
+        '<strong style="color:#00ff88;">A backup of your personal markers, XP, level, and settings will be triggered first.</strong><br><br>' +
+        'Community markers can be re-added later by clicking the "Update Community Map" button.<br><br>' +
+        'After the download starts, verify the .json file saved successfully before proceeding.<br><br>' +
+        'Ready to initiate reset protocol?',
         () => {
-
+            // Attempt backup download
             const userMarkers = locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard);
             const personalBackup = {
                 version: "personal-v76.READY",
@@ -3058,76 +3061,127 @@ if (submitBtn) {
                     activeCategories: [...activeCategories]
                 }
             };
+
             const blob = new Blob([JSON.stringify(personalBackup, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
+            a.href = url;
             a.download = `FO76_MyBackup_Level_${level}_${userMarkers.length}_markers_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
             a.click();
-            showTempMessage('PERSONAL BACKUP SAVED!', 4000);
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
 
+            showTempMessage('BACKUP DOWNLOAD TRIGGERED — CHECK DOWNLOADS FOLDER', 8000);
+
+            // Second safety confirmation
             setTimeout(() => {
-                const nuke = document.createElement('div');
-                nuke.style.cssText = `
-                    position:fixed;top:0;left:0;width:100vw;height:100vh;
-                    background:#000;z-index:999999;display:flex;
-                    align-items:center;justify-content:center;flex-direction:column;
-                    gap:30px;font-family:'Courier New',monospace;color:#0f0;
-                    pointer-events:none;
+                const safetyModal = document.createElement('div');
+                safetyModal.className = 'modal';
+                safetyModal.style.display = 'block';
+                safetyModal.innerHTML = `
+                    <div class="modal-content" style="max-width:520px; background:#1a3c34; border:3px solid #ff4444; box-shadow:0 0 25px #ff4444;">
+                        <span class="close" style="color:#ff4444;">X</span>
+                        <h2 style="color:#ff4444;text-shadow:0 0 15px #ff4444;text-align:center;margin-bottom:20px;">
+                            ☢ FINAL WIPE AUTHORIZATION ☢
+                        </h2>
+                        <div style="color:#00ff88;line-height:1.6;font-size:1.1em;text-align:center;margin:20px 0;">
+                            <strong>Have you confirmed the backup file was saved?</strong><br><br>
+                            Proceeding will <span style="color:#ff4444;font-weight:bold;">PERMANENTLY ERASE</span> all markers, XP, and settings.<br>
+                            No recovery will be possible after this point.
+                        </div>
+                        <div style="text-align:center;margin-top:30px;display:flex;justify-content:center;gap:30px;flex-wrap:wrap;">
+                            <button id="cancelSafetyBtn" style="background:#00ff00;color:#000;padding:12px 30px;border:none;border-radius:6px;font-weight:bold;font-size:1.2em;min-width:180px;cursor:pointer;">
+                                CANCEL — BACKUP NOT SAVED
+                            </button>
+                            <button id="proceedWipeBtn" style="background:#ff4444;color:#000;padding:12px 30px;border:none;border-radius:6px;font-weight:bold;font-size:1.2em;min-width:180px;cursor:pointer;box-shadow:0 0 15px #ff4444;">
+                                PROCEED WITH WIPE (IRREVERSIBLE)
+                            </button>
+                        </div>
+                    </div>
                 `;
-                nuke.innerHTML = `
-                    <div class="nuke-symbol">🚀</div>
-                    <h1 style="font-size:clamp(28px,8vw,60px);margin:0;text-shadow:0 0 30px #0f0;letter-spacing:6px;">
-                        NUCLEAR WIPE
-                    </h1>
-                    <p style="font-size:clamp(18px,5vw,36px);margin:0;opacity:0.9;">
-                        Detonation in 3...
-                    </p>
-                `;
-                document.body.appendChild(nuke);
-                playSound('levelUp');
+                document.body.appendChild(safetyModal);
+                document.body.classList.add('modal-open');
 
-                let count = 3;
-                const countdown = setInterval(() => {
-                    count--;
-                    if (count > 0) {
-                        nuke.querySelector('p').textContent = `Detonation in ${count}...`;
-                    } else {
-                        clearInterval(countdown);
-                        nuke.querySelector('p').textContent = 'BOOM!';
-                        nuke.style.background = '#fff';
-                        setTimeout(() => {
-                            nuke.innerHTML = `
-                                <div class="nuke-symbol">☢️</div>
-                                <h1 style="font-size:clamp(28px,8vw,60px);margin:0;text-shadow:0 0 30px #0f0;">
-                                    APPALACHIA REBORN
-                                </h1>
-                                <p style="font-size:clamp(18px,5vw,36px);margin:0;opacity:0.9;">
-                                    Reloading...
-                                </p>
-                            `;
-                            nuke.style.background = '#000';
-                        }, 300);
-                    }
-                }, 1000);
+                const closeSafety = () => {
+                    safetyModal.remove();
+                    document.body.classList.remove('modal-open');
+                    playSound('modalClose');
+                };
 
-                setTimeout(() => {
-                    const savedReports = {};
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const key = localStorage.key(i);
-                        if (key?.startsWith("reported_cid_")) savedReports[key] = localStorage.getItem(key);
-                    }
-                    localStorage.clear();
-                    Object.keys(savedReports).forEach(k => localStorage.setItem(k, savedReports[k]));
+                safetyModal.querySelector('.close').onclick = closeSafety;
+                safetyModal.querySelector('#cancelSafetyBtn').onclick = closeSafety;
 
-                    if ('serviceWorker' in navigator) {
-                        navigator.serviceWorker.getRegistrations().then(r => r.forEach(reg => reg.unregister()));
-                    }
+                safetyModal.querySelector('#proceedWipeBtn').onclick = () => {
+                    closeSafety();
 
-                    nuke.style.transition = 'opacity 1.2s';
-                    nuke.style.opacity = '0';
-                    setTimeout(() => location.reload(), 1200);
-                }, 4500);
-            }, 800);
+                    // Nuke animation sequence
+                    const nuke = document.createElement('div');
+                    nuke.style.cssText = `
+                        position:fixed;top:0;left:0;width:100vw;height:100vh;
+                        background:#000;z-index:999999;display:flex;
+                        align-items:center;justify-content:center;flex-direction:column;
+                        gap:30px;font-family:'Courier New',monospace;color:#0f0;
+                        pointer-events:none;
+                    `;
+                    nuke.innerHTML = `
+                        <div class="nuke-symbol">🚀</div>
+                        <h1 style="font-size:clamp(28px,8vw,60px);margin:0;text-shadow:0 0 30px #0f0;letter-spacing:6px;">
+                            NUCLEAR WIPE
+                        </h1>
+                        <p style="font-size:clamp(18px,5vw,36px);margin:0;opacity:0.9;">
+                            Detonation in 3...
+                        </p>
+                    `;
+                    document.body.appendChild(nuke);
+                    playSound('levelUp');
+
+                    let count = 3;
+                    const countdown = setInterval(() => {
+                        count--;
+                        if (count > 0) {
+                            nuke.querySelector('p').textContent = `Detonation in ${count}...`;
+                        } else {
+                            clearInterval(countdown);
+                            nuke.querySelector('p').textContent = 'BOOM!';
+                            nuke.style.background = '#fff';
+                            setTimeout(() => {
+                                nuke.innerHTML = `
+                                    <div class="nuke-symbol">☢️</div>
+                                    <h1 style="font-size:clamp(28px,8vw,60px);margin:0;text-shadow:0 0 30px #0f0;">
+                                        APPALACHIA REBORN
+                                    </h1>
+                                    <p style="font-size:clamp(18px,5vw,36px);margin:0;opacity:0.9;">
+                                        Reloading...
+                                    </p>
+                                `;
+                                nuke.style.background = '#000';
+                            }, 300);
+
+                            setTimeout(() => {
+                                const savedReports = {};
+                                for (let i = 0; i < localStorage.length; i++) {
+                                    const key = localStorage.key(i);
+                                    if (key?.startsWith("reported_cid_")) savedReports[key] = localStorage.getItem(key);
+                                }
+                                localStorage.clear();
+                                Object.keys(savedReports).forEach(k => localStorage.setItem(k, savedReports[k]));
+
+                                // Flag for post-reset message
+                                localStorage.setItem('postResetMessageShown', 'true');
+
+                                if ('serviceWorker' in navigator) {
+                                    navigator.serviceWorker.getRegistrations().then(r => r.forEach(reg => reg.unregister()));
+                                }
+
+                                nuke.style.transition = 'opacity 1.2s';
+                                nuke.style.opacity = '0';
+                                setTimeout(() => location.reload(), 1200);
+                            }, 4500);
+                        }
+                    }, 1000);
+                };
+            }, 1500);
         }
     );
 };
@@ -3928,6 +3982,21 @@ function syncToggleButtonStates() {
                 : 'Sounds: Off';
         }
         syncToggleButtonStates();
+		
+		// Show confirmation after reset & reload
+if (localStorage.getItem('postResetMessageShown') === 'true') {
+    localStorage.removeItem('postResetMessageShown');
+    setTimeout(() => {
+        showTempMessage(
+            '☢ NUCLEAR RESET COMPLETE ☢<br>' +
+            'Appalachia has been reborn.<br>' +
+            'All previous data erased — start fresh.',
+            12000
+        );
+        playSound('levelUp');
+    }, 1800);
+}
+
         if (howToUseBtn) {
             howToUseBtn.onclick = () => {
                 instructionsModal.style.display = 'block';
@@ -4668,8 +4737,8 @@ console.log('%cWelcome, Vault Dweller!\n' +
             '• Have fun exploring Appalachia — ❤️',
     'color:#00ff88; font-family:monospace; font-size:13px; line-height:1.7; background:#000; padding:6px 0;');
 
-console.log('%cCopyright © 2025 MrCrazy — All rights reserved\n' +
-            'Last updated: 16-3-2026 Made with ❤️ by MrCrazy ',
+console.log('%cCopyright © 2026 MrCrazy — All rights reserved\n' +
+            'Last updated: 17-3-2026 Made with ❤️ by MrCrazy ',
     'color:#aaaaaa; font-family:monospace; font-size:12px; background:#000; padding:4px 0;');
     })();
 });
