@@ -64,6 +64,12 @@
 <body>
     <h1>Pending Community Map Submissions</h1>
     <div id="list" class="loading">Loading pending markers…</div>
+	<div style="position:fixed; bottom:20px; left:50%; transform:translateX(-50%);">
+    <button onclick="window.location.href='https://0mrcrazy0.github.io/fallout76-itemfindermap/'" 
+            style="background:#00ff88; color:#0a2a2a; border:none; padding:10px 20px; font-weight:bold; cursor:pointer;">
+        ← Back to Map
+    </button>
+</div>
 
     <script>
     fetch('https://itemfinder-submit.crzymn05.workers.dev/pending')
