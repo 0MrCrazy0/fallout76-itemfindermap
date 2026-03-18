@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pending Community Submissions – Fallout 76 Item Finder Map</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a2a2a;
+            color: #00ff00;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        h1 {
+            text-align: center;
+            text-shadow: 0 0 12px #00ff00;
+            margin-bottom: 30px;
+        }
+        #list {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .pr {
+            background: #1a3c34;
+            border: 2px solid #00ff00;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 4px;
+        }
+        .pr-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .pr a {
+            color: #00ff88;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .pr a:hover {
+            text-decoration: underline;
+        }
+        .loading, .empty {
+            text-align: center;
+            font-size: 1.2em;
+            padding: 40px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pending Community Map Submissions</h1>
+    <div id="list" class="loading">Loading pending markers…</div>
+
+    <script>
+    fetch('https://itemfinder-submit.crzymn05.workers.dev/pending')
+        .then(r => {
+            if (!r.ok) throw new Error('Failed to load pending list');
+            return r.json();
+        })
+        .then(data => {
+            const container = document.getElementById('list');
+            container.innerHTML = '';
+
+            if (data.length === 0) {
+                container.className = 'empty';
+                container.textContent = 'No pending submissions at this time.';
+                return;
+            }
+
+            data.forEach(pr => {
+                const div = document.createElement('div');
+                div.className = 'pr';
+                div.innerHTML = `
+                    <div class="pr-header">
+                        <strong>PR #${pr.number}</strong>
+                        <span>${new Date(pr.created_at).toLocaleString()}</span>
+                    </div>
+                    <div>Submitted by: ${pr.user}</div>
+                    <div style="margin:12px 0;"><strong>Title:</strong> ${pr.title}</div>
+                    <div style="margin-bottom:12px;"><strong>Preview:</strong><br>${pr.preview}</div>
+                    <a href="${pr.url}" target="_blank">View Pull Request on GitHub →</a>
+                `;
+                container.appendChild(div);
+            });
+        })
+        .catch(err => {
+            document.getElementById('list').className = 'empty';
+            document.getElementById('list').textContent = 'Error loading list: ' + err.message;
+        });
+    </script>
+</body>
+</html>
