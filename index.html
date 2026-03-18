@@ -1195,6 +1195,11 @@ if ('serviceWorker' in navigator && !sessionStorage.getItem('recoveryDone')) {
     setTimeout(async () => {
         const storedVersion = localStorage.getItem('fo76_map_version') || '0';
         
+        localStorage.setItem(
+            'postRefreshMessage',
+            '☢ SYSTEM SYNC COMPLETE — APP UPDATED — FOR COMMUNITY MARKERS CLICK THE UPDATE COMMUNITY MAP BUTTON! ☢'
+        );
+
         // Only recover for truly ancient versions (pre-v76)
         if (storedVersion !== '76.READY' && parseFloat(storedVersion) < 76.0) {
             console.log('Performing one-time SW/cache recovery for old version');
@@ -1204,17 +1209,16 @@ if ('serviceWorker' in navigator && !sessionStorage.getItem('recoveryDone')) {
             for (const reg of registrations) await reg.unregister();
             const cacheNames = await caches.keys();
             for (const name of cacheNames) await caches.delete(name);
-            
-            // SET MESSAGE BEFORE RELOAD
-            localStorage.setItem('postRefreshMessage', '☢ SYSTEM SYNC COMPLETE — MAP UPDATED ☢');
 
             window.location.reload();
         } else {
             sessionStorage.setItem('recoveryDone', 'true');
             console.log('Recovery check skipped: version is current (76.READY)');
         }
+
     }, 3000);
 }
+
 document.addEventListener('DOMContentLoaded', function() {
 
     // === POST REFRESH MESSAGE ===
@@ -1232,6 +1236,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(() => showTempMessage(postRefreshMsg, 5000), 1000);
             }
 
+            // Delay removal so SW double reload doesn’t wipe it
             setTimeout(() => {
                 localStorage.removeItem('postRefreshMessage');
             }, 4000);
