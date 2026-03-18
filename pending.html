@@ -48,6 +48,17 @@
             font-size: 1.2em;
             padding: 40px;
         }
+		.preview-box {
+    background: #0f2f2a;
+    border: 1px solid #00ff00;
+    padding: 10px;
+    margin-top: 6px;
+    max-height: 200px;
+    overflow: auto;
+
+    white-space: pre-wrap;
+    word-break: break-word;
+}
     </style>
 </head>
 <body>
@@ -80,7 +91,10 @@
                     </div>
                     <div>Submitted by: ${pr.user}</div>
                     <div style="margin:12px 0;"><strong>Title:</strong> ${pr.title}</div>
-                    <div style="margin-bottom:12px;"><strong>Preview:</strong><br>${pr.preview}</div>
+                    <div style="margin-bottom:12px;">
+    <strong>Preview:</strong>
+    <div class="preview-box">${pr.preview}</div>
+</div>
                     <a href="${pr.url}" target="_blank">View Pull Request on GitHub →</a>
                 `;
                 container.appendChild(div);
