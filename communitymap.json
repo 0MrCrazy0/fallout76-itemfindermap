@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": "2.1",
+  "communityVersion": "2.2",
   "customCategories": {},
   "locations": [
     {
@@ -1302,11 +1302,11 @@
     {
       "id": "id-94a999de-404f-4b16-a77e-a0bf69a8b201",
       "cid": "misc_holotape_found_in_the_trailer_next_to_the_power_armor_station_854_3467",
-      "category": "misc",
+      "category": "holotapes",
       "desc": "holotape found in the trailer next to the power armor station.\nGrid I3 (X: 3467, Y: 854)",
       "lat": 854.2466659383833,
       "lng": 3466.874074238396,
-      "icon": "📝",
+      "icon": "📀",
       "addedTime": 1764610903998,
       "locked": true,
       "isPostcard": false,
@@ -1338,11 +1338,11 @@
     {
       "id": "id-f96b151b-7a02-47a6-8744-2836537e953d",
       "cid": "misc_bobblehead_on_a_shelf_in_the_observation_deck_at_top_of_the_world_2195_2276",
-      "category": "misc",
+      "category": "bobbleheads",
       "desc": "bobblehead on a shelf in the observation deck at top of the world.\nGrid F6 (X: 2276, Y: 2195)",
       "lat": 2195.471589753943,
       "lng": 2275.5,
-      "icon": "📝",
+      "icon": "🎎",
       "addedTime": 1764610903998,
       "locked": true,
       "isPostcard": false,
