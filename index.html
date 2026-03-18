@@ -1205,8 +1205,10 @@ if ('serviceWorker' in navigator && !sessionStorage.getItem('recoveryDone')) {
             const cacheNames = await caches.keys();
             for (const name of cacheNames) await caches.delete(name);
             
+            // SET MESSAGE BEFORE RELOAD
             localStorage.setItem('postRefreshMessage', '☢ SYSTEM SYNC COMPLETE — MAP UPDATED ☢');
-window.location.reload();
+
+            window.location.reload();
         } else {
             sessionStorage.setItem('recoveryDone', 'true');
             console.log('Recovery check skipped: version is current (76.READY)');
@@ -1214,14 +1216,28 @@ window.location.reload();
     }, 3000);
 }
 document.addEventListener('DOMContentLoaded', function() {
-// === POST REFRESH MESSAGE ===
-const postRefreshMsg = localStorage.getItem('postRefreshMessage');
-if (postRefreshMsg) {
-    setTimeout(() => {
-        showTempMessage(postRefreshMsg, 5000);
-        localStorage.removeItem('postRefreshMessage');
-    }, 800);
-}
+
+    // === POST REFRESH MESSAGE ===
+    const postRefreshMsg = localStorage.getItem('postRefreshMessage');
+
+    if (postRefreshMsg && !sessionStorage.getItem('postRefreshShown')) {
+
+        sessionStorage.setItem('postRefreshShown', 'true');
+
+        setTimeout(() => {
+            if (typeof showTempMessage === 'function') {
+                showTempMessage(postRefreshMsg, 5000);
+            } else {
+                console.warn('showTempMessage not ready, retrying...');
+                setTimeout(() => showTempMessage(postRefreshMsg, 5000), 1000);
+            }
+
+            setTimeout(() => {
+                localStorage.removeItem('postRefreshMessage');
+            }, 4000);
+
+        }, 1200);
+    }
     (function() {
         if (!localStorage.getItem('fo76_map_version')) {
             localStorage.setItem('fo76_map_version', '76.READY');
