@@ -969,6 +969,17 @@ nukeStyle.textContent = `
         filter: brightness(1.2);
         transition: all 0.2s ease;
     }
+/* Glowing indicator for update available */
+#downloadCommunityBtn.update-available {
+  animation: glowPulse 2s infinite ease-in-out;
+  box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff88;
+  background: #00cc00 !important; /* brighter green when glowing */
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff88; }
+  50%      { box-shadow: 0 0 25px #00ff00, 0 0 50px #00ffcc; }
+}
     </style>
 </head>
 <body>
@@ -1102,6 +1113,13 @@ nukeStyle.textContent = `
     <p>Works fully <strong>Offline</strong> after first load (perfect for no-signal vaults).</p>
     <p>Hit <strong>Download Community Map</strong> occasionally to get the latest community updates.</p>
     <p style="margin-top:20px;"><strong>Enjoy Appalachia — & Happy Exploring!</strong></p>
+	<p style="margin-top:20px; text-align:center; font-size:1.1em;">
+  <a href="/fallout76-itemfindermap/pending.html"
+     target="_blank"
+     style="color:#00ff88; text-decoration:underline; font-weight:bold;">
+    View Pending Community Submissions
+  </a>
+</p>
             <div style="text-align:center; margin:15px 0;">
                 <button id="resetAppBtn" class="reset-btn">Reset App (deletes everything)</button>
             </div>
@@ -1708,6 +1726,48 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
     const val = combinedSearch.value.trim();
     clearBtn.style.display = val ? 'block' : 'none';
     playSound('type');
+	
+	// ── Community Update Glow Indicator ──
+const COMMUNITY_UPDATE_URL = 'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/communitymap.json';
+const COMMUNITY_VERSION_KEY = 'fo76_community_last_etag';
+
+async function checkForCommunityUpdate() {
+    const button = document.getElementById('downloadCommunityBtn');
+    if (!button) return;
+
+    try {
+        // Use HEAD request (very lightweight) + cache-bust
+        const res = await fetch(COMMUNITY_UPDATE_URL + '?t=' + Date.now(), { method: 'HEAD' });
+
+        if (!res.ok) return;
+
+        // Use ETag or Last-Modified as version proxy
+        const currentVersion = res.headers.get('etag') || res.headers.get('last-modified') || 'unknown';
+        const lastKnown = localStorage.getItem(COMMUNITY_VERSION_KEY);
+
+        if (lastKnown && lastKnown === currentVersion) {
+            button.classList.remove('update-available');
+        } else {
+            // New version detected → apply glow
+            button.classList.add('update-available');
+            // Optional: one-time toast notification
+            showTempMessage('New community markers available! Click "Update Community Map".', 10000);
+        }
+
+        // Remember this version
+        localStorage.setItem(COMMUNITY_VERSION_KEY, currentVersion);
+
+    } catch (err) {
+        console.warn('Community update check failed:', err);
+        // Fail silently – no glow if check fails
+    }
+}
+
+// Run check once on load
+checkForCommunityUpdate();
+
+// Optional: re-check every 10 minutes (600000 ms)
+setInterval(checkForCommunityUpdate, 600000);
 
     // === GRID SEARCH ===
     const gridMatch = val.toUpperCase().match(/^([A-J])\s*([1-9]|10)$/);
@@ -3288,107 +3348,134 @@ setTimeout(() => {
         'This will download the latest community markers.<br>' +
         'Your own markers will never be overwritten.<br><br>' +
         'Launch the update?',
-        () => {
+        async () => {
             downloadCommunityBtn.disabled = true;
             downloadCommunityBtn.textContent = 'Updating...';
-            fetchWithTimeout('https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?t=' + Date.now(), 12000)
-                .then(r => r.ok ? r.json() : Promise.reject('Bad response'))
-                .then(data => {
-                    console.log('Fetched version:', data.communityVersion);
-                    console.log('Markers:', data.locations.length);
-                    const incoming = data.locations || [];
-                    let added = 0, updated = 0, skipped = 0;
-                    incoming.forEach(imp => {
-                        const existing = locations.find(l => l.cid === imp.cid);
-                        if (existing && (existing.userEdited || existing.wasCommunityKept)) {
-                            skipped++;
-                            return;
-                        }
-                        let loc;
-                        if (existing) {
-                            Object.assign(existing, imp);
-                            loc = existing;
-                            updated++;
-                        } else {
-                            loc = {
-                                ...imp,
-                                id: generateUniqueId(),
-                                addedTime: Date.now(),
-                                locked: true,
-                                isCommunity: true,
-                                isTemp: false,
-                                isPostcard: false,
-                                userEdited: false,
-                                wasCommunityKept: false
-                            };
-                            locations.push(loc);
-                            added++;
-                        }
-                        loc.isCommunity = true;
-                        loc.locked = true;
-                        loc.userEdited = false;
-                        loc.wasCommunityKept = !!existing?.wasCommunityKept;
-                    });
-                    if (data.customCategories) {
-                        customCategories = { ...customCategories, ...data.customCategories };
+
+            try {
+                const res = await fetchWithTimeout(
+                    'https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?t=' + Date.now(),
+                    12000
+                );
+
+                if (!res.ok) throw new Error('Bad response');
+
+                const data = await res.json();
+
+                console.log('Fetched version:', data.communityVersion);
+                console.log('Markers:', data.locations.length);
+
+                const incoming = data.locations || [];
+                let added = 0, updated = 0, skipped = 0;
+
+                incoming.forEach(imp => {
+                    const existing = locations.find(l => l.cid === imp.cid);
+                    if (existing && (existing.userEdited || existing.wasCommunityKept)) {
+                        skipped++;
+                        return;
                     }
-                    const newVersion = String(data.communityVersion || "1.0");
-                    localStorage.setItem(MAP_VERSION_KEY, newVersion);
-                    communityVersion = newVersion;
-                    localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-                    recalculateXP();
-                    updateCounterDisplay();
-                    forceReload();
-                    saveLocations();
-showConfirmModal(
-    '☢ COMMUNITY MAP UPDATED ☢',
-    `<div style="text-align:left; line-height:1.9; font-size:1.1em;">
-        <strong style="color:#00ff88;">${added}</strong> added: new markers added.<br>
-        <strong style="color:#00ff88;">${updated}</strong> updated: existing community markers refreshed.<br>
-        <strong style="color:#ffa500;">${skipped}</strong> skipped: your kept community markers, edited, and user-created markers are protected.<br><br>
-        <strong style="color:#00ff00;">Total on your map: ${locations.length}</strong><br>
-        <strong>You're all set — happy exploring!</strong>
-    </div>`,
-    null
-);
-                    playSound('saving');
-                    if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
-                        localStorage.setItem('seenCommunityNuke', 'true');
-                        setTimeout(() => {
-                            const flash = document.createElement('div');
-                            flash.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#fff;z-index:999999;pointer-events:none;animation:quickFlash 0.7s ease-out forwards;';
-                            document.body.appendChild(flash);
-                            setTimeout(() => {
-                                const overlay = document.createElement('div');
-                                overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;padding:20px;box-sizing:border-box;font-family:"Courier New",monospace;text-align:center;';
-                                overlay.innerHTML = `
-                                    <div class="nuke-symbol">☢️</div>
-                                    <h1 class="nuke-title">COMMUNITY MAP NUKED!</h1>
-                                    <p class="nuke-subtitle">
-                                        <strong>${added}</strong> new markers detonated across Appalachia!
-                                    </p>
-                                `;
-                                document.body.appendChild(overlay);
-                                playSound('levelUp');
-                                setTimeout(() => {
-                                    overlay.style.transition = 'opacity 1.8s';
-                                    overlay.style.opacity = '0';
-                                    setTimeout(() => overlay.remove(), 1800);
-                                }, 4200);
-                            }, 400);
-                            setTimeout(() => flash.remove(), 700);
-                        }, 800);
+                    let loc;
+                    if (existing) {
+                        Object.assign(existing, imp);
+                        loc = existing;
+                        updated++;
+                    } else {
+                        loc = {
+                            ...imp,
+                            id: generateUniqueId(),
+                            addedTime: Date.now(),
+                            locked: true,
+                            isCommunity: true,
+                            isTemp: false,
+                            isPostcard: false,
+                            userEdited: false,
+                            wasCommunityKept: false
+                        };
+                        locations.push(loc);
+                        added++;
                     }
-                })
-                .catch(err => {
-                    console.error('Fetch error:', err);
-                    showTempMessage('COMMUNITY UPDATE FAILED — CHECK CONNECTION', 6000);
-                    playSound('error');
-                })
-                .finally(() => {
-                    downloadCommunityBtn.disabled = false;
-                    downloadCommunityBtn.textContent = 'Update Community Map';
+                    loc.isCommunity = true;
+                    loc.locked = true;
+                    loc.userEdited = false;
+                    loc.wasCommunityKept = !!existing?.wasCommunityKept;
                 });
+
+                if (data.customCategories) {
+                    customCategories = { ...customCategories, ...data.customCategories };
+                }
+
+                const newVersion = String(data.communityVersion || "1.0");
+                localStorage.setItem(MAP_VERSION_KEY, newVersion);
+                communityVersion = newVersion;
+                localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+
+                recalculateXP();
+                updateCounterDisplay();
+                forceReload();
+                saveLocations();
+
+                showConfirmModal(
+                    '☢ COMMUNITY MAP UPDATED ☢',
+                    `<div style="text-align:left; line-height:1.9; font-size:1.1em;">
+                        <strong style="color:#00ff88;">${added}</strong> added: new markers added.<br>
+                        <strong style="color:#00ff88;">${updated}</strong> updated: existing community markers refreshed.<br>
+                        <strong style="color:#ffa500;">${skipped}</strong> skipped: your kept community markers, edited, and user-created markers are protected.<br><br>
+                        <strong style="color:#00ff00;">Total on your map: ${locations.length}</strong><br>
+                        <strong>You're all set — happy exploring!</strong>
+                    </div>`,
+                    null
+                );
+
+                playSound('saving');
+
+                // ── Clear the glow effect after successful update ──
+                downloadCommunityBtn.classList.remove('update-available');
+
+                // Update stored version marker (ETag or Last-Modified) to prevent immediate re-glow
+                fetch('https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?t=' + Date.now(), { method: 'HEAD' })
+                    .then(r => {
+                        const version = r.headers.get('etag') || r.headers.get('last-modified') || 'unknown';
+                        localStorage.setItem('fo76_community_last_etag', version);
+                    })
+                    .catch(() => {});  // Silent fail – glow already cleared
+
+                // Your existing nuke animation logic (unchanged)
+                if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
+                    localStorage.setItem('seenCommunityNuke', 'true');
+                    setTimeout(() => {
+                        const flash = document.createElement('div');
+                        flash.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#fff;z-index:999999;pointer-events:none;animation:quickFlash 0.7s ease-out forwards;';
+                        document.body.appendChild(flash);
+                        setTimeout(() => {
+                            const overlay = document.createElement('div');
+                            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;padding:20px;box-sizing:border-box;font-family:"Courier New",monospace;text-align:center;';
+                            overlay.innerHTML = `
+                                <div class="nuke-symbol">☢️</div>
+                                <h1 class="nuke-title">COMMUNITY MAP NUKED!</h1>
+                                <p class="nuke-subtitle">
+                                    <strong>${added}</strong> new markers detonated across Appalachia!
+                                </p>
+                            `;
+                            document.body.appendChild(overlay);
+                            playSound('levelUp');
+                            setTimeout(() => {
+                                overlay.style.transition = 'opacity 1.8s';
+                                overlay.style.opacity = '0';
+                                setTimeout(() => overlay.remove(), 1800);
+                            }, 4200);
+                        }, 400);
+                        setTimeout(() => flash.remove(), 700);
+                    }, 800);
+                }
+
+            } catch (err) {
+                console.error('Fetch error:', err);
+                showTempMessage('COMMUNITY UPDATE FAILED — CHECK CONNECTION', 6000);
+                playSound('error');
+            } finally {
+                downloadCommunityBtn.disabled = false;
+                downloadCommunityBtn.textContent = 'Update Community Map';
+            }
         }
     );
 };
@@ -4452,7 +4539,7 @@ modal.innerHTML = `
         </div>
 
         <textarea id="reportMessageTxt" 
-                  placeholder="e.g. Wrong grid — should be E8, not E9"
+                  placeholder="e.g. Wrong location — should be E8, not E9, Or Reason For Reporting"
                   style="width:100%; 
                          max-width:none; 
                          height:130px; 
@@ -4611,7 +4698,7 @@ console.log('%cWelcome, Vault Dweller!\n' +
     'color:#00ff88; font-family:monospace; font-size:13px; line-height:1.7; background:#000; padding:6px 0;');
 
 console.log('%cCopyright © 2026 MrCrazy — All rights reserved\n' +
-            'Last updated: 18-3-2026 Made with ❤️ by MrCrazy ',
+            'Last updated: 19-3-2026 Made with ❤️ by MrCrazy ',
     'color:#aaaaaa; font-family:monospace; font-size:12px; background:#000; padding:4px 0;');
     })();
 });
