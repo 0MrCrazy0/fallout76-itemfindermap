@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pending Community Submissions – Fallout 76 Item Finder Map</title>
+    <title>Pending Community Submissions</title>
     <style>
         body {
             font-family: 'Courier New', monospace;
@@ -16,11 +16,16 @@
         }
         h1 {
             text-shadow: 0 0 12px #00ff00;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+        }
+        .instruction {
+            font-size: 1.3em;
+            margin: 30px 0 20px;
+            line-height: 1.5;
         }
         #list {
             max-width: 900px;
-            margin: 0 auto 40px;
+            margin: 0 auto;
             text-align: left;
         }
         .pr {
@@ -29,102 +34,73 @@
             margin: 20px 0;
             padding: 20px;
             border-radius: 4px;
-            text-align: left;
         }
-        .pr-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        .pr a {
-            color: #00ff88;
+        .close-btn {
+            background: #ff4444;
+            color: #fff;
+            border: none;
+            padding: 16px 40px;
+            font-size: 1.3em;
             font-weight: bold;
-            text-decoration: none;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 0 20px #ff4444;
+            border-radius: 4px;
         }
-        .pr a:hover { text-decoration: underline; }
-        .loading, .empty {
-            font-size: 1.2em;
-            padding: 40px;
+        .close-btn:hover {
+            background: #ff6666;
+            box-shadow: 0 0 30px #ff8888;
         }
         .preview-box {
             background: #0f2f2a;
             border: 1px solid #00ff00;
             padding: 10px;
-            margin-top: 6px;
-            max-height: 200px;
+            margin-top: 8px;
+            max-height: 180px;
             overflow: auto;
             white-space: pre-wrap;
             word-break: break-word;
             text-align: left;
         }
-        .back-btn {
-            background: #00ff88;
-            color: #0a2a2a;
-            border: none;
-            padding: 14px 32px;
-            font-weight: bold;
-            font-size: 1.1em;
-            cursor: pointer;
-            box-shadow: 0 0 15px #00ff00;
-            border-radius: 4px;
-            margin-top: 20px;
-        }
-        .back-btn:hover {
-            background: #00ff00;
-            box-shadow: 0 0 25px #00ff88;
-        }
-        .instruction {
-            margin: 30px 0 10px;
-            font-size: 1.05em;
-            opacity: 0.9;
-        }
     </style>
 </head>
 <body>
     <h1>Pending Community Map Submissions</h1>
-    <div id="list" class="loading">Loading pending markers…</div>
 
     <div class="instruction">
-        Click the button below to close this page and return to the map.
+        This page shows pending submissions.<br>
+        <strong>Please click the button below to close this tab<br>and return to the map.</strong>
     </div>
-    
-    <button onclick="closeAndReturn()" class="back-btn">
-        ← Close this page and return to Map
+
+    <button onclick="closeTab()" class="close-btn">
+        CLOSE THIS TAB ← Return to Map
     </button>
 
+    <div id="list" style="margin-top:50px;" class="loading">Loading pending markers…</div>
+
     <script>
-    // Close current tab/window and return to previous state
-    function closeAndReturn() {
-        // Try to close the tab (works in most cases when opened from the app)
-        window.close();
-        
-        // Fallback: If close() was blocked, redirect in same tab
+    function closeTab() {
+        window.close();                    // Try to close the tab
         setTimeout(() => {
+            // Fallback if close() was blocked
             window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
-        }, 800);
+        }, 600);
     }
 
     fetch('https://itemfinder-submit.crzymn05.workers.dev/pending')
-        .then(r => {
-            if (!r.ok) throw new Error('Failed to load pending list');
-            return r.json();
-        })
+        .then(r => r.ok ? r.json() : Promise.reject('Failed'))
         .then(data => {
             const container = document.getElementById('list');
             container.innerHTML = '';
-
             if (data.length === 0) {
-                container.className = 'empty';
-                container.textContent = 'No pending submissions at this time.';
+                container.innerHTML = '<div class="empty" style="text-align:center;padding:40px;">No pending submissions at this time.</div>';
                 return;
             }
-
             data.forEach(pr => {
                 const div = document.createElement('div');
                 div.className = 'pr';
                 div.innerHTML = `
-                    <div class="pr-header">
+                    <div class="pr-header" style="display:flex;justify-content:space-between;">
                         <strong>PR #${pr.number}</strong>
                         <span>${new Date(pr.created_at).toLocaleString()}</span>
                     </div>
@@ -132,17 +108,15 @@
                     <div style="margin:12px 0;"><strong>Title:</strong> ${pr.title}</div>
                     <div style="margin-bottom:12px;">
                         <strong>Preview:</strong>
-                        <div class="preview-box">${pr.preview || '(no preview available)'}</div>
+                        <div class="preview-box">${pr.preview || '(no preview)'}</div>
                     </div>
-                    <a href="${pr.url}" target="_blank">View Pull Request on GitHub →</a>
+                    <a href="${pr.url}" target="_blank">View on GitHub →</a>
                 `;
                 container.appendChild(div);
             });
         })
-        .catch(err => {
-            const container = document.getElementById('list');
-            container.className = 'empty';
-            container.textContent = 'Error loading list: ' + err.message;
+        .catch(() => {
+            document.getElementById('list').innerHTML = '<div style="text-align:center;color:#ff6666;padding:40px;">Error loading pending submissions.</div>';
         });
     </script>
 </body>
