@@ -66,11 +66,14 @@
             background: #00ff88;
             color: #0a2a2a;
             border: none;
-            padding: 12px 24px;
+            padding: 12px 28px;
             font-weight: bold;
             font-size: 1.05em;
             cursor: pointer;
             box-shadow: 0 0 15px #00ff00;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
         }
         .back-btn:hover {
             background: #00ff00;
@@ -82,10 +85,12 @@
     <h1>Pending Community Map Submissions</h1>
     <div id="list" class="loading">Loading pending markers…</div>
 
-    <button onclick="window.location.href = 'https://0mrcrazy0.github.io/fallout76-itemfindermap/'" 
-            class="back-btn">
+    <!-- Reliable back button for both normal browser and PWA -->
+    <a href="https://0mrcrazy0.github.io/fallout76-itemfindermap/" 
+       target="_self" 
+       class="back-btn">
         ← Back to Map
-    </button>
+    </a>
 
     <script>
     fetch('https://itemfinder-submit.crzymn05.workers.dev/pending')
