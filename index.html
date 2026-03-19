@@ -2443,21 +2443,23 @@ async function checkForCommunityUpdate() {
     try {
         const res = await fetch(COMMUNITY_UPDATE_URL + '?t=' + Date.now());
         if (!res.ok) return;
-
         const data = await res.json();
         const currentVersion = String(data.communityVersion || "1.0");
 
         const lastKnown = localStorage.getItem(LAST_COMMUNITY_VERSION_KEY);
 
-        if (lastKnown && lastKnown === currentVersion) {
-            button.classList.remove('update-available');
-        } else {
+        // Glow if: no previous version stored OR current version is different
+        if (!lastKnown || lastKnown !== currentVersion) {
             button.classList.add('update-available');
-            if (typeof showTempMessage === 'function') {
+            // Optional: show tip only on first load or actual update available
+            if (typeof showTempMessage === 'function' && !lastKnown) {
                 showTempMessage('New community markers available! Click "Update Community Map".', 10000);
             }
+        } else {
+            button.classList.remove('update-available');
         }
 
+        // Always save the fetched version for future comparisons
         localStorage.setItem(LAST_COMMUNITY_VERSION_KEY, currentVersion);
 
     } catch (err) {
