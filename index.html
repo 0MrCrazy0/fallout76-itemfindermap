@@ -1007,6 +1007,59 @@ nukeStyle.textContent = `
             background: #00cc00 !important;
             border-color: #00ffcc !important;
         }
+		/* Base reset for all interactive buttons */
+button,
+#toggleButtonGroup,
+#buttonGroup button {
+    background-color: #1a3c34;           /* Default dark background */
+    color: #00ff00;
+    transition: 
+        background-color 0.4s ease-out,
+        color 0.4s ease-out,
+        box-shadow 0.4s ease-out;
+}
+
+/* Hover / active state (temporary green glow) */
+button:hover,
+button:active,
+#toggleButtonGroup:hover,
+#toggleButtonGroup:active,
+#buttonGroup button:hover,
+#buttonGroup button:active {
+    background-color: #00ff00 !important;
+    color: #000 !important;
+    box-shadow: 0 0 12px #00ff00, 0 0 20px #00ff88 !important;
+}
+
+/* Force reset after touch ends on mobile/touch devices */
+@media (hover: none) and (pointer: coarse) {
+    button,
+    #toggleButtonGroup,
+    #buttonGroup button {
+        background-color: #1a3c34 !important;
+        color: #00ff00 !important;
+    }
+
+    /* Brief active state during actual press */
+    button:active,
+    #toggleButtonGroup:active,
+    #buttonGroup button:active {
+        background-color: #00ff00 !important;
+        color: #000 !important;
+        box-shadow: 0 0 12px #00ff00, 0 0 20px #00ff88 !important;
+        transition: none; /* Instant change during press */
+    }
+}
+
+/* Extra safety: remove any lingering hover/active after interaction */
+button:not(:hover):not(:active):not(:focus),
+#toggleButtonGroup:not(:hover):not(:active):not(:focus),
+#buttonGroup button:not(:hover):not(:active):not(:focus) {
+    background-color: #1a3c34 !important;
+    color: #00ff00 !important;
+    box-shadow: none !important;
+}
+		
     </style>
 </head>
 <body>
@@ -4778,7 +4831,7 @@ console.log('%cWelcome, Vault Dweller!\n' +
     'color:#00ff88; font-family:monospace; font-size:13px; line-height:1.7; background:#000; padding:6px 0;');
 
 console.log('%cCopyright © 2026 MrCrazy — All rights reserved\n' +
-            'Last updated: 19-3-2026 Version-B Made with ❤️ by MrCrazy ',
+            'Last updated: 19-3-2026 Made with ❤️ by MrCrazy ',
     'color:#aaaaaa; font-family:monospace; font-size:12px; background:#000; padding:4px 0;');
     })();
 });
