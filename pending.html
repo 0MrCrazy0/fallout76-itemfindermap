@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pending Community Submissions</title>
-    <!-- Very strong cache buster -->
+    <!-- Strong cache buster -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -41,7 +41,7 @@
             border-radius: 4px;
         }
         .pr a {
-            color: #00ff88;
+            color: #00ff88;           /* Bright readable green */
             font-weight: bold;
             text-decoration: none;
         }
@@ -52,8 +52,8 @@
             background: #ff4444;
             color: white;
             border: none;
-            padding: 12px 28px;
-            font-size: 1.05em;
+            padding: 10px 24px;       /* Smaller button */
+            font-size: 1.0em;
             font-weight: bold;
             cursor: pointer;
             margin: 25px auto;
@@ -99,7 +99,7 @@
         }, 700);
     }
 
-    // Strong cache buster with timestamp
+    // Strong cache buster
     fetch('https://itemfinder-submit.crzymn05.workers.dev/pending?v=20260319_' + Date.now())
         .then(r => r.ok ? r.json() : Promise.reject())
         .then(data => {
