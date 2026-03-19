@@ -1006,22 +1006,33 @@ button:not(:hover):not(:active):not(:focus),
     background-color: #1a3c34;
     box-shadow: none;
 }
+/* ── Mobile-only: auto-fade button feedback after tap ── */
 @media (hover: none) and (pointer: coarse) {
+
+    /* Default dark state (overrides any lingering :hover) */
     button,
     #toggleButtonGroup,
     #buttonGroup button {
         background-color: #1a3c34 !important;
+        transition: background-color 0.5s ease-out, box-shadow 0.5s ease-out;
     }
 
+    /* Active / pressed state — green + glow */
     button:active,
     #toggleButtonGroup:active,
     #buttonGroup button:active {
         background-color: #00ff00 !important;
         color: #000 !important;
+        box-shadow: 0 0 10px #00ff00 !important;
+        transition: none; /* instant on press */
     }
-.no-hover-after-touch {
-    background-color: #1a3c34 !important;
-    box-shadow: none !important;
+
+    /* Class that triggers fade-out after release */
+    .fade-out-after-tap {
+        background-color: #1a3c34 !important;
+        box-shadow: none !important;
+        transition: background-color 0.55s ease-out, box-shadow 0.55s ease-out;
+    }
 }
     </style>
 </head>
@@ -4799,18 +4810,16 @@ console.log('%cCopyright © 2026 MrCrazy — All rights reserved\n' +
     })();
 });
 
-
 document.addEventListener('touchend', function(e) {
     const btn = e.target.closest('button, #toggleButtonGroup, #buttonGroup button');
     if (btn) {
-        btn.style.backgroundColor = '#1a3c34';
-        btn.style.color = '#00ff00';
-        btn.style.boxShadow = 'none';
-        requestAnimationFrame(() => {
-            btn.style.backgroundColor = '';
-            btn.style.color = '';
-            btn.style.boxShadow = '';
-        });
+        // Trigger fade-out
+        btn.classList.add('fade-out-after-tap');
+
+        // Remove class after fade completes so normal CSS can take over again
+        setTimeout(() => {
+            btn.classList.remove('fade-out-after-tap');
+        }, 600); // slightly longer than transition duration
     }
 }, { passive: true });
 </script>
