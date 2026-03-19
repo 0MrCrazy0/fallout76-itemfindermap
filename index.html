@@ -4796,6 +4796,21 @@ console.log('%cCopyright © 2026 MrCrazy — All rights reserved\n' +
     'color:#aaaaaa; font-family:monospace; font-size:12px; background:#000; padding:4px 0;');
     })();
 });
+
+
+document.addEventListener('touchend', function(e) {
+    const btn = e.target.closest('button, #toggleButtonGroup, #buttonGroup button');
+    if (btn) {
+        btn.style.backgroundColor = '#1a3c34';
+        btn.style.color = '#00ff00';
+        btn.style.boxShadow = 'none';
+        requestAnimationFrame(() => {
+            btn.style.backgroundColor = '';
+            btn.style.color = '';
+            btn.style.boxShadow = '';
+        });
+    }
+}, { passive: true });
 </script>
 </body>
 </html>
