@@ -981,84 +981,32 @@ nukeStyle.textContent = `
             0%, 100% { box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff88; }
             50% { box-shadow: 0 0 25px #00ff00, 0 0 50px #00ffcc; }
         }
-
-        /* Prevent persistent glow leak on normal tools buttons */
-        #buttonGroup button,
-        #buttonGroup button:hover,
-        #buttonGroup button:active,
-        #buttonGroup button:focus {
-            box-shadow: none !important;
-            transition: box-shadow 0.3s ease, background-color 0.3s ease;
-        }
-
-        #buttonGroup button:hover,
-        #buttonGroup button:active,
-        #buttonGroup button:focus {
-            box-shadow: 0 0 10px #00ff00 !important;
-        }
-
-        /* Protect community update glow */
-        #downloadCommunityBtn.update-available,
-        #downloadCommunityBtn.update-available:hover,
-        #downloadCommunityBtn.update-available:active,
-        #downloadCommunityBtn.update-available:focus {
-            animation: glowPulse 2s infinite ease-in-out !important;
-            box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff88 !important;
-            background: #00cc00 !important;
-            border-color: #00ffcc !important;
-        }
-		/* Base reset for all interactive buttons */
-button,
-#toggleButtonGroup,
-#buttonGroup button {
-    background-color: #1a3c34;           /* Default dark background */
-    color: #00ff00;
-    transition: 
-        background-color 0.4s ease-out,
-        color 0.4s ease-out,
-        box-shadow 0.4s ease-out;
-}
-
-/* Hover / active state (temporary green glow) */
-button:hover,
-button:active,
-#toggleButtonGroup:hover,
-#toggleButtonGroup:active,
-#buttonGroup button:hover,
-#buttonGroup button:active {
-    background-color: #00ff00 !important;
-    color: #000 !important;
-    box-shadow: 0 0 12px #00ff00, 0 0 20px #00ff88 !important;
-}
-
-/* Force reset after touch ends on mobile/touch devices */
+/* Mobile/touch: prevent stuck :hover simulation after tap */
 @media (hover: none) and (pointer: coarse) {
     button,
     #toggleButtonGroup,
     #buttonGroup button {
-        background-color: #1a3c34 !important;
-        color: #00ff00 !important;
+        transition: background-color 0.4s ease-out;
     }
 
-    /* Brief active state during actual press */
+    /* Limit glow to actual press only */
     button:active,
     #toggleButtonGroup:active,
     #buttonGroup button:active {
-        background-color: #00ff00 !important;
-        color: #000 !important;
-        box-shadow: 0 0 12px #00ff00, 0 0 20px #00ff88 !important;
-        transition: none; /* Instant change during press */
+        background-color: #00ff00;
+        color: #000;
+        box-shadow: 0 0 10px #00ff00 !important;
     }
 }
 
-/* Extra safety: remove any lingering hover/active after interaction */
+/* Desktop: ensure clean fade (already mostly working, just reinforce reset) */
 button:not(:hover):not(:active):not(:focus),
 #toggleButtonGroup:not(:hover):not(:active):not(:focus),
 #buttonGroup button:not(:hover):not(:active):not(:focus) {
-    background-color: #1a3c34 !important;
-    color: #00ff00 !important;
-    box-shadow: none !important;
+    background-color: #1a3c34;
+    box-shadow: none;
 }
+
 		
     </style>
 </head>
