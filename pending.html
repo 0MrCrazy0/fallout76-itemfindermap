@@ -12,15 +12,16 @@
             margin: 0;
             padding: 20px;
             min-height: 100vh;
+            text-align: center;
         }
         h1 {
-            text-align: center;
             text-shadow: 0 0 12px #00ff00;
             margin-bottom: 30px;
         }
         #list {
             max-width: 900px;
-            margin: 0 auto;
+            margin: 0 auto 40px;
+            text-align: left;
         }
         .pr {
             background: #1a3c34;
@@ -28,6 +29,7 @@
             margin: 20px 0;
             padding: 20px;
             border-radius: 4px;
+            text-align: left;
         }
         .pr-header {
             display: flex;
@@ -40,11 +42,8 @@
             font-weight: bold;
             text-decoration: none;
         }
-        .pr a:hover {
-            text-decoration: underline;
-        }
+        .pr a:hover { text-decoration: underline; }
         .loading, .empty {
-            text-align: center;
             font-size: 1.2em;
             padding: 40px;
         }
@@ -57,27 +56,28 @@
             overflow: auto;
             white-space: pre-wrap;
             word-break: break-word;
+            text-align: left;
         }
         .back-btn {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
             background: #00ff88;
             color: #0a2a2a;
             border: none;
-            padding: 12px 28px;
+            padding: 14px 32px;
             font-weight: bold;
-            font-size: 1.05em;
+            font-size: 1.1em;
             cursor: pointer;
             box-shadow: 0 0 15px #00ff00;
             border-radius: 4px;
-            text-decoration: none;
-            display: inline-block;
+            margin-top: 20px;
         }
         .back-btn:hover {
             background: #00ff00;
-            box-shadow: 0 0 20px #00ff88;
+            box-shadow: 0 0 25px #00ff88;
+        }
+        .instruction {
+            margin: 30px 0 10px;
+            font-size: 1.05em;
+            opacity: 0.9;
         }
     </style>
 </head>
@@ -85,14 +85,26 @@
     <h1>Pending Community Map Submissions</h1>
     <div id="list" class="loading">Loading pending markers…</div>
 
-    <!-- Reliable back button for both normal browser and PWA -->
-    <a href="https://0mrcrazy0.github.io/fallout76-itemfindermap/" 
-       target="_self" 
-       class="back-btn">
-        ← Back to Map
-    </a>
+    <div class="instruction">
+        Click the button below to close this page and return to the map.
+    </div>
+    
+    <button onclick="closeAndReturn()" class="back-btn">
+        ← Close this page and return to Map
+    </button>
 
     <script>
+    // Close current tab/window and return to previous state
+    function closeAndReturn() {
+        // Try to close the tab (works in most cases when opened from the app)
+        window.close();
+        
+        // Fallback: If close() was blocked, redirect in same tab
+        setTimeout(() => {
+            window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
+        }, 800);
+    }
+
     fetch('https://itemfinder-submit.crzymn05.workers.dev/pending')
         .then(r => {
             if (!r.ok) throw new Error('Failed to load pending list');
