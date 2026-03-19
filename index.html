@@ -1348,6 +1348,32 @@ function base64ToUtf8(str) {
     return decodeURIComponent(escape(atob(str)));
 }
         let locations = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+// One-time cleanup: remove markers with invalid lat/lng (run once on v76.READY+)
+if (!localStorage.getItem('nanCleanupDone_v76')) {
+    console.log('Running one-time invalid coordinate cleanup...');
+    const beforeCount = locations.length;
+    locations = locations.filter(loc => {
+        const latOk = typeof loc.lat === 'number' && !isNaN(loc.lat);
+        const lngOk = typeof loc.lng === 'number' && !isNaN(loc.lng);
+        if (!latOk || !lngOk) {
+            console.warn('Removing invalid marker during cleanup:', loc);
+            return false;
+        }
+        return true;
+    });
+    const removed = beforeCount - locations.length;
+    if (removed > 0) {
+        console.log(`Removed ${removed} invalid markers during cleanup.`);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(locations)); // save cleaned data immediately
+        if (typeof showTempMessage === 'function') {
+            showTempMessage(`Cleaned up ${removed} invalid marker${removed === 1 ? '' : 's'} from your saved data.`, 8000);
+        }
+    } else {
+        console.log('No invalid markers found during cleanup.');
+    }
+    localStorage.setItem('nanCleanupDone_v76', 'true');
+}
         locations.forEach(loc => {
     if (!loc.id) loc.id = generateUniqueId();
     if (!loc.cid) {
@@ -1523,19 +1549,29 @@ const clusteredMarkers = L.markerClusterGroup({
         });
     }
 });
+// ==================== SAFE CLUSTER HANDLERS ====================
 clusteredMarkers.on('clustermouseover clusterclick', function (a) {
     if (a.layer === currentlySpiderfied) return;
+
     a.layer.spiderfy();
     currentlySpiderfied = a.layer;
+
+    // Very short delay + strong safety checks
     setTimeout(() => {
-        const childMarkers = a.layer.getAllChildMarkers();
+        const childMarkers = a.layer.getAllChildMarkers()
+            .filter(m => m && typeof m.getLatLng === 'function' && m.getLatLng() !== null);
+
         if (childMarkers.length === 0) return;
 
         const clusterCenter = a.layer.getLatLng();
+        if (!clusterCenter) return;
+
+        // Find closest marker to cluster center
         let closestMarker = childMarkers[0];
         let closestDistance = clusterCenter.distanceTo(closestMarker.getLatLng());
 
         childMarkers.forEach(marker => {
+            if (!marker.getLatLng()) return;
             const dist = clusterCenter.distanceTo(marker.getLatLng());
             if (dist < closestDistance) {
                 closestDistance = dist;
@@ -1543,18 +1579,26 @@ clusteredMarkers.on('clustermouseover clusterclick', function (a) {
             }
         });
 
-        currentClusterPopup = closestMarker;
-    }, 380);
+        if (closestMarker) {
+            currentClusterPopup = closestMarker;
+        }
+    }, 120);   // reduced from 380ms
 });
+
 clusteredMarkers.on('clustermouseover clusterclick', function (a) {
     if (a.layer._spiderfied) return;
+
     a.layer.spiderfy();
     currentlySpiderfied = a.layer;
 
     setTimeout(() => {
-        const childMarkers = a.layer.getAllChildMarkers();
+        const childMarkers = a.layer.getAllChildMarkers()
+            .filter(m => m && typeof m.getLatLng === 'function' && m.getLatLng() !== null);
+
         if (childMarkers.length === 0) return;
+
         const sorted = childMarkers.slice().sort((a, b) => {
+            if (!a.getLatLng() || !b.getLatLng()) return 0;
             const offsetA = a.options.zIndexOffset || 0;
             const offsetB = b.options.zIndexOffset || 0;
             if (offsetA !== offsetB) return offsetB - offsetA;
@@ -1567,15 +1611,16 @@ clusteredMarkers.on('clustermouseover clusterclick', function (a) {
         });
 
         const topMarker = sorted[0];
-        topMarker.openPopup({
-            offset: [0, -100]
-        });
+        if (!topMarker || !topMarker.getLatLng()) return;
+
+        topMarker.openPopup({ offset: [0, -100] });
         currentClusterPopup = topMarker;
+
         if (topMarker._icon) {
             topMarker._icon.classList.add('marker-flash');
             setTimeout(() => topMarker._icon.classList.remove('marker-flash'), 3000);
         }
-    }, 380);
+    }, 120);
 });
 clusteredMarkers.on('click', function (e) {
     L.DomEvent.stopPropagation(e); 
@@ -2448,18 +2493,18 @@ async function checkForCommunityUpdate() {
 
         const lastKnown = localStorage.getItem(LAST_COMMUNITY_VERSION_KEY);
 
-        // Glow if: no previous version stored OR current version is different
+        // Glow if: no previous version stored OR fetched version differs
         if (!lastKnown || lastKnown !== currentVersion) {
             button.classList.add('update-available');
-            // Optional: show tip only on first load or actual update available
-            if (typeof showTempMessage === 'function' && !lastKnown) {
+            // Show tip on first load or actual update
+            if (typeof showTempMessage === 'function') {
                 showTempMessage('New community markers available! Click "Update Community Map".', 10000);
             }
         } else {
             button.classList.remove('update-available');
         }
 
-        // Always save the fetched version for future comparisons
+        // Always save the fetched version
         localStorage.setItem(LAST_COMMUNITY_VERSION_KEY, currentVersion);
 
     } catch (err) {
@@ -2632,6 +2677,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 }
         function addMarkerToMap(loc) {
+    if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number' || isNaN(loc.lat) || isNaN(loc.lng)) {
+        console.warn('Skipping marker — invalid coordinates:', loc);
+        return;
+    }
+
     const marker = L.marker([loc.lat, loc.lng], {
         icon: createMarkerIcon(loc),
         id: loc.id,
@@ -2785,42 +2835,57 @@ document.addEventListener('DOMContentLoaded', () => {
             playSound('click');
         };
         setInterval(() => {
-            if (document.visibilityState === 'visible' && !window.isDraggingAnyMarker) {
-                let popupIsOpen = false;
-                let spiderfiedActive = false;
-                map.eachLayer(layer => {
-                    if (layer.getPopup && layer.getPopup() && layer.getPopup().isOpen()) {
-                        popupIsOpen = true;
-                    }
-                    if (layer.spiderfy && layer._spiderfied) {
-                        spiderfiedActive = true;
-                    }
-                });
-                if (!popupIsOpen && !spiderfiedActive) {
-                    loadData(combinedSearch.value || '', categoryFilter.value || '');
+    if (document.visibilityState !== 'visible' || window.isDraggingAnyMarker) return;
+
+    // Check for active cluster interaction or open popup
+    let isClusterActive = false;
+    let popupIsOpen = false;
+
+    map.eachLayer(layer => {
+        if (layer instanceof L.MarkerClusterGroup && layer._spiderfied) {
+            isClusterActive = true;
+        }
+        if (layer.getPopup && layer.getPopup() && layer.getPopup().isOpen()) {
+            popupIsOpen = true;
+        }
+    });
+
+    // If cluster is spiderfied or popup open → SKIP full reload
+    // Only update glow/lock/draggable states (safe, no clearLayers)
+    if (isClusterActive || popupIsOpen) {
+        [clusteredMarkers, nonClusteredMarkers].forEach(g => {
+            g.eachLayer(m => {
+                if (!m || !m.options || !m._icon) return; // skip if marker invalid
+                const loc = locations.find(l => l.id === m.options.id);
+                if (!loc) return;
+
+                const glow = isGlowing(loc);
+                const icon = m._icon;
+                if (glow && !icon.className.includes('glowing')) {
+                    m.setIcon(createMarkerIcon(loc));
+                    m.setZIndexOffset(10000);
+                } else if (!glow && icon.className.includes('glowing')) {
+                    m.setIcon(createMarkerIcon(loc));
+                    m.setZIndexOffset(0);
                 }
-                [clusteredMarkers, nonClusteredMarkers].forEach(g => g.eachLayer(m => {
-                    const loc = locations.find(l => l.id === m.options.id);
-                    if (!loc) return;
-                    const glow = isGlowing(loc);
-                    const icon = m.getIcon();
-                    if (glow && !icon.options.className?.includes('glowing')) {
-                        m.setIcon(createMarkerIcon(loc));
-                        m.setZIndexOffset(10000);
-                    } else if (!glow && icon.options.className?.includes('glowing')) {
-                        m.setIcon(createMarkerIcon(loc));
-                        m.setZIndexOffset(0);
-                    }
-                    if (loc.locked || loc.isPostcard) {
-                        m.dragging?.disable();
-                    } else {
-                        m.dragging?.enable();
-                    }
-                }));
-                refreshTable(combinedSearch?.value || '', categoryFilter?.value || '');
-                updateLockAllBtn?.();
-            }
-        }, 1000);
+
+                if (loc.locked || loc.isPostcard) {
+                    m.dragging?.disable();
+                } else {
+                    m.dragging?.enable();
+                }
+            });
+        });
+
+        refreshTable(combinedSearch?.value || '', categoryFilter?.value || '');
+        updateLockAllBtn?.();
+        return; // exit early — no full loadData()
+    }
+
+    // Only when safe (no active cluster/popup): full refresh
+    loadData(combinedSearch.value || '', categoryFilter.value || '');
+
+}, 1000);
         function renderCategoryToggles() {
             const box = document.getElementById('categoryCheckboxes');
             box.innerHTML = '';
@@ -2988,11 +3053,24 @@ if (submitBtn) {
         function loadData(search = '', catFilter = '') {
     clusteredMarkers.clearLayers();
     nonClusteredMarkers.clearLayers();
+
     const currentLocations = [...locations];
-    let filtered = currentLocations.filter(loc => {
+
+    // Filter out any markers with invalid coordinates before processing
+    const validLocations = currentLocations.filter(loc => {
+        const latOk = typeof loc.lat === 'number' && !isNaN(loc.lat);
+        const lngOk = typeof loc.lng === 'number' && !isNaN(loc.lng);
+        if (!latOk || !lngOk) {
+            console.warn('Skipping invalid marker during load:', loc);
+            return false;
+        }
+        return true;
+    });
+
+    let filtered = validLocations.filter(loc => {
         if (!activeCategories.has(loc.category)) return false;
         if (catFilter && loc.category !== catFilter) return false;
-        if (showOnlyMyMarkers && loc.isCommunity && !loc.wasCommunityKept && !loc.userEdited) return false;  // ← FILTER HERE
+        if (showOnlyMyMarkers && loc.isCommunity && !loc.wasCommunityKept && !loc.userEdited) return false;
         if (!search) return true;
         const normalizedSearch = normalizeString(search);
         const normalizedDesc = normalizeString(loc.desc);
@@ -3001,6 +3079,7 @@ if (submitBtn) {
                normalizedSearch.includes(normalizedDesc) ||
                normalizedCat.includes(normalizedSearch);
     });
+
     filtered.forEach(addMarkerToMap);
     refreshTable(search, catFilter);
     updateXPBar();
@@ -4789,6 +4868,16 @@ console.log('%cCopyright © 2026 MrCrazy — All rights reserved\n' +
     'color:#aaaaaa; font-family:monospace; font-size:12px; background:#000; padding:4px 0;');
     })();
 });
+
+window.addEventListener('error', function(e) {
+    if (e.message && 
+        (e.message.includes('null (reading \'lng\')') || 
+         e.message.includes('Projection.LonLat') ||
+         e.message.includes('Cannot read properties of null'))) {
+        e.preventDefault();
+        return false;
+    }
+}, true);
 
 // Mobile: bright green during tap, force fast fade on release
 document.addEventListener('touchstart', e => {
