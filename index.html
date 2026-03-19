@@ -981,38 +981,19 @@ nukeStyle.textContent = `
             0%, 100% { box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff88; }
             50% { box-shadow: 0 0 25px #00ff00, 0 0 50px #00ffcc; }
         }
-/* Mobile/touch: prevent stuck :hover simulation after tap */
-@media (hover: none) and (pointer: coarse) {
-    button,
-    #toggleButtonGroup,
-    #buttonGroup button {
-        transition: background-color 0.4s ease-out;
-    }
-
-    /* Limit glow to actual press only */
-    button:active,
-    #toggleButtonGroup:active,
-    #buttonGroup button:active {
-        background-color: #00ff00;
-        color: #000;
-        box-shadow: 0 0 10px #00ff00 !important;
-    }
-}
-
-/* Desktop: ensure clean fade (already mostly working, just reinforce reset) */
 button:not(:hover):not(:active):not(:focus),
 #toggleButtonGroup:not(:hover):not(:active):not(:focus),
 #buttonGroup button:not(:hover):not(:active):not(:focus) {
     background-color: #1a3c34;
     box-shadow: none;
 }
-/* ── Mobile-only: strict dark reset + transition control ── */
+/* ── Mobile: bright green + glow during tap, fast clean fade on release ── */
 @media (hover: none) and (pointer: coarse) {
     button,
     #toggleButtonGroup,
     #buttonGroup button {
-        background-color: #1a3c34 !important;
-        transition: background-color 0.3s ease-out, box-shadow 0.3s ease-out;
+        background-color: #1a3c34;
+        transition: background-color 0.35s ease-out, box-shadow 0.35s ease-out;
     }
 
     button:active,
@@ -1021,15 +1002,14 @@ button:not(:hover):not(:active):not(:focus),
         background-color: #00ff00 !important;
         color: #000 !important;
         box-shadow: 0 0 10px #00ff00 !important;
-        transition: none; /* instant green on press */
+        transition: none; /* instant bright feedback on press */
     }
 
-    /* Temporary class to force dark immediately after release */
-    .force-dark-mobile {
-        background-color: #1a3c34 !important !important;
-        color: #00ff00 !important;
+    /* Fast fade-back class applied on touchend */
+    .fast-fade-release {
+        background-color: #1a3c34 !important;
         box-shadow: none !important;
-        transition: none; /* no fade during forced reset */
+        transition: background-color 0.25s ease-out, box-shadow 0.25s ease-out !important;
     }
 }
     </style>
@@ -4808,26 +4788,20 @@ console.log('%cCopyright © 2026 MrCrazy — All rights reserved\n' +
     })();
 });
 
-// Aggressive mobile fix: force dark state immediately after tap on Samsung/Android
-document.addEventListener('touchstart', function(e) {
+// Mobile: bright green during tap, force fast fade on release
+document.addEventListener('touchstart', e => {
     const btn = e.target.closest('button, #toggleButtonGroup, #buttonGroup button');
-    if (btn) {
-        // Ensure instant press feedback
-        btn.style.transition = 'none';
-    }
+    if (btn) btn.style.transition = 'none';
 }, { passive: true });
 
-document.addEventListener('touchend', function(e) {
+document.addEventListener('touchend', e => {
     const btn = e.target.closest('button, #toggleButtonGroup, #buttonGroup button');
     if (btn) {
-        // Force dark state instantly
-        btn.classList.add('force-dark-mobile');
-
-        // After tiny delay, remove forced class so normal CSS can work again
+        btn.classList.add('fast-fade-release');
         setTimeout(() => {
-            btn.classList.remove('force-dark-mobile');
-            btn.style.transition = ''; // restore normal transition
-        }, 120); // 120 ms = enough to kill hover simulation but feel instant
+            btn.classList.remove('fast-fade-release');
+            btn.style.transition = '';
+        }, 350); // matches fade duration
     }
 }, { passive: true });
 </script>
