@@ -1,5 +1,5 @@
 // ——— SERVICE WORKER ———
-const CACHE_NAME = "fo76-ifm-v76.READY"; // ← ONLY CHANGE: on update!
+const CACHE_NAME = "fo76-ifm-v76.READY-20260319";   // ← Only cache name changed (forces update)
 
 self.addEventListener("install", e => {
   e.waitUntil(self.skipWaiting());
@@ -22,15 +22,17 @@ self.addEventListener("activate", e => {
 
 self.addEventListener("fetch", e => {
   const url = e.request.url;
-  // Always get fresh community data
-  if (url.includes('communitymap.json') || url.includes('githubusercontent.com')) {
+
+  // Always get fresh pending.html and community data
+  if (url.includes('pending.html') || 
+      url.includes('communitymap.json') || 
+      url.includes('githubusercontent.com')) {
     e.respondWith(fetch(e.request));
     return;
   }
-  // Cache everything else — but will be blown away on next update
+
+  // Normal caching for everything else
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))
   );
 });
-
-
