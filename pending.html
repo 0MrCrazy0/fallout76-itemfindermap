@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pending Community Submissions</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <style>
         body {
             font-family: 'Courier New', monospace;
@@ -16,12 +19,13 @@
         }
         h1 {
             text-shadow: 0 0 12px #00ff00;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
         .instruction {
-            font-size: 1.3em;
-            margin: 30px 0 20px;
-            line-height: 1.5;
+            font-size: 1.35em;
+            margin: 40px 0 30px;
+            line-height: 1.6;
+            color: #00ff88;
         }
         #list {
             max-width: 900px;
@@ -37,13 +41,14 @@
         }
         .close-btn {
             background: #ff4444;
-            color: #fff;
+            color: white;
             border: none;
             padding: 16px 40px;
             font-size: 1.3em;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 20px;
+            margin: 20px auto;
+            display: block;
             box-shadow: 0 0 20px #ff4444;
             border-radius: 4px;
         }
@@ -60,7 +65,11 @@
             overflow: auto;
             white-space: pre-wrap;
             word-break: break-word;
-            text-align: left;
+        }
+        .note {
+            margin-top: 40px;
+            font-size: 0.95em;
+            opacity: 0.8;
         }
     </style>
 </head>
@@ -68,39 +77,43 @@
     <h1>Pending Community Map Submissions</h1>
 
     <div class="instruction">
-        This page shows pending submissions.<br>
-        <strong>Please click the button below to close this tab<br>and return to the map.</strong>
+        This page shows pending submissions.<br><br>
+        <strong>When finished, click the button below to close this tab<br>and return to the map.</strong>
     </div>
 
     <button onclick="closeTab()" class="close-btn">
         CLOSE THIS TAB ← Return to Map
     </button>
 
-    <div id="list" style="margin-top:50px;" class="loading">Loading pending markers…</div>
+    <div id="list" class="loading">Loading pending markers…</div>
+
+    <div class="note">
+        If you still see the old page, please hard refresh (Ctrl + Shift + R) or reinstall the PWA.
+    </div>
 
     <script>
     function closeTab() {
-        window.close();                    // Try to close the tab
+        window.close();
         setTimeout(() => {
-            // Fallback if close() was blocked
             window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
-        }, 600);
+        }, 700);
     }
 
-    fetch('https://itemfinder-submit.crzymn05.workers.dev/pending')
-        .then(r => r.ok ? r.json() : Promise.reject('Failed'))
+    // Force fresh data
+    fetch('https://itemfinder-submit.crzymn05.workers.dev/pending?' + Date.now())
+        .then(r => r.ok ? r.json() : Promise.reject())
         .then(data => {
             const container = document.getElementById('list');
             container.innerHTML = '';
             if (data.length === 0) {
-                container.innerHTML = '<div class="empty" style="text-align:center;padding:40px;">No pending submissions at this time.</div>';
+                container.innerHTML = '<div style="text-align:center;padding:40px;font-size:1.2em;">No pending submissions at this time.</div>';
                 return;
             }
             data.forEach(pr => {
                 const div = document.createElement('div');
                 div.className = 'pr';
                 div.innerHTML = `
-                    <div class="pr-header" style="display:flex;justify-content:space-between;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
                         <strong>PR #${pr.number}</strong>
                         <span>${new Date(pr.created_at).toLocaleString()}</span>
                     </div>
@@ -108,9 +121,9 @@
                     <div style="margin:12px 0;"><strong>Title:</strong> ${pr.title}</div>
                     <div style="margin-bottom:12px;">
                         <strong>Preview:</strong>
-                        <div class="preview-box">${pr.preview || '(no preview)'}</div>
+                        <div class="preview-box">${pr.preview || '(no preview available)'}</div>
                     </div>
-                    <a href="${pr.url}" target="_blank">View on GitHub →</a>
+                    <a href="${pr.url}" target="_blank">View Pull Request on GitHub →</a>
                 `;
                 container.appendChild(div);
             });
