@@ -48,28 +48,44 @@
             font-size: 1.2em;
             padding: 40px;
         }
-		.preview-box {
-    background: #0f2f2a;
-    border: 1px solid #00ff00;
-    padding: 10px;
-    margin-top: 6px;
-    max-height: 200px;
-    overflow: auto;
-
-    white-space: pre-wrap;
-    word-break: break-word;
-}
+        .preview-box {
+            background: #0f2f2a;
+            border: 1px solid #00ff00;
+            padding: 10px;
+            margin-top: 6px;
+            max-height: 200px;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .back-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #00ff88;
+            color: #0a2a2a;
+            border: none;
+            padding: 12px 24px;
+            font-weight: bold;
+            font-size: 1.05em;
+            cursor: pointer;
+            box-shadow: 0 0 15px #00ff00;
+        }
+        .back-btn:hover {
+            background: #00ff00;
+            box-shadow: 0 0 20px #00ff88;
+        }
     </style>
 </head>
 <body>
     <h1>Pending Community Map Submissions</h1>
     <div id="list" class="loading">Loading pending markers…</div>
-	<div style="position:fixed; bottom:20px; left:50%; transform:translateX(-50%);">
-    <button onclick="window.location.href='https://0mrcrazy0.github.io/fallout76-itemfindermap/'" 
-            style="background:#00ff88; color:#0a2a2a; border:none; padding:10px 20px; font-weight:bold; cursor:pointer;">
+
+    <button onclick="window.location.href = 'https://0mrcrazy0.github.io/fallout76-itemfindermap/'" 
+            class="back-btn">
         ← Back to Map
     </button>
-</div>
 
     <script>
     fetch('https://itemfinder-submit.crzymn05.workers.dev/pending')
@@ -98,17 +114,18 @@
                     <div>Submitted by: ${pr.user}</div>
                     <div style="margin:12px 0;"><strong>Title:</strong> ${pr.title}</div>
                     <div style="margin-bottom:12px;">
-    <strong>Preview:</strong>
-    <div class="preview-box">${pr.preview}</div>
-</div>
+                        <strong>Preview:</strong>
+                        <div class="preview-box">${pr.preview || '(no preview available)'}</div>
+                    </div>
                     <a href="${pr.url}" target="_blank">View Pull Request on GitHub →</a>
                 `;
                 container.appendChild(div);
             });
         })
         .catch(err => {
-            document.getElementById('list').className = 'empty';
-            document.getElementById('list').textContent = 'Error loading list: ' + err.message;
+            const container = document.getElementById('list');
+            container.className = 'empty';
+            container.textContent = 'Error loading list: ' + err.message;
         });
     </script>
 </body>
