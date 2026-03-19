@@ -1006,28 +1006,18 @@ button:not(:hover):not(:active):not(:focus),
     background-color: #1a3c34;
     box-shadow: none;
 }
-/* ── Prevent stuck green background after tap on mobile ── */
 @media (hover: none) and (pointer: coarse) {
     button,
     #toggleButtonGroup,
     #buttonGroup button {
-        background-color: #1a3c34; /* Force dark base on touch devices */
-        transition: background-color 0.35s ease-out;
+        background-color: #1a3c34 !important;
     }
 
     button:active,
     #toggleButtonGroup:active,
     #buttonGroup button:active {
-        background-color: #00ff00;
-        color: #000;
-        box-shadow: 0 0 10px #00ff00;
-    }
-
-    /* Ensure no lingering :hover simulation after lift */
-    button:not(:active),
-    #toggleButtonGroup:not(:active),
-    #buttonGroup button:not(:active) {
-        background-color: #1a3c34 !important;
+        background-color: #00ff00 !important;
+        color: #000 !important;
     }
 }
 		
