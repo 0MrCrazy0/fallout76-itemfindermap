@@ -1006,32 +1006,30 @@ button:not(:hover):not(:active):not(:focus),
     background-color: #1a3c34;
     box-shadow: none;
 }
-/* ── Mobile-only: auto-fade button feedback after tap ── */
+/* ── Mobile-only: strict dark reset + transition control ── */
 @media (hover: none) and (pointer: coarse) {
-
-    /* Default dark state (overrides any lingering :hover) */
     button,
     #toggleButtonGroup,
     #buttonGroup button {
         background-color: #1a3c34 !important;
-        transition: background-color 0.5s ease-out, box-shadow 0.5s ease-out;
+        transition: background-color 0.3s ease-out, box-shadow 0.3s ease-out;
     }
 
-    /* Active / pressed state — green + glow */
     button:active,
     #toggleButtonGroup:active,
     #buttonGroup button:active {
         background-color: #00ff00 !important;
         color: #000 !important;
         box-shadow: 0 0 10px #00ff00 !important;
-        transition: none; /* instant on press */
+        transition: none; /* instant green on press */
     }
 
-    /* Class that triggers fade-out after release */
-    .fade-out-after-tap {
-        background-color: #1a3c34 !important;
+    /* Temporary class to force dark immediately after release */
+    .force-dark-mobile {
+        background-color: #1a3c34 !important !important;
+        color: #00ff00 !important;
         box-shadow: none !important;
-        transition: background-color 0.55s ease-out, box-shadow 0.55s ease-out;
+        transition: none; /* no fade during forced reset */
     }
 }
     </style>
@@ -4810,16 +4808,26 @@ console.log('%cCopyright © 2026 MrCrazy — All rights reserved\n' +
     })();
 });
 
+// Aggressive mobile fix: force dark state immediately after tap on Samsung/Android
+document.addEventListener('touchstart', function(e) {
+    const btn = e.target.closest('button, #toggleButtonGroup, #buttonGroup button');
+    if (btn) {
+        // Ensure instant press feedback
+        btn.style.transition = 'none';
+    }
+}, { passive: true });
+
 document.addEventListener('touchend', function(e) {
     const btn = e.target.closest('button, #toggleButtonGroup, #buttonGroup button');
     if (btn) {
-        // Trigger fade-out
-        btn.classList.add('fade-out-after-tap');
+        // Force dark state instantly
+        btn.classList.add('force-dark-mobile');
 
-        // Remove class after fade completes so normal CSS can take over again
+        // After tiny delay, remove forced class so normal CSS can work again
         setTimeout(() => {
-            btn.classList.remove('fade-out-after-tap');
-        }, 600); // slightly longer than transition duration
+            btn.classList.remove('force-dark-mobile');
+            btn.style.transition = ''; // restore normal transition
+        }, 120); // 120 ms = enough to kill hover simulation but feel instant
     }
 }, { passive: true });
 </script>
