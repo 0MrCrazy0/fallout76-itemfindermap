@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pending Community Submissions</title>
-    <!-- Strong cache buster -->
+    <!-- Very strong cache buster -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -100,7 +100,7 @@
     }
 
     // Strong cache buster with timestamp
-    fetch('https://itemfinder-submit.crzymn05.workers.dev/pending?t=' + Date.now())
+    fetch('https://itemfinder-submit.crzymn05.workers.dev/pending?v=20260319_' + Date.now())
         .then(r => r.ok ? r.json() : Promise.reject())
         .then(data => {
             const container = document.getElementById('list');
