@@ -2926,7 +2926,7 @@ marker.bindPopup(`
             if (e.touches.length === 1) {
                 longPressTimer = setTimeout(() => {
                     marker.openPopup();
-                }, 500);
+                }, 800);
             }
         });
         L.DomEvent.on(marker._icon, 'touchend touchmove touchcancel', function() {
