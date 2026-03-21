@@ -2985,16 +2985,16 @@ marker.bindPopup(`
             <td>${escapeHtml(short)}</td>
         `;
         tr.onclick = e => {
-    // Ignore clicks on the lock toggle span
+    // Ignore clicks on the lock toggle
     if (e.target.tagName === 'SPAN' && !loc.isPostcard) return;
 
-    // Scroll to map and zoom
+    // Single tap / left-click: scroll + zoom + open normal view popup
     document.getElementById('map').scrollIntoView({ behavior: 'smooth' });
     const targetLatLng = [loc.lat, loc.lng];
     const duration = map.getZoom() < 2 ? 2.5 : 1.5;
     map.flyTo(targetLatLng, 4, { duration });
 
-    // After zoom completes → open the marker's normal popup (view mode)
+    // After zoom finishes → open normal popup (view mode)
     map.once('moveend', () => {
         setTimeout(() => {
             const m = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
@@ -3002,14 +3002,8 @@ marker.bindPopup(`
             if (m) {
                 m.openPopup();
                 playSound('click');
-                // Optional safety fallback (rarely needed)
-                setTimeout(() => {
-                    if (!m.isPopupOpen()) {
-                        m.openPopup();
-                    }
-                }, 600);
             }
-        }, 400);
+        }, 500);
     });
 };
                 tr.oncontextmenu = e => {
