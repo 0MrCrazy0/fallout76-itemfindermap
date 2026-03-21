@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=13">
+	<link rel="manifest" href="manifest.json?v=14">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -2985,27 +2985,29 @@ marker.bindPopup(`
             <td>${escapeHtml(short)}</td>
         `;
         tr.onclick = e => {
+    // Ignore clicks on the lock toggle span
     if (e.target.tagName === 'SPAN' && !loc.isPostcard) return;
-    document.getElementById('map').scrollIntoView({behavior:'smooth'});
+
+    // Scroll to map and zoom
+    document.getElementById('map').scrollIntoView({ behavior: 'smooth' });
     const targetLatLng = [loc.lat, loc.lng];
     const duration = map.getZoom() < 2 ? 2.5 : 1.5;
     map.flyTo(targetLatLng, 4, { duration });
-    
+
+    // After zoom completes → open the marker's normal popup (view mode)
     map.once('moveend', () => {
         setTimeout(() => {
             const m = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
                 .find(m => m.options.id === loc.id);
-            
             if (m) {
-                // Primary open attempt
                 m.openPopup();
                 playSound('click');
-                
-                // Safety fallback: re-try once after extra delay if popup didn't appear
+                // Optional safety fallback (rarely needed)
                 setTimeout(() => {
                     if (!m.isPopupOpen()) {
+                        m.openPopup();
                     }
-                }, 600);  // 600 ms after first attempt (~1000 ms total from moveend)
+                }, 600);
             }
         }, 400);
     });
