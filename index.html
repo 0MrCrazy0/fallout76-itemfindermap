@@ -2923,7 +2923,7 @@ marker.bindPopup(`
 
         let longPressTimer;
         L.DomEvent.on(marker._icon, 'touchstart', function(e) {
-            if (e.touches.length === 1) {
+            if (e.touches.length === 8) {
                 longPressTimer = setTimeout(() => {
                     marker.openPopup();
                 }, 800);
