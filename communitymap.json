@@ -4248,6 +4248,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-8fe92166-b690-4171-adbc-298a2266210f",
+      "cid": "misc_test_grid_b2_x_748_y_445_445_748",
+      "category": "eggs",
+      "desc": "test\nGrid B2 (X: 748, Y: 445)\nSubmitted By MrCrazy",
+      "lat": 444.97529700308974,
+      "lng": 748.2953956299966,
+      "icon": "🥚",
+      "addedTime": 1774128523797,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
