@@ -1012,45 +1012,6 @@ button:not(:hover):not(:active):not(:focus),
         transition: background-color 0.25s ease-out, box-shadow 0.25s ease-out !important;
     }
 }
-/* ── Global Pip-Boy Scrollbar Theme ── */
-/* Chrome/Edge/Safari */
-*::-webkit-scrollbar {
-    width: 8px;           /* thin vertical */
-    height: 8px;          /* thin horizontal */
-}
-*::-webkit-scrollbar-track {
-    background: #000;
-    border-left: 1px solid #00ff00;
-    border-right: 1px solid #00ff00;
-    box-shadow: inset 0 0 6px rgba(0, 255, 102, 0.15);
-}
-*::-webkit-scrollbar-thumb {
-    background: #00ff88;
-    border: 2px solid #000;
-    border-radius: 0;
-    box-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
-	cursor: default;
-}
-*::-webkit-scrollbar-thumb:hover {
-    background: #00ffcc;
-    box-shadow: 0 0 12px rgba(0, 255, 204, 0.9);
-}
-
-/* Firefox */
-* {
-    scrollbar-width: thin;
-    scrollbar-color: #00ff88 #000;
-}
-
-/* Ensure modals & containers inherit properly */
-.modal-content,
-#searchSuggestions,
-#categoryCheckboxes,
-#tableContainer,
-textarea {
-    scrollbar-width: thin !important;
-    scrollbar-color: #00ff88 #000 !important;
-}
     </style>
 </head>
 <body>
@@ -1171,7 +1132,7 @@ textarea {
     <p><strong>Drag any unlocked marker</strong> — drop to auto-save new position (it will glow & lock again for safety).</p>
     <p><strong>Left-Click / Single-Tap</strong> any marker → opens <strong>Edit Item</strong> menu.</p>
     <p><strong>Left-Click</strong> a row in the Content Inventory → instantly zooms to that marker.</p>
-    <p><strong>Right-Click</strong> (or <strong>Long-Press ~0.5s</strong> on mobile) a row → zooms to marker and opens Edit modal (if user-edited-kept) or (if community) the marker popup.</p>
+    <p><strong>Right-Click</strong> a row → opens Edit modal + zooms.</p>
     <p>Use the <strong>Search Bar</strong> to filter by description, category, or grid (e.g. C4).</p>
     <p><strong>Toggle Map</strong> button switches between named and clean map.</p>
     <p>Click anywhere on the map → shows current <strong>grid coordinate</strong> in a green popup.</p>
@@ -2978,65 +2939,6 @@ marker.bindPopup(`
                         openModal('Edit Item', locations.findIndex(l => l.id === loc.id));
                     }
                 };
-				// Right-click (desktop)
-tr.oncontextmenu = e => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    // Always zoom/fly to the marker
-    safeFlyTo(loc.lat, loc.lng, 4);
-
-    // Find the marker on the map
-    const marker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
-        .find(m => m.options.id === loc.id);
-
-    if (marker) {
-        if (loc.userEdited && !loc.isPostcard) {
-            // User-edited → open edit modal
-            const index = locations.findIndex(l => l.id === loc.id);
-            if (index !== -1) {
-                openModal('Edit Item', index);
-            }
-        } else {
-            // Community marker → open normal popup (with Keep/Report buttons)
-            marker.openPopup();
-            playSound('click');
-        }
-    }
-
-    return false;
-};
-
-// Mobile long-press fallback (same logic)
-let longPressTimer;
-tr.addEventListener('touchstart', e => {
-    if (e.touches.length === 1) {
-        longPressTimer = setTimeout(() => {
-            e.preventDefault();
-
-            safeFlyTo(loc.lat, loc.lng, 4);
-
-            const marker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
-                .find(m => m.options.id === loc.id);
-
-            if (marker) {
-                if (loc.userEdited && !loc.isPostcard) {
-                    const index = locations.findIndex(l => l.id === loc.id);
-                    if (index !== -1) {
-                        openModal('Edit Item', index);
-                    }
-                } else {
-                    marker.openPopup();
-                    playSound('click');
-                }
-            }
-        }, 500);
-    }
-}, { passive: false });
-
-tr.addEventListener('touchend', () => clearTimeout(longPressTimer));
-tr.addEventListener('touchmove', () => clearTimeout(longPressTimer));
-tr.addEventListener('touchcancel', () => clearTimeout(longPressTimer));
         tbody.appendChild(tr);
     });
     const pages = Math.ceil(sorted.length / pageSize);
@@ -4451,12 +4353,12 @@ if (SpeechRecognition && voiceSearchBtn) {
     welcomeModal.innerHTML = `
         <div class="modal-content" style="max-width:650px; background:#000; border:2px solid #00ff00; box-shadow:0 0 30px #00ff00;">
             <div style="background:#000; padding:15px; text-align:center; border-bottom:2px solid #00ff00;">
-                <h1 style="margin:0 0 8px; font-size:1.9em; text-shadow:0 0 12px #00ff00; letter-spacing:0.8px;">
-    ☢ FALLOUT 76 ITEM FINDER MAP ☢
-</h1>
-<p style="margin:0; font-size:1.25em; color:#88ff88; opacity:0.95;">
-    v76.READY — Built with ❤️ by MrCrazy
-</p>
+                <h1 style="margin:0; font-size:2.5em; text-shadow:0 0 20px #00ff00;">
+                    ☢ FALLOUT 76 ITEM FINDER MAP ☢
+                </h1>
+                <p style="margin:8px 0 0; font-size:1.3em; color:#0f0;">
+                    v76.READY — Built with ❤️ by MrCrazy
+                </p>
             </div>
 
             <div style="padding:20px; line-height:1.7;">
@@ -4465,12 +4367,12 @@ if (SpeechRecognition && voiceSearchBtn) {
                 </p>
 
                 <ul style="margin:20px 0; padding-left:30px; font-size:1.05em;">
-    <li>This tool is for <strong>logging locations</strong>.</li>
-    <li>Exploring Appalachia can sometimes be hard to keep track of things.</li>
-    <li>Places you found, things you've seen — this app was made just for that, so start logging!</li>
-    <li>Click <strong>"Update Community Map"</strong> for the latest community data.</li>
-    <li>Have fun exploring Appalachia — and share the app! ❤️</li>
-</ul>
+                    <li>This tool is for <strong>logging locations</strong>.</li>
+                    <li>Exploring Appalachia sometimes its hard to keep track of things.</li>
+                    <li>places you found, things you seen. this app was made just for that so start logging things.</li>
+                    <li>Click <strong>"Update Community Map"</strong> for the latest community data.</li>
+                    <li>Have fun exploring Appalachia — and share the app! ❤️</li>
+                </ul>
 
                 <div style="margin:25px 0; text-align:center;">
                     <div id="welcomeGotItBtn" style="display:inline-block; padding:12px 40px; background:#000; border:3px solid #00ff00; color:#00ff00; font-size:1.5em; font-weight:bold; text-shadow:0 0 15px #00ff00; box-shadow:0 0 20px #00ff00; cursor:pointer;">
@@ -4495,7 +4397,51 @@ if (SpeechRecognition && voiceSearchBtn) {
         showTempMessage('WELCOME TO APPALACHIA, VAULT DWELLER', 20000);
     };
 }
+        function checkForUpdate() {
+    const lastSeen = localStorage.getItem(LAST_VERSION_KEY);
+    if (lastSeen !== CURRENT_UPDATE_VERSION) {
+        const updateModal = document.createElement('div');
+        updateModal.id = 'updateModal';
+        updateModal.className = 'modal';
+        updateModal.style.display = 'block';
+        updateModal.innerHTML = `
+            <div class="modal-content" style="max-width:600px; background:#000; border:2px solid #00ff00; box-shadow:0 0 30px #00ff00;">
+                <div style="background:#000; padding:18px; text-align:center; border-bottom:2px solid #00ff00;">
+                    <h1 style="margin:0; font-size:2.4em; text-shadow:0 0 20px #00ff00; color:#0f0;">
+                        ☢ LATEST UPDATE ☢
+                    </h1>
+                </div>
+                <div style="padding:30px; text-align:center; line-height:1.8;">
+                    <ul style="text-align:left; display:inline-block; margin:25px 0; padding-left:30px; font-size:1.2em;">
+                        <li>Welcome To Version 76.READY</li>
+                        <li>This is The Latest Update — Reset Your App if needed.<br>
+                            Find this tip in the "How to Use" section.</li>
+                    </ul>
+                    <div style="margin:30px 0;">
+                        <div id="updateGotItBtn" style="display:inline-block; padding:14px 50px; background:#000; border:3px solid #00ff00; color:#00ff00; font-size:1.6em; font-weight:bold; text-shadow:0 0 18px #00ff00; box-shadow:0 0 25px #00ff00; cursor:pointer;">
+                            GOT IT — LET'S GO!
+                        </div>
+                    </div>
+                    <p style="margin-top:20px; font-size:0.9em; opacity:0.8;">
+                        Thank you for using the Fallout 76 Item Finder Map!<br>
+                    </p>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(updateModal);
+        document.body.classList.add('modal-open');
 
+        const btn = document.getElementById('updateGotItBtn');
+        if (btn) {
+            btn.onclick = () => {
+                localStorage.setItem(LAST_VERSION_KEY, CURRENT_UPDATE_VERSION);
+                updateModal.remove();
+                document.body.classList.remove('modal-open');
+                playSound('levelUp');
+            };
+        }
+    }
+}
         if (!localStorage.getItem(WELCOME_KEY)) {
             setTimeout(showWelcomeModal, 800);
         }
@@ -5048,7 +4994,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 21 March 2026 -v8 • Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: 21 March 2026 • Version 76.READY Released • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
