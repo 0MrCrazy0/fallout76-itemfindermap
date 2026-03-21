@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=11">
+	<link rel="manifest" href="manifest.json?v=12">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -3014,6 +3014,7 @@ marker.bindPopup(`
                 tr.oncontextmenu = e => {
     e.preventDefault();
     e.stopPropagation();
+
     safeFlyTo(loc.lat, loc.lng, 4);
     playSound('click');
 
@@ -3022,26 +3023,32 @@ marker.bindPopup(`
 
     if (marker) {
         if (loc.userEdited && !loc.isPostcard) {
-            // Your/kept marker: open Edit modal
             const index = locations.findIndex(l => l.id === loc.id);
             if (index !== -1) openModal('Edit Item', index);
         } else {
-            // Community marker: zoom → wait for animation → open popup
+            // Community marker: zoom → extended wait → primary open → fallback fire click
             map.once('moveend', () => {
                 setTimeout(() => {
                     marker.openPopup();
-                }, 400);  // 400 ms delay after zoom ends — smooth & reliable
+                    // Force Leaflet to handle as real click if programmatic open fails
+                    setTimeout(() => {
+                        if (!marker.isPopupOpen()) {
+                            marker.fire('click', { latlng: marker.getLatLng() });
+                        }
+                    }, 1500);  // Increased safety net
+                }, 1500);  // Longer delay for first-time reliability
             });
         }
     }
     return false;
 };
-// Mobile long-press on table row (opens edit modal or popup after zoom)
+
 let longPressTimer;
 tr.addEventListener('touchstart', e => {
     if (e.touches.length === 1) {
         longPressTimer = setTimeout(() => {
             e.preventDefault();
+
             safeFlyTo(loc.lat, loc.lng, 4);
             playSound('click');
 
@@ -3050,19 +3057,22 @@ tr.addEventListener('touchstart', e => {
 
             if (marker) {
                 if (loc.userEdited && !loc.isPostcard) {
-                    // Your/kept marker: open Edit modal
                     const index = locations.findIndex(l => l.id === loc.id);
                     if (index !== -1) openModal('Edit Item', index);
                 } else {
-                    // Community marker: zoom → wait for animation → open popup
                     map.once('moveend', () => {
                         setTimeout(() => {
                             marker.openPopup();
-                        }, 400);  // Delay after zoom ends
+                            setTimeout(() => {
+                                if (!marker.isPopupOpen()) {
+                                    marker.fire('click', { latlng: marker.getLatLng() });
+                                }
+                            }, 1200);
+                        }, 1200);
                     });
                 }
             }
-        }, 500);  // 500 ms long-press detection
+        }, 500);
     }
 }, { passive: false });
 
