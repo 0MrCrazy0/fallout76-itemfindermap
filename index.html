@@ -1528,6 +1528,14 @@ Object.keys(customCategories).forEach(cat => {
             imageOverlay.on('load', hide);
             imageOverlay.on('error', hide);
             setTimeout(hide, 14000);
+			
+			imageOverlay.on('load', () => {
+    setTimeout(() => {
+        const currentZoom = map.getZoom();
+        map.setZoom(currentZoom + 0.01);
+        setTimeout(() => map.setZoom(currentZoom), 50);
+    }, 800);
+});
         })();
 let currentlySpiderfied = null;
 let currentClusterPopup = null;
@@ -1549,52 +1557,23 @@ const clusteredMarkers = L.markerClusterGroup({
         });
     }
 });
-// ==================== SAFE CLUSTER HANDLERS ====================
-clusteredMarkers.on('clustermouseover clusterclick', function (a) {
-    if (a.layer === currentlySpiderfied) return;
-
+clusteredMarkers.on('clustermouseover', function (a) {
+    if (a.layer._spiderfied) return;
     a.layer.spiderfy();
     currentlySpiderfied = a.layer;
-
-    // Very short delay + strong safety checks
-    setTimeout(() => {
-        const childMarkers = a.layer.getAllChildMarkers()
-            .filter(m => m && typeof m.getLatLng === 'function' && m.getLatLng() !== null);
-
-        if (childMarkers.length === 0) return;
-
-        const clusterCenter = a.layer.getLatLng();
-        if (!clusterCenter) return;
-
-        // Find closest marker to cluster center
-        let closestMarker = childMarkers[0];
-        let closestDistance = clusterCenter.distanceTo(closestMarker.getLatLng());
-
-        childMarkers.forEach(marker => {
-            if (!marker.getLatLng()) return;
-            const dist = clusterCenter.distanceTo(marker.getLatLng());
-            if (dist < closestDistance) {
-                closestDistance = dist;
-                closestMarker = marker;
-            }
-        });
-
-        if (closestMarker) {
-            currentClusterPopup = closestMarker;
-        }
-    }, 120);   // reduced from 380ms
 });
 
-clusteredMarkers.on('clustermouseover clusterclick', function (a) {
-    if (a.layer._spiderfied) return;
-
+clusteredMarkers.on('clusterclick', function (a) {
+    if (a.layer._spiderfied) {
+        // If already spiderfied (e.g. from hover), treat click as confirmation → keep open
+        return;
+    }
     a.layer.spiderfy();
     currentlySpiderfied = a.layer;
 
     setTimeout(() => {
         const childMarkers = a.layer.getAllChildMarkers()
             .filter(m => m && typeof m.getLatLng === 'function' && m.getLatLng() !== null);
-
         if (childMarkers.length === 0) return;
 
         const sorted = childMarkers.slice().sort((a, b) => {
@@ -1602,7 +1581,6 @@ clusteredMarkers.on('clustermouseover clusterclick', function (a) {
             const offsetA = a.options.zIndexOffset || 0;
             const offsetB = b.options.zIndexOffset || 0;
             if (offsetA !== offsetB) return offsetB - offsetA;
-
             const locA = locations.find(l => l.id === a.options.id);
             const locB = locations.find(l => l.id === b.options.id);
             const timeA = locA?.addedTime || 0;
@@ -1621,6 +1599,16 @@ clusteredMarkers.on('clustermouseover clusterclick', function (a) {
             setTimeout(() => topMarker._icon.classList.remove('marker-flash'), 3000);
         }
     }, 120);
+});
+
+// Auto-unspiderfy on mouse leave (unless clicked)
+clusteredMarkers.on('mouseleave', function (e) {
+    const cluster = e.layer;
+    if (cluster._spiderfied && !cluster._zooming) {
+        cluster.unspiderfy();
+        currentlySpiderfied = null;
+        currentClusterPopup = null;
+    }
 });
 clusteredMarkers.on('click', function (e) {
     L.DomEvent.stopPropagation(e); 
@@ -1653,6 +1641,11 @@ map.on('popupclose', function (e) {
 
 
 map.on('click', function (e) {
+    if (currentlySpiderfied && !e.originalEvent.target.closest('.leaflet-marker-cluster')) {
+        currentlySpiderfied.unspiderfy();
+        currentlySpiderfied = null;
+        currentClusterPopup = null;
+    }
 
     if (ignoreNextMapClick) {
         ignoreNextMapClick = false;
@@ -1691,6 +1684,28 @@ map.on('click', function (e) {
         lastPopupCluster = null;
     }
 });
+
+document.addEventListener('click', function(e) {
+    const mapContainer = document.getElementById('map');
+    
+    if (mapContainer.contains(e.target)) {
+        return;
+    }
+
+    if (currentlySpiderfied) {
+        currentlySpiderfied.unspiderfy();
+        currentlySpiderfied = null;
+        currentClusterPopup = null;
+    }
+    
+    map.closePopup();
+    
+    map.eachLayer(layer => {
+        if (layer instanceof L.MarkerClusterGroup && layer._spiderfied) {
+            layer.unspiderfy();
+        }
+    });
+}, { capture: true, passive: true });
         const nonClusteredMarkers = L.layerGroup();
         map.addLayer(clusteredMarkers);
         map.addLayer(nonClusteredMarkers);
@@ -2200,19 +2215,91 @@ function showGridNotification(grid) {
             };
         }
         const postcardModal = document.createElement('div');
-        postcardModal.className = 'modal';
-        postcardModal.id = 'postcardModal';
-        postcardModal.innerHTML = `
-            <div class="modal-content">
-                <span class="close">X</span>
-                <h2>Send Postcard</h2>
-                <label>Message:</label>
-                <textarea id="postcardMessage" placeholder="Type your note..."></textarea>
-                <div style="margin-top:12px; text-align:center;">
-                    <button id="createPostcardBtn">Copy Link</button>
-                </div>
-            </div>
-        `;
+postcardModal.className = 'modal';
+postcardModal.id = 'postcardModal';
+postcardModal.innerHTML = `
+    <div class="modal-content">
+        <span class="close">X</span>
+        <h2>📬 Send Postcard</h2>
+        <label>Message: <span id="charCount">0/280</span></label>
+        <textarea
+            id="postcardMessage"
+            placeholder="Type your note..."
+            maxlength="280"
+            style="
+                resize: none;
+                width: 100%;
+                min-height: 120px;
+                max-height: 240px;
+                background: #0a1f1a;
+                color: #00ff88;
+                border: 2px solid #00cc66;
+                border-radius: 0;
+                padding: 12px;
+                font-family: 'Courier New', monospace;
+                font-size: 14px;
+                box-sizing: border-box;
+                outline: none;
+            "
+        ></textarea>
+        <div style="margin-top:12px; text-align:center;">
+            <button id="createPostcardBtn">Copy Link</button>
+        </div>
+    </div>
+`;
+document.body.appendChild(postcardModal);
+
+// Live character counter + warning colors
+const messageInput = postcardModal.querySelector('#postcardMessage');
+const charCount = postcardModal.querySelector('#charCount');
+
+if (messageInput && charCount) {
+    messageInput.addEventListener('input', () => {
+        const length = messageInput.value.length;
+        charCount.textContent = `${length}/280`;
+
+        if (length > 240) {
+            charCount.style.color = '#ff4444';        // warning red near limit
+            charCount.style.textShadow = '0 0 6px #ff4444';
+        } else if (length > 200) {
+            charCount.style.color = '#ffcc00';        // yellow caution
+            charCount.style.textShadow = '0 0 4px #ffcc00';
+        } else {
+            charCount.style.color = '#00ff88';        // safe green
+            charCount.style.textShadow = '0 0 4px #00ff88';
+        }
+    });
+}
+
+// Fallout 76 Pip-Boy style scrollbar for the textarea
+const postcardStyle = document.createElement('style');
+postcardStyle.textContent = `
+    #postcardMessage::-webkit-scrollbar {
+        width: 8px;
+    }
+    #postcardMessage::-webkit-scrollbar-track {
+        background: #0a1f1a;
+        border-left: 1px solid #00cc66;
+        border-right: 1px solid #00cc66;
+        box-shadow: inset 0 0 6px rgba(0, 255, 102, 0.15);
+    }
+    #postcardMessage::-webkit-scrollbar-thumb {
+        background: #00ff88;
+        border: 2px solid #0a1f1a;
+        border-radius: 0;
+        box-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
+    }
+    #postcardMessage::-webkit-scrollbar-thumb:hover {
+        background: #00ffcc;
+        box-shadow: 0 0 12px rgba(0, 255, 204, 0.9);
+    }
+    /* Firefox scrollbar support */
+    #postcardMessage {
+        scrollbar-width: thin;
+        scrollbar-color: #00ff88 #0a1f1a;
+    }
+`;
+document.head.appendChild(postcardStyle);
         document.body.appendChild(postcardModal);
         postcardModal.querySelector('.close').onclick = () => postcardModal.style.display = 'none';
         map.on('contextmenu', e => {
@@ -2226,7 +2313,7 @@ function showGridNotification(grid) {
             playSound('click');
         });
                 document.getElementById('createPostcardBtn')?.addEventListener('click', () => {
-            const msg = document.getElementById('postcardMessage')?.value.trim() || 'Check this spot!';
+            const msg = document.getElementById('postcardMessage')?.value.trim() || 'Postcard Found!';
             if (!currentPostcardLatLng) return;
             const loc = createNewLocation(currentPostcardLatLng.lat, currentPostcardLatLng.lng, 'misc', msg, true);
             locations.push(loc);
@@ -2640,39 +2727,62 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         } else {
-                            marker.bindPopup(`
-    <div style="font-family:monospace;max-width:120px">
-      <strong style="font-size:1.4em">${loc.icon || categoryIcons[loc.category] || 'Position'} ${loc.category.toUpperCase()}</strong><br>
-      <small style="white-space:pre-wrap">${escapeHtml(loc.desc)}</small>
-      ${loc.isCommunity && !loc.userEdited ? `
-  <div style="margin-top:16px; text-align:center;">
-    <div style="margin-bottom:12px;">
-      <button onclick="keepCommunityMarker('${loc.id}')"
-              style="background:#00ff00;color:#000;border:none;padding:10px 24px;border-radius:6px;font-weight:bold;font-size:12px;min-width:120px;cursor:pointer;">
-        Keep This Marker
-      </button>
-    </div>
-    <div style="margin-bottom:12px;">
-      <button onclick="startReport('${loc.id}')"
-              style="background:#300;color:#f00;border:2px solid #f00;padding:10px 24px;border-radius:6px;font-weight:bold;font-size:12px;min-width:120px;cursor:pointer;">
-        Report Bad Marker
-      </button>
-    </div>
-    <div style="margin-top:12px;font-size:12px;color:#aaa;line-height:1.4;">
-      Keep = save to your map permanently (editable)<br>
-      Report = ask MrCrazy to review and remove if needed
-    </div>
-  </div>
-  <hr style="border:1px dashed #0f0;margin:12px 0">
-` : ''}
-      ${loc.userEdited && !loc.isPostcard ? `
-        <div style="margin:6px 0;text-align:center;">
-          <span class="popup-lock-toggle" onclick="toggleLockFromPopup(${locations.indexOf(loc)})">${loc.locked ? 'Locked' : 'Unlocked'}</span>
+marker.bindPopup(`
+    <div style="font-family:monospace; max-width:300px; line-height:1.5; color:#00ff00;">
+        <!-- Static title – minimal spacing -->
+        <strong style="font-size:1.35em; display:block; margin-bottom:8px;">
+            ${loc.icon || categoryIcons[loc.category] || 'Position'} ${loc.category.toUpperCase()}
+        </strong>
+       
+        <!-- Scrollable description only -->
+        <div style="
+    max-height:180px;
+    overflow-y:auto;
+    margin-bottom:12px;
+    padding-right:8px;
+    white-space:pre-wrap;
+    word-break:break-word;
+    scrollbar-width:thin;
+    scrollbar-color:#00ff00 #000;
+    margin-left: -8px;
+    padding-left: 8px;
+">
+    ${escapeHtml(loc.desc)}
+</div>
+       
+        <!-- Static footer/buttons -->
+        ${loc.isCommunity && !loc.userEdited ? `
+        <div style="text-align:center; display:flex; flex-direction:column; gap:10px;">
+            <button onclick="keepCommunityMarker('${loc.id}')"
+                    style="background:#00ff00; color:#000; border:none; padding:8px 16px; border-radius:4px; font-size:13px; font-weight:bold; cursor:pointer;">
+                Keep This Marker
+            </button>
+            <button onclick="startReport('${loc.id}')"
+                    style="background:#300; color:#f00; border:2px solid #f00; padding:8px 16px; border-radius:4px; font-size:13px; font-weight:bold; cursor:pointer;">
+                Report Bad Marker
+            </button>
+            <div style="margin-top:8px; font-size:12px; color:#aaa;">
+                Keep = save permanently (editable)<br>
+                Report = ask MrCrazy to review & remove if needed
+            </div>
+        </div>` : ''}
+       
+        ${loc.userEdited && !loc.isPostcard ? `
+        <div style="margin:8px 0; text-align:center;">
+            <span class="popup-lock-toggle" onclick="toggleLockFromPopup(${locations.indexOf(loc)})">${loc.locked ? 'Locked' : 'Unlocked'}</span>
         </div>
-        <button onclick="editMarkerFromPopup(${locations.indexOf(loc)})">Edit</button>
-      ` : ''}
+        <button onclick="editMarkerFromPopup(${locations.indexOf(loc)})"
+                style="background:#00ff00; color:#000; border:none; padding:8px 16px; border-radius:4px; font-size:13px; font-weight:bold; cursor:pointer;">
+            Edit
+        </button>` : ''}
     </div>
-`, { maxWidth: 340, offset: [0, -20] });
+`, {
+    maxWidth: 280,
+	minWidth: 220,
+    autoPan: true,
+	offset: [0, -25],
+    autoPanPadding: [20, 80]
+});
         }
     });
 }
@@ -2796,18 +2906,32 @@ document.addEventListener('DOMContentLoaded', () => {
             <td>${escapeHtml(short)}</td>
         `;
         tr.onclick = e => {
-            if (e.target.tagName === 'SPAN' && !loc.isPostcard) return;
-            document.getElementById('map').scrollIntoView({behavior:'smooth'});
-            const targetLatLng = [loc.lat, loc.lng];
-            const duration = map.getZoom() < 2 ? 2.5 : 1.5;
-            map.flyTo(targetLatLng, 4, { duration });
-            map.once('moveend', () => {
+    if (e.target.tagName === 'SPAN' && !loc.isPostcard) return;
+    document.getElementById('map').scrollIntoView({behavior:'smooth'});
+    const targetLatLng = [loc.lat, loc.lng];
+    const duration = map.getZoom() < 2 ? 2.5 : 1.5;
+    map.flyTo(targetLatLng, 4, { duration });
+    
+    map.once('moveend', () => {
+        setTimeout(() => {
+            const m = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
+                .find(m => m.options.id === loc.id);
+            
+            if (m) {
+                // Primary open attempt
+                m.openPopup();
+                playSound('click');
+                
+                // Safety fallback: re-try once after extra delay if popup didn't appear
                 setTimeout(() => {
-                    const m = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()].find(m=>m.options.id===loc.id);
-                    if (m) { m.openPopup(); playSound('click'); }
-                }, 200);
-            });
-        };
+                    if (!m.isPopupOpen()) {
+                        m.openPopup();
+                    }
+                }, 600);  // 600 ms after first attempt (~1000 ms total from moveend)
+            }
+        }, 400);
+    });
+};
                 tr.oncontextmenu = e => {
                     e.preventDefault();
                     safeFlyTo(loc.lat, loc.lng, 4);
@@ -4870,7 +4994,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 20 March 2026 • Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: 21 March 2026 • Version 76.READY Released • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
