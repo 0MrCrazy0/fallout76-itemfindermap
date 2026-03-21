@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=12">
+	<link rel="manifest" href="manifest.json?v=13">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -3004,7 +3004,6 @@ marker.bindPopup(`
                 // Safety fallback: re-try once after extra delay if popup didn't appear
                 setTimeout(() => {
                     if (!m.isPopupOpen()) {
-                        m.openPopup();
                     }
                 }, 600);  // 600 ms after first attempt (~1000 ms total from moveend)
             }
@@ -4657,7 +4656,6 @@ searchInput.addEventListener('input', function(e) {
             const m = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
                 .find(m => m.options.id === item.id);
             if (m) {
-                m.openPopup();
                 playSound('click');
             }
         }, 200);
