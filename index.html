@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=10">
+	<link rel="manifest" href="manifest.json?v=11">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -14,10 +14,10 @@
   }
 </script>
     <!-- DEV NOTE: Leaflet + Clustering + Screenshot Libraries -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=10" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js?v=10"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js?v=10"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js?v=10"></script>
 
     <!-- DEV NOTE: Icons & Theme -->
     <link rel="icon" href="/fallout76-itemfindermap/icon-192-v2.png" sizes="192x192">
@@ -1032,13 +1032,11 @@ button:not(:hover):not(:active):not(:focus),
     background: #00ff88;
     box-shadow: 0 0 8px #00ff88;
 }
-
 /* Firefox support */
 * {
     scrollbar-width: thin;
     scrollbar-color: #00ff00 #000;
 }
-
 /* Specific overrides for known scroll areas */
 #itemDesc,
 #itemModal textarea,
@@ -1048,27 +1046,12 @@ button:not(:hover):not(:active):not(:focus),
     scrollbar-width: thin !important;
     scrollbar-color: #00ff00 #000 !important;
 }
-/* Make postcard modal and textarea wider / edge-to-edge */
-#postcardModal .modal-content {
-    max-width: 520px !important;
-    width: 94vw !important;
-    padding: 20px 12px !important; /* reduced side padding for max width feel */
-}
-
-#postcardModal #postcardMessage {
-    padding: 14px 10px !important; /* minimal side padding → text nearly touches edges */
-    font-size: 15px !important;
-}
 .close,
 .modal-content .close {
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-}
-#postcardModal .close {
-    user-select: none;
-    -webkit-user-select: none;
 }
     </style>
 </head>
@@ -1160,7 +1143,7 @@ button:not(:hover):not(:active):not(:focus),
     <!-- DEV NOTE: ITEM LOGGING MODAL -->
     <div id="itemModal" class="modal">
         <div class="modal-content">
-            <span class="close">×</span>
+            <span class="close">X</span>
             <h2 id="modalTitle">Log Item <span id="modalLockToggle" style="font-size:22px; cursor:pointer; margin-left:10px;">Unlock</span></h2>
             <label>Category:</label>
             <select id="itemCategory"></select>
@@ -2314,7 +2297,7 @@ postcardModal.className = 'modal';
 postcardModal.id = 'postcardModal';
 postcardModal.innerHTML = `
     <div class="modal-content">
-        <span class="close">X</span>
+        <span class="close">×</span>
         <h2>📬 Send Postcard</h2>
         <label>Message: <span id="charCount">0/280</span></label>
         <textarea
@@ -2335,7 +2318,7 @@ postcardModal.innerHTML = `
                 font-size: 14px;
                 box-sizing: border-box;
                 outline: none;
-				::placeholder { color: #006644; opacity: 0.7; }
+                ::placeholder { color: #006644; opacity: 0.7; }
             "
         ></textarea>
         <div style="margin-top:12px; text-align:center;">
@@ -2374,14 +2357,14 @@ postcardStyle.textContent = `
         width: 8px;
     }
     #postcardMessage::-webkit-scrollbar-track {
-        background: #0a1f1a;
+        background: #000;
         border-left: 1px solid #00cc66;
         border-right: 1px solid #00cc66;
         box-shadow: inset 0 0 6px rgba(0, 255, 102, 0.15);
     }
     #postcardMessage::-webkit-scrollbar-thumb {
         background: #00ff88;
-        border: 2px solid #0a1f1a;
+        border: 2px solid #000;
         border-radius: 0;
         box-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
     }
@@ -2392,7 +2375,7 @@ postcardStyle.textContent = `
     /* Firefox scrollbar support */
     #postcardMessage {
         scrollbar-width: thin;
-        scrollbar-color: #00ff88 #0a1f1a;
+        scrollbar-color: #00ff88 #000;
     }
 `;
 document.head.appendChild(postcardStyle);
@@ -3028,50 +3011,64 @@ marker.bindPopup(`
         }, 400);
     });
 };
-                // Right-click (desktop)
-tr.oncontextmenu = e => {
+                tr.oncontextmenu = e => {
     e.preventDefault();
     e.stopPropagation();
     safeFlyTo(loc.lat, loc.lng, 4);
+    playSound('click');
+
     const marker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
         .find(m => m.options.id === loc.id);
+
     if (marker) {
         if (loc.userEdited && !loc.isPostcard) {
+            // Your/kept marker: open Edit modal
             const index = locations.findIndex(l => l.id === loc.id);
             if (index !== -1) openModal('Edit Item', index);
         } else {
-            marker.openPopup();
-            playSound('click');
+            // Community marker: zoom → wait for animation → open popup
+            map.once('moveend', () => {
+                setTimeout(() => {
+                    marker.openPopup();
+                }, 400);  // 400 ms delay after zoom ends — smooth & reliable
+            });
         }
     }
     return false;
 };
-
-// Mobile long-press fallback
+// Mobile long-press on table row (opens edit modal or popup after zoom)
 let longPressTimer;
 tr.addEventListener('touchstart', e => {
     if (e.touches.length === 1) {
         longPressTimer = setTimeout(() => {
             e.preventDefault();
             safeFlyTo(loc.lat, loc.lng, 4);
+            playSound('click');
+
             const marker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
                 .find(m => m.options.id === loc.id);
+
             if (marker) {
                 if (loc.userEdited && !loc.isPostcard) {
+                    // Your/kept marker: open Edit modal
                     const index = locations.findIndex(l => l.id === loc.id);
                     if (index !== -1) openModal('Edit Item', index);
                 } else {
-                    marker.openPopup();
-                    playSound('click');
+                    // Community marker: zoom → wait for animation → open popup
+                    map.once('moveend', () => {
+                        setTimeout(() => {
+                            marker.openPopup();
+                        }, 400);  // Delay after zoom ends
+                    });
                 }
             }
-        }, 500);
+        }, 500);  // 500 ms long-press detection
     }
 }, { passive: false });
 
-tr.addEventListener('touchend', () => clearTimeout(longPressTimer));
-tr.addEventListener('touchmove', () => clearTimeout(longPressTimer));
-tr.addEventListener('touchcancel', () => clearTimeout(longPressTimer));
+tr.addEventListener('touchend touchmove touchcancel', () => {
+    clearTimeout(longPressTimer);
+});
         tbody.appendChild(tr);
     });
     const pages = Math.ceil(sorted.length / pageSize);
@@ -4486,29 +4483,33 @@ if (SpeechRecognition && voiceSearchBtn) {
     welcomeModal.innerHTML = `
         <div class="modal-content" style="max-width:650px; background:#000; border:2px solid #00ff00; box-shadow:0 0 30px #00ff00;">
             <div style="background:#000; padding:15px; text-align:center; border-bottom:2px solid #00ff00;">
-                <h1 style="margin:0 0 8px; font-size:1.9em; text-shadow:0 0 12px #00ff00; letter-spacing:0.8px;">
+                <h1 style="margin:0; font-size:2.5em; text-shadow:0 0 20px #00ff00;">
                     ☢ FALLOUT 76 ITEM FINDER MAP ☢
                 </h1>
-                <p style="margin:0; font-size:1.25em; color:#88ff88; opacity:0.95;">
+                <p style="margin:8px 0 0; font-size:1.3em; color:#0f0;">
                     v76.READY — Built with ❤️ by MrCrazy
                 </p>
             </div>
+
             <div style="padding:20px; line-height:1.7;">
                 <p style="font-size:1.1em; margin-bottom:18px;">
                     <strong>Welcome, Vault Dweller!</strong>
                 </p>
+
                 <ul style="margin:20px 0; padding-left:30px; font-size:1.05em;">
                     <li>This tool is for <strong>logging locations</strong>.</li>
-                    <li>Exploring Appalachia can sometimes be hard to keep track of things.</li>
-                    <li>Places you found, things you've seen — this app was made just for that, so start logging!</li>
+                    <li>Exploring Appalachia sometimes its hard to keep track of things.</li>
+                    <li>places you found, things you seen. this app was made just for that so start logging things.</li>
                     <li>Click <strong>"Update Community Map"</strong> for the latest community data.</li>
                     <li>Have fun exploring Appalachia — and share the app! ❤️</li>
                 </ul>
+
                 <div style="margin:25px 0; text-align:center;">
                     <div id="welcomeGotItBtn" style="display:inline-block; padding:12px 40px; background:#000; border:3px solid #00ff00; color:#00ff00; font-size:1.5em; font-weight:bold; text-shadow:0 0 15px #00ff00; box-shadow:0 0 20px #00ff00; cursor:pointer;">
                         ENTER THE WASTELAND
                     </div>
                 </div>
+
                 <p style="text-align:center; margin-top:20px; font-size:0.9em; opacity:0.8;">
                     Made for the Fallout 76 community.<br>
                 </p>
@@ -4526,12 +4527,59 @@ if (SpeechRecognition && voiceSearchBtn) {
         showTempMessage('WELCOME TO APPALACHIA, VAULT DWELLER', 20000);
     };
 }
+        function checkForUpdate() {
+    const lastSeen = localStorage.getItem(LAST_VERSION_KEY);
+    if (lastSeen !== CURRENT_UPDATE_VERSION) {
+        const updateModal = document.createElement('div');
+        updateModal.id = 'updateModal';
+        updateModal.className = 'modal';
+        updateModal.style.display = 'block';
+        updateModal.innerHTML = `
+            <div class="modal-content" style="max-width:600px; background:#000; border:2px solid #00ff00; box-shadow:0 0 30px #00ff00;">
+                <div style="background:#000; padding:18px; text-align:center; border-bottom:2px solid #00ff00;">
+                    <h1 style="margin:0; font-size:2.4em; text-shadow:0 0 20px #00ff00; color:#0f0;">
+                        ☢ LATEST UPDATE ☢
+                    </h1>
+                </div>
+                <div style="padding:30px; text-align:center; line-height:1.8;">
+                    <ul style="text-align:left; display:inline-block; margin:25px 0; padding-left:30px; font-size:1.2em;">
+                        <li>Welcome To Version 76.READY</li>
+                        <li>This is The Latest Update — Reset Your App if needed.<br>
+                            Find this tip in the "How to Use" section.</li>
+                    </ul>
+                    <div style="margin:30px 0;">
+                        <div id="updateGotItBtn" style="display:inline-block; padding:14px 50px; background:#000; border:3px solid #00ff00; color:#00ff00; font-size:1.6em; font-weight:bold; text-shadow:0 0 18px #00ff00; box-shadow:0 0 25px #00ff00; cursor:pointer;">
+                            GOT IT — LET'S GO!
+                        </div>
+                    </div>
+                    <p style="margin-top:20px; font-size:0.9em; opacity:0.8;">
+                        Thank you for using the Fallout 76 Item Finder Map!<br>
+                    </p>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(updateModal);
+        document.body.classList.add('modal-open');
+
+        const btn = document.getElementById('updateGotItBtn');
+        if (btn) {
+            btn.onclick = () => {
+                localStorage.setItem(LAST_VERSION_KEY, CURRENT_UPDATE_VERSION);
+                updateModal.remove();
+                document.body.classList.remove('modal-open');
+                playSound('levelUp');
+            };
+        }
+    }
+}
         if (!localStorage.getItem(WELCOME_KEY)) {
             setTimeout(showWelcomeModal, 800);
         }
-        if (localStorage.getItem(LAST_VERSION_KEY) !== 'v76.READY') {
-            setTimeout(checkForUpdate, 1400);
-        }
+        /*
+if (localStorage.getItem(LAST_VERSION_KEY) !== 'v76.READY') {
+    setTimeout(checkForUpdate, 1400);
+}
+*/
 const searchInput = document.getElementById('combinedSearch');
 const suggestionsBox = document.getElementById('searchSuggestions');
 
