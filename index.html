@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=15">
+	<link rel="manifest" href="manifest.json?v=16">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1052,6 +1052,117 @@ button:not(:hover):not(:active):not(:focus),
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+}
+/* Add to your <style> block */
+.leaflet-marker-icon.long-press-hold {
+    filter: brightness(1.3);
+    box-shadow: 0 0 12px #00ff88;
+    transform: scale(1.15);
+    transition: all 0.2s;
+}
+@media (max-width: 768px) {
+    #buttonGroup button {
+        white-space: normal !important;      /* ← allow wrapping */
+        line-height: 1.3 !important;         /* ← better spacing between lines */
+        padding: 8px 10px !important;        /* ← slightly less horizontal padding */
+        height: auto !important;             /* ← let height grow with wrapped text */
+        min-height: 54px;                    /* ← minimum to keep consistent look */
+    }
+    
+    /* Specifically target the long button if needed */
+    #downloadCommunityBtn {
+        font-size: 13px !important;          /* ← optional: slightly smaller text */
+    }
+@media (max-width: 768px) {
+    #locationsTable tbody tr {
+        min-height: 52px !important;           /* modest increase — comfortable tap target without excess height */
+        padding: 4px 0 !important;
+        gap: 8px !important;                   /* tighter gap between cells */
+        align-items: center !important;
+    }
+
+    #locationsTable tbody td {
+        padding: 8px 6px !important;           /* balanced padding for fingers */
+        font-size: 13px !important;
+        line-height: 1.35 !important;
+    }
+
+    /* Lock column — ensure it never collapses and toggle stays visible/centered */
+    #locationsTable tbody td:nth-child(1) {
+        flex: 0 0 52px !important;             /* fixed width prevents squashing */
+        width: 52px !important;
+        max-width: 52px !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .lock-toggle {
+        font-size: 24px !important;            /* large enough to tap reliably */
+        line-height: 1 !important;
+        padding: 10px 6px !important;          /* generous hit area */
+        margin: 0 auto !important;
+        display: block !important;
+        text-align: center !important;
+    }
+
+    /* Description column — give it priority space */
+    #locationsTable tbody td:nth-child(4) {
+        flex: 4 !important;
+        padding-left: 12px !important;
+        padding-right: 8px !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+    }
+
+    /* Icon and category columns — keep compact */
+    #locationsTable tbody td:nth-child(2),
+    #locationsTable tbody td:nth-child(3) {
+        flex: 0.8 !important;
+        min-width: 44px !important;
+    }
+}
+@media (max-width: 768px) {
+    #locationsTable tbody td:nth-child(4) {
+        flex: 5 !important;                    /* Give description even more priority space */
+        padding: 8px 10px 8px 14px !important; /* Left padding for breathing room, right for symmetry */
+        justify-content: flex-start !important;
+        align-items: flex-start !important;    /* Align text to top for multi-line readability */
+        font-size: 13px !important;
+        line-height: 1.45 !important;          /* Slightly taller lines → easier to read wrapped text */
+        hyphens: auto !important;              /* Better automatic hyphenation on long words */
+        -webkit-hyphens: auto !important;
+        word-break: break-word !important;     /* Force break on very long unbreakable strings */
+        overflow-wrap: break-word !important;
+        white-space: normal !important;
+        max-height: 120px !important;          /* Optional: cap height to prevent extreme row growth */
+        overflow-y: hidden !important;         /* Hide excess if very long — user can scroll table */
+    }
+
+    /* Subtle visual cue for truncated / multi-line descriptions */
+    #locationsTable tbody td:nth-child(4)::after {
+        content: "…";                          /* Ellipsis hint when text is long */
+        position: absolute;
+        right: 8px;
+        bottom: 6px;
+        color: #00cc66;
+        font-size: 12px;
+        opacity: 0.7;
+        pointer-events: none;
+    }
+
+    /* Hide ellipsis when text fits fully */
+    #locationsTable tbody td:nth-child(4):not(.overflowing)::after {
+        display: none;
+    }
+}
+@media (max-width: 768px) {
+    #locationsTable tbody tr:active {
+        background: rgba(0, 255, 0, 0.12) !important;
+        box-shadow: 0 0 12px rgba(0, 255, 0, 0.4) !important;
+        transition: all 0.12s ease;
+    }
 }
     </style>
 </head>
@@ -3038,38 +3149,95 @@ marker.bindPopup(`
     return false;
 };
 
-let longPressTimer;
-tr.addEventListener('touchstart', e => {
-    if (e.touches.length === 1) {
-        longPressTimer = setTimeout(() => {
-            e.preventDefault();
+// ── Mobile: reliable short tap vs long press on marker icons ──
+if ('ontouchstart' in window) {
+    let pressTimer = null;
+    let longPressFired = false;
+    let currentTarget = null;
 
-            safeFlyTo(loc.lat, loc.lng, 4);
-            playSound('click');
+    // Helper: remove visual feedback class
+    const removeHoldStyle = () => {
+        if (currentTarget) {
+            currentTarget.classList.remove('long-press-hold');
+            currentTarget = null;
+        }
+    };
 
-            const marker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
-                .find(m => m.options.id === loc.id);
+    // ── Touch start on any marker icon ──
+    map.getContainer().addEventListener('touchstart', e => {
+        const target = e.target.closest('.leaflet-marker-icon');
+        if (!target) return;
 
-            if (marker) {
-                if (loc.userEdited && !loc.isPostcard) {
-                    const index = locations.findIndex(l => l.id === loc.id);
-                    if (index !== -1) openModal('Edit Item', index);
-                } else {
-                    map.once('moveend', () => {
-                        setTimeout(() => {
-                            marker.openPopup();
-                            setTimeout(() => {
-                                if (!marker.isPopupOpen()) {
-                                    marker.fire('click', { latlng: marker.getLatLng() });
-                                }
-                            }, 1200);
-                        }, 1200);
-                    });
+        // Reset state
+        longPressFired = false;
+        removeHoldStyle();
+
+        currentTarget = target;
+
+        // Start long-press timer
+        pressTimer = setTimeout(() => {
+            longPressFired = true;
+
+            // Visual feedback: apply hold style immediately when long-press is detected
+            target.classList.add('long-press-hold');
+
+            // Optional: short vibration to confirm long-press detected
+            if (navigator.vibrate) {
+                navigator.vibrate([60]); // 60 ms buzz – feels natural
+            }
+
+            // Find corresponding Leaflet marker
+            const marker = map._layers[target._leaflet_id];
+            if (!marker || !marker.options?.id) return;
+
+            const loc = locations.find(l => l.id === marker.options.id);
+            if (!loc) return;
+
+            // Only open Edit modal for your own / kept markers
+            if (loc.userEdited || loc.wasCommunityKept) {
+                currentIndex = locations.findIndex(l => l.id === marker.options.id);
+                if (currentIndex >= 0) {
+                    openModal('Log Item');
+                    playSound('click');
                 }
             }
-        }, 500);
-    }
-}, { passive: false });
+            // Community markers (not kept) → do nothing extra on long-press
+        }, 480); // 480 ms — balanced sweet spot (adjust to 550 if too sensitive)
+
+    }, { passive: true });
+
+    // ── Cancel on lift / move / cancel ──
+    const cancelLongPress = () => {
+        if (pressTimer) {
+            clearTimeout(pressTimer);
+            pressTimer = null;
+        }
+        removeHoldStyle();
+    };
+
+    map.getContainer().addEventListener('touchend', cancelLongPress, { passive: true });
+    map.getContainer().addEventListener('touchmove', cancelLongPress, { passive: true });
+    map.getContainer().addEventListener('touchcancel', cancelLongPress, { passive: true });
+
+    // ── Block native contextmenu on short taps only ──
+    map.getContainer().addEventListener('contextmenu', e => {
+        const isMarker = e.target.closest('.leaflet-marker-icon');
+        if (isMarker && !longPressFired) {
+            e.preventDefault();
+            e.stopPropagation();
+            // Optional: immediately fly to + open view popup on accidental contextmenu
+            const marker = map._layers[e.target._leaflet_id];
+            if (marker && marker.options?.id) {
+                const loc = locations.find(l => l.id === marker.options.id);
+                if (loc) {
+                    safeFlyTo(loc.lat, loc.lng, 4);
+                    setTimeout(() => marker.openPopup(), 600);
+                }
+            }
+        }
+        // Allow normal contextmenu on map background (postcard feature)
+    }, { passive: false }); // passive: false is required to call preventDefault()
+}
 
 tr.addEventListener('touchend touchmove touchcancel', () => {
     clearTimeout(longPressTimer);
@@ -5130,7 +5298,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 22 March 2026 • Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: 22 March 2026 C-16 • Version 76.READY Released • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
