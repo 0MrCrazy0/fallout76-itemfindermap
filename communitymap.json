@@ -4248,6 +4248,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-fa5a57b6-c27e-49e6-b208-236e64af8d8d",
+      "cid": "misc_grid_i1_x_3457_y_364_363.92289_3457.21259",
+      "category": "misc",
+      "desc": "Grid I1 (X: 3457, Y: 364)\nSubmitted By MrCrazy",
+      "lat": 363.92288572262714,
+      "lng": 3457.212585594595,
+      "icon": "📝",
+      "addedTime": 1774288273469,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
