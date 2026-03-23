@@ -4248,6 +4248,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-d254be8d-8b99-4142-ac53-3805dce9cc96",
+      "cid": "misc_grid_b1_x_514_y_373_373_514",
+      "category": "power armor",
+      "desc": "test\nGrid B1 (X: 514, Y: 373)\nSubmitted By Anonymous Wastelander",
+      "lat": 373.41424014224367,
+      "lng": 514.09375,
+      "icon": "👨‍🚀",
+      "addedTime": 1774259364598,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
