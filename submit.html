@@ -91,7 +91,7 @@
         const markerId = params.get('id');
         const cid = params.get('cid');
 
-        // Populate fields safely
+        // Populate fields safely (no crash if element missing)
         const latLngEl = document.getElementById('latLng');
         if (latLngEl) latLngEl.textContent = lat && lng ? `${lat}, ${lng}` : '(location missing)';
 
