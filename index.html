@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=19">
+	<link rel="manifest" href="manifest.json?v=20">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1699,7 +1699,9 @@ document.addEventListener('DOMContentLoaded', () => {
             instructionsModal.style.display = 'block';
             document.body.classList.add('modal-open');
             playSound('click');
-        }, 800); // slight delay to let map load first
+            // Clean the URL so shared links don't include ?showInstructions=true
+            history.replaceState(null, '', window.location.pathname);
+        }, 800);
     }
 
     // === POST REFRESH MESSAGE ===
@@ -5744,7 +5746,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 23March 2026 C-19• Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: 23March 2026 C-20• Version 76.READY Released • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
