@@ -4248,6 +4248,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-b49ea6ba-7d47-4af9-8fff-64f5506c0c4d",
+      "cid": "ammunition_test3_grid_b2_x_784_y_504_504.42_784.00",
+      "category": "ammunition",
+      "desc": "test3\nGrid B2 (X: 784, Y: 504)\nSubmitted By Anonymous Wastelander",
+      "lat": 504.4190714599415,
+      "lng": 784,
+      "icon": "💥",
+      "addedTime": 1774277077091,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
