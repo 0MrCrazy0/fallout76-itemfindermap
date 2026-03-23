@@ -140,12 +140,12 @@
         <h1>Submit Marker to Community Map</h1>
         <p>Share your discovery with the wasteland!<br>MrCrazy will review and merge it soon.</p>
 
-        <!-- Unified warning block (one title, dynamic messages, one close button) -->
+        <!-- Unified warning block (only ONE block, ONE close button) -->
         <div id="warningBlock">
-            <h2></h2> <!-- Dynamic title -->
-            <p></p>     <!-- Message line 1 -->
-            <p></p>     <!-- Message line 2 -->
-            <p></p>     <!-- Message line 3 -->
+            <h2></h2>
+            <p></p>
+            <p></p>
+            <p></p>
             <button onclick="window.close()" style="margin-top:20px; background:#00ff00; color:#000; padding:10px 30px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">Close Window</button>
         </div>
 
@@ -160,14 +160,12 @@
         </form>
 
         <div id="status"></div>
-
         <div id="success" style="display:none;">
             <h2 style="color:#00ff88;">Your marker has been submitted!</h2>
             <p>MrCrazy will review and merge it soon.</p>
             <p id="submittedDetails"></p>
             <button onclick="window.close()">Close Window</button>
         </div>
-
         <div id="error" style="display:none;">
             <h2 style="color:#ff8888;">Submission failed</h2>
             <p id="errorMsg"></p>
@@ -183,54 +181,46 @@
     </div>
 
     <script>
-    // Parse URL params
-    const params = new URLSearchParams(window.location.search);
-    const lat = params.get('lat');
-    const lng = params.get('lng');
-    const category = params.get('category');
-    const desc = params.get('desc');
-    const icon = params.get('icon');
-    const id = params.get('id');
-    const cid = params.get('cid');
-    const wasCommunityKept = params.get('wasCommunityKept') === 'true';
+        // Parse URL params
+        const params = new URLSearchParams(window.location.search);
+        const lat = params.get('lat');
+        const lng = params.get('lng');
+        const category = params.get('category');
+        const desc = params.get('desc');
+        const icon = params.get('icon');
+        const id = params.get('id');
+        const cid = params.get('cid');
+        const wasCommunityKept = params.get('wasCommunityKept') === 'true';
 
-    // Populate fields safely
-    const latLngEl = document.getElementById('latLng');
-    if (latLngEl) latLngEl.textContent = lat && lng ? `${lat}, ${lng}` : '(location missing)';
+        // Populate fields safely
+        const latLngEl = document.getElementById('latLng');
+        if (latLngEl) latLngEl.textContent = lat && lng ? `${lat}, ${lng}` : '(location missing)';
 
-    const categoryEl = document.getElementById('category');
-    if (categoryEl) categoryEl.textContent = icon && category ? `${icon} ${category}` : '(category missing)';
+        const categoryEl = document.getElementById('category');
+        if (categoryEl) categoryEl.textContent = icon && category ? `${icon} ${category}` : '(category missing)';
 
-    const descEl = document.getElementById('desc');
-    if (descEl) descEl.textContent = desc || '(no description)';
+        const descEl = document.getElementById('desc');
+        if (descEl) descEl.textContent = desc || '(no description)';
 
-    const form = document.getElementById('submitForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const loadingOverlay = document.getElementById('submitLoadingOverlay');
-    const warningBlock = document.getElementById('warningBlock');
-    const warningTitle = warningBlock.querySelector('h2');
-    const warningLines = warningBlock.querySelectorAll('p');
-    const statusDiv = document.getElementById('status');
-    const successDiv = document.getElementById('success');
-    const errorDiv = document.getElementById('error');
+        const form = document.getElementById('submitForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const loadingOverlay = document.getElementById('submitLoadingOverlay');
+        const warningBlock = document.getElementById('warningBlock');
+        const warningTitle = warningBlock.querySelector('h2');
+        const warningLines = warningBlock.querySelectorAll('p');
+        const statusDiv = document.getElementById('status');
+        const successDiv = document.getElementById('success');
+        const errorDiv = document.getElementById('error');
 
-    function hasBeenSubmitted(cid) {
-        if (!cid) return false;
-        const submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
-        return submitted.includes(cid);
-    }
+        function hasBeenSubmitted(cid) {
+            if (!cid) return false;
+            const submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
+            return submitted.includes(cid);
+        }
 
-    // Force re-check of submitted_cids after a short delay (handles timing issues)
-    function checkSubmittedStatus(callback) {
-        setTimeout(() => {
-            const isSubmitted = cid && hasBeenSubmitted(cid);
-            callback(isSubmitted);
-        }, 300); // 300ms delay to allow localStorage to sync
-    }
-
-    // Initial display logic
-    checkSubmittedStatus((isSubmitted) => {
-        if (isSubmitted) {
+        // STRICT priority logic — no heuristics, no overlap
+        if (cid && hasBeenSubmitted(cid)) {
+            // User already submitted this marker
             warningBlock.style.display = 'block';
             warningTitle.textContent = 'Duplicate Marker';
             warningLines[0].textContent = 'A marker with this exact location, category, and description has already been submitted and is pending review.';
@@ -238,6 +228,7 @@
             warningLines[2].textContent = '';
             form.style.display = 'none';
         } else if (wasCommunityKept) {
+            // Only show for markers that were actually kept from community
             warningBlock.style.display = 'block';
             warningTitle.textContent = 'Already Part of Community Map';
             warningLines[0].textContent = 'This marker was kept from the shared community collection.';
@@ -245,17 +236,15 @@
             warningLines[2].textContent = 'You may edit or move it freely as your own marker.';
             form.style.display = 'none';
         } else {
+            // New user-created marker — show the form
             form.style.display = 'block';
             warningBlock.style.display = 'none';
         }
-    });
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-        // Re-check before submitting
-        checkSubmittedStatus((isSubmitted) => {
-            if (isSubmitted) {
+            if (cid && hasBeenSubmitted(cid)) {
                 warningBlock.style.display = 'block';
                 warningTitle.textContent = 'Duplicate Marker';
                 warningLines[0].textContent = 'A marker with this exact location, category, and description has already been submitted and is pending review.';
@@ -281,15 +270,17 @@
                 cid
             };
 
-            fetch('https://itemfinder-submit.crzymn05.workers.dev/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type: 'submit', marker, name })
-            })
-            .then(response => response.text().then(text => ({ ok: response.ok, text })))
-            .then(({ ok, text }) => {
+            try {
+                const response = await fetch('https://itemfinder-submit.crzymn05.workers.dev/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'submit', marker, name })
+                });
+
+                const text = await response.text();
                 loadingOverlay.classList.remove('show');
-                if (ok) {
+
+                if (response.ok) {
                     let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
                     if (!submitted.includes(cid)) {
                         submitted.push(cid);
@@ -299,17 +290,15 @@
                 } else {
                     throw new Error('Server rejected submission');
                 }
-            })
-            .catch(err => {
+            } catch (err) {
                 loadingOverlay.classList.remove('show');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'SUBMIT MARKER';
                 errorDiv.style.display = 'block';
                 document.getElementById('errorMsg').textContent = err.message || 'Network error - please try again';
                 statusDiv.textContent = '';
-            });
+            }
         });
-    });
-</script>
+    </script>
 </body>
 </html>
