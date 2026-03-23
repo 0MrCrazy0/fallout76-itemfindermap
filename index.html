@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=16">
+	<link rel="manifest" href="manifest.json?v=18">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -209,21 +209,11 @@
         margin: 5px;
         font-weight: bold;
     }
-    button:hover {
-        background-color: #00ff00;
-        color: #000;
-    }
     button.reset-btn {
         background-color: #F7615E !important;
         color: #000 !important;
         font-weight: 700;
     }
-    #saveItemBtn { background: #00ff00 !important; color: #000 !important; }
-    #shareItemBtn { background: #00b7eb !important; color: #000 !important; }
-    #exportOneBtn { background: #5E99F7 !important; color: #000 !important; }
-    #deleteItemBtn { background: #F7615E !important; color: #000 !important; }
-    #undoItemBtn { background: #cc8400 !important; color: #000 !important; margin: 8px 8px !important; }
-    #duplicateItemBtn { background: #5E99F7 !important; color: #000 !important; }
     #modalLockToggle, .popup-lock-toggle {
         color: #ffa500;
         cursor: pointer;
@@ -250,7 +240,34 @@
     transition: transform 0.1s ease-out, opacity 0.1s ease-out;
     will-change: transform;
 }
+/* Restore hover glow for Delete Category button in delete modal */
+#confirmDeleteCategoryBtn,
+#confirmDeleteCategoryBtn:hover,
+#confirmDeleteCategoryBtn:focus-visible {
+    transition: all 0.25s ease !important;
+}
 
+#confirmDeleteCategoryBtn:hover,
+#confirmDeleteCategoryBtn:focus-visible {
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+    box-shadow: 
+        0 0 12px #ffffff,
+        0 0 24px #00ff88,
+        0 0 36px #00ff00 !important;
+    transform: scale(1.06) !important;
+    filter: brightness(1.15) !important;
+}
+
+/* Stronger in dark mode */
+body.dark-mode #confirmDeleteCategoryBtn:hover,
+body.dark-mode #confirmDeleteCategoryBtn:focus-visible {
+    box-shadow: 
+        0 0 16px #ffffff,
+        0 0 32px #00ff88,
+        0 0 48px #00ff00 !important;
+    transform: scale(1.06) !important;
+}
 .leaflet-marker-icon {
     will-change: transform;
 }
@@ -482,6 +499,174 @@
     body.dark-mode .grid-line {
         stroke: rgba(0, 255, 0, 0.4) !important;
     }
+/* Restore visible hover glow specifically for main control panel buttons */
+#buttonGroup button,
+#buttonGroup button:hover,
+#buttonGroup button:focus-visible {
+    transition: all 0.25s ease;
+}
+
+#buttonGroup button:hover,
+#buttonGroup button:focus-visible {
+    /* Keep original dark-mode behavior + ensure glow is visible */
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+    box-shadow: 0 0 12px #00ff88, 0 0 20px #00ff00 !important;
+    transform: scale(1.04) !important;
+    filter: brightness(1.1) !important;
+}
+
+/* Optional: slightly stronger in dark mode */
+body.dark-mode #buttonGroup button:hover,
+body.dark-mode #buttonGroup button:focus-visible {
+    box-shadow: 0 0 16px #00ff88, 0 0 28px #00ff00 !important;
+    transform: scale(1.05) !important;
+}
+/* Restore consistent hover glow for remaining buttons: Toggle Categories + Pagination */
+#toggleCategoryModalBtn,
+#prevPageBtn,
+#nextPageBtn,
+#toggleCategoryModalBtn:hover,
+#prevPageBtn:hover,
+#nextPageBtn:hover,
+#toggleCategoryModalBtn:focus-visible,
+#prevPageBtn:focus-visible,
+#nextPageBtn:focus-visible {
+    transition: all 0.25s ease !important;
+}
+
+#toggleCategoryModalBtn:hover,
+#prevPageBtn:hover,
+#nextPageBtn:hover,
+#toggleCategoryModalBtn:focus-visible,
+#prevPageBtn:focus-visible,
+#nextPageBtn:focus-visible {
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+    box-shadow: 
+        0 0 12px #00ff88,
+        0 0 20px #00ff00 !important;
+    transform: scale(1.04) !important;
+    filter: brightness(1.1) !important;
+}
+
+/* Slightly stronger in dark mode (matches control panel feel) */
+body.dark-mode #toggleCategoryModalBtn:hover,
+body.dark-mode #prevPageBtn:hover,
+body.dark-mode #nextPageBtn:hover,
+body.dark-mode #toggleCategoryModalBtn:focus-visible,
+body.dark-mode #prevPageBtn:focus-visible,
+body.dark-mode #nextPageBtn:focus-visible {
+    box-shadow: 
+        0 0 16px #00ff88,
+        0 0 28px #00ff00 !important;
+    transform: scale(1.05) !important;
+}
+/* ── Category management & postcard buttons: background colors + glow ── */
+
+/* Base styling + background colors */
+#selectAllBtn,
+#deselectAllBtn,
+#createCategoryBtn,
+#deleteCategoryBtn,
+#closeCategoryToggleBtn,
+#saveCategoryBtn,
+#createPostcardBtn {
+    background-color: #1a3c34 !important;
+    color: #00ff00 !important;
+    border: 2px solid #00ff00 !important;
+    min-width: 140px;
+    padding: 10px 20px;
+    font-weight: bold;
+    transition: all 0.25s ease;
+}
+
+/* Hover / focus glow (desktop) */
+#selectAllBtn:hover,
+#deselectAllBtn:hover,
+#createCategoryBtn:hover,
+#deleteCategoryBtn:hover,
+#closeCategoryToggleBtn:hover,
+#saveCategoryBtn:hover,
+#createPostcardBtn:hover,
+#selectAllBtn:focus-visible,
+#deselectAllBtn:focus-visible,
+#createCategoryBtn:focus-visible,
+#deleteCategoryBtn:focus-visible,
+#closeCategoryToggleBtn:focus-visible,
+#saveCategoryBtn:focus-visible,
+#createPostcardBtn:focus-visible {
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+    box-shadow: 
+        0 0 12px #ffffff,
+        0 0 24px #00ff88,
+        0 0 36px #00ff00 !important;
+    transform: scale(1.06) !important;
+    filter: brightness(1.15) !important;
+}
+
+/* Dark mode enhancement */
+body.dark-mode #selectAllBtn:hover,
+body.dark-mode #deselectAllBtn:hover,
+body.dark-mode #createCategoryBtn:hover,
+body.dark-mode #deleteCategoryBtn:hover,
+body.dark-mode #closeCategoryToggleBtn:hover,
+body.dark-mode #saveCategoryBtn:hover,
+body.dark-mode #createPostcardBtn:hover,
+body.dark-mode #selectAllBtn:focus-visible,
+body.dark-mode #deselectAllBtn:focus-visible,
+body.dark-mode #createCategoryBtn:focus-visible,
+body.dark-mode #deleteCategoryBtn:focus-visible,
+body.dark-mode #closeCategoryToggleBtn:focus-visible,
+body.dark-mode #saveCategoryBtn:focus-visible,
+body.dark-mode #createPostcardBtn:focus-visible {
+    box-shadow: 
+        0 0 16px #ffffff,
+        0 0 32px #00ff88,
+        0 0 48px #00ff00 !important;
+}
+
+/* ── Mobile: brief glow on tap, clean & fast fade on release ── */
+@media (hover: none) and (pointer: coarse) {
+    #selectAllBtn,
+    #deselectAllBtn,
+    #createCategoryBtn,
+    #deleteCategoryBtn,
+    #closeCategoryToggleBtn,
+    #saveCategoryBtn,
+    #createPostcardBtn {
+        transition: all 0.35s ease-out;
+    }
+
+    #selectAllBtn:active,
+    #deselectAllBtn:active,
+    #createCategoryBtn:active,
+    #deleteCategoryBtn:active,
+    #closeCategoryToggleBtn:active,
+    #saveCategoryBtn:active,
+    #createPostcardBtn:active {
+        background-color: #00ff00 !important;
+        color: #000000 !important;
+        box-shadow: 
+            0 0 16px #00ff88,
+            0 0 28px #00ff00 !important;
+        transform: scale(1.04) !important;
+        filter: brightness(1.15) !important;
+        transition: none; /* Instant visual feedback on press */
+    }
+}
+
+/* Ensure fast fade-back after release (same as other buttons) */
+@media (hover: none) and (pointer: coarse) {
+    .fast-fade-release {
+        background-color: #1a3c34 !important;
+        box-shadow: none !important;
+        transform: scale(1) !important;
+        filter: brightness(1) !important;
+        transition: all 0.25s ease-out !important;
+    }
+}
     .leaflet-popup-content-wrapper,
     .leaflet-popup-tip {
         background-color: #1a3c34 !important;
@@ -499,10 +684,12 @@
     color: #000000 !important;
 }
     .leaflet-control-zoom {
-        top: 60px !important;
+        top: -60px !important;
         left: 60px !important;
         margin: 0 !important;
-    }
+		margin-top: 70px !important;   /* was 60px — increase for more top spacing */
+        left: 10px !important;         /* optional: slight left padding */
+}
     .leaflet-control-zoom a {
         background-color: #000000 !important;
         color: #00ff00 !important;
@@ -539,6 +726,38 @@
     .leaflet-popup button:hover {
         background: #00cc00 !important;
     }
+//* FINAL FIX: Force modal button hover glow visible in BOTH light & dark mode */
+#itemModal button {
+    transition: all 0.3s ease !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+#itemModal button:hover,
+#itemModal button:focus-visible {
+    /* Prevent general button:hover from changing background */
+    background-color: inherit !important;
+    
+    /* Very strong, high-contrast glow that works on any background */
+    box-shadow: 
+        0 0 12px #ffffff,
+        0 0 24px #00ff88,
+        0 0 36px #00ff00 !important;
+    
+    transform: scale(1.08) !important;          /* More obvious scale */
+    filter: brightness(1.2) !important;         /* Extra lift in light mode */
+    opacity: 0.92 !important;
+}
+
+/* Even stronger glow in dark mode for maximum visibility */
+body.dark-mode #itemModal button:hover,
+body.dark-mode #itemModal button:focus-visible {
+    box-shadow: 
+        0 0 16px #ffffff,
+        0 0 32px #00ff88,
+        0 0 48px #00ff00 !important;
+    transform: scale(1.08) !important;
+}
     body.dark-mode .leaflet-popup button {
         color: #000 !important !important !important;
         background: #00ff00 !important;
@@ -621,10 +840,6 @@
         }
         .icon-circle { width: 24px !important; height: 24px !important; font-size: 13px !important; }
         .text-location { font-size: 9px !important; max-width: 80px !important; }
-        .leaflet-control-zoom {
-            top: 50px !important;
-            left: 50px !important;
-        }
     }
     .nuke-emoji-wrapper { text-align: center; margin: 12px 0; }
     .nuke-emoji-btn {
@@ -1260,16 +1475,16 @@ button:not(:hover):not(:active):not(:focus),
             <select id="itemCategory"></select>
             <label>Description:</label>
             <textarea id="itemDesc" placeholder="Enter item and location details or leave blank auto puts gid location"></textarea>
-            <div style="margin-top:12px; text-align:center;">
-                <button id="saveItemBtn">Save</button>
-                <button id="shareItemBtn">Share Map View</button>
-                <button id="exportOneBtn">Export Marker</button>
-                <button id="shareOneBtn">Share Marker</button>
-<button id="submitCommunityBtn" style="display:none; background:#00ff88 !important; color:#000 !important;">Submit to Community Map</button>
-                <button id="deleteItemBtn" style="display:none;">Delete</button>
-                <button id="undoItemBtn" style="display:none;">Undo Delete</button>
-                <button id="duplicateItemBtn" style="display:none;">Duplicate</button>
-            </div>
+            <div style="margin-top:12px; text-align:center; display:flex; flex-wrap:wrap; justify-content:center; gap:10px;">
+    <button id="saveItemBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:110px; padding:10px 20px; font-weight:bold;">Save</button>
+    <button id="shareItemBtn" style="background:#00d4ff !important; color:#000000 !important; border:2px solid #00d4ff; min-width:110px; padding:10px 20px; font-weight:bold;">Share Map View</button>
+    <button id="exportOneBtn" style="background:#a569bd !important; color:#000000 !important; border:2px solid #a569bd; min-width:110px; padding:10px 20px; font-weight:bold;">Export Marker</button>
+    <button id="deleteItemBtn" style="display:none; background:#e74c3c !important; color:#000000 !important; border:2px solid #c0392d; min-width:110px; padding:10px 20px; font-weight:bold;">Delete</button>
+    <button id="shareOneBtn" style="background:#f7ee20 !important; color:#000000 !important; border:2px solid #f7ee20; min-width:110px; padding:10px 20px; font-weight:bold;">Share Marker</button>
+    <button id="submitCommunityBtn" style="display:none; background:#00ff88 !important; color:#000000 !important; border:2px solid #00ff88; min-width:110px; padding:10px 20px; font-weight:bold;">Submit to Community Map</button>
+    <button id="undoItemBtn" style="display:none; background:#cc8400 !important; color:#000000 !important; border:2px solid #cc8400; min-width:110px; padding:10px 20px; font-weight:bold;">Undo Delete</button>
+    <button id="duplicateItemBtn" style="display:none; background:#5E99F7 !important; color:#000000 !important; border:2px solid #5E99F7; min-width:110px; padding:10px 20px; font-weight:bold;">Duplicate</button>
+</div>
         </div>
     </div>
     <!-- DEV NOTE: HOW TO USE MODAL -->
@@ -1372,13 +1587,13 @@ button:not(:hover):not(:active):not(:focus),
             <span class="close">X</span>
             <h2>Toggle Categories</h2>
             <div style="margin-bottom:10px; text-align:center;">
-                <button id="selectAllBtn">Select All</button>
-                <button id="deselectAllBtn">Deselect All</button>
-                <button id="createCategoryBtn">Create Category</button>
-                <button id="deleteCategoryBtn">Delete Category</button>
+                <button id="selectAllBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Select All</button>
+    <button id="deselectAllBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Deselect All</button>
+    <button id="createCategoryBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Create Category</button>
+    <button id="deleteCategoryBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Delete Category</button>
             </div>
             <div id="categoryCheckboxes"></div>
-            <button id="closeCategoryToggleBtn">Close</button>
+            <button id="closeCategoryToggleBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Close</button>
         </div>
     </div>
     <!-- DEV NOTE: CREATE CATEGORY MODAL -->
@@ -1392,7 +1607,8 @@ button:not(:hover):not(:active):not(:focus),
             <input type="text" id="newCategoryEmoji" placeholder="Paste emoji" maxlength="2" inputmode="text" style="width:100%; padding:8px; margin-bottom:10px;">
             <p class="small">Paste one emoji. Only emojis allowed.</p>
             <div style="margin-top:12px; text-align:center;">
-                <button id="saveCategoryBtn">Save Category</button>
+    <button id="saveCategoryBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Save Category</button>
+</div>
             </div>
         </div>
     </div>
@@ -1407,7 +1623,10 @@ button:not(:hover):not(:active):not(:focus),
             </select>
             <p class="small">Deleting a category will reassign all its markers to "misc".</p>
             <div style="margin-top:12px; text-align:center;">
-                <button id="confirmDeleteCategoryBtn">Delete Category</button>
+                <button id="confirmDeleteCategoryBtn" 
+        style="background:#e74c3c !important; color:#000000 !important; border:2px solid #c0392d; min-width:140px; padding:10px 20px; font-weight:bold;">
+    Delete Category
+</button>
             </div>
         </div>
     </div>
@@ -1628,39 +1847,39 @@ communityVersion = getCurrentCommunityVersion();
 
         let categoryIcons = { ...defaultCategoryIcons, ...customCategories };
         const defaultCategoryColors = {
-    'weapons':            '#002F00', // Neon Red — guns & danger
-    'armor':              '#002F00', // Indigo Blue — steel & protection
-    'aid':                '#002F00', // Electric Green — stimpaks & healing
-    'food/drink':         '#002F00', // Nuka-Cola Amber Yellow
-    'ammunition':         '#002F00', // Bullet Brass Orange
-    'apparel':            '#002F00', // Vibrant Purple — outfits & fashion
-    'plans':              '#002F00', // Saddle Brown — old blueprints
-    'junk':               '#002F00', // Cold Scrap Gray
-    'holotapes':          '#002F00', // Retro Cassette Amber
-    'misc':               '#002F00', // Bright Cyan — catch-all
-    'plants':             '#002F00', // Deep Forest Green
-    'eggs':               '#002F00', // Alien Pink
-    'creatures':          '#002F00', // Blood Red
-    'vendors':            '#002F00', // Caps Gold
-    'exchanges':          '#002F00', // Trading Teal
-    'vaults':             '#002F00', // Vault-Tec Electric Blue
-    'power armor':        '#002F00', // T-51b Dark Titanium
-    'fusion core':        '#002F00', // Glowing Fusion Orange
-    'nuke drop zones':    '#002F00', // Nuclear Warning Red
-    'nuke silos':         '#002F00', // Deep Silo Purple-Red
-    'magazines':          '#002F00', // Comic-Book Magenta
-    'bobbleheads':        '#002F00', // Shiny Turquoise
-    'treasure maps':      '#002F00', // Buried Treasure Gold
-    'resource deposits':  '#002F00', // Ore Blue-Gray
-    'fishing locations':  '#002F00', // Deep Water Blue
-    'workshops':          '#002F00', // Workshop Wood Brown
-    'train stations':     '#002F00', // Industrial Slate
-    'town locations':     '#002F00', // Settlement Warm Orange
-    'event locations':    '#002F00', // Event Hot Pink
-    'named locations':    '#002F00', // Pure White text
-    'regions':            '#002F00', // Highlight Lime
-    'terminal locations': '#002F00', // Terminal Bright Teal — STANDS OUT
-    'safe locations':     '#002F00'  // Safe-Zone Lime Yellow
+    'weapons':            '#002F00', // what ever color you want that looks good.
+    'armor':              '#002F00',
+    'aid':                '#002F00', 
+    'food/drink':         '#002F00', 
+    'ammunition':         '#002F00', 
+    'apparel':            '#002F00', 
+    'plans':              '#002F00', 
+    'junk':               '#002F00', 
+    'holotapes':          '#002F00', 
+    'misc':               '#002F00', 
+    'plants':             '#002F00', 
+    'eggs':               '#002F00', 
+    'creatures':          '#002F00', 
+    'vendors':            '#002F00', 
+    'exchanges':          '#002F00', 
+    'vaults':             '#002F00', 
+    'power armor':        '#002F00', 
+    'fusion core':        '#002F00', 
+    'nuke drop zones':    '#002F00', 
+    'nuke silos':         '#002F00', 
+    'magazines':          '#002F00', 
+    'bobbleheads':        '#002F00', 
+    'treasure maps':      '#002F00', 
+    'resource deposits':  '#002F00', 
+    'fishing locations':  '#002F00', 
+    'workshops':          '#002F00',
+    'train stations':     '#002F00', 
+    'town locations':     '#002F00', 
+    'event locations':    '#002F00', 
+    'named locations':    '#002F00', 
+    'regions':            '#002F00', 
+    'terminal locations': '#002F00', 
+    'safe locations':     '#002F00'  
 };
         let categoryColors = { ...defaultCategoryColors };
 Object.keys(customCategories).forEach(cat => {
@@ -1686,6 +1905,169 @@ Object.keys(customCategories).forEach(cat => {
         let imageOverlay = L.imageOverlay(mapUrls[currentMap], imageBounds).addTo(map);
         map.fitBounds(imageBounds);
         L.control.zoom({ position: 'topleft' }).addTo(map);
+// ── Fullscreen Toggle (☢ button) ──
+const fullscreenControl = L.control({ position: 'topright' });
+fullscreenControl.onAdd = function(map) {
+    const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+    const link = L.DomUtil.create('a', '', container);
+    link.href = '#';
+    link.title = 'Toggle fullscreen';
+    link.innerHTML = '☢';
+    link.style.cssText = `
+        display: block; width:34px; height:34px; line-height:34px; text-align:center;
+        font-size:20px; background:#1a3c34; color:#00ff00; border:none;
+        box-shadow:0 0 8px #00ff00; cursor:pointer;
+    `;
+
+    link.onmouseover = () => { 
+        link.style.background = '#00ff00'; 
+        link.style.color = '#000'; 
+        link.style.boxShadow = '0 0 12px #00ff88, 0 0 20px #00ff00'; 
+    };
+    link.onmouseout = () => { 
+        link.style.background = '#1a3c34'; 
+        link.style.color = '#00ff00'; 
+        link.style.boxShadow = '0 0 8px #00ff00'; 
+    };
+
+    L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
+              .on(link, 'click', L.DomEvent.preventDefault)
+              .on(link, 'click', () => {
+                  const mapEl = document.getElementById('map');
+                  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                      if (mapEl.requestFullscreen) mapEl.requestFullscreen().catch(() => {});
+                      else if (mapEl.webkitRequestFullscreen) mapEl.webkitRequestFullscreen();
+                      link.innerHTML = '✖';
+                      link.title = 'Exit fullscreen';
+                  } else {
+                      if (document.exitFullscreen) document.exitFullscreen();
+                      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                      link.innerHTML = '☢';
+                      link.title = 'Toggle fullscreen';
+                  }
+              });
+
+    const updateIcon = () => {
+        if (document.fullscreenElement || document.webkitFullscreenElement) {
+            link.innerHTML = '✖';
+            link.title = 'Exit fullscreen';
+        } else {
+            link.innerHTML = '☢';
+            link.title = 'Toggle fullscreen';
+        }
+        updateScreenshotVisibility(); // ← Sync screenshot button visibility
+    };
+    document.addEventListener('fullscreenchange', updateIcon);
+    document.addEventListener('webkitfullscreenchange', updateIcon);
+
+    return container;
+};
+fullscreenControl.addTo(map);
+/// ── Screenshot Button — only visible in fullscreen ──
+const screenshotControl = L.control({ position: 'topright' });
+screenshotControl.onAdd = function(map) {
+    const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+    const link = L.DomUtil.create('a', '', container);
+    link.href = '#';
+    link.title = 'Capture fullscreen view';
+    link.innerHTML = '📸';
+    link.style.cssText = `
+        display:block; width:34px; height:34px; line-height:34px; text-align:center;
+        font-size:20px; background:#1a3c34; color:#00ff00; border:none;
+        box-shadow:0 0 8px #00ff00; cursor:pointer; margin-top:4px;
+    `;
+
+    link.onmouseover = () => { 
+        link.style.background = '#00ff00'; 
+        link.style.color = '#000'; 
+        link.style.boxShadow = '0 0 12px #00ff88, 0 0 20px #00ff00'; 
+    };
+    link.onmouseout = () => { 
+        link.style.background = '#1a3c34'; 
+        link.style.color = '#00ff00'; 
+        link.style.boxShadow = '0 0 8px #00ff00'; 
+    };
+
+    L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
+              .on(link, 'click', L.DomEvent.preventDefault)
+              .on(link, 'click', captureHighResScreenshot);
+
+    return container;
+};
+screenshotControl.addTo(map);
+
+// Initially hidden
+screenshotControl.getContainer().style.display = 'none';
+// ── True Fullscreen Capture ──
+function captureHighResScreenshot() {
+    playSound('saving');
+    const mapEl = document.getElementById('map');
+    const originalHeight = mapEl.style.height;
+    const originalMaxWidth = mapEl.style.maxWidth;
+
+    // Temporarily maximize map area for capture
+    mapEl.style.height = `${window.innerHeight}px`;
+    mapEl.style.maxWidth = 'none';
+    map.invalidateSize(); // Tell Leaflet to redraw at new size
+
+    setTimeout(() => {
+        html2canvas(mapEl, {
+            useCORS: true,
+            scale: 2,
+            logging: false,
+            backgroundColor: '#000000'
+        }).then(canvas => {
+            const a = document.createElement('a');
+            a.download = `fo76_map_max_${new Date().toISOString().slice(0,10)}.jpg`;
+            a.href = canvas.toDataURL('image/jpeg', 0.92);
+            a.click();
+            
+            // Restore original size
+            mapEl.style.height = originalHeight;
+            mapEl.style.maxWidth = originalMaxWidth || '95%';
+            map.invalidateSize();
+            
+            showTempMessage('MAXIMIZED MAP CAPTURE SAVED', 4000);
+            
+            // Safely exit fullscreen after a short delay (mobile reliability)
+            setTimeout(exitFullscreenIfActive, 400);
+        }).catch(() => {
+            showTempMessage('CAPTURE FAILED — TRY AGAIN', 4000);
+            playSound('error');
+        });
+    }, 300);
+}
+function exitFullscreenIfActive() {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
+}
+
+function updateScreenshotVisibility() {
+    const isFS = !!document.fullscreenElement || !!document.webkitFullscreenElement;
+    screenshotControl.getContainer().style.display = isFS ? 'block' : 'none';
+}
+
+// Auto-exit fullscreen when user tries to open a modal via map actions
+function autoExitFullscreenForModal() {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+        exitFullscreenIfActive();
+        // No delay needed — browser usually exits fast enough for the modal to appear visible
+    }
+}
+// Auto-exit fullscreen when modals open (add to EVERY modal open line)
+document.addEventListener('fullscreenchange', updateScreenshotVisibility);
+document.addEventListener('webkitfullscreenchange', updateScreenshotVisibility);
+// Helper: Exit fullscreen if active, then execute the given action
+window.exitFullscreenThenDo = function(action) {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+        exitFullscreenIfActive();
+        setTimeout(action, 80);
+    } else {
+        action();
+    }
+};
         (function() {
             const mapContainer = document.getElementById('map');
             const overlay = document.getElementById('mapLoadingOverlay');
@@ -1962,26 +2344,48 @@ let undoTimerInterval = null;
 let undoSecondsLeft = 0;
 
 function showUndoButton() {
-    const btn = document.getElementById('undoImportBtn');
-    const timer = document.getElementById('undoTimer');
-    if (!btn || !timer) return;
+    const btn = document.getElementById('undoItemBtn');
+    if (!btn) return;
 
-    btn.style.display = 'block';
-    undoSecondsLeft = 120;  // 2 minutes
+    btn.style.display = 'inline-block';
+    undoSecondsLeft = 120; // 2 minutes
 
-    timer.textContent = `(${undoSecondsLeft}s)`;
+    // Initial text with timer
+    btn.innerHTML = `Undo Delete <span id="undoItemTimer">(${formatTime(undoSecondsLeft)})</span>`;
 
     if (undoTimerInterval) clearInterval(undoTimerInterval);
 
     undoTimerInterval = setInterval(() => {
         undoSecondsLeft--;
-        timer.textContent = `(${undoSecondsLeft}s)`;
-
-        if (undoSecondsLeft <= 0) {
-            clearInterval(undoTimerInterval);
-            btn.style.display = 'none';
+        const timerEl = document.getElementById('undoItemTimer');
+        if (timerEl) {
+            if (undoSecondsLeft > 0) {
+                timerEl.textContent = `(${formatTime(undoSecondsLeft)})`;
+            } else {
+                timerEl.textContent = '';
+                clearInterval(undoTimerInterval);
+                btn.style.display = 'none';
+                undoTimerInterval = null;
+            }
+        } else {
+            // Fallback: update button text directly if span is missing
+            btn.textContent = undoSecondsLeft > 0 
+                ? `Undo Delete (${formatTime(undoSecondsLeft)})` 
+                : 'Undo Delete';
+            if (undoSecondsLeft <= 0) {
+                btn.style.display = 'none';
+                clearInterval(undoTimerInterval);
+                undoTimerInterval = null;
+            }
         }
     }, 1000);
+}
+
+// Helper to format seconds as mm:ss
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 
@@ -2433,7 +2837,8 @@ postcardModal.innerHTML = `
             "
         ></textarea>
         <div style="margin-top:12px; text-align:center;">
-            <button id="createPostcardBtn">Copy Link</button>
+    <button id="createPostcardBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Copy Link</button>
+</div>
         </div>
     </div>
 `;
@@ -2498,6 +2903,7 @@ document.head.appendChild(postcardStyle);
                 .some(m => m.getLatLng().distanceTo(e.latlng) < 30);
             if (clickedOnMarker) return;
             currentPostcardLatLng = e.latlng;
+			autoExitFullscreenForModal()
             postcardModal.style.display = 'block';
             document.getElementById('postcardMessage')?.focus();
             playSound('click');
@@ -2603,7 +3009,7 @@ document.head.appendChild(postcardStyle);
             const marker = L.marker([loc.lat, loc.lng], {
                 icon: L.divIcon({
                     className: 'custom-icon glowing',
-                    html: `<div class="marker-background" style="background-color:#f0e68c;"><span style="font-size:18px;">📬</span></div>`,
+                    html: `<div class="marker-background" style="background-color:#002F00;"><span style="font-size:18px;">📬</span></div>`,
                     iconSize: [30, 30],
                     iconAnchor: [15, 15]
                 })
@@ -2943,11 +3349,11 @@ marker.bindPopup(`
         <!-- Static footer/buttons -->
         ${loc.isCommunity && !loc.userEdited ? `
         <div style="text-align:center; display:flex; flex-direction:column; gap:10px;">
-            <button onclick="keepCommunityMarker('${loc.id}')"
+            <button onclick="exitFullscreenThenDo(() => keepCommunityMarker('${loc.id}'))"
                     style="background:#00ff00; color:#000; border:none; padding:8px 16px; border-radius:4px; font-size:13px; font-weight:bold; cursor:pointer;">
                 Keep This Marker
             </button>
-            <button onclick="startReport('${loc.id}')"
+            <button onclick="exitFullscreenThenDo(() => startReport('${loc.id}'))"
                     style="background:#300; color:#f00; border:2px solid #f00; padding:8px 16px; border-radius:4px; font-size:13px; font-weight:bold; cursor:pointer;">
                 Report Bad Marker
             </button>
@@ -2961,7 +3367,7 @@ marker.bindPopup(`
         <div style="margin:8px 0; text-align:center;">
             <span class="popup-lock-toggle" onclick="toggleLockFromPopup(${locations.indexOf(loc)})">${loc.locked ? 'Locked' : 'Unlocked'}</span>
         </div>
-        <button onclick="editMarkerFromPopup(${locations.indexOf(loc)})"
+        <button onclick="exitFullscreenThenDo(() => editMarkerFromPopup(${locations.indexOf(loc)}))"
                 style="background:#00ff00; color:#000; border:none; padding:8px 16px; border-radius:4px; font-size:13px; font-weight:bold; cursor:pointer;">
             Edit
         </button>` : ''}
@@ -3197,6 +3603,7 @@ if ('ontouchstart' in window) {
             if (loc.userEdited || loc.wasCommunityKept) {
                 currentIndex = locations.findIndex(l => l.id === marker.options.id);
                 if (currentIndex >= 0) {
+				    autoExitFullscreenForModal();
                     openModal('Log Item');
                     playSound('click');
                 }
@@ -3849,7 +4256,7 @@ playSound('saving');
                         if (imp.category && imp.icon && !defaultCategoryIcons[imp.category]) {
                             customCategories[imp.category] = imp.icon;
                             categoryIcons[imp.category] = imp.icon;
-                            categoryColors[imp.category] = '#f0e68c';
+                            categoryColors[imp.category] = '#002F00';
                             activeCategories.add(imp.category); // ← THIS MAKES IT VISIBLE BY DEFAULT
                         }
                         if (existing) {
@@ -4218,7 +4625,7 @@ document.getElementById('shareOneBtn').onclick = () => {
             }
             customCategories[name] = emoji;
             categoryIcons[name] = emoji;
-            categoryColors[name] = '#f0e68c';
+            categoryColors[name] = '#002F00';
             activeCategories.add(name);
             localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
             localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
@@ -4235,19 +4642,25 @@ document.getElementById('shareOneBtn').onclick = () => {
         `DELETE CATEGORY "${name.toUpperCase()}"`,
         `All markers will be moved to "misc".<br><br>This cannot be undone.<br><br>Proceed with deletion?`,
         () => {
-            locations.forEach(l => { if (l.category === name) l.category = 'misc'; });
-            delete customCategories[name];
-            delete categoryIcons[name];
-            delete categoryColors[name];
-            activeCategories.delete(name);
-            localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-            localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
-            saveLocations();
-            forceReload();
-            closeModal(document.getElementById('deleteCategoryModal'));
-            showTempMessage(`CATEGORY "${name}" DELETED → MARKERS REASSIGNED!`, 5000);
-            playSound('delete');
+    locations.forEach(l => { 
+        if (l.category === name) {
+            l.category = 'misc';
+            l.icon = '📝';                    // ← Reset to default misc icon
         }
+    });
+    delete customCategories[name];
+    delete categoryIcons[name];
+    delete categoryColors[name];
+    activeCategories.delete(name);
+
+    localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+    localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
+    saveLocations();
+    forceReload();
+    closeModal(document.getElementById('deleteCategoryModal'));
+    showTempMessage(`CATEGORY "${name}" DELETED → MARKERS REASSIGNED TO MISC!`, 5000);
+    playSound('delete');
+}
     );
 };
                 saveItemBtn.onclick = () => {
@@ -4316,36 +4729,60 @@ document.getElementById('shareOneBtn').onclick = () => {
             : 'none';
     }
 };
-        deleteBtn.onclick = () => {
-            if (currentIndex < 0) return;
-            const loc = locations[currentIndex];
-            if (loc.locked) {
-                showTempMessage('UNLOCK FIRST!', 4000);
-                playSound('error');
-                return;
-            }
-            lastDeleted = { ...loc };
-            locations.splice(currentIndex, 1);
-            recalculateXP();
-            closeModal(itemModal);
-            saveLocations();
-            forceReload();
-            undoBtn.style.display = 'inline-block';
-            showTempMessage('MARKER DELETED — UNDO READY', 4000);
-            playSound('delete');
-        };
-        undoBtn.onclick = () => {
-    if (!lastDeleted) return;
-    
-    // ← NEW: If the deleted marker already exists (re-imported), don't restore it
-    if (locations.some(loc => loc.cid === lastDeleted.cid)) {
+        // Delete button – with confirmation
+deleteBtn.onclick = () => {
+    if (currentIndex < 0) return;
+    const loc = locations[currentIndex];
+    if (loc.locked) {
+        showTempMessage('UNLOCK FIRST!', 4000);
+        playSound('error');
+        return;
+    }
+
+    showConfirmModal(
+    '☢ CONFIRM DELETION ☢',
+    `Are you sure you want to permanently delete this marker?<br><br>
+     <strong>Description:</strong> ${escapeHtml(loc.desc || '(no description)')}<br>
+     <strong>Category:</strong> ${loc.category}<br>
+     <strong>Grid:</strong> ${getGridFromLatLng(loc.lat, loc.lng) || 'Unknown'}<br><br>
+     This action cannot be undone after the "Undo Delete" button disappears (2 minutes).<br>
+     <strong>To undo:</strong> Open the edit modal on any of your markers — the Undo Delete button will appear there until time runs out.`,
+    () => {
+        // Confirmed deletion
+        lastDeleted = { ...loc };
+        locations.splice(currentIndex, 1);
+        recalculateXP();
+        closeModal(itemModal);
+        saveLocations();
+        forceReload();
+        undoBtn.style.display = 'inline-block';
+        showUndoButton();  // ← Call the new timer version
+        showTempMessage('MARKER DELETED — UNDO READY (2 min)', 5000);
+        playSound('delete');
+    },
+    'Yes — Delete It',
+    'Cancel'
+);
+
+};
+
+// Undo Delete button – with safety checks
+undoBtn.onclick = () => {
+    if (!lastDeleted) {
+        showTempMessage('Nothing to undo', 3000);
+        return;
+    }
+
+    // Prevent restore if marker already exists (e.g. re-imported)
+    if (locations.some(l => l.cid === lastDeleted.cid)) {
         showTempMessage('MARKER ALREADY RESTORED FROM COMMUNITY', 4000);
         lastDeleted = null;
         undoBtn.style.display = 'none';
         return;
     }
 
-    locations.push(lastDeleted);
+    // Restore the marker
+    locations.push({ ...lastDeleted });  // Fresh copy
     recalculateXP();
     saveLocations();
     forceReload();
@@ -4354,7 +4791,7 @@ document.getElementById('shareOneBtn').onclick = () => {
     playSound('undo');
     closeModal(itemModal);
     safeFlyTo(lastDeleted.lat, lastDeleted.lng, 4);
-    lastDeleted = null;
+    lastDeleted = null;  // Clear after success
 };
         exportOneBtn.onclick = () => {
             const loc = locations[currentIndex];
@@ -4478,6 +4915,7 @@ map.on('dblclick', e => {
     if (!clickedOnMarker) {
         L.DomEvent.stopPropagation(e);
         tempLatLng = { lat: e.latlng.lat, lng: e.latlng.lng };
+		autoExitFullscreenForModal()
         openModal('Log Item');
         playSound('click');
     }
@@ -4913,7 +5351,7 @@ if (urlParams.has('permshare')) {
                 if (imp.category && imp.icon && !defaultCategoryIcons[imp.category]) {
                     customCategories[imp.category] = imp.icon;
                     categoryIcons[imp.category] = imp.icon;
-                    categoryColors[imp.category] = '#f0e68c';
+                    categoryColors[imp.category] = '#002F00';
                     activeCategories.add(imp.category); // Make visible by default
                 }
                 if (existing) {
@@ -5298,7 +5736,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 22 March 2026 C-16 • Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: 23March 2026 C-18• Version 76.READY Released • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
