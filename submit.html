@@ -131,7 +131,7 @@
 
         <div id="dailyLimit">
             <h2 style="color:#ffcc00;">Daily Limit Reached</h2>
-            <p>You have reached the limit of <strong>5</strong> submissions in the last 24 hours.</p>
+            <p>You have reached the limit of <strong>10</strong> submissions in the last 24 hours.</p>
             <p>Please check <a href="/fallout76-itemfindermap/pending.html" target="_blank" style="color:#00ff88;">pending submissions</a> and wait for review.</p>
             <p>New submissions open tomorrow after merges.</p>
             <button onclick="window.close()" style="margin-top:20px;">Close Window</button>
@@ -206,7 +206,7 @@
         const dailyLimitDiv = document.getElementById('dailyLimit');
         const alreadySubmittedDiv = document.getElementById('alreadySubmitted');
 
-        const DAILY_LIMIT = 5;
+        const DAILY_LIMIT = 10;
         const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
         function getRecentSubmissions() {
