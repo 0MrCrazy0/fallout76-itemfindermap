@@ -1,146 +1,114 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Submit to Community Map</title>
-    <style>
-        body{font-family:'Courier New',monospace;background:#0a2a2a;color:#00ff00;padding:20px;text-align:center;margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh}
-        form{max-width:420px;margin:0 auto;background:#1a3c34;padding:25px;border:2px solid #00ff00;border-radius:0;box-shadow:0 0 15px #00ff00}
-        h1{margin:0 0 20px;text-shadow:0 0 10px #00ff00}
-        label{display:block;margin:15px 0 5px;font-weight:bold}
-        input,textarea{width:100%;padding:10px;background:#000;color:#00ff00;border:2px solid #00ff00;font-family:inherit;font-size:1em;box-sizing:border-box}
-        textarea{height:120px;resize:vertical}
-        button{margin-top:25px;padding:12px 30px;background:#00ff00;color:#000;border:none;font-weight:bold;font-size:1.2em;cursor:pointer;box-shadow:0 0 12px #00ff00}
-        button:hover{background:#00cc00}
-        button:disabled{background:#444;cursor:not-allowed;opacity:0.6}
-        #status{margin-top:20px;font-size:1.1em;min-height:1.5em}
-        #success,#error{display:none;padding:15px;margin-top:20px;border:2px solid;border-radius:0}
-        #success{background:rgba(0,255,0,0.15);border-color:#00ff00}
-        #error{background:rgba(255,0,0,0.15);border-color:#ff4444;color:#ff8888}
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const lat = params.get('lat');
+    const lng = params.get('lng');
+    const category = params.get('category');
+    const desc = params.get('desc');
+    const icon = params.get('icon');
+    const id = params.get('id');
+    const cid = params.get('cid');
 
-        /* Loading Overlay - only shown during submit */
-        #submitLoadingOverlay {
-            position:fixed;top:0;left:0;right:0;bottom:0;
-            background:rgba(0,0,0,0.9);z-index:9999;
-            display:none;align-items:center;justify-content:center;flex-direction:column;
-            color:#00ff00;font-size:1.4em;text-shadow:0 0 10px #00ff00;
+    // Populate fields
+    document.getElementById('latLng').textContent = lat && lng ? `${lat}, ${lng}` : '(location missing)';
+    document.getElementById('category').textContent = icon && category ? `${icon} ${category}` : '(category missing)';
+    document.getElementById('desc').textContent = desc || '(no description)';
+
+    const form = document.getElementById('submitForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const loadingOverlay = document.getElementById('submitLoadingOverlay');
+
+    const DAILY_LIMIT = 5;                    // ← Change this number anytime you want
+    const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+    // === EXACT DUPLICATE CHECK (cid) ===
+    function hasBeenSubmitted(cid) {
+        const submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
+        return submitted.includes(cid);
+    }
+
+    // === DAILY LIMIT CHECK ===
+    function getRecentSubmissions() {
+        let timestamps = JSON.parse(localStorage.getItem('submitted_timestamps') || '[]');
+        const now = Date.now();
+        timestamps = timestamps.filter(ts => now - ts < DAY_IN_MS); // clean old ones
+        localStorage.setItem('submitted_timestamps', JSON.stringify(timestamps));
+        return timestamps;
+    }
+
+    function canSubmitToday() {
+        return getRecentSubmissions().length < DAILY_LIMIT;
+    }
+
+    function recordSubmission() {
+        let timestamps = JSON.parse(localStorage.getItem('submitted_timestamps') || '[]');
+        timestamps.push(Date.now());
+        localStorage.setItem('submitted_timestamps', JSON.stringify(timestamps));
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // 1. Exact duplicate (permanent block)
+        if (cid && hasBeenSubmitted(cid)) {
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <h2 style="color:#ffcc00;">Duplicate Marker</h2>
+                <p>A marker with this exact location, category, and description already exists or is pending review.</p>
+                <p>No new pull request created — thank you for checking!</p>
+                <button onclick="window.close()" style="margin-top:20px;">Close Window</button>
+            `;
+            div.style.cssText = 'padding:20px;background:rgba(255,204,0,0.2);border:2px solid #ffcc00;border-radius:4px;max-width:400px;margin:20px auto;';
+            form.parentNode.insertBefore(div, form);
+            form.style.display = 'none';
+            return;
         }
-        #submitLoadingOverlay.show { display:flex; }
-        .spinner {
-            width:60px;height:60px;
-            border:6px solid #00ff00;border-top:6px solid transparent;
-            border-radius:50%;animation:spin 1s linear infinite;margin-bottom:20px;
+
+        // 2. Daily limit check
+        if (!canSubmitToday()) {
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <h2 style="color:#ffcc00;">Daily Limit Reached</h2>
+                <p>You have reached the limit of <strong>${DAILY_LIMIT}</strong> submissions in the last 24 hours.</p>
+                <p>Please check <a href="/fallout76-itemfindermap/pending.html" target="_blank" style="color:#00ff88;">pending.html</a> and wait for review.</p>
+                <p>New submissions will be available tomorrow after MrCrazy merges your markers.</p>
+                <button onclick="window.close()" style="margin-top:20px;">Close Window</button>
+            `;
+            div.style.cssText = 'padding:20px;background:rgba(255,204,0,0.2);border:2px solid #ffcc00;border-radius:4px;max-width:400px;margin:20px auto;';
+            form.parentNode.insertBefore(div, form);
+            form.style.display = 'none';
+            return;
         }
-        @keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Submit Marker to Community Map</h1>
-        <p>Share your discovery with the wasteland!<br>MrCrazy will review and merge it soon.</p>
 
-        <form id="submitForm">
-            <label>Pre-filled from your marker:</label>
-            <p><strong>Location:</strong> <span id="latLng"></span></p>
-            <p><strong>Category:</strong> <span id="category"></span></p>
-            <p><strong>Description:</strong> <span id="desc"></span></p>
+        // OK to submit
+        loadingOverlay.classList.add('show');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
 
-            <label for="name">Your In-Game Name (optional)</label>
-            <input type="text" id="name" name="name" placeholder="Anonymous Wastelander">
+        const name = document.getElementById('name').value.trim() || 'Anonymous Wastelander';
 
-            <button type="submit" id="submitBtn">SUBMIT MARKER</button>
-        </form>
+        const marker = { lat: parseFloat(lat), lng: parseFloat(lng), category, desc, icon: icon || '📝', id, cid };
 
-        <div id="status"></div>
+        try {
+            const response = await fetch('https://itemfinder-submit.crzymn05.workers.dev/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'submit', marker, name })
+            });
 
-        <div id="success">
-            <h2 style="color:#00ff88;">Your marker has been submitted!</h2>
-            <p>MrCrazy will review and merge it soon.</p>
-            <p id="submittedDetails"></p>
-            <button onclick="window.close()">Close Window</button>
-        </div>
+            const text = await response.text();
+            loadingOverlay.classList.remove('show');
 
-        <div id="error">
-            <h2 style="color:#ff8888;">Submission failed</h2>
-            <p id="errorMsg"></p>
-            <button onclick="location.reload()">Try Again</button>
-        </div>
-    </div>
-
-    <!-- Loading Overlay -->
-    <div id="submitLoadingOverlay">
-        <div class="spinner"></div>
-        <div>Submitting marker to community map...</div>
-        <div style="font-size:0.8em; margin-top:15px; opacity:0.8;">Please wait a moment</div>
-    </div>
-
-    <script>
-        const params = new URLSearchParams(window.location.search);
-        const lat = params.get('lat');
-        const lng = params.get('lng');
-        const category = params.get('category');
-        const desc = params.get('desc');
-        const icon = params.get('icon');
-        const id = params.get('id');
-        const cid = params.get('cid');
-
-        // Populate fields (fallback if missing)
-        document.getElementById('latLng').textContent = lat && lng ? `${lat}, ${lng}` : '(location missing)';
-        document.getElementById('category').textContent = icon && category ? `${icon} ${category}` : '(category missing)';
-        document.getElementById('desc').textContent = desc || '(no description)';
-
-        const form = document.getElementById('submitForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const statusDiv = document.getElementById('status');
-        const successDiv = document.getElementById('success');
-        const errorDiv = document.getElementById('error');
-        const loadingOverlay = document.getElementById('submitLoadingOverlay');
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            // Show loading overlay
-            loadingOverlay.classList.add('show');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
-
-            const name = document.getElementById('name').value.trim() || 'Anonymous Wastelander';
-
-            const marker = {
-                lat: parseFloat(lat),
-                lng: parseFloat(lng),
-                category,
-                desc,
-                icon: icon || '📝',
-                id,
-                cid
-            };
-
-            try {
-                const response = await fetch('https://itemfinder-submit.crzymn05.workers.dev/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: 'submit', marker, name })
-                });
-
-                const text = await response.text();
-
-                loadingOverlay.classList.remove('show');
-
-                // Show worker's response (success or error HTML)
-                document.body.innerHTML = text;
-
-            } catch (err) {
-                loadingOverlay.classList.remove('show');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'SUBMIT MARKER';
-
-                errorDiv.style.display = 'block';
-                document.getElementById('errorMsg').textContent = err.message || 'Network error - please try again';
-                statusDiv.textContent = '';
+            if (response.ok) {
+                recordSubmission();                    // count toward daily limit
+                document.body.innerHTML = text;        // show worker's success page
+            } else {
+                throw new Error('Server rejected');
             }
-        });
-    </script>
-</body>
-</html>
+        } catch (err) {
+            loadingOverlay.classList.remove('show');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'SUBMIT MARKER';
+            alert('Network error — please try again');
+        }
+    });
+</script>
