@@ -4248,6 +4248,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-0c2d1a2a-5f7d-487c-bd87-8784da80bb7e",
+      "cid": "exchanges_test_grid_b2_x_806_y_680_680_806",
+      "category": "exchanges",
+      "desc": "test\nGrid D2 (X: 1306, Y: 549)\nSubmitted By Anonymous Wastelander",
+      "lat": 548.6121450291927,
+      "lng": 1305.9960843637202,
+      "icon": "⚖️",
+      "addedTime": 1774271049402,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
