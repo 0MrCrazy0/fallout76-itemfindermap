@@ -146,7 +146,7 @@
             <p></p>     <!-- Message line 1 -->
             <p></p>     <!-- Message line 2 -->
             <p></p>     <!-- Message line 3 -->
-            <button onclick="window.close()" style="margin-top:20px;">Close Window</button>
+            <button onclick="window.close()" style="margin-top:20px; background:#00ff00; color:#000; padding:10px 30px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">Close Window</button>
         </div>
 
         <form id="submitForm">
@@ -221,9 +221,9 @@
             return submitted.includes(cid);
         }
 
-        // Unified warning logic — only one block, one close button
+        // Unified warning logic — only one block shown at a time
         if (cid && hasBeenSubmitted(cid)) {
-            // Case 1: User-submitted duplicate
+            // Case 1: User-submitted duplicate (takes priority)
             warningBlock.style.display = 'block';
             warningTitle.textContent = 'Duplicate Marker';
             warningLines[0].textContent = 'A marker with this exact location, category, and description has already been submitted and is pending review.';
@@ -231,7 +231,7 @@
             warningLines[2].textContent = '';
             form.style.display = 'none';
         } else if (wasCommunityKept) {
-            // Case 2: Kept from community map
+            // Case 2: Marker kept from community map
             warningBlock.style.display = 'block';
             warningTitle.textContent = 'Already Part of Community Map';
             warningLines[0].textContent = 'This marker was kept from the shared community collection.';
@@ -247,7 +247,7 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // Safety re-check
+            // Safety re-check before submission
             if (cid && hasBeenSubmitted(cid)) {
                 warningBlock.style.display = 'block';
                 warningTitle.textContent = 'Duplicate Marker';
