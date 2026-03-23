@@ -30,12 +30,12 @@
         <h1>Submit Marker to Community Map</h1>
         <p>Share your discovery with the wasteland!<br>MrCrazy will review and merge it soon.</p>
 
-        <div id="alreadySubmitted">
-            <h2 style="color:#ffcc00;">Already Submitted</h2>
-            <p>This marker has already been submitted and is pending review.</p>
-            <p>No duplicates allowed — thank you for your contribution!</p>
-            <button onclick="window.close()">Close Window</button>
-        </div>
+        <div id="duplicateError" style="display:none; padding:15px; background:rgba(255,204,0,0.2); border:2px solid #ffcc00; color:#ffcc00;">
+    <h2>Duplicate Marker</h2>
+    <p>A marker with this exact location, category, and description already exists or is pending review.</p>
+    <p>No new pull request created — thank you for checking!</p>
+    <button onclick="window.close()">Close Window</button>
+</div>
 
         <form id="submitForm" style="display:none">
             <label>Pre-filled from your marker:</label>
