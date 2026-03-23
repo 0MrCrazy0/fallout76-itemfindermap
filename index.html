@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=21">
+	<link rel="manifest" href="manifest.json?v=22">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1790,11 +1790,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         function generateUniqueId() { return 'id-' + crypto.randomUUID(); }
         function generateCid(loc) {
-            const desc = (loc.desc || '').toString().toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '_');
-            const lat = Math.round(loc.lat);
-            const lng = Math.round(loc.lng);
-            return `${loc.category}_${desc}_${lat}_${lng}`;
-        }
+    const desc = (loc.desc || '').toString().toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '_');
+    const lat = loc.lat.toFixed(3);   // 3 decimal places ≈ 0.1 meter precision
+    const lng = loc.lng.toFixed(3);
+    return `${loc.category}_${desc}_${lat}_${lng}`;
+}
 function hasBeenSubmitted(cid) {
     const submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
     return submitted.includes(cid);
@@ -5850,7 +5850,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 24March 2026 C-21• Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: 24March 2026 C-22• Version 76.READY Released • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
