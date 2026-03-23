@@ -233,70 +233,74 @@
         }
 
         form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+    e.preventDefault();
 
-            // Count this attempt immediately — every click consumes a slot
+    // Check duplicate first (permanent block)
+    if (cid && hasBeenSubmitted(cid)) {
+        alreadySubmittedDiv.style.display = 'block';
+        form.style.display = 'none';
+        return;
+    }
+
+    // Check daily limit before attempting submission
+    if (!canSubmitToday()) {
+        dailyLimitDiv.style.display = 'block';
+        form.style.display = 'none';
+        return;
+    }
+
+    // Show loading overlay
+    loadingOverlay.classList.add('show');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+
+    const name = document.getElementById('playerName').value.trim() || 'Anonymous Wastelander';
+
+    const marker = {
+        lat: parseFloat(lat),
+        lng: parseFloat(lng),
+        category,
+        desc,
+        icon: icon || '📝',
+        id,
+        cid
+    };
+
+    try {
+        const response = await fetch('https://itemfinder-submit.crzymn05.workers.dev/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'submit', marker, name })
+        });
+
+        const text = await response.text();
+        loadingOverlay.classList.remove('show');
+
+        if (response.ok) {
+            // ONLY count successful submissions toward the daily limit
             recordSubmission();
 
-            // Check duplicate (permanent block)
-            if (cid && hasBeenSubmitted(cid)) {
-                alreadySubmittedDiv.style.display = 'block';
-                form.style.display = 'none';
-                return;
+            // Mark as submitted permanently
+            let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
+            if (!submitted.includes(cid)) {
+                submitted.push(cid);
+                localStorage.setItem('submitted_cids', JSON.stringify(submitted));
             }
 
-            // Check daily limit (now includes this attempt)
-            if (!canSubmitToday()) {
-                dailyLimitDiv.style.display = 'block';
-                form.style.display = 'none';
-                return;
-            }
+            document.body.innerHTML = text;
+        } else {
+            throw new Error('Server rejected submission');
+        }
+    } catch (err) {
+        loadingOverlay.classList.remove('show');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'SUBMIT MARKER';
 
-            // Proceed with submission
-            loadingOverlay.classList.add('show');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
-
-            const name = document.getElementById('playerName').value.trim() || 'Anonymous Wastelander';
-
-            const marker = {
-                lat: parseFloat(lat),
-                lng: parseFloat(lng),
-                category,
-                desc,
-                icon: icon || '📝',
-                id,
-                cid
-            };
-
-            try {
-                const response = await fetch('https://itemfinder-submit.crzymn05.workers.dev/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: 'submit', marker, name })
-                });
-
-                const text = await response.text();
-                loadingOverlay.classList.remove('show');
-
-                if (response.ok) {
-                    // Mark as submitted permanently
-                    let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
-                    if (!submitted.includes(cid)) {
-                        submitted.push(cid);
-                        localStorage.setItem('submitted_cids', JSON.stringify(submitted));
-                    }
-                    document.body.innerHTML = text;
-                } else {
-                    throw new Error('Server rejected submission');
-                }
-            } catch (err) {
-                loadingOverlay.classList.remove('show');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'SUBMIT MARKER';
-                alert('Error: ' + err.message);
-            }
-        });
+        errorDiv.style.display = 'block';
+        document.getElementById('errorMsg').textContent = err.message || 'Network error - please try again';
+        statusDiv.textContent = '';
+    }
+});
     </script>
 </body>
 </html>
