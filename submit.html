@@ -5,120 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Submit to Community Map</title>
     <style>
-        body {
-            font-family: 'Courier New', monospace;
-            background: #0a2a2a;
-            color: #00ff00;
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .container {
-            max-width: 420px;
-            background: #1a3c34;
-            padding: 25px;
-            border: 2px solid #00ff00;
-            border-radius: 0;
-            box-shadow: 0 0 15px #00ff00;
-        }
-        h1 {
-            margin: 0 0 20px;
-            text-shadow: 0 0 10px #00ff00;
-        }
-        label {
-            display: block;
-            margin: 15px 0 5px;
-            font-weight: bold;
-        }
-        input, textarea {
-            width: 100%;
-            padding: 10px;
-            background: #000;
-            color: #00ff00;
-            border: 2px solid #00ff00;
-            font-family: inherit;
-            font-size: 1em;
-            box-sizing: border-box;
-        }
-        textarea {
-            height: 120px;
-            resize: vertical;
-        }
-        button {
-            margin-top: 25px;
-            padding: 12px 30px;
-            background: #00ff00;
-            color: #000;
-            border: none;
-            font-weight: bold;
-            font-size: 1.2em;
-            cursor: pointer;
-            box-shadow: 0 0 12px #00ff00;
-        }
-        button:hover {
-            background: #00cc00;
-        }
-        button:disabled {
-            background: #444;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-        #status {
-            margin-top: 20px;
-            font-size: 1.1em;
-            min-height: 1.5em;
-        }
-        #success, #error {
-            display: none;
-            padding: 15px;
-            margin-top: 20px;
-            border: 2px solid;
-            border-radius: 0;
-        }
-        #success {
-            background: rgba(0,255,0,0.15);
-            border-color: #00ff00;
-        }
-        #error {
-            background: rgba(255,0,0,0.15);
-            border-color: #ff4444;
-            color: #ff8888;
-        }
-
-        /* Loading Overlay */
-        #submitLoadingOverlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 9999;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            color: #00ff00;
-            font-size: 1.4em;
-            text-shadow: 0 0 10px #00ff00;
-        }
-        #submitLoadingOverlay.show {
-            display: flex;
-        }
-        .spinner {
-            width: 60px;
-            height: 60px;
-            border: 6px solid #00ff00;
-            border-top: 6px solid transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        body{font-family:'Courier New',monospace;background:#0a2a2a;color:#00ff00;padding:20px;text-align:center;margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh}
+        .container{max-width:420px;margin:0 auto;background:#1a3c34;padding:25px;border:2px solid #00ff00;border-radius:0;box-shadow:0 0 15px #00ff00}
+        h1{margin:0 0 20px;text-shadow:0 0 10px #00ff00}
+        label{display:block;margin:15px 0 5px;font-weight:bold}
+        input,textarea{width:100%;padding:10px;background:#000;color:#00ff00;border:2px solid #00ff00;font-family:inherit;font-size:1em;box-sizing:border-box}
+        textarea{height:120px;resize:vertical}
+        button{margin-top:25px;padding:12px 30px;background:#00ff00;color:#000;border:none;font-weight:bold;font-size:1.2em;cursor:pointer;box-shadow:0 0 12px #00ff00}
+        button:hover{background:#00cc00}
+        button:disabled{background:#444;cursor:not-allowed;opacity:0.6}
+        #status{margin-top:20px;font-size:1.1em;min-height:1.5em}
+        #success,#error,#alreadySubmitted{display:none;padding:15px;margin-top:20px;border:2px solid;border-radius:0}
+        #success{background:rgba(0,255,0,0.15);border-color:#00ff00}
+        #error{background:rgba(255,0,0,0.15);border-color:#ff4444;color:#ff8888}
+        #alreadySubmitted{background:rgba(255,204,0,0.15);border-color:#ffcc00;color:#ffcc00}
+        #submitLoadingOverlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:9999;display:none;align-items:center;justify-content:center;flex-direction:column;color:#00ff00;font-size:1.4em;text-shadow:0 0 10px #00ff00}
+        #submitLoadingOverlay.show{display:flex}
+        .spinner{width:60px;height:60px;border:6px solid #00ff00;border-top:6px solid transparent;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:20px}
+        @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
     </style>
 </head>
 <body>
@@ -126,7 +30,14 @@
         <h1>Submit Marker to Community Map</h1>
         <p>Share your discovery with the wasteland!<br>MrCrazy will review and merge it soon.</p>
 
-        <form id="submitForm">
+        <div id="alreadySubmitted">
+            <h2 style="color:#ffcc00;">Already Submitted</h2>
+            <p>This marker has already been submitted and is pending review.</p>
+            <p>No duplicates allowed — thank you for your contribution!</p>
+            <button onclick="window.close()">Close Window</button>
+        </div>
+
+        <form id="submitForm" style="display:none">
             <label>Pre-filled from your marker:</label>
             <p><strong>Location:</strong> <span id="latLng"></span></p>
             <p><strong>Category:</strong> <span id="category"></span></p>
@@ -182,12 +93,28 @@
         const statusDiv = document.getElementById('status');
         const successDiv = document.getElementById('success');
         const errorDiv = document.getElementById('error');
+        const alreadySubmittedDiv = document.getElementById('alreadySubmitted');
         const loadingOverlay = document.getElementById('submitLoadingOverlay');
+
+        // Check if this cid was already submitted (same localStorage key as index.html)
+        function hasBeenSubmitted(cid) {
+            const submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
+            return submitted.includes(cid);
+        }
+
+        // If already submitted → show message and hide form
+        if (cid && hasBeenSubmitted(cid)) {
+            alreadySubmittedDiv.style.display = 'block';
+            form.style.display = 'none';
+        } else {
+            alreadySubmittedDiv.style.display = 'none';
+            form.style.display = 'block';
+        }
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // Show loading overlay immediately
+            // Show loading overlay
             loadingOverlay.classList.add('show');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
@@ -217,7 +144,14 @@
                 loadingOverlay.classList.remove('show');
 
                 if (response.ok) {
-                    // Show success content from worker
+                    // Mark as submitted (sync with index.html)
+                    let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
+                    if (!submitted.includes(cid)) {
+                        submitted.push(cid);
+                        localStorage.setItem('submitted_cids', JSON.stringify(submitted));
+                    }
+
+                    // Show success content
                     document.body.innerHTML = text;
                 } else {
                     throw new Error('Server rejected submission');
