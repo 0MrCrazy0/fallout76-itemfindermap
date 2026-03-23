@@ -4248,6 +4248,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-1341f977-bf41-4885-8396-03cbead8e108",
+      "cid": "apparel_test_grid_b2_x_498_y_472_472_498",
+      "category": "apparel",
+      "desc": "test\nGrid B2 (X: 498, Y: 472)\nSubmitted By MrCrazy",
+      "lat": 472.34252889425477,
+      "lng": 498.003277535385,
+      "icon": "👕",
+      "addedTime": 1774272984017,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
