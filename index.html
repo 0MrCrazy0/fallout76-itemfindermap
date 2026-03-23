@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=23">
+	<link rel="manifest" href="manifest.json?v=24">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -2856,7 +2856,7 @@ function showGridNotification(grid) {
                 icon: isTemp ? '📬' : (categoryIcons[category] || '📝'),
                 addedTime: isTemp ? null : now,
                 userEdited: !isTemp,
-				wasCommunityKept: !isTemp,
+				wasCommunityKept: false,
                 locked: !isTemp,
                 cid: generateCid({ category, desc, lat, lng }),
                 isTemp: isTemp,
@@ -3825,34 +3825,40 @@ if (submitBtn) {
     const loc = currentIndex >= 0 ? locations[currentIndex] : null;
     const cid = loc?.cid || (loc ? generateCid(loc) : null);
 
-    if (loc?.locked && !loc?.isCommunity && cid) {
-        if (hasBeenSubmitted(cid)) {
-            // Already submitted → hide button and show feedback
-            submitBtn.style.display = 'none';
+    let shouldShow = false;
+    let noteText = '';
 
-            // Create or update note (prevents duplicates if modal reopened)
-            let note = document.getElementById('submitNote');
-            if (!note) {
-                note = document.createElement('p');
-                note.id = 'submitNote';
-                note.style.cssText = 'color:#ffcc00; font-size:0.95em; margin-top:10px; text-align:center;';
-                note.textContent = 'This marker has already been submitted and is pending review.';
-                // Insert note right after the button in the modal
-                const buttonsDiv = submitBtn.parentNode;
-                buttonsDiv.insertBefore(note, submitBtn.nextSibling);
-            }
-            note.style.display = 'block';
-        } else {
-            // Not submitted yet → show button, hide note if exists
-            submitBtn.style.display = 'inline-block';
-            const note = document.getElementById('submitNote');
-            if (note) note.style.display = 'none';
+    if (loc && currentIndex >= 0 && cid) {
+        // Highest priority: Community marker (loaded from communitymap.json or kept)
+        if (loc.isCommunity || loc.wasCommunityKept) {
+            noteText = 'This marker is already part of the community map — no resubmission needed.';
         }
-    } else {
-        submitBtn.style.display = 'none';
-        // Hide note if exists (edge case)
-        const note = document.getElementById('submitNote');
-        if (note) note.style.display = 'none';
+        // Next: Already submitted by this user
+        else if (hasBeenSubmitted(cid)) {
+            noteText = 'This marker has already been submitted and is pending review.';
+        }
+        // Only show submit button for your own, locked, non-community markers that haven't been submitted
+        else if (loc.locked && !loc.isCommunity) {
+            shouldShow = true;
+        }
+    }
+
+    submitBtn.style.display = shouldShow ? 'inline-block' : 'none';
+
+    // Show or update note
+    let note = document.getElementById('submitNote');
+    if (noteText) {
+        if (!note) {
+            note = document.createElement('p');
+            note.id = 'submitNote';
+            note.style.cssText = 'color:#ffcc00; font-size:0.95em; margin-top:10px; text-align:center;';
+            const buttonsDiv = submitBtn.parentNode;
+            buttonsDiv.insertBefore(note, submitBtn.nextSibling);
+        }
+        note.textContent = noteText;
+        note.style.display = 'block';
+    } else if (note) {
+        note.style.display = 'none';
     }
 }
                     modalToggle.textContent = loc.locked ? '🔐 LOCKED' : '🔓 UNLOCKED';
@@ -4899,48 +4905,35 @@ document.getElementById('submitCommunityBtn').onclick = () => {
         playSound('error');
         return;
     }
-
+    if (hasBeenSubmitted(loc.cid || generateCid(loc))) {
+        showTempMessage('This marker has already been submitted — pending review.', 5000);
+        return;
+    }
     const playerNameInput = document.getElementById('playerNameInput');
     const playerName = playerNameInput?.value.trim() || 'Anonymous Wastelander';
     const finalDesc = loc.desc.includes('Submitted By')
         ? loc.desc
         : `${loc.desc}\nSubmitted By ${playerName}`;
     const iconToSend = categoryIcons[loc.category] || '📝';
-
     const cid = loc.cid || generateCid(loc);
-
-    // Mark as submitted immediately
-    markAsSubmitted(cid);
-
-    // Show loading overlay
     const overlay = document.getElementById('submitLoadingOverlay');
     if (overlay) overlay.classList.add('show');
-
-    // Ensure overlay is visible for at least 1.5 seconds (prevents flicker on fast networks)
     const minDelay = new Promise(resolve => setTimeout(resolve, 1500));
-
     const params = new URLSearchParams({
-        lat: loc.lat,
-        lng: loc.lng,
-        category: loc.category,
-        desc: finalDesc,
-        icon: iconToSend,
-        id: loc.id,
-        cid: cid
+    lat: loc.lat,
+    lng: loc.lng,
+    category: loc.category,
+    desc: finalDesc,
+    icon: iconToSend,
+    id: loc.id,
+    cid: cid,
+    wasCommunityKept: loc.wasCommunityKept ? 'true' : 'false'
     });
-
     const url = `https://0mrcrazy0.github.io/fallout76-itemfindermap/submit.html?v=${Date.now()}&${params.toString()}`;
-
-    // Open in new tab after min delay
     minDelay.then(() => {
         window.open(url, '_blank', 'width=500,height=720,scrollbars=yes');
-        showTempMessage('MARKER SUBMITTED — THANK YOU! Pending review.', 5000);
-        playSound('saving');
-
-        // Hide overlay after opening (user sees it in new tab)
+        // Do NOT show success message here — wait for worker response
         if (overlay) overlay.classList.remove('show');
-
-        // Close modal for clean UX
         closeModal(itemModal);
         forceReload();
     });
@@ -5850,7 +5843,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 24March 2026 C-23• Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: 24March 2026 C-24• Version 76.READY Released • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
