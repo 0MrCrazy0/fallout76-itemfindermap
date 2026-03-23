@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=20">
+	<link rel="manifest" href="manifest.json?v=21">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -393,6 +393,39 @@ body.dark-mode #confirmDeleteCategoryBtn:focus-visible {
         max-height: 80vh;
         -webkit-overflow-scrolling: touch;
     }
+	#submitLoadingOverlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 999999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 1.4em;
+    text-shadow: 0 0 10px #00ff00;
+}
+
+#submitLoadingOverlay.show {
+    display: flex;
+}
+
+#submitLoadingOverlay .spinner {
+    width: 60px;
+    height: 60px;
+    border: 6px solid #00ff00;
+    border-top: 6px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
     .close {
         color: #00ff00;
         float: right;
@@ -1487,6 +1520,11 @@ button:not(:hover):not(:active):not(:focus),
 </div>
         </div>
     </div>
+	<div id="submitLoadingOverlay">
+        <div class="spinner"></div>
+        <div>Submitting marker to community map...</div>
+        <div style="font-size:0.8em; margin-top:15px; opacity:0.8;">Please wait a moment</div>
+    </div>
     <!-- DEV NOTE: HOW TO USE MODAL -->
     <div id="instructionsModal" class="modal">
         <div class="modal-content">
@@ -1757,6 +1795,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const lng = Math.round(loc.lng);
             return `${loc.category}_${desc}_${lat}_${lng}`;
         }
+function hasBeenSubmitted(cid) {
+    const submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
+    return submitted.includes(cid);
+}
+
+function markAsSubmitted(cid) {
+    let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
+    if (!submitted.includes(cid)) {
+        submitted.push(cid);
+        localStorage.setItem('submitted_cids', JSON.stringify(submitted));
+    }
+}
 
 function utf8ToBase64(str) {
     return btoa(unescape(encodeURIComponent(str)));
@@ -3772,10 +3822,38 @@ tr.addEventListener('touchend touchmove touchcancel', () => {
 
 const submitBtn = document.getElementById('submitCommunityBtn');
 if (submitBtn) {
-    submitBtn.style.display = 
-        (currentIndex >= 0 && locations[currentIndex]?.locked && !locations[currentIndex]?.isCommunity)
-        ? 'inline-block'
-        : 'none';
+    const loc = currentIndex >= 0 ? locations[currentIndex] : null;
+    const cid = loc?.cid || (loc ? generateCid(loc) : null);
+
+    if (loc?.locked && !loc?.isCommunity && cid) {
+        if (hasBeenSubmitted(cid)) {
+            // Already submitted → hide button and show feedback
+            submitBtn.style.display = 'none';
+
+            // Create or update note (prevents duplicates if modal reopened)
+            let note = document.getElementById('submitNote');
+            if (!note) {
+                note = document.createElement('p');
+                note.id = 'submitNote';
+                note.style.cssText = 'color:#ffcc00; font-size:0.95em; margin-top:10px; text-align:center;';
+                note.textContent = 'This marker has already been submitted and is pending review.';
+                // Insert note right after the button in the modal
+                const buttonsDiv = submitBtn.parentNode;
+                buttonsDiv.insertBefore(note, submitBtn.nextSibling);
+            }
+            note.style.display = 'block';
+        } else {
+            // Not submitted yet → show button, hide note if exists
+            submitBtn.style.display = 'inline-block';
+            const note = document.getElementById('submitNote');
+            if (note) note.style.display = 'none';
+        }
+    } else {
+        submitBtn.style.display = 'none';
+        // Hide note if exists (edge case)
+        const note = document.getElementById('submitNote');
+        if (note) note.style.display = 'none';
+    }
 }
                     modalToggle.textContent = loc.locked ? '🔐 LOCKED' : '🔓 UNLOCKED';
                     itemCategorySelect.disabled = loc.locked;
@@ -4821,12 +4899,26 @@ document.getElementById('submitCommunityBtn').onclick = () => {
         playSound('error');
         return;
     }
+
     const playerNameInput = document.getElementById('playerNameInput');
     const playerName = playerNameInput?.value.trim() || 'Anonymous Wastelander';
     const finalDesc = loc.desc.includes('Submitted By')
         ? loc.desc
         : `${loc.desc}\nSubmitted By ${playerName}`;
     const iconToSend = categoryIcons[loc.category] || '📝';
+
+    const cid = loc.cid || generateCid(loc);
+
+    // Mark as submitted immediately
+    markAsSubmitted(cid);
+
+    // Show loading overlay
+    const overlay = document.getElementById('submitLoadingOverlay');
+    if (overlay) overlay.classList.add('show');
+
+    // Ensure overlay is visible for at least 1.5 seconds (prevents flicker on fast networks)
+    const minDelay = new Promise(resolve => setTimeout(resolve, 1500));
+
     const params = new URLSearchParams({
         lat: loc.lat,
         lng: loc.lng,
@@ -4834,12 +4926,24 @@ document.getElementById('submitCommunityBtn').onclick = () => {
         desc: finalDesc,
         icon: iconToSend,
         id: loc.id,
-        cid: loc.cid = loc.cid || generateCid(loc)  // ← THIS LINE SAVES THE CID
+        cid: cid
     });
-    const url = `https://0mrcrazy0.github.io/fallout76-itemfindermap/submit.html?v=${Date.now()}&${params.toString()}`;
-    window.open(url, '_blank', 'width=500,height=720,scrollbars=yes');
 
-    showTempMessage('SHARE YOUR MARKER — IT WILL BE REVIEWED.', 5000);
+    const url = `https://0mrcrazy0.github.io/fallout76-itemfindermap/submit.html?v=${Date.now()}&${params.toString()}`;
+
+    // Open in new tab after min delay
+    minDelay.then(() => {
+        window.open(url, '_blank', 'width=500,height=720,scrollbars=yes');
+        showTempMessage('MARKER SUBMITTED — THANK YOU! Pending review.', 5000);
+        playSound('saving');
+
+        // Hide overlay after opening (user sees it in new tab)
+        if (overlay) overlay.classList.remove('show');
+
+        // Close modal for clean UX
+        closeModal(itemModal);
+        forceReload();
+    });
 };
     map.on('dragstart', () => { isDraggingAny = true; });
     map.on('dragend', () => { setTimeout(() => { isDraggingAny = false; }, 400); });
@@ -5746,7 +5850,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 23March 2026 C-20• Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: 24March 2026 C-21• Version 76.READY Released • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
