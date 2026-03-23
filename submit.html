@@ -220,87 +220,95 @@
         return submitted.includes(cid);
     }
 
-    // Unified warning logic — strict priority, no heuristics
-    if (cid && hasBeenSubmitted(cid)) {
-        // Priority 1: User already submitted this marker
-        warningBlock.style.display = 'block';
-        warningTitle.textContent = 'Duplicate Marker';
-        warningLines[0].textContent = 'A marker with this exact location, category, and description has already been submitted and is pending review.';
-        warningLines[1].textContent = 'No new pull request created — thank you for checking!';
-        warningLines[2].textContent = '';
-        form.style.display = 'none';
-    } else if (wasCommunityKept) {
-        // Priority 2: Marker kept from community map
-        warningBlock.style.display = 'block';
-        warningTitle.textContent = 'Already Part of Community Map';
-        warningLines[0].textContent = 'This marker was kept from the shared community collection.';
-        warningLines[1].textContent = 'It is already included — no resubmission needed.';
-        warningLines[2].textContent = 'You may edit or move it freely as your own marker.';
-        form.style.display = 'none';
-    } else {
-        // Priority 3: Valid new submission — show form
-        form.style.display = 'block';
-        warningBlock.style.display = 'none';
+    // Force re-check of submitted_cids after a short delay (handles timing issues)
+    function checkSubmittedStatus(callback) {
+        setTimeout(() => {
+            const isSubmitted = cid && hasBeenSubmitted(cid);
+            callback(isSubmitted);
+        }, 300); // 300ms delay to allow localStorage to sync
     }
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        // Safety re-check before submission
-        if (cid && hasBeenSubmitted(cid)) {
+    // Initial display logic
+    checkSubmittedStatus((isSubmitted) => {
+        if (isSubmitted) {
             warningBlock.style.display = 'block';
             warningTitle.textContent = 'Duplicate Marker';
             warningLines[0].textContent = 'A marker with this exact location, category, and description has already been submitted and is pending review.';
             warningLines[1].textContent = 'No new pull request created — thank you for checking!';
             warningLines[2].textContent = '';
             form.style.display = 'none';
-            return;
+        } else if (wasCommunityKept) {
+            warningBlock.style.display = 'block';
+            warningTitle.textContent = 'Already Part of Community Map';
+            warningLines[0].textContent = 'This marker was kept from the shared community collection.';
+            warningLines[1].textContent = 'It is already included — no resubmission needed.';
+            warningLines[2].textContent = 'You may edit or move it freely as your own marker.';
+            form.style.display = 'none';
+        } else {
+            form.style.display = 'block';
+            warningBlock.style.display = 'none';
         }
+    });
 
-        loadingOverlay.classList.add('show');
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Submitting...';
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-        const name = document.getElementById('playerName').value.trim() || 'Anonymous Wastelander';
+        // Re-check before submitting
+        checkSubmittedStatus((isSubmitted) => {
+            if (isSubmitted) {
+                warningBlock.style.display = 'block';
+                warningTitle.textContent = 'Duplicate Marker';
+                warningLines[0].textContent = 'A marker with this exact location, category, and description has already been submitted and is pending review.';
+                warningLines[1].textContent = 'No new pull request created — thank you for checking!';
+                warningLines[2].textContent = '';
+                form.style.display = 'none';
+                return;
+            }
 
-        const marker = {
-            lat: parseFloat(lat),
-            lng: parseFloat(lng),
-            category,
-            desc,
-            icon: icon || '📝',
-            id,
-            cid
-        };
+            loadingOverlay.classList.add('show');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
 
-        try {
-            const response = await fetch('https://itemfinder-submit.crzymn05.workers.dev/', {
+            const name = document.getElementById('playerName').value.trim() || 'Anonymous Wastelander';
+
+            const marker = {
+                lat: parseFloat(lat),
+                lng: parseFloat(lng),
+                category,
+                desc,
+                icon: icon || '📝',
+                id,
+                cid
+            };
+
+            fetch('https://itemfinder-submit.crzymn05.workers.dev/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ type: 'submit', marker, name })
-            });
-
-            const text = await response.text();
-            loadingOverlay.classList.remove('show');
-
-            if (response.ok) {
-                let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
-                if (!submitted.includes(cid)) {
-                    submitted.push(cid);
-                    localStorage.setItem('submitted_cids', JSON.stringify(submitted));
+            })
+            .then(response => response.text().then(text => ({ ok: response.ok, text })))
+            .then(({ ok, text }) => {
+                loadingOverlay.classList.remove('show');
+                if (ok) {
+                    let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
+                    if (!submitted.includes(cid)) {
+                        submitted.push(cid);
+                        localStorage.setItem('submitted_cids', JSON.stringify(submitted));
+                    }
+                    document.body.innerHTML = text;
+                } else {
+                    throw new Error('Server rejected submission');
                 }
-                document.body.innerHTML = text;
-            } else {
-                throw new Error('Server rejected submission');
-            }
-        } catch (err) {
-            loadingOverlay.classList.remove('show');
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'SUBMIT MARKER';
-            errorDiv.style.display = 'block';
-            document.getElementById('errorMsg').textContent = err.message || 'Network error - please try again';
-            statusDiv.textContent = '';
-        }
+            })
+            .catch(err => {
+                loadingOverlay.classList.remove('show');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'SUBMIT MARKER';
+                errorDiv.style.display = 'block';
+                document.getElementById('errorMsg').textContent = err.message || 'Network error - please try again';
+                statusDiv.textContent = '';
+            });
+        });
     });
 </script>
 </body>
