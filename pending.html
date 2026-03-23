@@ -93,11 +93,11 @@
 
     <script>
     function closeTab() {
-        window.close();
-        setTimeout(() => {
-            window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
-        }, 700);
-    }
+    window.close();
+    setTimeout(() => {
+        window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/?showInstructions=true');
+    }, 700);
+}
 
     // Strong cache buster
     fetch('https://itemfinder-submit.crzymn05.workers.dev/pending?v=20260319_' + Date.now())
