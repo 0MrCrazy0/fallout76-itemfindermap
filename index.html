@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=29">
+	<link rel="manifest" href="manifest.json?v=30">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -267,6 +267,37 @@ body.dark-mode #confirmDeleteCategoryBtn:focus-visible {
         0 0 32px #00ff88,
         0 0 48px #00ff00 !important;
     transform: scale(1.06) !important;
+}
+@media (hover: none) and (pointer: coarse) {
+    .grid-line {
+        opacity: 0.13 !important;
+        stroke-width: 0.8px !important;
+    }
+    
+    .grid-label {
+        font-size: 12.5px !important;
+        opacity: 0.52 !important;
+        transition: opacity 0.35s ease-out !important;
+    }
+
+    /* Critical protection when clustering is OFF */
+    .leaflet-marker-icon,
+    .leaflet-marker-cluster {
+        will-change: transform !important;
+        transform: translate3d(0,0,0) !important;
+        backface-visibility: hidden !important;
+        -webkit-backface-visibility: hidden !important;
+    }
+
+    /* Force hardware acceleration on the entire map */
+    .leaflet-container {
+        transform: translate3d(0,0,0) !important;
+        backface-visibility: hidden !important;
+    }
+
+    .leaflet-zoom-animated {
+        transform: translate3d(0,0,0) !important;
+    }
 }
 .leaflet-marker-icon {
     will-change: transform;
@@ -1410,33 +1441,6 @@ button:not(:hover):not(:active):not(:focus),
         background: rgba(0, 255, 0, 0.12) !important;
         box-shadow: 0 0 12px rgba(0, 255, 0, 0.4) !important;
         transition: all 0.12s ease;
-    }
-}
-/* ── STRONGER MOBILE GRID + NO-CLUSTER FIX (must be last in <style>) ── */
-@media (hover: none) and (pointer: coarse) {
-    .grid-line {
-        opacity: 0.16 !important;
-        stroke-width: 1px !important;
-    }
-    
-    .grid-label {
-        font-size: 13px !important;
-        opacity: 0.68 !important;
-        transition: opacity 0.25s ease-out !important;
-    }
-
-    /* Extra protection when clustering is OFF */
-    .leaflet-marker-icon,
-    .leaflet-marker-cluster {
-        will-change: transform;
-        transform: translate3d(0,0,0) !important;
-        backface-visibility: hidden !important;
-        -webkit-backface-visibility: hidden !important;
-    }
-
-    /* Reduce redraw pressure on the entire map when grid is active */
-    .leaflet-container {
-        transform: translate3d(0,0,0);
     }
 }
     </style>
@@ -5894,7 +5898,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 24March 2026 C-29• Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: 24March 2026 C-30• Version 76.READY Released • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
