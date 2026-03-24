@@ -4248,6 +4248,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-52f047e3-87ed-4125-8f19-b784dc5d5dfa",
+      "cid": "plans_test_grid_b2_x_712_y_482_482.17819_712.38925",
+      "category": "plans",
+      "desc": "test\nGrid B2 (X: 712, Y: 482)\nSubmitted By Anonymous Wastelander",
+      "lat": 482.1781923370611,
+      "lng": 712.3892535711864,
+      "icon": "📜",
+      "addedTime": 1774321691826,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
