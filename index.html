@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=38">
+	<link rel="manifest" href="manifest.json?v=39">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -3745,58 +3745,54 @@ tr.addEventListener('touchend touchmove touchcancel', () => {
             showTempMessage(loc.locked?'🔐 LOCKED' : '🔓 UNLOCKED',4000);
             playSound('click');
         };
-        setInterval(() => {
+        // ── Gentle Background Refresh – Much smoother on mobile (S24+) ──
+setInterval(() => {
     if (document.visibilityState !== 'visible' || window.isDraggingAnyMarker) return;
 
-    // Check for active cluster interaction or open popup
-    let isClusterActive = false;
-    let popupIsOpen = false;
-
+    // Quick check for active user interaction
+    let isUserInteracting = false;
     map.eachLayer(layer => {
-        if (layer instanceof L.MarkerClusterGroup && layer._spiderfied) {
-            isClusterActive = true;
-        }
-        if (layer.getPopup && layer.getPopup() && layer.getPopup().isOpen()) {
-            popupIsOpen = true;
-        }
+        if (layer instanceof L.MarkerClusterGroup && layer._spiderfied) isUserInteracting = true;
+        if (layer.getPopup && layer.getPopup().isOpen()) isUserInteracting = true;
     });
 
-    // If cluster is spiderfied or popup open → SKIP full reload
-    // Only update glow/lock/draggable states (safe, no clearLayers)
-    if (isClusterActive || popupIsOpen) {
-        [clusteredMarkers, nonClusteredMarkers].forEach(g => {
-            g.eachLayer(m => {
-                if (!m || !m.options || !m._icon) return; // skip if marker invalid
-                const loc = locations.find(l => l.id === m.options.id);
-                if (!loc) return;
+    if (isUserInteracting) return;   // Skip heavy work while user is touching the map
 
-                const glow = isGlowing(loc);
-                const icon = m._icon;
-                if (glow && !icon.className.includes('glowing')) {
-                    m.setIcon(createMarkerIcon(loc));
-                    m.setZIndexOffset(10000);
-                } else if (!glow && icon.className.includes('glowing')) {
-                    m.setIcon(createMarkerIcon(loc));
-                    m.setZIndexOffset(0);
-                }
+    // Light refresh most of the time (glows + lock state only)
+    [clusteredMarkers, nonClusteredMarkers].forEach(g => {
+        g.eachLayer(m => {
+            if (!m || !m.options || !m._icon) return;
+            const loc = locations.find(l => l.id === m.options.id);
+            if (!loc) return;
 
-                if (loc.locked || loc.isPostcard) {
-                    m.dragging?.disable();
-                } else {
-                    m.dragging?.enable();
-                }
-            });
+            const glow = isGlowing(loc);
+            const icon = m._icon;
+
+            if (glow && !icon.className.includes('glowing')) {
+                m.setIcon(createMarkerIcon(loc));
+                m.setZIndexOffset(10000);
+            } else if (!glow && icon.className.includes('glowing')) {
+                m.setIcon(createMarkerIcon(loc));
+                m.setZIndexOffset(0);
+            }
+
+            if (loc.locked || loc.isPostcard) {
+                m.dragging?.disable();
+            } else {
+                m.dragging?.enable();
+            }
         });
+    });
 
-        refreshTable(combinedSearch?.value || '', categoryFilter?.value || '');
-        updateLockAllBtn?.();
-        return; // exit early — no full loadData()
+    refreshTable(combinedSearch?.value || '', categoryFilter?.value || '');
+    updateLockAllBtn?.();
+
+    // Full heavy refresh only occasionally (roughly every 8–12 seconds)
+    if (Math.random() < 0.12) {
+        loadData(combinedSearch.value || '', categoryFilter.value || '');
     }
 
-    // Only when safe (no active cluster/popup): full refresh
-    loadData(combinedSearch.value || '', categoryFilter.value || '');
-
-}, 1000);
+}, 3000);   // Changed from 1000ms → 3000ms
         function renderCategoryToggles() {
             const box = document.getElementById('categoryCheckboxes');
             box.innerHTML = '';
@@ -5969,7 +5965,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 24March 2026 C-38• Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: 24March 2026 C-39• Version 76.READY Released • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
