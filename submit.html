@@ -203,15 +203,13 @@
 
         // Priority logic for warning / form display
         if (cid && hasBeenSubmitted(cid)) {
-            // User already submitted this marker
             warningBlock.style.display = 'block';
             warningTitle.textContent = 'Duplicate Marker';
             warningText1.textContent = 'A marker with this exact location, category, and description has already been submitted.';
-            warningText2.textContent = 'If it does not appear in Pending Submissions, it may have been merged or removed.';
+            warningText2.textContent = 'If it does not appear in Pending Submissions, it may have been merged or removed.\n\nIf you\'re not sure, delete this marker and create a new one to resubmit.\n\nSubmissions can take 2-3 days to be reviewed and merged.';
             form.style.display = 'none';
         } 
         else if (wasCommunityKept) {
-            // Marker was kept from community (already official)
             warningBlock.style.display = 'block';
             warningTitle.textContent = 'Already Part of Community Map';
             warningText1.textContent = 'This marker is now part of the official community map.';
@@ -219,7 +217,6 @@
             form.style.display = 'none';
         } 
         else {
-            // Fresh marker — show submit form
             form.style.display = 'block';
             warningBlock.style.display = 'none';
         }
@@ -228,11 +225,10 @@
             e.preventDefault();
 
             if (cid && hasBeenSubmitted(cid)) {
-                // Re-check in case something changed
                 warningBlock.style.display = 'block';
                 warningTitle.textContent = 'Duplicate Marker';
                 warningText1.textContent = 'A marker with this exact location, category, and description has already been submitted.';
-                warningText2.textContent = 'If it does not appear in Pending Submissions, it may have been merged or removed.';
+                warningText2.textContent = 'If it does not appear in Pending Submissions, it may have been merged or removed.\n\nIf you\'re not sure, delete this marker and create a new one to resubmit.\n\nSubmissions can take 2-3 days to be reviewed and merged.';
                 form.style.display = 'none';
                 return;
             }
@@ -264,7 +260,6 @@
                 loadingOverlay.classList.remove('show');
 
                 if (response.ok) {
-                    // Mark as submitted locally
                     let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
                     if (!submitted.includes(cid)) {
                         submitted.push(cid);
