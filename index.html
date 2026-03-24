@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=32">
+	<link rel="manifest" href="manifest.json?v=34">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -25,8 +25,8 @@
     <link rel="apple-touch-icon" href="/fallout76-itemfindermap/icon-192-v2.png">
     <meta name="theme-color" content="#00ff00">
 
-    <style>
-/* ── ULTIMATE MOBILE GRID + NO-CLUSTER FLICKER FIX (HIGHEST PRIORITY - MUST STAY FIRST) ── */
+<style>
+/* ── ULTIMATE MOBILE GRID + NO-CLUSTER FLICKER FIX (HIGHEST PRIORITY) ── */
 @media (hover: none) and (pointer: coarse) {
     .grid-line {
         opacity: 0.08 !important;
@@ -63,12 +63,12 @@
     }
 }
 
-    body {
-        font-family: 'Courier New', monospace;
-        margin: 20px;
-        background-color: #0a2a2a;
-        color: #00ff00;
-        overflow-x: hidden;
+    body { 
+        font-family: 'Courier New', monospace; 
+        margin: 20px; 
+        background-color: #0a2a2a; 
+        color: #00ff00; 
+        overflow-x: hidden; 
     }
     h1 {
         color: #00ff00;
@@ -1032,8 +1032,6 @@ body.dark-mode #itemModal button:focus-visible {
     color: #000 !important;
     background: #00ff00 !important;
     }
-const nukeStyle = document.createElement('style');
-nukeStyle.textContent = `
     @keyframes nukeFlash {
     0% { opacity: 0; }
     10% { opacity: 1; }
@@ -2725,9 +2723,12 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
 
 if (!map.getPane('gridPane')) {
     map.createPane('gridPane');
-    map.getPane('gridPane').style.zIndex = 450; 
-    map.getPane('gridPane').style.pointerEvents = 'none';
-    map.getPane('gridPane').style.transform = 'translate3d(0,0,0)'; 
+    const gridPane = map.getPane('gridPane');
+    gridPane.style.zIndex = 450;
+    gridPane.style.pointerEvents = 'none';
+    gridPane.style.transform = 'translate3d(0,0,0)';
+    gridPane.style.backfaceVisibility = 'hidden';
+    gridPane.style.willChange = 'transform';
 }
 
 function drawGrid() {
@@ -3974,6 +3975,73 @@ tr.addEventListener('touchend touchmove touchcancel', () => {
 
     setTimeout(() => flash.remove(), 700);
 }
+        // ── Nuke / Level-up animation styles (required for triggerNuke) ──
+        const nukeStyle = document.createElement('style');
+        nukeStyle.textContent = `
+            @keyframes nukeFlash {
+                0% { opacity: 0; }
+                10% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+            @keyframes mushroomCloud {
+                0% { font-size: 0; opacity: 0; }
+                50% { font-size: 400px; opacity: 1; }
+                100% { font-size: 600px; opacity: 0; }
+            }
+            @keyframes textAppear {
+                to { opacity: 1; }
+            }
+            @keyframes quickFlash {
+                0% { opacity: 0; }
+                10% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+            .nuke-symbol {
+                font-size: clamp(80px, 28vw, 300px);
+                color: #0f0;
+                animation: symbolDrop 1.2s ease-out forwards;
+                text-shadow: 0 0 60px #0f0;
+            }
+            .nuke-title {
+                font-size: clamp(32px, 8vw, 80px);
+                color: #0f0;
+                margin: 0;
+                animation: textFadeIn 1.2s forwards;
+                text-shadow: 0 0 35px #0f0;
+                letter-spacing: 6px;
+            }
+            .nuke-subtitle {
+                font-size: clamp(24px, 6vw, 60px);
+                color: #0f0;
+                margin: 0;
+                font-weight: bold;
+                animation: textFadeIn 1.2s 0.3s forwards;
+                text-shadow: 0 0 30px #0f0;
+            }
+            @keyframes symbolDrop {
+                0% { opacity: 0; transform: translateY(-60px); }
+                100% { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes textFadeIn {
+                0% { opacity: 0; transform: translateY(20px); }
+                100% { opacity: 1; transform: translateY(0); }
+            }
+            .popup-glow {
+                filter: drop-shadow(0 0 12px #00ff00) brightness(0.6) !important;
+                z-index: 10000 !important;
+                animation: pulse-glow 2s infinite alternate;
+            }
+            .table-row-popup-glow {
+                background: rgba(0, 255, 0, 0.15) !important;
+                box-shadow: 0 0 12px #00ff00 !important;
+                animation: pulse-glow 2s infinite alternate;
+            }
+            @keyframes pulse-glow {
+                from { filter: drop-shadow(0 0 12px #00ff00) brightness(0.6); }
+                to { filter: drop-shadow(0 0 18px #00ff80) brightness(1.2); }
+            }
+        `;
+        document.head.appendChild(nukeStyle);
         function updateXPBar() {
             levelSpan.textContent = level;
             xpProgress.value = xp;
@@ -5866,7 +5934,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 24March 2026 C-32• Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: 24March 2026 C-34• Version 76.READY Released • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
