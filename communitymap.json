@@ -4248,6 +4248,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-71d9fa0b-faf9-4e59-8bc2-95760fe87f3c",
+      "cid": "plans_test_marker_there_is_nothing_here_in_the_is_location_grid_b2_x_505_y_458_458.44256_505.31114",
+      "category": "plans",
+      "desc": "test marker there is nothing here in the is location.\nGrid B2 (X: 505, Y: 458)\nSubmitted By MrCrazy",
+      "lat": 458.4425596418947,
+      "lng": 505.31114349909404,
+      "icon": "📜",
+      "addedTime": 1774339843247,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
