@@ -72,7 +72,7 @@
             font-size: 1.1em;
             min-height: 1.5em;
         }
-        #success, #error {
+        #success, #error, #warningBlock {
             display: none;
             padding: 15px;
             margin-top: 20px;
@@ -89,20 +89,9 @@
             color: #ff8888;
         }
         #warningBlock {
-            display: none;
-            padding: 15px;
-            margin-top: 20px;
-            border: 2px solid #ffcc00;
             background: rgba(255,204,0,0.15);
+            border-color: #ffcc00;
             color: #ffcc00;
-            border-radius: 0;
-        }
-        #warningBlock h2 {
-            margin: 0 0 12px;
-            color: #ffcc00;
-        }
-        #warningBlock p {
-            margin: 8px 0;
         }
         #submitLoadingOverlay {
             position: fixed;
@@ -140,12 +129,11 @@
         <h1>Submit Marker to Community Map</h1>
         <p>Share your discovery with the wasteland!<br>MrCrazy will review and merge it soon.</p>
 
-        <!-- Unified warning block (only ONE block, ONE close button) -->
+        <!-- Unified warning block -->
         <div id="warningBlock">
-            <h2></h2>
-            <p></p>
-            <p></p>
-            <p></p>
+            <h2 id="warningTitle"></h2>
+            <p id="warningText1"></p>
+            <p id="warningText2"></p>
             <button onclick="window.close()" style="margin-top:20px; background:#00ff00; color:#000; padding:10px 30px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">Close Window</button>
         </div>
 
@@ -192,23 +180,18 @@
         const cid = params.get('cid');
         const wasCommunityKept = params.get('wasCommunityKept') === 'true';
 
-        // Populate fields safely
-        const latLngEl = document.getElementById('latLng');
-        if (latLngEl) latLngEl.textContent = lat && lng ? `${lat}, ${lng}` : '(location missing)';
-
-        const categoryEl = document.getElementById('category');
-        if (categoryEl) categoryEl.textContent = icon && category ? `${icon} ${category}` : '(category missing)';
-
-        const descEl = document.getElementById('desc');
-        if (descEl) descEl.textContent = desc || '(no description)';
+        // Populate fields
+        document.getElementById('latLng').textContent = lat && lng ? `${lat}, ${lng}` : '(location missing)';
+        document.getElementById('category').textContent = icon && category ? `${icon} ${category}` : '(category missing)';
+        document.getElementById('desc').textContent = desc || '(no description)';
 
         const form = document.getElementById('submitForm');
         const submitBtn = document.getElementById('submitBtn');
         const loadingOverlay = document.getElementById('submitLoadingOverlay');
         const warningBlock = document.getElementById('warningBlock');
-        const warningTitle = warningBlock.querySelector('h2');
-        const warningLines = warningBlock.querySelectorAll('p');
-        const statusDiv = document.getElementById('status');
+        const warningTitle = document.getElementById('warningTitle');
+        const warningText1 = document.getElementById('warningText1');
+        const warningText2 = document.getElementById('warningText2');
         const successDiv = document.getElementById('success');
         const errorDiv = document.getElementById('error');
 
@@ -218,25 +201,25 @@
             return submitted.includes(cid);
         }
 
-        // STRICT priority logic — no heuristics, no overlap
+        // Priority logic for warning / form display
         if (cid && hasBeenSubmitted(cid)) {
             // User already submitted this marker
             warningBlock.style.display = 'block';
             warningTitle.textContent = 'Duplicate Marker';
-            warningLines[0].textContent = 'A marker with this exact location, category, and description has already been submitted and is pending review.';
-            warningLines[1].textContent = 'No new pull request created — thank you for checking!';
-            warningLines[2].textContent = '';
+            warningText1.textContent = 'A marker with this exact location, category, and description has already been submitted.';
+            warningText2.textContent = 'If it does not appear in Pending Submissions, it may have been merged or removed.';
             form.style.display = 'none';
-        } else if (wasCommunityKept) {
-            // Only show for markers that were actually kept from community
+        } 
+        else if (wasCommunityKept) {
+            // Marker was kept from community (already official)
             warningBlock.style.display = 'block';
             warningTitle.textContent = 'Already Part of Community Map';
-            warningLines[0].textContent = 'This marker was kept from the shared community collection.';
-            warningLines[1].textContent = 'It is already included — no resubmission needed.';
-            warningLines[2].textContent = 'You may edit or move it freely as your own marker.';
+            warningText1.textContent = 'This marker is now part of the official community map.';
+            warningText2.textContent = 'No resubmission needed.';
             form.style.display = 'none';
-        } else {
-            // New user-created marker — show the form
+        } 
+        else {
+            // Fresh marker — show submit form
             form.style.display = 'block';
             warningBlock.style.display = 'none';
         }
@@ -245,11 +228,11 @@
             e.preventDefault();
 
             if (cid && hasBeenSubmitted(cid)) {
+                // Re-check in case something changed
                 warningBlock.style.display = 'block';
                 warningTitle.textContent = 'Duplicate Marker';
-                warningLines[0].textContent = 'A marker with this exact location, category, and description has already been submitted and is pending review.';
-                warningLines[1].textContent = 'No new pull request created — thank you for checking!';
-                warningLines[2].textContent = '';
+                warningText1.textContent = 'A marker with this exact location, category, and description has already been submitted.';
+                warningText2.textContent = 'If it does not appear in Pending Submissions, it may have been merged or removed.';
                 form.style.display = 'none';
                 return;
             }
@@ -281,6 +264,7 @@
                 loadingOverlay.classList.remove('show');
 
                 if (response.ok) {
+                    // Mark as submitted locally
                     let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
                     if (!submitted.includes(cid)) {
                         submitted.push(cid);
@@ -296,7 +280,6 @@
                 submitBtn.textContent = 'SUBMIT MARKER';
                 errorDiv.style.display = 'block';
                 document.getElementById('errorMsg').textContent = err.message || 'Network error - please try again';
-                statusDiv.textContent = '';
             }
         });
     </script>
