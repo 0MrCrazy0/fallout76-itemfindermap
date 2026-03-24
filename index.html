@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=30">
+	<link rel="manifest" href="manifest.json?v=31">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -26,28 +26,65 @@
     <meta name="theme-color" content="#00ff00">
 
     <style>
-    body { 
-        font-family: 'Courier New', monospace; 
-        margin: 20px; 
-        background-color: #0a2a2a; 
-        color: #00ff00; 
-        overflow-x: hidden; 
+/* ── ULTIMATE MOBILE GRID + NO-CLUSTER FLICKER FIX (MUST BE FIRST) ── */
+@media (hover: none) and (pointer: coarse) {
+    .grid-line {
+        opacity: 0.10 !important;
+        stroke-width: 0.75px !important;
     }
-    h1 { 
-        color: #00ff00; 
-        text-align: center; 
-        text-shadow: 0 0 10px #00ff00; 
-        font-size: 2.2em; 
-        margin-bottom: 12px; 
+    
+    .grid-label {
+        font-size: 12px !important;
+        opacity: 0.45 !important;
+        transition: opacity 0.4s ease-out !important;
     }
-    #map { 
-        height: 750px; 
-        max-width: 95%; 
-        margin: 0 auto 20px; 
-        border: 2px solid #00ff00; 
-        box-shadow: 0 0 15px #00ff00; 
-        background-color: #000000; 
-        position: relative; 
+
+    /* Force every marker and cluster to use GPU layer when grid is active */
+    .leaflet-marker-icon,
+    .leaflet-marker-cluster {
+        will-change: transform !important;
+        transform: translate3d(0,0,0) !important;
+        backface-visibility: hidden !important;
+        -webkit-backface-visibility: hidden !important;
+    }
+
+    /* Force the entire map container to hardware accelerate */
+    .leaflet-container {
+        transform: translate3d(0,0,0) !important;
+        backface-visibility: hidden !important;
+        -webkit-backface-visibility: hidden !important;
+    }
+
+    /* Extra protection for animated elements */
+    .leaflet-zoom-animated,
+    .leaflet-marker-pane,
+    .leaflet-overlay-pane {
+        transform: translate3d(0,0,0) !important;
+    }
+}
+
+    body {
+        font-family: 'Courier New', monospace;
+        margin: 20px;
+        background-color: #0a2a2a;
+        color: #00ff00;
+        overflow-x: hidden;
+    }
+    h1 {
+        color: #00ff00;
+        text-align: center;
+        text-shadow: 0 0 10px #00ff00;
+        font-size: 2.2em;
+        margin-bottom: 12px;
+    }
+    #map {
+        height: 750px;
+        max-width: 95%;
+        margin: 0 auto 20px;
+        border: 2px solid #00ff00;
+        box-shadow: 0 0 15px #00ff00;
+        background-color: #000000;
+        position: relative;
     }
     #titleToggleContainer {
         text-align: center;
@@ -102,9 +139,9 @@
     }
 #buttonGroup {
     display: grid;
-    grid-template-columns: 1fr 1fr; 
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
-    justify-items: stretch;    
+    justify-items: stretch;
     align-items: center;
     margin: 15px auto;
     padding: 16px;
@@ -112,13 +149,12 @@
     border: 1px solid #0f0;
     border-radius: 8px;
     max-width: 420px;
-    width: calc(100% - 32px); 
+    width: calc(100% - 32px);
     box-sizing: border-box;
     place-self: center;
 }
-
 #buttonGroup button {
-    width: 100% !important;     
+    width: 100% !important;
     height: 48px !important;
     padding: 8px 12px !important;
     margin: 0 !important;
@@ -134,65 +170,61 @@
     align-items: center;
     justify-content: center;
 }
-
 #voiceSearchBtn {
-    grid-column: 1 / -1;     
+    grid-column: 1 / -1;
     width: 100% !important;
     max-width: none !important;
     font-size: 16px !important;
 }
-
 #buttonGroup.hidden {
     display: none !important;
 }
-    .controls { 
-        margin-bottom: 20px; 
-        text-align: center; 
-        display: flex; 
-        flex-wrap: wrap; 
-        justify-content: center; 
-        gap: 10px; 
+    .controls {
+        margin-bottom: 20px;
+        text-align: center;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
     }
-    input[type="text"], select, textarea { 
-        padding: 8px; 
-        width: 100%; 
-        max-width: 200px; 
-        box-sizing: border-box; 
-        border: 2px solid #00ff00; 
-        border-radius: 0; 
-        background-color: #000; 
-        color: #00ff00; 
-        font-family: 'Courier New', monospace; 
+    input[type="text"], select, textarea {
+        padding: 8px;
+        width: 100%;
+        max-width: 200px;
+        box-sizing: border-box;
+        border: 2px solid #00ff00;
+        border-radius: 0;
+        background-color: #000;
+        color: #00ff00;
+        font-family: 'Courier New', monospace;
         font-size: 14px;
     }
-    textarea { 
-        min-height: 80px; 
-        resize: vertical; 
+    textarea {
+        min-height: 80px;
+        resize: vertical;
     }
-	
-	.leaflet-marker-icon,
+.leaflet-marker-icon,
 .leaflet-marker-cluster {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
 }
-
 .leaflet-marker-icon {
     transform: scale(1.1);
     margin-left: -16.5px !important;
     margin-top: -16.5px !important;
 }
-    #combinedSearch { 
-        max-width: 250px; 
-        transition: background-color 0.3s, box-shadow 0.3s; 
+    #combinedSearch {
+        max-width: 250px;
+        transition: background-color 0.3s, box-shadow 0.3s;
     }
-    #combinedSearch.grid-highlight, #combinedSearch.item-highlight { 
-        background-color: #0a3a0a !important; 
-        box-shadow: 0 0 15px #00ff00, inset 0 0 10px rgba(0, 255, 0, 0.3); 
-        animation: pulseSearch 1.5s ease-out; 
+    #combinedSearch.grid-highlight, #combinedSearch.item-highlight {
+        background-color: #0a3a0a !important;
+        box-shadow: 0 0 15px #00ff00, inset 0 0 10px rgba(0, 255, 0, 0.3);
+        animation: pulseSearch 1.5s ease-out;
     }
-    @keyframes pulseSearch { 
-        0%, 100% { box-shadow: 0 0 15px #00ff00, inset 0 0 10px rgba(0, 255, 0, 0.3); } 
-        50% { box-shadow: 0 0 25px #00ff00, inset 0 0 15px rgba(0, 255, 0, 0.5); } 
+    @keyframes pulseSearch {
+        0%, 100% { box-shadow: 0 0 15px #00ff00, inset 0 0 10px rgba(0, 255, 0, 0.3); }
+        50% { box-shadow: 0 0 25px #00ff00, inset 0 0 15px rgba(0, 255, 0, 0.5); }
     }
     button {
         padding: 8px 16px;
@@ -235,8 +267,7 @@
         border-radius: 8px;
         display: block !important;
     }
-	
-	.text-marker {
+.text-marker {
     transition: transform 0.1s ease-out, opacity 0.1s ease-out;
     will-change: transform;
 }
@@ -246,58 +277,25 @@
 #confirmDeleteCategoryBtn:focus-visible {
     transition: all 0.25s ease !important;
 }
-
 #confirmDeleteCategoryBtn:hover,
 #confirmDeleteCategoryBtn:focus-visible {
     background-color: #00ff00 !important;
     color: #000000 !important;
-    box-shadow: 
+    box-shadow:
         0 0 12px #ffffff,
         0 0 24px #00ff88,
         0 0 36px #00ff00 !important;
     transform: scale(1.06) !important;
     filter: brightness(1.15) !important;
 }
-
 /* Stronger in dark mode */
 body.dark-mode #confirmDeleteCategoryBtn:hover,
 body.dark-mode #confirmDeleteCategoryBtn:focus-visible {
-    box-shadow: 
+    box-shadow:
         0 0 16px #ffffff,
         0 0 32px #00ff88,
         0 0 48px #00ff00 !important;
     transform: scale(1.06) !important;
-}
-@media (hover: none) and (pointer: coarse) {
-    .grid-line {
-        opacity: 0.13 !important;
-        stroke-width: 0.8px !important;
-    }
-    
-    .grid-label {
-        font-size: 12.5px !important;
-        opacity: 0.52 !important;
-        transition: opacity 0.35s ease-out !important;
-    }
-
-    /* Critical protection when clustering is OFF */
-    .leaflet-marker-icon,
-    .leaflet-marker-cluster {
-        will-change: transform !important;
-        transform: translate3d(0,0,0) !important;
-        backface-visibility: hidden !important;
-        -webkit-backface-visibility: hidden !important;
-    }
-
-    /* Force hardware acceleration on the entire map */
-    .leaflet-container {
-        transform: translate3d(0,0,0) !important;
-        backface-visibility: hidden !important;
-    }
-
-    .leaflet-zoom-animated {
-        transform: translate3d(0,0,0) !important;
-    }
 }
 .leaflet-marker-icon {
     will-change: transform;
@@ -398,8 +396,8 @@ body.dark-mode #confirmDeleteCategoryBtn:focus-visible {
     .text-location {
         background: #000; color: #fff; padding: 2px 6px; border: 1px solid #0f0; border-radius: 3px; font-size: 11px; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; margin: 0 auto;
     }
-    .lock-toggle { font-size: 18px; cursor: pointer; display: block; margin: 0 auto; 
-	}
+    .lock-toggle { font-size: 18px; cursor: pointer; display: block; margin: 0 auto;
+}
     .modal {
         display: none;
         position: fixed;
@@ -424,7 +422,7 @@ body.dark-mode #confirmDeleteCategoryBtn:focus-visible {
         max-height: 80vh;
         -webkit-overflow-scrolling: touch;
     }
-	#submitLoadingOverlay {
+#submitLoadingOverlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0, 0, 0, 0.85);
@@ -438,11 +436,9 @@ body.dark-mode #confirmDeleteCategoryBtn:focus-visible {
     font-size: 1.4em;
     text-shadow: 0 0 10px #00ff00;
 }
-
 #submitLoadingOverlay.show {
     display: flex;
 }
-
 #submitLoadingOverlay .spinner {
     width: 60px;
     height: 60px;
@@ -452,7 +448,6 @@ body.dark-mode #confirmDeleteCategoryBtn:focus-visible {
     animation: spin 1s linear infinite;
     margin-bottom: 20px;
 }
-
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -473,8 +468,7 @@ body.dark-mode #confirmDeleteCategoryBtn:focus-visible {
         gap: 10px;
         margin-top: 12px;
     }
-	
-	#itemModal .modal-content > div:last-child {
+#itemModal .modal-content > div:last-child {
     gap: 10px !important;
     flex-wrap: wrap;
 }
@@ -569,7 +563,6 @@ body.dark-mode #confirmDeleteCategoryBtn:focus-visible {
 #buttonGroup button:focus-visible {
     transition: all 0.25s ease;
 }
-
 #buttonGroup button:hover,
 #buttonGroup button:focus-visible {
     /* Keep original dark-mode behavior + ensure glow is visible */
@@ -579,7 +572,6 @@ body.dark-mode #confirmDeleteCategoryBtn:focus-visible {
     transform: scale(1.04) !important;
     filter: brightness(1.1) !important;
 }
-
 /* Optional: slightly stronger in dark mode */
 body.dark-mode #buttonGroup button:hover,
 body.dark-mode #buttonGroup button:focus-visible {
@@ -598,7 +590,6 @@ body.dark-mode #buttonGroup button:focus-visible {
 #nextPageBtn:focus-visible {
     transition: all 0.25s ease !important;
 }
-
 #toggleCategoryModalBtn:hover,
 #prevPageBtn:hover,
 #nextPageBtn:hover,
@@ -607,13 +598,12 @@ body.dark-mode #buttonGroup button:focus-visible {
 #nextPageBtn:focus-visible {
     background-color: #00ff00 !important;
     color: #000000 !important;
-    box-shadow: 
+    box-shadow:
         0 0 12px #00ff88,
         0 0 20px #00ff00 !important;
     transform: scale(1.04) !important;
     filter: brightness(1.1) !important;
 }
-
 /* Slightly stronger in dark mode (matches control panel feel) */
 body.dark-mode #toggleCategoryModalBtn:hover,
 body.dark-mode #prevPageBtn:hover,
@@ -621,13 +611,12 @@ body.dark-mode #nextPageBtn:hover,
 body.dark-mode #toggleCategoryModalBtn:focus-visible,
 body.dark-mode #prevPageBtn:focus-visible,
 body.dark-mode #nextPageBtn:focus-visible {
-    box-shadow: 
+    box-shadow:
         0 0 16px #00ff88,
         0 0 28px #00ff00 !important;
     transform: scale(1.05) !important;
 }
 /* ── Category management & postcard buttons: background colors + glow ── */
-
 /* Base styling + background colors */
 #selectAllBtn,
 #deselectAllBtn,
@@ -644,7 +633,6 @@ body.dark-mode #nextPageBtn:focus-visible {
     font-weight: bold;
     transition: all 0.25s ease;
 }
-
 /* Hover / focus glow (desktop) */
 #selectAllBtn:hover,
 #deselectAllBtn:hover,
@@ -662,14 +650,13 @@ body.dark-mode #nextPageBtn:focus-visible {
 #createPostcardBtn:focus-visible {
     background-color: #00ff00 !important;
     color: #000000 !important;
-    box-shadow: 
+    box-shadow:
         0 0 12px #ffffff,
         0 0 24px #00ff88,
         0 0 36px #00ff00 !important;
     transform: scale(1.06) !important;
     filter: brightness(1.15) !important;
 }
-
 /* Dark mode enhancement */
 body.dark-mode #selectAllBtn:hover,
 body.dark-mode #deselectAllBtn:hover,
@@ -685,12 +672,11 @@ body.dark-mode #deleteCategoryBtn:focus-visible,
 body.dark-mode #closeCategoryToggleBtn:focus-visible,
 body.dark-mode #saveCategoryBtn:focus-visible,
 body.dark-mode #createPostcardBtn:focus-visible {
-    box-shadow: 
+    box-shadow:
         0 0 16px #ffffff,
         0 0 32px #00ff88,
         0 0 48px #00ff00 !important;
 }
-
 /* ── Mobile: brief glow on tap, clean & fast fade on release ── */
 @media (hover: none) and (pointer: coarse) {
     #selectAllBtn,
@@ -702,7 +688,6 @@ body.dark-mode #createPostcardBtn:focus-visible {
     #createPostcardBtn {
         transition: all 0.35s ease-out;
     }
-
     #selectAllBtn:active,
     #deselectAllBtn:active,
     #createCategoryBtn:active,
@@ -712,7 +697,7 @@ body.dark-mode #createPostcardBtn:focus-visible {
     #createPostcardBtn:active {
         background-color: #00ff00 !important;
         color: #000000 !important;
-        box-shadow: 
+        box-shadow:
             0 0 16px #00ff88,
             0 0 28px #00ff00 !important;
         transform: scale(1.04) !important;
@@ -720,7 +705,6 @@ body.dark-mode #createPostcardBtn:focus-visible {
         transition: none; /* Instant visual feedback on press */
     }
 }
-
 /* Ensure fast fade-back after release (same as other buttons) */
 @media (hover: none) and (pointer: coarse) {
     .fast-fade-release {
@@ -743,7 +727,7 @@ body.dark-mode #createPostcardBtn:focus-visible {
         background-color: #1a3c34 !important;
         color: #00ff00 !important;
     }
-	.modal-content button#exportMineBtn,
+.modal-content button#exportMineBtn,
     .modal-content button#fullBackupBtn {
     color: #000000 !important;
 }
@@ -751,8 +735,8 @@ body.dark-mode #createPostcardBtn:focus-visible {
         top: -60px !important;
         left: 60px !important;
         margin: 0 !important;
-		margin-top: 70px !important;   /* was 60px — increase for more top spacing */
-        left: 10px !important;         /* optional: slight left padding */
+margin-top: 70px !important; /* was 60px — increase for more top spacing */
+        left: 10px !important; /* optional: slight left padding */
 }
     .leaflet-control-zoom a {
         background-color: #000000 !important;
@@ -790,33 +774,31 @@ body.dark-mode #createPostcardBtn:focus-visible {
     .leaflet-popup button:hover {
         background: #00cc00 !important;
     }
-//* FINAL FIX: Force modal button hover glow visible in BOTH light & dark mode */
+/* FINAL FIX: Force modal button hover glow visible in BOTH light & dark mode */
 #itemModal button {
     transition: all 0.3s ease !important;
     box-shadow: none !important;
     outline: none !important;
 }
-
 #itemModal button:hover,
 #itemModal button:focus-visible {
     /* Prevent general button:hover from changing background */
     background-color: inherit !important;
-    
+   
     /* Very strong, high-contrast glow that works on any background */
-    box-shadow: 
+    box-shadow:
         0 0 12px #ffffff,
         0 0 24px #00ff88,
         0 0 36px #00ff00 !important;
-    
-    transform: scale(1.08) !important;          /* More obvious scale */
-    filter: brightness(1.2) !important;         /* Extra lift in light mode */
+   
+    transform: scale(1.08) !important; /* More obvious scale */
+    filter: brightness(1.2) !important; /* Extra lift in light mode */
     opacity: 0.92 !important;
 }
-
 /* Even stronger glow in dark mode for maximum visibility */
 body.dark-mode #itemModal button:hover,
 body.dark-mode #itemModal button:focus-visible {
-    box-shadow: 
+    box-shadow:
         0 0 16px #ffffff,
         0 0 32px #00ff88,
         0 0 48px #00ff00 !important;
@@ -844,7 +826,6 @@ body.dark-mode #itemModal button:focus-visible {
     border: none !important;
     outline: none !important;
 }
-
 .custom-icon.glowing {
     filter: drop-shadow(0 0 2px #00ff00)
             drop-shadow(0 0 2px #00ff00)
@@ -1163,7 +1144,6 @@ nukeStyle.textContent = `
 #searchSuggestions .category-match { font-weight: bold; color: #aaffaa; }
 #searchSuggestions .desc-match { opacity: 0.9; }
 }
-
 .leaflet-popup-tip-container {
     left: 70% !important;
     transform: translateX(-50%);
@@ -1175,10 +1155,9 @@ nukeStyle.textContent = `
     animation: barGlow 2.5s ease-out forwards;
     box-shadow: 0 0 25px #00ff88 !important;
 }
-
 @keyframes barGlow {
-    0%   { box-shadow: 0 0 25px #00ff88; }
-    50%  { box-shadow: 0 0 50px #00ff88; }
+    0% { box-shadow: 0 0 25px #00ff88; }
+    50% { box-shadow: 0 0 50px #00ff88; }
     100% { box-shadow: 0 0 0px transparent; }
 }
 @keyframes pulse {
@@ -1208,7 +1187,6 @@ nukeStyle.textContent = `
     opacity: 0;
     transition: opacity 0.2s;
 }
-
 .leaflet-marker-icon:not(:has(.grid-label)):hover::before {
     opacity: 1;
 }
@@ -1255,7 +1233,6 @@ nukeStyle.textContent = `
             background: #00cc00 !important;
             border-color: #00ffcc !important;
         }
-
         @keyframes glowPulse {
             0%, 100% { box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff88; }
             50% { box-shadow: 0 0 25px #00ff00, 0 0 50px #00ffcc; }
@@ -1274,7 +1251,6 @@ button:not(:hover):not(:active):not(:focus),
         background-color: #1a3c34;
         transition: background-color 0.35s ease-out, box-shadow 0.35s ease-out;
     }
-
     button:active,
     #toggleButtonGroup:active,
     #buttonGroup button:active {
@@ -1283,7 +1259,6 @@ button:not(:hover):not(:active):not(:focus),
         box-shadow: 0 0 10px #00ff00 !important;
         transition: none; /* instant bright feedback on press */
     }
-
     /* Fast fade-back class applied on touchend */
     .fast-fade-release {
         background-color: #1a3c34 !important;
@@ -1341,34 +1316,32 @@ button:not(:hover):not(:active):not(:focus),
 }
 @media (max-width: 768px) {
     #buttonGroup button {
-        white-space: normal !important;      /* ← allow wrapping */
-        line-height: 1.3 !important;         /* ← better spacing between lines */
-        padding: 8px 10px !important;        /* ← slightly less horizontal padding */
-        height: auto !important;             /* ← let height grow with wrapped text */
-        min-height: 54px;                    /* ← minimum to keep consistent look */
+        white-space: normal !important; /* ← allow wrapping */
+        line-height: 1.3 !important; /* ← better spacing between lines */
+        padding: 8px 10px !important; /* ← slightly less horizontal padding */
+        height: auto !important; /* ← let height grow with wrapped text */
+        min-height: 54px; /* ← minimum to keep consistent look */
     }
-    
+   
     /* Specifically target the long button if needed */
     #downloadCommunityBtn {
-        font-size: 13px !important;          /* ← optional: slightly smaller text */
+        font-size: 13px !important; /* ← optional: slightly smaller text */
     }
 @media (max-width: 768px) {
     #locationsTable tbody tr {
-        min-height: 52px !important;           /* modest increase — comfortable tap target without excess height */
+        min-height: 52px !important; /* modest increase — comfortable tap target without excess height */
         padding: 4px 0 !important;
-        gap: 8px !important;                   /* tighter gap between cells */
+        gap: 8px !important; /* tighter gap between cells */
         align-items: center !important;
     }
-
     #locationsTable tbody td {
-        padding: 8px 6px !important;           /* balanced padding for fingers */
+        padding: 8px 6px !important; /* balanced padding for fingers */
         font-size: 13px !important;
         line-height: 1.35 !important;
     }
-
     /* Lock column — ensure it never collapses and toggle stays visible/centered */
     #locationsTable tbody td:nth-child(1) {
-        flex: 0 0 52px !important;             /* fixed width prevents squashing */
+        flex: 0 0 52px !important; /* fixed width prevents squashing */
         width: 52px !important;
         max-width: 52px !important;
         padding: 0 !important;
@@ -1376,16 +1349,14 @@ button:not(:hover):not(:active):not(:focus),
         align-items: center !important;
         justify-content: center !important;
     }
-
     .lock-toggle {
-        font-size: 24px !important;            /* large enough to tap reliably */
+        font-size: 24px !important; /* large enough to tap reliably */
         line-height: 1 !important;
-        padding: 10px 6px !important;          /* generous hit area */
+        padding: 10px 6px !important; /* generous hit area */
         margin: 0 auto !important;
         display: block !important;
         text-align: center !important;
     }
-
     /* Description column — give it priority space */
     #locationsTable tbody td:nth-child(4) {
         flex: 4 !important;
@@ -1394,7 +1365,6 @@ button:not(:hover):not(:active):not(:focus),
         justify-content: flex-start !important;
         align-items: center !important;
     }
-
     /* Icon and category columns — keep compact */
     #locationsTable tbody td:nth-child(2),
     #locationsTable tbody td:nth-child(3) {
@@ -1404,24 +1374,23 @@ button:not(:hover):not(:active):not(:focus),
 }
 @media (max-width: 768px) {
     #locationsTable tbody td:nth-child(4) {
-        flex: 5 !important;                    /* Give description even more priority space */
+        flex: 5 !important; /* Give description even more priority space */
         padding: 8px 10px 8px 14px !important; /* Left padding for breathing room, right for symmetry */
         justify-content: flex-start !important;
-        align-items: flex-start !important;    /* Align text to top for multi-line readability */
+        align-items: flex-start !important; /* Align text to top for multi-line readability */
         font-size: 13px !important;
-        line-height: 1.45 !important;          /* Slightly taller lines → easier to read wrapped text */
-        hyphens: auto !important;              /* Better automatic hyphenation on long words */
+        line-height: 1.45 !important; /* Slightly taller lines → easier to read wrapped text */
+        hyphens: auto !important; /* Better automatic hyphenation on long words */
         -webkit-hyphens: auto !important;
-        word-break: break-word !important;     /* Force break on very long unbreakable strings */
+        word-break: break-word !important; /* Force break on very long unbreakable strings */
         overflow-wrap: break-word !important;
         white-space: normal !important;
-        max-height: 120px !important;          /* Optional: cap height to prevent extreme row growth */
-        overflow-y: hidden !important;         /* Hide excess if very long — user can scroll table */
+        max-height: 120px !important; /* Optional: cap height to prevent extreme row growth */
+        overflow-y: hidden !important; /* Hide excess if very long — user can scroll table */
     }
-
     /* Subtle visual cue for truncated / multi-line descriptions */
     #locationsTable tbody td:nth-child(4)::after {
-        content: "…";                          /* Ellipsis hint when text is long */
+        content: "…"; /* Ellipsis hint when text is long */
         position: absolute;
         right: 8px;
         bottom: 6px;
@@ -1430,7 +1399,6 @@ button:not(:hover):not(:active):not(:focus),
         opacity: 0.7;
         pointer-events: none;
     }
-
     /* Hide ellipsis when text fits fully */
     #locationsTable tbody td:nth-child(4):not(.overflowing)::after {
         display: none;
@@ -5898,7 +5866,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 24March 2026 C-30• Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: 24March 2026 C-31• Version 76.READY Released • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
