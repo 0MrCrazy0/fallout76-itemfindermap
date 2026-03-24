@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=28">
+	<link rel="manifest" href="manifest.json?v=29">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1705,8 +1705,11 @@ const CURRENT_APP_VERSION = '76.READY';
 
 // Register service worker (automatic background updates)
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/fallout76-itemfindermap/service-worker.js')
-        .then(reg => reg.update())           // Check for updates in background
+    navigator.serviceWorker.register('/fallout76-itemfindermap/service-worker.js', { updateViaCache: 'none' })
+        .then(reg => {
+            reg.update();           // Force immediate check
+            console.log('Service Worker registered and update requested');
+        })
         .catch(err => console.warn('SW registration failed:', err));
 }
 
@@ -5897,7 +5900,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 24March 2026 C-28• Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: 24March 2026 C-29• Version 76.READY Released • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
