@@ -1412,27 +1412,37 @@ button:not(:hover):not(:active):not(:focus),
         transition: all 0.12s ease;
     }
 }
-/* ── MOBILE GRID FLICKER FIX ── */
+/* ── STRONGER MOBILE GRID FLICKER FIX (must be last) ── */
 @media (hover: none) and (pointer: coarse) {
     .grid-line {
-        opacity: 0.20 !important;           /* softer grid on mobile */
+        opacity: 0.18 !important;
+        stroke-width: 1px !important;
     }
+    
     .grid-label {
-        font-size: 14px !important;
-        opacity: 0.75 !important;
-        transition: opacity 0.15s ease;     /* smoother label redraw */
+        font-size: 13px !important;
+        opacity: 0.70 !important;
+        transition: opacity 0.2s ease-out !important;
     }
-    
-    /* Reduce redraw pressure on clusters when grid is visible */
+
+    /* Reduce cluster redraw pressure */
     .marker-cluster div {
-        transition: transform 0.08s ease-out !important;
+        transition: transform 0.12s ease-out !important;
     }
-    
-    /* Force hardware acceleration on the grid pane */
+
+    /* Force hardware acceleration + layer promotion */
     .leaflet-grid-pane {
         will-change: transform;
         transform: translate3d(0,0,0);
         backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+    }
+
+    /* Extra safeguard for markers when grid is active */
+    .leaflet-marker-icon,
+    .leaflet-marker-cluster {
+        will-change: transform;
+        transform: translate3d(0,0,0);
     }
 }
     </style>
