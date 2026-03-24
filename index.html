@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=36">
+	<link rel="manifest" href="manifest.json?v=37">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -32,7 +32,15 @@
         opacity: 0.06 !important;
         stroke-width: 0.6px !important;
     }
-    
+
+    /* Extra low-zoom stability — reduces repaint thrashing at full zoom-out */
+    .leaflet-zoom--3 .grid-line,
+    .leaflet-zoom--2 .grid-line,
+    .leaflet-zoom--1 .grid-line,
+    .leaflet-zoom-0 .grid-line {
+        opacity: 0.04 !important;
+    }
+   
     .grid-label {
         font-size: 11px !important;
         opacity: 0.30 !important;
@@ -5934,7 +5942,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 24March 2026 C-36• Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: 24March 2026 C-37• Version 76.READY Released • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
