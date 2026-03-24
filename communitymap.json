@@ -4248,6 +4248,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-a965d20c-9098-45f9-b045-eb480715c85a",
+      "cid": "holotapes_grid_c2_x_833_y_716_716.03871_832.77970",
+      "category": "holotapes",
+      "desc": "Grid C2 (X: 833, Y: 716)\nSubmitted By Anonymous Wastelander",
+      "lat": 716.038705104286,
+      "lng": 832.7797019975773,
+      "icon": "📀",
+      "addedTime": 1774322191938,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
