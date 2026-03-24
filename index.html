@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=24">
+	<link rel="manifest" href="manifest.json?v=25">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1412,6 +1412,19 @@ button:not(:hover):not(:active):not(:focus),
         transition: all 0.12s ease;
     }
 }
+@media (hover: none) and (pointer: coarse) {
+            .grid-line {
+                opacity: 0.20 !important;
+            }
+            .grid-label {
+                font-size: 14px !important;
+                opacity: 0.75 !important;
+            }
+            .leaflet-grid-pane {
+                will-change: transform;
+                transform: translate3d(0,0,0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -3802,65 +3815,70 @@ tr.addEventListener('touchend touchmove touchcancel', () => {
             itemCategorySelect.innerHTML = cats.map(opt).join('');
             if (currentCategoryFilter && cats.includes(currentCategoryFilter)) categoryFilter.value = currentCategoryFilter;
         }
-        function openModal(title, idx = -1) {
+                                function openModal(title, idx = -1) {
             const loc = idx >= 0 ? locations[idx] : null;
             const isCurrentlyLocked = loc ? loc.locked : false;
+
             modalTitle.innerHTML = `${title} <span id="modalLockToggle" style="font-size:22px;cursor:pointer;margin-left:10px;">${isCurrentlyLocked ? '🔐 LOCKED' : '🔓 UNLOCKED'}</span>`;
+
             currentIndex = idx;
             itemCategorySelect.value = loc?.category || 'misc';
             itemDescInput.value = loc?.desc || '';
+
             itemCategorySelect.disabled = isCurrentlyLocked;
             itemDescInput.disabled = isCurrentlyLocked;
             deleteBtn.style.display = isCurrentlyLocked ? 'none' : 'inline-block';
             duplicateBtn.style.display = isCurrentlyLocked ? 'none' : 'inline-block';
             exportOneBtn.style.display = 'inline-block';
+
+            // ── Smart Submit Button & Note Logic ──
+            const submitBtn = document.getElementById('submitCommunityBtn');
+            let noteHTML = '';
+
+            if (loc && currentIndex >= 0) {
+                const cid = loc.cid || generateCid(loc);
+
+                if (loc.isCommunity || loc.wasCommunityKept) {
+                    noteHTML = '<p style="color:#00ff88; text-align:center; margin:12px 0 8px;">This marker is now part of the official community map — no resubmission needed.</p>';
+                    if (submitBtn) submitBtn.style.display = 'none';
+                } 
+                else if (hasBeenSubmitted(cid)) {
+                    noteHTML = '<p style="color:#ffcc00; text-align:center; margin:12px 0 8px;">This marker was previously submitted.<br>If it does not appear in the Pending Submissions list, it was either merged or removed.<br>Delete this marker and create a new one if you wish to resubmit.</p>';
+                    if (submitBtn) submitBtn.style.display = 'none';
+                } 
+                else if (loc.locked && !loc.isCommunity) {
+                    noteHTML = '<p style="color:#00ccff; text-align:center; margin:12px 0 8px;">Submit this marker to the community map for review by MrCrazy.</p>';
+                    if (submitBtn) submitBtn.style.display = 'inline-block';
+                } 
+                else {
+                    if (submitBtn) submitBtn.style.display = 'none';
+                }
+            } else {
+                if (submitBtn) submitBtn.style.display = 'none';
+            }
+
+            // Insert or update the note safely
+            let existingNote = document.getElementById('submitNote');
+            const buttonsDiv = document.querySelector('#itemModal .modal-content > div:last-child');
+
+            if (noteHTML) {
+                if (!existingNote) {
+                    existingNote = document.createElement('div');
+                    existingNote.id = 'submitNote';
+                    if (buttonsDiv) buttonsDiv.appendChild(existingNote);
+                }
+                existingNote.innerHTML = noteHTML;
+                existingNote.style.display = 'block';
+            } else if (existingNote) {
+                existingNote.style.display = 'none';
+            }
+
+            // Lock toggle handler
             const modalToggle = document.getElementById('modalLockToggle');
             if (modalToggle && loc) {
                 modalToggle.onclick = (e) => {
                     e.stopPropagation();
                     loc.locked = !loc.locked;
-
-const submitBtn = document.getElementById('submitCommunityBtn');
-if (submitBtn) {
-    const loc = currentIndex >= 0 ? locations[currentIndex] : null;
-    const cid = loc?.cid || (loc ? generateCid(loc) : null);
-
-    let shouldShow = false;
-    let noteText = '';
-
-    if (loc && currentIndex >= 0 && cid) {
-        // Highest priority: Community marker (loaded from communitymap.json or kept)
-        if (loc.isCommunity || loc.wasCommunityKept) {
-            noteText = 'This marker is already part of the community map — no resubmission needed.';
-        }
-        // Next: Already submitted by this user
-        else if (hasBeenSubmitted(cid)) {
-            noteText = 'This marker has already been submitted and is pending review.';
-        }
-        // Only show submit button for your own, locked, non-community markers that haven't been submitted
-        else if (loc.locked && !loc.isCommunity) {
-            shouldShow = true;
-        }
-    }
-
-    submitBtn.style.display = shouldShow ? 'inline-block' : 'none';
-
-    // Show or update note
-    let note = document.getElementById('submitNote');
-    if (noteText) {
-        if (!note) {
-            note = document.createElement('p');
-            note.id = 'submitNote';
-            note.style.cssText = 'color:#ffcc00; font-size:0.95em; margin-top:10px; text-align:center;';
-            const buttonsDiv = submitBtn.parentNode;
-            buttonsDiv.insertBefore(note, submitBtn.nextSibling);
-        }
-        note.textContent = noteText;
-        note.style.display = 'block';
-    } else if (note) {
-        note.style.display = 'none';
-    }
-}
                     modalToggle.textContent = loc.locked ? '🔐 LOCKED' : '🔓 UNLOCKED';
                     itemCategorySelect.disabled = loc.locked;
                     itemDescInput.disabled = loc.locked;
@@ -3873,13 +3891,6 @@ if (submitBtn) {
                 };
             }
 
-const submitBtn = document.getElementById('submitCommunityBtn');
-if (submitBtn) {
-    submitBtn.style.display = 
-        (currentIndex >= 0 && locations[currentIndex]?.locked && !locations[currentIndex]?.isCommunity)
-        ? 'inline-block'
-        : 'none';
-}
             itemModal.style.display = 'block';
             document.body.classList.add('modal-open');
             playSound('click');
@@ -4434,99 +4445,149 @@ setTimeout(() => {
     };
     input.click();
 };
+                // ── IMPROVED COMMUNITY UPDATE (keeps ALL your original features + auto-approval) ──
         downloadCommunityBtn.onclick = () => {
-    playSound('click');
-    showConfirmModal(
-        'UPDATE COMMUNITY MAP',
-        '<strong>Your personal markers & edits are 100% SAFE</strong><br><br>' +
-        'This will download the latest community markers.<br>' +
-        'Your own markers will never be overwritten.<br><br>' +
-        'Launch the update?',
-        async () => {
-            downloadCommunityBtn.disabled = true;
-            downloadCommunityBtn.textContent = 'Updating...';
+            playSound('click');
 
-            try {
-                const res = await fetchWithTimeout(
-                    'https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?t=' + Date.now(),
-                    12000
-                );
+            showConfirmModal(
+                'UPDATE COMMUNITY MAP',
+                '<strong>Your personal markers & edits are 100% SAFE</strong><br><br>' +
+                'This will download the latest community markers.<br>' +
+                'Your own markers will never be overwritten.<br><br>' +
+                'Launch the update?',
+                async () => {
+                    downloadCommunityBtn.disabled = true;
+                    downloadCommunityBtn.textContent = 'Updating...';
 
-                if (!res.ok) throw new Error('Bad response');
+                    try {
+                        const res = await fetchWithTimeout(
+                            'https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?t=' + Date.now(),
+                            12000
+                        );
+                        if (!res.ok) throw new Error('Bad response');
 
-                const data = await res.json();
+                        const data = await res.json();
+                        const incoming = data.locations || [];
+                        let added = 0, updated = 0, skipped = 0;
+                        let approvedCount = 0;
 
-                console.log('Fetched version:', data.communityVersion);
-                console.log('Markers:', data.locations.length);
+                        incoming.forEach(imp => {
+                            const existing = locations.find(l => l.cid === imp.cid);
 
-                const incoming = data.locations || [];
-                let added = 0, updated = 0, skipped = 0;
+                            // AUTO-APPROVAL for your previously submitted markers
+                            if (existing && hasBeenSubmitted(imp.cid)) {
+                                let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
+                                const idx = submitted.indexOf(imp.cid);
+                                if (idx !== -1) {
+                                    submitted.splice(idx, 1);
+                                    localStorage.setItem('submitted_cids', JSON.stringify(submitted));
+                                }
+                                existing.isCommunity = true;
+                                existing.userEdited = false;
+                                existing.wasCommunityKept = false;
+                                approvedCount++;
+                                showTempMessage(`Your marker "${imp.desc.substring(0,35)}${imp.desc.length > 35 ? '...' : ''}" was APPROVED!`, 10000);
+                                playSound('levelUp');
+                            }
 
-                incoming.forEach(imp => {
-                    const existing = locations.find(l => l.cid === imp.cid);
-                    if (existing && (existing.userEdited || existing.wasCommunityKept)) {
-                        skipped++;
-                        return;
-                    }
-                    let loc;
-                    if (existing) {
-                        Object.assign(existing, imp);
-                        loc = existing;
-                        updated++;
-                    } else {
-                        loc = {
-                            ...imp,
-                            id: generateUniqueId(),
-                            addedTime: Date.now(),
-                            locked: true,
-                            isCommunity: true,
-                            isTemp: false,
-                            isPostcard: false,
-                            userEdited: false,
-                            wasCommunityKept: false
-                        };
-                        locations.push(loc);
-                        added++;
-                    }
-                    loc.isCommunity = true;
-                    loc.locked = true;
-                    loc.userEdited = false;
-                    loc.wasCommunityKept = !!existing?.wasCommunityKept;
-                });
+                            if (existing && (existing.userEdited || existing.wasCommunityKept)) {
+                                skipped++;
+                                return;
+                            }
 
-                if (data.customCategories) {
-                    customCategories = { ...customCategories, ...data.customCategories };
-                }
+                            let loc;
+                            if (existing) {
+                                Object.assign(existing, imp);
+                                loc = existing;
+                                updated++;
+                            } else {
+                                loc = {
+                                    ...imp,
+                                    id: generateUniqueId(),
+                                    addedTime: Date.now(),
+                                    locked: true,
+                                    isCommunity: true,
+                                    isTemp: false,
+                                    isPostcard: false,
+                                    userEdited: false,
+                                    wasCommunityKept: false
+                                };
+                                locations.push(loc);
+                                added++;
+                            }
 
-                const newVersion = String(data.communityVersion || "1.0");
-                localStorage.setItem(MAP_VERSION_KEY, newVersion);
-                communityVersion = newVersion;
-                localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+                            loc.isCommunity = true;
+                            loc.locked = true;
+                            loc.userEdited = false;
+                            loc.wasCommunityKept = !!existing?.wasCommunityKept;
+                        });
 
-                recalculateXP();
-                updateCounterDisplay();
-                forceReload();
-                saveLocations();
+                        if (data.customCategories) {
+                            customCategories = { ...customCategories, ...data.customCategories };
+                        }
 
-                showConfirmModal(
-                    '☢ COMMUNITY MAP UPDATED ☢',
-                    `<div style="text-align:left; line-height:1.9; font-size:1.1em;">
-                        <strong style="color:#00ff88;">${added}</strong> added: new markers added.<br>
-                        <strong style="color:#00ff88;">${updated}</strong> updated: existing community markers refreshed.<br>
-                        <strong style="color:#ffa500;">${skipped}</strong> skipped: your kept community markers, edited, and user-created markers are protected.<br><br>
-                        <strong style="color:#00ff00;">Total on your map: ${locations.length}</strong><br>
-                        <strong>You're all set — happy exploring!</strong>
-                    </div>`,
-                    null
-                );
+                        const newVersion = String(data.communityVersion || "1.0");
+                        localStorage.setItem(MAP_VERSION_KEY, newVersion);
+                        communityVersion = newVersion;
+                        localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
 
-                playSound('saving');
+                        recalculateXP();
+                        updateCounterDisplay();
+                        forceReload();
+                        saveLocations();
 
-                // Clear glow after successful update
+                        // Your original-style success message
+                        showConfirmModal(
+                            '☢ COMMUNITY MAP UPDATED ☢',
+                            `<div style="text-align:left; line-height:1.9; font-size:1.1em;">
+                                <strong style="color:#00ff88;">${added}</strong> added: new markers added.<br>
+                                <strong style="color:#00ff88;">${updated}</strong> updated: existing community markers refreshed.<br>
+                                <strong style="color:#ffa500;">${skipped}</strong> skipped: your kept community markers, edited, and user-created markers are protected.<br>
+                                ${approvedCount > 0 ? `<strong style="color:#00ff88;">${approvedCount}</strong> of your submissions were approved!<br>` : ''}
+                                <strong style="color:#00ff00;">Total on your map: ${locations.length}</strong><br><br>
+                                <strong>You're all set — happy exploring!</strong>
+                            </div>`,
+                            null
+                        );
+
+                        playSound('saving');
+
+                        // ── Your original nuke animation (kept 100% intact) ──
+                        if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
+                            localStorage.setItem('seenCommunityNuke', 'true');
+                            setTimeout(() => {
+                                const flash = document.createElement('div');
+                                flash.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#fff;z-index:999999;pointer-events:none;animation:quickFlash 0.7s ease-out forwards;';
+                                document.body.appendChild(flash);
+
+                                setTimeout(() => {
+                                    const overlay = document.createElement('div');
+                                    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;padding:20px;box-sizing:border-box;font-family:"Courier New",monospace;text-align:center;';
+                                    overlay.innerHTML = `
+                                        <div class="nuke-symbol">☢️</div>
+                                        <h1 class="nuke-title">COMMUNITY MAP NUKED!</h1>
+                                        <p class="nuke-subtitle">
+                                            <strong>${added}</strong> new markers detonated across Appalachia!
+                                        </p>
+                                    `;
+                                    document.body.appendChild(overlay);
+                                    playSound('levelUp');
+
+                                    setTimeout(() => {
+                                        overlay.style.transition = 'opacity 1.8s';
+                                        overlay.style.opacity = '0';
+                                        setTimeout(() => overlay.remove(), 1800);
+                                    }, 4200);
+                                }, 400);
+
+                                setTimeout(() => flash.remove(), 700);
+                            }, 800);
+                        }
+
+                        // ── Your original glow clearing (kept 100% intact) ──
                         localStorage.setItem(LAST_COMMUNITY_VERSION_KEY, newVersion);
-downloadCommunityBtn.classList.remove('update-available');
+                        downloadCommunityBtn.classList.remove('update-available');
 
-                        // Update stored version to prevent immediate re-glow
                         fetch('https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?t=' + Date.now(), { method: 'HEAD' })
                             .then(r => {
                                 const version = r.headers.get('etag') || r.headers.get('last-modified') || 'unknown';
@@ -4534,45 +4595,17 @@ downloadCommunityBtn.classList.remove('update-available');
                             })
                             .catch(() => {});
 
-                if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
-                    localStorage.setItem('seenCommunityNuke', 'true');
-                    setTimeout(() => {
-                        const flash = document.createElement('div');
-                        flash.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#fff;z-index:999999;pointer-events:none;animation:quickFlash 0.7s ease-out forwards;';
-                        document.body.appendChild(flash);
-                        setTimeout(() => {
-                            const overlay = document.createElement('div');
-                            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;padding:20px;box-sizing:border-box;font-family:"Courier New",monospace;text-align:center;';
-                            overlay.innerHTML = `
-                                <div class="nuke-symbol">☢️</div>
-                                <h1 class="nuke-title">COMMUNITY MAP NUKED!</h1>
-                                <p class="nuke-subtitle">
-                                    <strong>${added}</strong> new markers detonated across Appalachia!
-                                </p>
-                            `;
-                            document.body.appendChild(overlay);
-                            playSound('levelUp');
-                            setTimeout(() => {
-                                overlay.style.transition = 'opacity 1.8s';
-                                overlay.style.opacity = '0';
-                                setTimeout(() => overlay.remove(), 1800);
-                            }, 4200);
-                        }, 400);
-                        setTimeout(() => flash.remove(), 700);
-                    }, 800);
+                    } catch (err) {
+                        console.error('Fetch error:', err);
+                        showTempMessage('COMMUNITY UPDATE FAILED — CHECK CONNECTION', 6000);
+                        playSound('error');
+                    } finally {
+                        downloadCommunityBtn.disabled = false;
+                        downloadCommunityBtn.textContent = 'Update Community Map';
+                    }
                 }
-
-            } catch (err) {
-                console.error('Fetch error:', err);
-                showTempMessage('COMMUNITY UPDATE FAILED — CHECK CONNECTION', 6000);
-                playSound('error');
-            } finally {
-                downloadCommunityBtn.disabled = false;
-                downloadCommunityBtn.textContent = 'Update Community Map';
-            }
-        }
-    );
-};
+            );
+        };
 function createPermanentShare(markersToShare) {
     if (markersToShare.length === 0) return;
     const shareData = { version: 1.0, locations: markersToShare };
@@ -5843,7 +5876,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 24March 2026 C-24• Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: 24March 2026 C-25• Version 76.READY Released • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
