@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": "2.2",
+  "communityVersion": "2.3",
   "customCategories": {},
   "locations": [
     {
@@ -4240,24 +4240,6 @@
       "lng": 789.4924968870793,
       "icon": "🔋",
       "addedTime": 1773923167217,
-      "locked": true,
-      "isPostcard": false,
-      "isTemp": false,
-      "startTime": null,
-      "keepBtnBound": false,
-      "userEdited": false,
-      "wasCommunityKept": false,
-      "isCommunity": true
-    },
-    {
-      "id": "id-f5ead4ef-a5e3-4ba8-a76f-7f89a6aba9d2",
-      "cid": "named locations_test_1_auto_merge_marker_delete_me_x_1_y_9_8.58160_-1.25515",
-      "category": "named locations",
-      "desc": "Test 1 auto merge marker. Delete me!\nX: -1, Y: 9\nSubmitted By MrCrazy",
-      "lat": 8.581599470668095,
-      "lng": -1.2551503643531703,
-      "icon": "🚩",
-      "addedTime": 1774398870168,
       "locked": true,
       "isPostcard": false,
       "isTemp": false,
