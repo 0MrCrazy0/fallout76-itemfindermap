@@ -1,15 +1,15 @@
 // ——— SERVICE WORKER ———
 // Update this version string on EVERY deployment that changes HTML/JS/CSS
-const CACHE_NAME = "fo76-ifm-v76.READY-25032026-build41";
+const CACHE_NAME = "fo76-ifm-v76.READY-25032026-build42";
 
-self.addEventListener("install", (e) => {
+self.addEventListener("install", (event) => {
   console.log("Service Worker installing:", CACHE_NAME);
-  e.waitUntil(self.skipWaiting());   // Activate as soon as possible
+  event.waitUntil(self.skipWaiting());
 });
 
-self.addEventListener("activate", (e) => {
+self.addEventListener("activate", (event) => {
   console.log("Service Worker activating:", CACHE_NAME);
-  e.waitUntil(
+  event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
@@ -23,22 +23,21 @@ self.addEventListener("activate", (e) => {
   );
 });
 
-self.addEventListener("fetch", (e) => {
-  const url = e.request.url;
+self.addEventListener("fetch", (event) => {
+  const url = event.request.url;
 
-  // Always bypass cache for these critical files
+  // Always fetch fresh for community data and pending list
   if (url.includes("communitymap.json") ||
       url.includes("pending.html") ||
-      url.includes("githubusercontent.com") ||
-      url.includes("service-worker.js")) {
-    e.respondWith(fetch(e.request));
+      url.includes("githubusercontent.com")) {
+    event.respondWith(fetch(event.request));
     return;
   }
 
-  // Normal cache-first strategy for everything else
-  e.respondWith(
-    caches.match(e.request).then((cached) => {
-      return cached || fetch(e.request);
+  // Cache-first for everything else
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      return cached || fetch(event.request);
     })
   );
 });
