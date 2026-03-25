@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=45">
+	<link rel="manifest" href="manifest.json?v=46">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1711,38 +1711,56 @@ button:not(:hover):not(:active):not(:focus),
     </div>
 <script>
 const CURRENT_APP_VERSION = '76.READY';
+// Prevent old app version string from interfering with community version
+const currentVer = localStorage.getItem('fo76_map_version');
+if (currentVer === '76.READY' || (currentVer && currentVer.includes('READY'))) {
+    localStorage.setItem('fo76_map_version', '1.0');
+}
 
 // Register service worker (automatic background updates)
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/fallout76-itemfindermap/service-worker.js', { updateViaCache: 'none' })
         .then(reg => {
-            reg.update();           // Force immediate check
-            console.log('Service Worker registered and update requested');
+            // Only check for updates on first load or when user is idle
+            if (!sessionStorage.getItem('swUpdateChecked')) {
+                reg.update();
+                sessionStorage.setItem('swUpdateChecked', 'true');
+                console.log('Service Worker registered — update check performed once');
+            } else {
+                console.log('Service Worker registered — skipping update check (already done this session)');
+            }
         })
         .catch(err => console.warn('SW registration failed:', err));
 }
 
-// One-time migration only for ancient versions (pre-v76)
+// One-time migration for ancient versions (pre-v76) — runs ONLY ONCE ever
 if ('serviceWorker' in navigator && !sessionStorage.getItem('recoveryDone')) {
     setTimeout(async () => {
         const storedVersion = localStorage.getItem('fo76_map_version') || '0';
         
-        if (storedVersion !== '76.READY' && parseFloat(storedVersion) < 76.0) {
-            localStorage.setItem(
-                'postRefreshMessage',
-                '☢ SYSTEM SYNC COMPLETE — APP UPDATED — FOR COMMUNITY MARKERS CLICK THE UPDATE COMMUNITY MAP BUTTON! ☢'
-            );
-            sessionStorage.setItem('recoveryDone', 'true');
+        // Only clean if it's truly ancient (numeric value < 10)
+        if (parseFloat(storedVersion) < 10 && storedVersion !== '76.READY') {
+            console.log('🔄 One-time cleanup of old caches (ancient version detected)');
             
             const registrations = await navigator.serviceWorker.getRegistrations();
             for (const reg of registrations) await reg.unregister();
+            
             const cacheNames = await caches.keys();
             for (const name of cacheNames) await caches.delete(name);
-        } else {
-            sessionStorage.setItem('recoveryDone', 'true');
+            
+            localStorage.setItem('postRefreshMessage', '☢ SYSTEM SYNC COMPLETE — APP UPDATED — FOR COMMUNITY MARKERS CLICK THE UPDATE COMMUNITY MAP BUTTON! ☢');
         }
-    }, 3000);
+        
+        // Mark as done so this block NEVER runs again
+        sessionStorage.setItem('recoveryDone', 'true');
+    }, 1200);
 }
+
+// Prevent aggressive SW updates from causing visible reload flicker
+navigator.serviceWorker.addEventListener('controllerchange', () => {
+    console.log('Service Worker updated — skipping forced reload');
+    // Do NOT call location.reload() here
+});
 
 // Passive update notice (shows only after loading a newer version)
 function showUpdateNotice() {
@@ -6122,7 +6140,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 24March 2026 C-45• Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: 24March 2026 C-46• Version 76.READY Released • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
