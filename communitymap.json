@@ -4248,6 +4248,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-a05da3c3-a820-4e6d-b42f-e7b5d878a178",
+      "cid": "misc_test_merge_2_grid_a1_x_110_y_101_100.76278_109.72133",
+      "category": "misc",
+      "desc": "Test merge 2\nGrid A1 (X: 110, Y: 101)\nSubmitted By MrCrazy",
+      "lat": 100.7627781112966,
+      "lng": 109.72132881360352,
+      "icon": "📝",
+      "addedTime": 1774434666476,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
