@@ -1,20 +1,19 @@
 // ——— SERVICE WORKER ———
-// Update this version string on EVERY deployment that changes HTML/JS/CSS
-const CACHE_NAME = "fo76-ifm-v76.READY-25032026-build42";
+// Cache busting: Update this line on EVERY deployment that changes HTML, JS, or CSS.
+// Format: "fo76-ifm-v{VERSION}-{DDMMYYYY}" or "fo76-ifm-v{VERSION}-{DDMMYYYY}-buildN"
+const CACHE_NAME = "fo76-ifm-v76.READY-24032026-build42";
 
-self.addEventListener("install", (event) => {
-  console.log("Service Worker installing:", CACHE_NAME);
-  event.waitUntil(self.skipWaiting());
+self.addEventListener("install", e => {
+  e.waitUntil(self.skipWaiting());
 });
 
-self.addEventListener("activate", (event) => {
-  console.log("Service Worker activating:", CACHE_NAME);
-  event.waitUntil(
-    caches.keys().then((keys) => {
+self.addEventListener("activate", e => {
+  e.waitUntil(
+    caches.keys().then(keys => {
       return Promise.all(
-        keys.map((key) => {
+        keys.map(key => {
           if (key !== CACHE_NAME) {
-            console.log("Deleting old cache:", key);
+            console.log('Deleting old cache:', key);
             return caches.delete(key);
           }
         })
@@ -23,21 +22,19 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-self.addEventListener("fetch", (event) => {
-  const url = event.request.url;
+self.addEventListener("fetch", e => {
+  const url = e.request.url;
 
-  // Always fetch fresh for community data and pending list
-  if (url.includes("communitymap.json") ||
-      url.includes("pending.html") ||
-      url.includes("githubusercontent.com")) {
-    event.respondWith(fetch(event.request));
+  // Always get fresh pending.html and community data
+  if (url.includes('pending.html') || 
+      url.includes('communitymap.json') || 
+      url.includes('githubusercontent.com')) {
+    e.respondWith(fetch(e.request));
     return;
   }
 
-  // Cache-first for everything else
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      return cached || fetch(event.request);
-    })
+  // Normal caching for everything else
+  e.respondWith(
+    caches.match(e.request).then(cached => cached || fetch(e.request))
   );
 });
