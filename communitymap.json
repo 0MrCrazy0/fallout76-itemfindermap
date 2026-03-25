@@ -4248,25 +4248,6 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
-    },
-    {
-      "id": "id-93979fa2-a5b3-4365-ae83-95f9a31aa07e",
-      "cid": "misc_test_merge_3_grid_a1_x_155_y_98_97.88302_155.39593",
-      "category": "misc",
-      "desc": "Test merge 3\nGrid A1 (X: 155, Y: 98)\nSubmitted By MrCrazy",
-      "lat": 97.88301638391846,
-      "lng": 155.3959304041685,
-      "icon": "📝",
-      "addedTime": 1774434680107,
-      "locked": true,
-      "isPostcard": false,
-      "isTemp": false,
-      "startTime": null,
-      "keepBtnBound": false,
-      "userEdited": false,
-      "wasCommunityKept": false,
-      "isCommunity": true
-      }
-  ],
-  "// === SENTINEL LINE - ADD ALL NEW MARKERS ABOVE THIS COMMENT ===": "DO NOT REMOVE OR MOVE THIS LINE"
+    }
+  ]
 }
