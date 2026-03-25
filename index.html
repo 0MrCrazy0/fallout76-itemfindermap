@@ -1738,7 +1738,6 @@ if ('serviceWorker' in navigator && !sessionStorage.getItem('recoveryDone')) {
             for (const reg of registrations) await reg.unregister();
             const cacheNames = await caches.keys();
             for (const name of cacheNames) await caches.delete(name);
-            window.location.reload();
         } else {
             sessionStorage.setItem('recoveryDone', 'true');
         }
