@@ -4248,6 +4248,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-98eb1f8a-c490-496a-9c55-c8150cdc0e2f",
+      "cid": "named locations_this_is_test_marker_merge_1_grid_a1_x_2_y_2_1.66143_1.53796",
+      "category": "named locations",
+      "desc": "This is test marker merge 1\nGrid A1 (X: 2, Y: 2)\nSubmitted By MrCrazy",
+      "lat": 1.6614290953993667,
+      "lng": 1.5379612174079433,
+      "icon": "🚩",
+      "addedTime": 1774399095911,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
