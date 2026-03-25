@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=42">
+	<link rel="manifest" href="manifest.json?v=45">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1233,17 +1233,39 @@ body.dark-mode #itemModal button:focus-visible {
         filter: brightness(1.2);
         transition: all 0.2s ease;
     }
-/* Glowing indicator for update available */
-        #downloadCommunityBtn.update-available {
-            animation: glowPulse 2s infinite ease-in-out;
-            box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff88 !important;
-            background: #00cc00 !important;
-            border-color: #00ffcc !important;
-        }
-        @keyframes glowPulse {
-            0%, 100% { box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff88; }
-            50% { box-shadow: 0 0 25px #00ff00, 0 0 50px #00ffcc; }
-        }
+/* Community Update Button - Available State (EXTRA SOFT green pulse) */
+#downloadCommunityBtn.available {
+    box-shadow: 0 0 6px rgba(0, 255, 136, 0.45),
+                0 0 14px rgba(0, 255, 136, 0.25),
+                inset 0 0 6px rgba(0, 255, 136, 0.15) !important;
+    animation: softPulse 3.2s ease-in-out infinite;
+    color: #00ffaa !important;
+    font-weight: bold !important;
+    background: #001400 !important;
+    border-color: #00aa66 !important;
+}
+
+/* Reset to normal button appearance when NOT available */
+#downloadCommunityBtn:not(.available) {
+    box-shadow: none !important;
+    animation: none !important;
+    background-color: #1a3c34 !important;
+    color: #00ff00 !important;
+    border-color: #00ff00 !important;
+}
+
+@keyframes softPulse {
+    0%, 100% {
+        box-shadow: 0 0 6px rgba(0, 255, 136, 0.45),
+                    0 0 14px rgba(0, 255, 136, 0.25),
+                    inset 0 0 6px rgba(0, 255, 136, 0.15);
+    }
+    50% {
+        box-shadow: 0 0 10px rgba(0, 255, 136, 0.55),
+                    0 0 20px rgba(0, 255, 136, 0.30),
+                    inset 0 0 9px rgba(0, 255, 136, 0.22);
+    }
+}
 button:not(:hover):not(:active):not(:focus),
 #toggleButtonGroup:not(:hover):not(:active):not(:focus),
 #buttonGroup button:not(:hover):not(:active):not(:focus) {
@@ -1417,6 +1439,20 @@ button:not(:hover):not(:active):not(:focus),
         box-shadow: 0 0 12px rgba(0, 255, 0, 0.4) !important;
         transition: all 0.12s ease;
     }
+}
+/* Community Update Button - Available State */
+#downloadCommunityBtn.available {
+    box-shadow: 0 0 12px #00ff88,
+                0 0 25px #00ff88,
+                inset 0 0 8px rgba(0, 255, 136, 0.4);
+    animation: softPulse 2s ease-in-out infinite;
+    color: #00ff88;
+    font-weight: bold;
+}
+
+@keyframes softPulse {
+    0%, 100% { box-shadow: 0 0 12px #00ff88, 0 0 25px #00ff88, inset 0 0 8px rgba(0, 255, 136, 0.4); }
+    50%      { box-shadow: 0 0 18px #00ff88, 0 0 35px #00ff88, inset 0 0 12px rgba(0, 255, 136, 0.6); }
 }
     </style>
 </head>
@@ -1735,18 +1771,17 @@ function showUpdateNotice() {
 // Check and show notice only if version changed
 document.addEventListener('DOMContentLoaded', () => {
     const storedVersion = localStorage.getItem('fo76_map_version') || '0';
+    
     if (storedVersion !== CURRENT_APP_VERSION) {
         showUpdateNotice();
-        localStorage.setItem('fo76_map_version', CURRENT_APP_VERSION);
     }
-	
-	const urlParams = new URLSearchParams(window.location.search);  // ← This line MUST exist first
+
+    const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('showInstructions') && urlParams.get('showInstructions') === 'true') {
         setTimeout(() => {
             instructionsModal.style.display = 'block';
             document.body.classList.add('modal-open');
             playSound('click');
-            // Clean the URL so shared links don't include ?showInstructions=true
             history.replaceState(null, '', window.location.pathname);
         }, 800);
     }
@@ -1766,15 +1801,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1200);
     }
     (function() {
-        if (!localStorage.getItem('fo76_map_version')) {
-            localStorage.setItem('fo76_map_version', '76.READY');
-        }
-
-        const STORAGE_KEY = 'fo76_locations';
-        const CUSTOM_CATEGORIES_KEY = '76_custom_categories';
-        const MAP_VERSION_KEY = 'fo76_map_version';
-        const CURRENT_UPDATE_VERSION = 'v76.READY';
-        const APP_VERSION = "v76.READY";
+    const STORAGE_KEY = 'fo76_locations';
+    const CUSTOM_CATEGORIES_KEY = '76_custom_categories';
+    const MAP_VERSION_KEY = 'fo76_map_version';
+    const CURRENT_UPDATE_VERSION = 'v76.READY';
+    const APP_VERSION = "v76.READY";
         let soundsEnabled = localStorage.getItem('soundsEnabled') !== 'false';
         const baseSounds = {
             click: new Audio("https://rpg.hamsterrepublic.com/wiki-images/8/84/Select8-Bit.ogg"),
@@ -3531,13 +3562,22 @@ marker.bindPopup(`
         function updateCounterDisplay() {
     const appVersion = "76.READY";
     const communityVer = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
+
     const total = locations.filter(l => activeCategories.has(l.category)).length;
-    const userTotal = locations.filter(l => l.userEdited === true && !l.isPostcard).length;
+
+    const userTotal = locations.filter(l =>
+        (l.userEdited === true || l.wasCommunityKept === true) &&
+        !l.isPostcard
+    ).length;
+
     counter.innerHTML = `
-        <strong>FO76-IFM v${appVersion}</strong><br>
-        Community Map v${communityVer} — <strong style="color:#00ff88;">Total Logged: ${total}</strong><br>
-        <strong style="color:#00ff88;">You Logged → ${userTotal}</strong><br>
-        <strong style="color:#00ff88;">You Are Level → ${level}</strong>
+        <strong>Latest Version</strong><br>
+        FO76-IFM v${appVersion}<br>
+        Community Map v${communityVer}<br><br>
+		<strong>Stats</strong><br>
+        Total Logged: <strong style="color:#00ff88;">${total}</strong><br>
+        You Logged → <strong style="color:#00ff88;">${userTotal}</strong><br>
+        You Are Level → <strong style="color:#00ff88;">${level}</strong>
     `;
 }
         function refreshTable(search = '', cat = '') {
@@ -4669,10 +4709,48 @@ setTimeout(() => {
                     } finally {
                         downloadCommunityBtn.disabled = false;
                         downloadCommunityBtn.textContent = 'Update Community Map';
+						downloadCommunityBtn.classList.remove('available');
                     }
                 }
             );
         };
+
+// ── COMMUNITY MAP "AVAILABLE!" GLOW CHECK ──
+    async function checkForCommunityUpdate() {
+        try {
+            const response = await fetch('https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?v=' + Date.now(), { 
+                cache: 'no-store' 
+            });
+            if (!response.ok) return;
+
+            const data = await response.json();
+            const remoteVersion = String(data.communityVersion || data.version || "1.0");
+            const storedVersion = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
+
+            if (remoteVersion !== storedVersion) {
+                downloadCommunityBtn.classList.add('available');
+                downloadCommunityBtn.textContent = 'Update Community Map (Available!)';
+            } else {
+                downloadCommunityBtn.classList.remove('available');
+                downloadCommunityBtn.textContent = 'Update Community Map';
+            }
+        } catch (err) {
+            console.warn('Community version check failed:', err);
+            downloadCommunityBtn.classList.remove('available');
+            downloadCommunityBtn.textContent = 'Update Community Map';
+        }
+    }
+
+    // Run it now and every 10 minutes
+    checkForCommunityUpdate();
+    setInterval(checkForCommunityUpdate, 600000);
+
+// Run the check when the page loads and every 10 minutes
+document.addEventListener('DOMContentLoaded', () => {
+    checkForCommunityUpdate();
+    setInterval(checkForCommunityUpdate, 600000); // 10 minutes
+});
+
 function createPermanentShare(markersToShare) {
     if (markersToShare.length === 0) return;
     const shareData = { version: 1.0, locations: markersToShare };
@@ -5158,6 +5236,37 @@ if (!localStorage.getItem('seenCommunityHint')) {
 }
 
         setTimeout(() => document.body.classList.add('map-ready'), 1000);
+		// ── COMMUNITY MAP "AVAILABLE!" GLOW CHECK ──
+async function checkForCommunityUpdate() {
+    try {
+        const response = await fetch('https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?v=' + Date.now(), { 
+            cache: 'no-store' 
+        });
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const remoteVersion = String(data.communityVersion || data.version || "1.0");
+        const storedVersion = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
+
+        if (remoteVersion !== storedVersion) {
+            downloadCommunityBtn.classList.add('available');
+            downloadCommunityBtn.textContent = 'Update Community Map (Available!)';
+        } else {
+            downloadCommunityBtn.classList.remove('available');
+            downloadCommunityBtn.textContent = 'Update Community Map';
+        }
+    } catch (err) {
+        console.warn('Community version check failed:', err);
+        downloadCommunityBtn.classList.remove('available');
+        downloadCommunityBtn.textContent = 'Update Community Map';
+    }
+}
+
+// Run check on load and every 10 minutes
+document.addEventListener('DOMContentLoaded', () => {
+    checkForCommunityUpdate();
+    setInterval(checkForCommunityUpdate, 600000);
+});
         toggleDarkModeBtn.onclick = () => {
             darkMode = !darkMode;
             document.body.classList.toggle('dark-mode', darkMode);
@@ -5674,7 +5783,7 @@ setTimeout(() => {
                             toolsVisible = s.toolsVisible !== undefined ? s.toolsVisible : true;
                             activeCategories = new Set(s.activeCategories || Object.keys(defaultCategoryIcons));
 
-                            localStorage.setItem('fo76_map_version', data.communityVersion || s.communityVersion || '1.3');
+                            localStorage.setItem('fo76_map_version', data.communityVersion || s.communityVersion || '1.0');
                             localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
                             localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
                             localStorage.setItem('fo76_level', level);
@@ -6014,7 +6123,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 24March 2026 C-42• Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: 24March 2026 C-45• Version 76.READY Released • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
