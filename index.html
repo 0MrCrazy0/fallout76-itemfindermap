@@ -1626,25 +1626,48 @@ navigator.serviceWorker.addEventListener('controllerchange', () => {
 
 // Passive update notice (shows only after loading a newer version)
 function showUpdateNotice() {
+    // Prevent duplicate banners
+    if (document.getElementById('updateBanner')) return;
+
+    const communityVer = localStorage.getItem('fo76_map_version') || "1.0";
+
     const banner = document.createElement('div');
+    banner.id = 'updateBanner';
     banner.style.cssText = `
-        position: fixed; top: 0; left: 0; right: 0;
-        background: #004d00; color: #88ff88; padding: 10px 20px;
-        text-align: center; font: bold 14px 'Courier New', monospace;
-        z-index: 999999; box-shadow: 0 2px 10px rgba(0,255,0,0.3);
-        transition: opacity 1.2s ease-out;
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #001a00;
+        color: #00ff88;
+        padding: 14px 20px;
+        text-align: center;
+        font: bold 15px 'Courier New', monospace;
+        z-index: 999999;
+        box-shadow: 0 -4px 15px rgba(0, 255, 0, 0.4);
+        border-top: 2px solid #00ff00;
+        max-width: 96%;
+        width: 96%;
+        line-height: 1.5;
+        text-shadow: 0 0 8px #00ff00;
     `;
     banner.innerHTML = `
-        App updated to latest version (${CURRENT_APP_VERSION})
+        App updated to v${CURRENT_APP_VERSION}<br>
+        Community Map: v${communityVer}<br>
+        <span style="color:#88ff88; font-size:13px;">
+            Tap "Update Community Map" for latest markers
+        </span>
     `;
-    
+
     document.body.appendChild(banner);
-    
-    // Auto-fade and remove after 4 seconds
+
+    // Auto-fade and remove after 5 seconds
     setTimeout(() => {
         banner.style.opacity = '0';
-        setTimeout(() => banner.remove(), 1200);
-    }, 4000);
+        setTimeout(() => {
+            if (banner.parentNode) banner.parentNode.removeChild(banner);
+        }, 1400);
+    }, 5000);
 }
 
 // Check and show notice only if version changed
