@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=53">
+	<link rel="manifest" href="manifest.json?v=54">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -26,7 +26,7 @@
     <meta name="theme-color" content="#00ff00">
 
 <style>
-/* ── ULTIMATE MOBILE GRID + NO-CLUSTER FLICKER FIX v4 (Low-Zoom Focused) ── */
+/* ── MOBILE GRID + NO-CLUSTER FLICKER (Low-Zoom Focused) ── */
 @media (hover: none) and (pointer: coarse) {
     .grid-line {
         opacity: 0.06 !important;
@@ -47,24 +47,6 @@
         transition: opacity 0.4s ease-out !important;
     }
 
-    /* Strong GPU + Canvas compatibility for low zoom */
-    .leaflet-marker-icon,
-    .leaflet-marker-cluster,
-    .leaflet-tile,
-    .leaflet-zoom-animated,
-    .leaflet-marker-pane,
-    .leaflet-overlay-pane,
-    .leaflet-tile-container,
-    .leaflet-map-pane {
-        will-change: transform !important;
-        transform: translate3d(0,0,0) !important;
-        -webkit-transform: translate3d(0,0,0) !important;
-        backface-visibility: hidden !important;
-        -webkit-backface-visibility: hidden !important;
-        filter: drop-shadow(0 0 1px rgba(0,255,0,0.05)) !important;
-		transition: none !important;
-    }
-
     .leaflet-container {
         transform: translate3d(0,0,0) !important;
         backface-visibility: hidden !important;
@@ -79,72 +61,72 @@
         overflow-x: hidden; 
     }
     h1 {
-        color: #00ff00;
-        text-align: center;
-        text-shadow: 0 0 10px #00ff00;
-        font-size: 2.2em;
-        margin-bottom: 12px;
-    }
-    #map {
-        height: 750px;
-        max-width: 95%;
-        margin: 0 auto 20px;
-        border: 2px solid #00ff00;
-        box-shadow: 0 0 15px #00ff00;
-        background-color: #000000;
-        position: relative;
-    }
-    #titleToggleContainer {
-        text-align: center;
-        margin-bottom: 8px;
-    }
-    #toggleTitleBtn {
-        padding: 2px 6px;
-        font-size: 0.9em;
-        max-width: 40px;
-        margin: 0 auto;
-        background: #1a3c34;
-        color: #00ff00;
-        border: 1px solid #00ff00;
-        border-radius: 0;
-        cursor: pointer;
-    }
-    #toggleTitleBtn:hover {
-        background: #00ff00;
-        color: #000;
-    }
-    #searchBar {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-        justify-content: center;
-        margin: 10px auto;
-        padding: 10px;
-        background: rgba(0,0,0,0.5);
-        border: 1px solid #0f0;
-        border-radius: 8px;
-        max-width: 90%;
-    }
-    #toolsToggleRow {
-        text-align: center;
-        margin: 10px 0;
-    }
-    #toggleButtonGroup {
-        padding: 8px 16px;
-        max-width: 200px;
-        background: #1a3c34;
-        color: #00ff00;
-        border: 2px solid #00ff00;
-        border-radius: 0;
-        cursor: pointer;
-        font-family: 'Courier New', monospace;
-        font-weight: bold;
-    }
-    #toggleButtonGroup:hover {
-        background: #00ff00;
-        color: #000;
-    }
+    color: #00ff00;
+    text-align: center;
+    text-shadow: 0 0 10px #00ff00;
+    font-size: 2.2em;
+    margin-bottom: 12px;
+}
+#map {
+    height: 750px;
+    max-width: 95%;
+    margin: 0 auto 20px;
+    border: 2px solid #00ff00;
+    box-shadow: 0 0 15px #00ff00;
+    background-color: #000000;
+    position: relative;
+}
+#titleToggleContainer {
+    text-align: center;
+    margin-bottom: 8px;
+}
+#toggleTitleBtn {
+    padding: 2px 6px;
+    font-size: 0.9em;
+    max-width: 40px;
+    margin: 0 auto;
+    background: #1a3c34;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    border-radius: 0;
+    cursor: pointer;
+}
+#toggleTitleBtn:hover {
+    background: #00ff00;
+    color: #000;
+}
+#searchBar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 10px auto;
+    padding: 10px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid #0f0;
+    border-radius: 8px;
+    max-width: 90%;
+}
+#toolsToggleRow {
+    text-align: center;
+    margin: 10px 0;
+}
+#toggleButtonGroup {
+    padding: 8px 16px;
+    max-width: 200px;
+    background: #1a3c34;
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    border-radius: 0;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
+#toggleButtonGroup:hover {
+    background: #00ff00;
+    color: #000;
+}
 #buttonGroup {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -187,95 +169,95 @@
 #buttonGroup.hidden {
     display: none !important;
 }
-    .controls {
-        margin-bottom: 20px;
-        text-align: center;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 10px;
-    }
-    input[type="text"], select, textarea {
-        padding: 8px;
-        width: 100%;
-        max-width: 200px;
-        box-sizing: border-box;
-        border: 2px solid #00ff00;
-        border-radius: 0;
-        background-color: #000;
-        color: #00ff00;
-        font-family: 'Courier New', monospace;
-        font-size: 14px;
-    }
-    textarea {
-        min-height: 80px;
-        resize: vertical;
-    }
+.controls {
+    margin-bottom: 20px;
+    text-align: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+input[type="text"], select, textarea {
+    padding: 8px;
+    width: 100%;
+    max-width: 200px;
+    box-sizing: border-box;
+    border: 2px solid #00ff00;
+    border-radius: 0;
+    background-color: #000;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+}
+textarea {
+    min-height: 80px;
+    resize: vertical;
+}
 .leaflet-marker-icon,
 .leaflet-marker-cluster {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-	transition: none !important;
+    transition: none !important;
 }
 .leaflet-marker-icon {
     transform: scale(1.1);
     margin-left: -16.5px !important;
     margin-top: -16.5px !important;
 }
-    #combinedSearch {
-        max-width: 250px;
-        transition: background-color 0.3s, box-shadow 0.3s;
-    }
-    #combinedSearch.grid-highlight, #combinedSearch.item-highlight {
-        background-color: #0a3a0a !important;
-        box-shadow: 0 0 15px #00ff00, inset 0 0 10px rgba(0, 255, 0, 0.3);
-        animation: pulseSearch 1.5s ease-out;
-    }
-    @keyframes pulseSearch {
-        0%, 100% { box-shadow: 0 0 15px #00ff00, inset 0 0 10px rgba(0, 255, 0, 0.3); }
-        50% { box-shadow: 0 0 25px #00ff00, inset 0 0 15px rgba(0, 255, 0, 0.5); }
-    }
-    button {
-        padding: 8px 16px;
-        width: 100%;
-        max-width: 200px;
-        box-sizing: border-box;
-        background-color: #1a3c34;
-        color: #00ff00;
-        border: 2px solid #00ff00;
-        border-radius: 0;
-        cursor: pointer;
-        font-family: 'Courier New', monospace;
-        transition: background-color 0.3s;
-        margin: 5px;
-        font-weight: bold;
-    }
-    button.reset-btn {
-        background-color: #F7615E !important;
-        color: #000 !important;
-        font-weight: 700;
-    }
-    #modalLockToggle, .popup-lock-toggle {
-        color: #ffa500;
-        cursor: pointer;
-    }
-    #modalLockToggle:hover, .popup-lock-toggle:hover {
-        color: #00ff00;
-    }
-    #tableContainer {
-        width: 100%;
-        max-width: 1000px;
-        margin: 0 auto;
-        overflow-x: auto !important;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        contain: paint;
-        padding: 10px;
-        background: rgba(0,0,0,0.7);
-        border: 1px solid #0f0;
-        border-radius: 8px;
-        display: block !important;
-    }
+#combinedSearch {
+    max-width: 250px;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+#combinedSearch.grid-highlight, #combinedSearch.item-highlight {
+    background-color: #0a3a0a !important;
+    box-shadow: 0 0 15px #00ff00, inset 0 0 10px rgba(0, 255, 0, 0.3);
+    animation: pulseSearch 1.5s ease-out;
+}
+@keyframes pulseSearch {
+    0%, 100% { box-shadow: 0 0 15px #00ff00, inset 0 0 10px rgba(0, 255, 0, 0.3); }
+    50% { box-shadow: 0 0 25px #00ff00, inset 0 0 15px rgba(0, 255, 0, 0.5); }
+}
+button {
+    padding: 8px 16px;
+    width: 100%;
+    max-width: 200px;
+    box-sizing: border-box;
+    background-color: #1a3c34;
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    border-radius: 0;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    transition: background-color 0.3s;
+    margin: 5px;
+    font-weight: bold;
+}
+button.reset-btn {
+    background-color: #F7615E !important;
+    color: #000 !important;
+    font-weight: 700;
+}
+#modalLockToggle, .popup-lock-toggle {
+    color: #ffa500;
+    cursor: pointer;
+}
+#modalLockToggle:hover, .popup-lock-toggle:hover {
+    color: #00ff00;
+}
+#tableContainer {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    contain: paint;
+    padding: 10px;
+    background: rgba(0,0,0,0.7);
+    border: 1px solid #0f0;
+    border-radius: 8px;
+    display: block !important;
+}
 .text-marker {
     transition: transform 0.1s ease-out, opacity 0.1s ease-out;
     will-change: transform;
@@ -297,7 +279,6 @@
     transform: scale(1.06) !important;
     filter: brightness(1.15) !important;
 }
-/* Stronger in dark mode */
 body.dark-mode #confirmDeleteCategoryBtn:hover,
 body.dark-mode #confirmDeleteCategoryBtn:focus-visible {
     box-shadow:
@@ -309,128 +290,127 @@ body.dark-mode #confirmDeleteCategoryBtn:focus-visible {
 .leaflet-marker-icon {
     will-change: transform;
 }
-    .pagination {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-        margin: 15px 0;
-        width: 100%;
-        padding: 0 10px;
-        box-sizing: border-box;
-    }
-    .counter {
-        width: 200px !important;
-        margin: 10px auto !important;
-        text-align: center !important;
-        font-weight: bold !important;
-    }
-    #customTableHeader {
-        display: table !important;
-        width: 100% !important;
-        table-layout: fixed !important;
-        border-spacing: 0 12px !important;
-        margin-bottom: -12px !important;
-    }
-    #customTableHeader > div {
-        display: table-row !important;
-        background: rgba(0, 255, 0, 0.2) !important;
-        border: 1px solid #0f0 !important;
-        border-radius: 8px !important;
-    }
-    #customTableHeader > div > div {
-        display: table-cell !important;
-        padding: 10px !important;
-        text-align: center !important;
-        color: #0f0 !important;
-        font-weight: bold !important;
-    }
-    #locationsTable {
-        width: 100% !important;
-        border-collapse: separate !important;
-        border-spacing: 0 12px !important;
-        table-layout: fixed !important;
-        margin: 0 !important;
-    }
-    #locationsTable thead { display: none !important; }
-    #locationsTable tbody { display: block !important; width: 100% !important; }
-    #locationsTable tbody tr {
-        display: flex !important;
-        background: rgba(0, 0, 0, 0.4) !important;
-        border: 1px solid #0f0 !important;
-        border-radius: 8px !important;
-        transition: all 0.3s ease !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-    }
-    #locationsTable tbody tr:hover {
-        background: rgba(0, 255, 0, 0.08) !important;
-        box-shadow: 0 0 8px #0f0 !important;
-    }
-    #locationsTable tbody tr.glowing {
-        background: rgba(0, 255, 0, 0.15) !important;
-        box-shadow: 0 0 12px #0f0, 0 0 20px #0f0 !important;
-        animation: tablePulse 1.5s infinite ease-in-out !important;
-        border: 2px solid #00ff88 !important;
-    }
-    @keyframes tablePulse {
-        0%, 100% { box-shadow: 0 0 12px #0f0, 0 0 20px #0f0; }
-        50% { box-shadow: 0 0 18px #0f0, 0 0 30px #0f0; }
-    }
-    #locationsTable tbody td {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 10px !important;
-        word-wrap: break-word !important;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: normal !important;
-        word-break: break-word !important;
-        overflow-wrap: break-word !important;
-    }
-    #locationsTable tbody td:nth-child(1) { flex: 0.6; } /* Lock */
-    #locationsTable tbody td:nth-child(2) { flex: 0.9; } /* Icon */
-    #locationsTable tbody td:nth-child(3) { flex: 1.5; } /* Category */
-    #locationsTable tbody td:nth-child(4) {
-        flex: 3;
-        justify-content: flex-start !important;
-        padding-left: 15px !important;
-    }
-    .icon-circle {
-        width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 16px; font-weight: bold; color: #000;
-    }
-    .text-location {
-        background: #000; color: #fff; padding: 2px 6px; border: 1px solid #0f0; border-radius: 3px; font-size: 11px; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; margin: 0 auto;
-    }
-    .lock-toggle { font-size: 18px; cursor: pointer; display: block; margin: 0 auto;
+.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 15px 0;
+    width: 100%;
+    padding: 0 10px;
+    box-sizing: border-box;
 }
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 10000;
-        left: 0; top: 0;
-        width: 100%; height: 100%;
-        overflow: hidden;
-        background-color: rgba(0, 42, 42, 0.8);
-    }
-    .modal-content {
-        background-color: #1a3c34;
-        margin: 8% auto;
-        padding: 16px;
-        border: 2px solid #00ff00;
-        width: 100%;
-        max-width: 360px;
-        box-sizing: border-box;
-        border-radius: 0;
-        color: #00ff00;
-        font-family: 'Courier New', monospace;
-        overflow-y: auto;
-        max-height: 80vh;
-        -webkit-overflow-scrolling: touch;
-    }
+.counter {
+    width: 200px !important;
+    margin: 10px auto !important;
+    text-align: center !important;
+    font-weight: bold !important;
+}
+#customTableHeader {
+    display: table !important;
+    width: 100% !important;
+    table-layout: fixed !important;
+    border-spacing: 0 12px !important;
+    margin-bottom: -12px !important;
+}
+#customTableHeader > div {
+    display: table-row !important;
+    background: rgba(0, 255, 0, 0.2) !important;
+    border: 1px solid #0f0 !important;
+    border-radius: 8px !important;
+}
+#customTableHeader > div > div {
+    display: table-cell !important;
+    padding: 10px !important;
+    text-align: center !important;
+    color: #0f0 !important;
+    font-weight: bold !important;
+}
+#locationsTable {
+    width: 100% !important;
+    border-collapse: separate !important;
+    border-spacing: 0 12px !important;
+    table-layout: fixed !important;
+    margin: 0 !important;
+}
+#locationsTable thead { display: none !important; }
+#locationsTable tbody { display: block !important; width: 100% !important; }
+#locationsTable tbody tr {
+    display: flex !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid #0f0 !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+#locationsTable tbody tr:hover {
+    background: rgba(0, 255, 0, 0.08) !important;
+    box-shadow: 0 0 8px #0f0 !important;
+}
+#locationsTable tbody tr.glowing {
+    background: rgba(0, 255, 0, 0.15) !important;
+    box-shadow: 0 0 12px #0f0, 0 0 20px #0f0 !important;
+    animation: tablePulse 1.5s infinite ease-in-out !important;
+    border: 2px solid #00ff88 !important;
+}
+@keyframes tablePulse {
+    0%, 100% { box-shadow: 0 0 12px #0f0, 0 0 20px #0f0; }
+    50% { box-shadow: 0 0 18px #0f0, 0 0 30px #0f0; }
+}
+#locationsTable tbody td {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px !important;
+    word-wrap: break-word !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+}
+#locationsTable tbody td:nth-child(1) { flex: 0.6; } /* Lock */
+#locationsTable tbody td:nth-child(2) { flex: 0.9; } /* Icon */
+#locationsTable tbody td:nth-child(3) { flex: 1.5; } /* Category */
+#locationsTable tbody td:nth-child(4) {
+    flex: 3;
+    justify-content: flex-start !important;
+    padding-left: 15px !important;
+}
+.icon-circle {
+    width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 16px; font-weight: bold; color: #000;
+}
+.text-location {
+    background: #000; color: #fff; padding: 2px 6px; border: 1px solid #0f0; border-radius: 3px; font-size: 11px; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; margin: 0 auto;
+}
+.lock-toggle { font-size: 18px; cursor: pointer; display: block; margin: 0 auto; }
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background-color: rgba(0, 42, 42, 0.8);
+}
+.modal-content {
+    background-color: #1a3c34;
+    margin: 8% auto;
+    padding: 16px;
+    border: 2px solid #00ff00;
+    width: 100%;
+    max-width: 360px;
+    box-sizing: border-box;
+    border-radius: 0;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    overflow-y: auto;
+    max-height: 80vh;
+    -webkit-overflow-scrolling: touch;
+}
 #submitLoadingOverlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -461,52 +441,48 @@ body.dark-mode #confirmDeleteCategoryBtn:focus-visible {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
-    .close {
-        color: #00ff00;
-        float: right;
-        font-size: 24px;
-        font-weight: bold;
-        line-height: 1;
-        cursor: pointer;
-    }
-    .close:hover { color: #0a2a2a; }
-    #itemModal .modal-content > div:last-child {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 10px;
-        margin-top: 12px;
-    }
+.close {
+    color: #00ff00;
+    float: right;
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+}
+.close:hover { color: #0a2a2a; }
 #itemModal .modal-content > div:last-child {
-    gap: 10px !important;
+    display: flex;
     flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 12px;
 }
 #exportOneBtn, #shareOneBtn {
     flex: 1;
     min-width: 120px;
 }
-    .marker-cluster div {
-        width: 30px; height: 30px; margin-left: 5px; margin-top: 5px; text-align: center; border-radius: 15px;
-        font: bold 12px/30px "Helvetica Neue", Arial, Helvetica, sans-serif;
-        background-color: #ffff00; color: #000000;
-    }
-    .grid-line {
-        pointer-events: none;
-        stroke: rgba(0, 255, 0, 0.35);
-        stroke-width: 1;
-        stroke-dasharray: 4, 4;
-    }
-    .grid-label {
-        font-family: 'Courier New', monospace;
-        font-size: 16px;
-        font-weight: bold;
-        fill: #00ff00;
-        text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-        pointer-events: none;
-        text-anchor: middle;
-        dominant-baseline: central;
-    }
-    #gridNotification {
+.marker-cluster div {
+    width: 30px; height: 30px; margin-left: 5px; margin-top: 5px; text-align: center; border-radius: 15px;
+    font: bold 12px/30px "Helvetica Neue", Arial, Helvetica, sans-serif;
+    background-color: #ffff00; color: #000000;
+}
+.grid-line {
+    pointer-events: none;
+    stroke: rgba(0, 255, 0, 0.35);
+    stroke-width: 1;
+    stroke-dasharray: 4, 4;
+}
+.grid-label {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: bold;
+    fill: #00ff00;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    pointer-events: none;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+#gridNotification {
     position: fixed;
     bottom: 120px !important;
     left: 50%;
@@ -537,35 +513,35 @@ body.dark-mode #confirmDeleteCategoryBtn:focus-visible {
     50% { box-shadow: 0 0 50px #00ff88; }
     100% { box-shadow: 0 0 30px #00ff00; }
 }
-    body.dark-mode {
-        background-color: #000000 !important;
-    }
-    body.dark-mode #searchBar,
-    body.dark-mode #buttonGroup,
-    body.dark-mode #tableContainer,
-    body.dark-mode .modal-content,
-    body.dark-mode #xpStatus,
-    body.dark-mode h1, body.dark-mode h2,
-    body.dark-mode .counter {
-        background-color: #000000 !important;
-        border-color: #00ff00 !important;
-    }
-    body.dark-mode input,
-    body.dark-mode select,
-    body.dark-mode textarea,
-    body.dark-mode button,
-    body.dark-mode .counter,
-    body.dark-mode h1, body.dark-mode h2 {
-        color: #00ff00 !important;
-    }
-    body.dark-mode button:hover {
-        background-color: #00ff00 !important;
-        color: #000 !important;
-        box-shadow: 0 0 10px #00ff00 !important;
-    }
-    body.dark-mode .grid-line {
-        stroke: rgba(0, 255, 0, 0.4) !important;
-    }
+body.dark-mode {
+    background-color: #000000 !important;
+}
+body.dark-mode #searchBar,
+body.dark-mode #buttonGroup,
+body.dark-mode #tableContainer,
+body.dark-mode .modal-content,
+body.dark-mode #xpStatus,
+body.dark-mode h1, body.dark-mode h2,
+body.dark-mode .counter {
+    background-color: #000000 !important;
+    border-color: #00ff00 !important;
+}
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea,
+body.dark-mode button,
+body.dark-mode .counter,
+body.dark-mode h1, body.dark-mode h2 {
+    color: #00ff00 !important;
+}
+body.dark-mode button:hover {
+    background-color: #00ff00 !important;
+    color: #000 !important;
+    box-shadow: 0 0 10px #00ff00 !important;
+}
+body.dark-mode .grid-line {
+    stroke: rgba(0, 255, 0, 0.4) !important;
+}
 /* Restore visible hover glow specifically for main control panel buttons */
 #buttonGroup button,
 #buttonGroup button:hover,
@@ -574,20 +550,18 @@ body.dark-mode #confirmDeleteCategoryBtn:focus-visible {
 }
 #buttonGroup button:hover,
 #buttonGroup button:focus-visible {
-    /* Keep original dark-mode behavior + ensure glow is visible */
     background-color: #00ff00 !important;
     color: #000000 !important;
     box-shadow: 0 0 12px #00ff88, 0 0 20px #00ff00 !important;
     transform: scale(1.04) !important;
     filter: brightness(1.1) !important;
 }
-/* Optional: slightly stronger in dark mode */
 body.dark-mode #buttonGroup button:hover,
 body.dark-mode #buttonGroup button:focus-visible {
     box-shadow: 0 0 16px #00ff88, 0 0 28px #00ff00 !important;
     transform: scale(1.05) !important;
 }
-/* Restore consistent hover glow for remaining buttons: Toggle Categories + Pagination */
+/* Restore consistent hover glow for remaining buttons */
 #toggleCategoryModalBtn,
 #prevPageBtn,
 #nextPageBtn,
@@ -613,7 +587,6 @@ body.dark-mode #buttonGroup button:focus-visible {
     transform: scale(1.04) !important;
     filter: brightness(1.1) !important;
 }
-/* Slightly stronger in dark mode (matches control panel feel) */
 body.dark-mode #toggleCategoryModalBtn:hover,
 body.dark-mode #prevPageBtn:hover,
 body.dark-mode #nextPageBtn:hover,
@@ -625,8 +598,7 @@ body.dark-mode #nextPageBtn:focus-visible {
         0 0 28px #00ff00 !important;
     transform: scale(1.05) !important;
 }
-/* ── Category management & postcard buttons: background colors + glow ── */
-/* Base styling + background colors */
+/* Category management & postcard buttons */
 #selectAllBtn,
 #deselectAllBtn,
 #createCategoryBtn,
@@ -642,7 +614,6 @@ body.dark-mode #nextPageBtn:focus-visible {
     font-weight: bold;
     transition: all 0.25s ease;
 }
-/* Hover / focus glow (desktop) */
 #selectAllBtn:hover,
 #deselectAllBtn:hover,
 #createCategoryBtn:hover,
@@ -666,7 +637,6 @@ body.dark-mode #nextPageBtn:focus-visible {
     transform: scale(1.06) !important;
     filter: brightness(1.15) !important;
 }
-/* Dark mode enhancement */
 body.dark-mode #selectAllBtn:hover,
 body.dark-mode #deselectAllBtn:hover,
 body.dark-mode #createCategoryBtn:hover,
@@ -686,104 +656,65 @@ body.dark-mode #createPostcardBtn:focus-visible {
         0 0 32px #00ff88,
         0 0 48px #00ff00 !important;
 }
-/* ── Mobile: brief glow on tap, clean & fast fade on release ── */
-@media (hover: none) and (pointer: coarse) {
-    #selectAllBtn,
-    #deselectAllBtn,
-    #createCategoryBtn,
-    #deleteCategoryBtn,
-    #closeCategoryToggleBtn,
-    #saveCategoryBtn,
-    #createPostcardBtn {
-        transition: all 0.35s ease-out;
-    }
-    #selectAllBtn:active,
-    #deselectAllBtn:active,
-    #createCategoryBtn:active,
-    #deleteCategoryBtn:active,
-    #closeCategoryToggleBtn:active,
-    #saveCategoryBtn:active,
-    #createPostcardBtn:active {
-        background-color: #00ff00 !important;
-        color: #000000 !important;
-        box-shadow:
-            0 0 16px #00ff88,
-            0 0 28px #00ff00 !important;
-        transform: scale(1.04) !important;
-        filter: brightness(1.15) !important;
-        transition: none; /* Instant visual feedback on press */
-    }
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+    background-color: #1a3c34 !important;
+    color: #00ff00 !important;
+    font-family: 'Courier New', monospace !important;
+    border: 2px solid #00ff00 !important;
 }
-/* Ensure fast fade-back after release (same as other buttons) */
-@media (hover: none) and (pointer: coarse) {
-    .fast-fade-release {
-        background-color: #1a3c34 !important;
-        box-shadow: none !important;
-        transform: scale(1) !important;
-        filter: brightness(1) !important;
-        transition: all 0.25s ease-out !important;
-    }
+body.dark-mode .leaflet-popup-content-wrapper,
+body.dark-mode .leaflet-popup-tip {
+    background-color: #1a3c34 !important;
+    color: #00ff00 !important;
 }
-    .leaflet-popup-content-wrapper,
-    .leaflet-popup-tip {
-        background-color: #1a3c34 !important;
-        color: #00ff00 !important;
-        font-family: 'Courier New', monospace !important;
-        border: 2px solid #00ff00 !important;
-    }
-    body.dark-mode .leaflet-popup-content-wrapper,
-    body.dark-mode .leaflet-popup-tip {
-        background-color: #1a3c34 !important;
-        color: #00ff00 !important;
-    }
 .modal-content button#exportMineBtn,
-    .modal-content button#fullBackupBtn {
+.modal-content button#fullBackupBtn {
     color: #000000 !important;
 }
-    .leaflet-control-zoom {
-        top: -60px !important;
-        left: 60px !important;
-        margin: 0 !important;
-margin-top: 70px !important; /* was 60px — increase for more top spacing */
-        left: 10px !important; /* optional: slight left padding */
+.leaflet-control-zoom {
+    top: -60px !important;
+    left: 60px !important;
+    margin: 0 !important;
+    margin-top: 70px !important;
+    left: 10px !important;
 }
-    .leaflet-control-zoom a {
-        background-color: #000000 !important;
-        color: #00ff00 !important;
-        border: 2px solid #00ff00 !important;
-        font-family: 'Courier New', monospace !important;
-        font-weight: bold !important;
-        text-shadow: 0 0 5px #00ff00 !important;
-        box-shadow: 0 0 8px #00ff00 !important;
-        border-radius: 0 !important;
-        width: 30px !important;
-        height: 30px !important;
-        line-height: 26px !important;
-        font-size: 18px !important;
-        text-align: center !important;
-    }
-    .leaflet-control-zoom a:hover {
-        background-color: #00ff00 !important;
-        color: #000000 !important;
-        box-shadow: 0 0 15px #00ff00, inset 0 0 10px #00ff00 !important;
-    }
-    .leaflet-popup button {
-        background: #00ff00 !important;
-        color: #000 !important !important;
-        border: none !important;
-        border-radius: 4px !important;
-        padding: 4px 10px !important;
-        font-weight: bold !important;
-        font-size: 12px !important;
-        cursor: pointer !important;
-        font-family: 'Courier New', monospace !important;
-        min-width: 50px !important;
-        text-align: center !important;
-    }
-    .leaflet-popup button:hover {
-        background: #00cc00 !important;
-    }
-/* FINAL FIX: Force modal button hover glow visible in BOTH light & dark mode */
+.leaflet-control-zoom a {
+    background-color: #000000 !important;
+    color: #00ff00 !important;
+    border: 2px solid #00ff00 !important;
+    font-family: 'Courier New', monospace !important;
+    font-weight: bold !important;
+    text-shadow: 0 0 5px #00ff00 !important;
+    box-shadow: 0 0 8px #00ff00 !important;
+    border-radius: 0 !important;
+    width: 30px !important;
+    height: 30px !important;
+    line-height: 26px !important;
+    font-size: 18px !important;
+    text-align: center !important;
+}
+.leaflet-control-zoom a:hover {
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+    box-shadow: 0 0 15px #00ff00, inset 0 0 10px #00ff00 !important;
+}
+.leaflet-popup button {
+    background: #00ff00 !important;
+    color: #000 !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 4px 10px !important;
+    font-weight: bold !important;
+    font-size: 12px !important;
+    cursor: pointer !important;
+    font-family: 'Courier New', monospace !important;
+    min-width: 50px !important;
+    text-align: center !important;
+}
+.leaflet-popup button:hover {
+    background: #00cc00 !important;
+}
 #itemModal button {
     transition: all 0.3s ease !important;
     box-shadow: none !important;
@@ -791,20 +722,15 @@ margin-top: 70px !important; /* was 60px — increase for more top spacing */
 }
 #itemModal button:hover,
 #itemModal button:focus-visible {
-    /* Prevent general button:hover from changing background */
     background-color: inherit !important;
-   
-    /* Very strong, high-contrast glow that works on any background */
     box-shadow:
         0 0 12px #ffffff,
         0 0 24px #00ff88,
         0 0 36px #00ff00 !important;
-   
-    transform: scale(1.08) !important; /* More obvious scale */
-    filter: brightness(1.2) !important; /* Extra lift in light mode */
+    transform: scale(1.08) !important;
+    filter: brightness(1.2) !important;
     opacity: 0.92 !important;
 }
-/* Even stronger glow in dark mode for maximum visibility */
 body.dark-mode #itemModal button:hover,
 body.dark-mode #itemModal button:focus-visible {
     box-shadow:
@@ -813,21 +739,21 @@ body.dark-mode #itemModal button:focus-visible {
         0 0 48px #00ff00 !important;
     transform: scale(1.08) !important;
 }
-    body.dark-mode .leaflet-popup button {
-        color: #000 !important !important !important;
-        background: #00ff00 !important;
-    }
-    body.dark-mode .leaflet-popup button:hover {
-        background: #00cc00 !important;
-    }
-    .custom-icon.glowing {
-        box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00 !important;
-        animation: glowPulse 1.5s infinite ease-in-out;
-    }
-    @keyframes glowPulse {
-        0%, 100% { box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00; }
-        50% { box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff00; }
-    }
+body.dark-mode .leaflet-popup button {
+    color: #000 !important;
+    background: #00ff00 !important;
+}
+body.dark-mode .leaflet-popup button:hover {
+    background: #00cc00 !important;
+}
+.custom-icon.glowing {
+    box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00 !important;
+    animation: glowPulse 1.5s infinite ease-in-out;
+}
+@keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00; }
+    50% { box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff00; }
+}
 .custom-icon,
 .custom-icon.glowing,
 .custom-icon.glowing .marker-background {
@@ -836,9 +762,7 @@ body.dark-mode #itemModal button:focus-visible {
     outline: none !important;
 }
 .custom-icon.glowing {
-    filter: drop-shadow(0 0 2px #00ff00)
-            drop-shadow(0 0 2px #00ff00)
-            brightness(1.0) !important;
+    filter: drop-shadow(0 0 2px #00ff00) drop-shadow(0 0 2px #00ff00) brightness(1.0) !important;
     animation: glowPulse 1.5s infinite ease-in-out;
 }
 .marker-background {
@@ -852,196 +776,189 @@ body.dark-mode #itemModal button:focus-visible {
     border: 1.5px solid #000 !important;
     box-sizing: border-box !important;
 }
-    #categoryCheckboxes label {
-        display: block !important;
-        margin: 8px 0 !important;
-        padding: 6px !important;
-        background: rgba(0,0,0,0.3);
-        border-radius: 4px;
+#categoryCheckboxes label {
+    display: block !important;
+    margin: 8px 0 !important;
+    padding: 6px !important;
+    background: rgba(0,0,0,0.3);
+    border-radius: 4px;
+}
+.small a {
+    color: #00ff00 !important;
+    text-decoration: underline;
+    font-weight: bold;
+}
+.small a:hover {
+    color: #00ff88 !important;
+    text-shadow: 0 0 8px #00ff00;
+}
+@media (max-width: 768px) {
+    #map { height: 600px; max-width: 100%; }
+    .controls { flex-direction: column; align-items: center; }
+    input[type="text"], select, textarea, button {
+        width: 100%; max-width: 100%; margin: 5px 0;
+        font-size: clamp(14px, 4vw, 16px);
+        padding: clamp(10px, 2vw, 12px);
     }
-    .small a {
-        color: #00ff00 !important;
-        text-decoration: underline;
-        font-weight: bold;
+    #combinedSearch { max-width: 100%; }
+    .modal-content { max-width: 90%; padding: 12px; font-size: clamp(14px, 3.5vw, 16px); max-height: 80vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .close { font-size: clamp(20px, 5vw, 22px); }
+    #gridNotification { bottom: 10px; right: 10px; font-size: 13px; padding: 10px 16px; box-shadow: 0 0 15px #00ff00; }
+    #tableContainer { padding: 8px; }
+    #customTableHeader > div > div,
+    #locationsTable tbody td {
+        font-size: 11px !important;
+        padding: 6px 4px !important;
     }
-    .small a:hover {
-        color: #00ff88 !important;
-        text-shadow: 0 0 8px #00ff00;
+    #locationsTable tbody td:nth-child(4) {
+        font-size: 10px !important;
+        white-space: normal !important;
+        line-height: 1.3 !important;
+        word-break: break-word !important;
     }
-    @media (max-width: 768px) {
-        #map { height: 600px; max-width: 100%; }
-        .controls { flex-direction: column; align-items: center; }
-        input[type="text"], select, textarea, button {
-            width: 100%; max-width: 100%; margin: 5px 0;
-            font-size: clamp(14px, 4vw, 16px);
-            padding: clamp(10px, 2vw, 12px);
-        }
-        #combinedSearch { max-width: 100%; }
-        .modal-content { max-width: 90%; padding: 12px; font-size: clamp(14px, 3.5vw, 16px); max-height: 80vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .close { font-size: clamp(20px, 5vw, 22px); }
-        #gridNotification { bottom: 10px; right: 10px; font-size: 13px; padding: 10px 16px; box-shadow: 0 0 15px #00ff00; }
-        #tableContainer { padding: 8px; }
-        #customTableHeader > div > div,
-        #locationsTable tbody td {
-            font-size: 11px !important;
-            padding: 6px 4px !important;
-        }
-        #locationsTable tbody td:nth-child(4) {
-            font-size: 10px !important;
-            white-space: normal !important;
-            line-height: 1.3 !important;
-            word-break: break-word !important;
-        }
-        .icon-circle { width: 24px !important; height: 24px !important; font-size: 13px !important; }
-        .text-location { font-size: 9px !important; max-width: 80px !important; }
-    }
-    .nuke-emoji-wrapper { text-align: center; margin: 12px 0; }
-    .nuke-emoji-btn {
-        display: inline-block;
-        padding: 14px 18px;
-        background: #001100;
-        color: #00ff00 !important;
-        font-size: 3.2em;
-        text-decoration: none;
-        border: 3px solid #00ff00;
-        border-radius: 50%;
-        box-shadow: 0 0 14px #00ff00;
-        transition: all 0.25s ease;
-        cursor: pointer;
-    }
-    .nuke-emoji-btn:hover {
-        background: #002200;
-        transform: scale(1.12) rotate(8deg);
-        box-shadow: 0 0 22px #00ff00, 0 0 34px #00ff00;
-    }
-    .nuke-emoji-btn:active { transform: scale(0.96); }
-    #voiceSearchBtn[disabled], #voiceSearchBtn[style*="opacity: 0.6"] {
-        pointer-events: auto !important;
-    }
-    #searchBar, #buttonGroup, #toolsToggleRow, #topBar {
-        visibility: hidden;
-        opacity: 0;
-        transition: opacity 0.4s ease;
-    }
-    .map-ready #searchBar, .map-ready #buttonGroup,
-    .map-ready #toolsToggleRow, .map-ready #topBar {
-        visibility: visible; opacity: 1;
-    }
-    .top-bar.hidden { display: none; }
-    .tools-toggle-row { display: flex; justify-content: center; margin: 10px 0; }
-    .button-group.hidden { display: none !important; }
-    #lockAllBtn { display: none; margin: 5px; }
-    #toggleTableBtn { display: none !important; }
-    .leaflet-popup {
-        margin-bottom: 25px !important;
-    }
-    .leaflet-popup-tip {
-        margin-top: -6px !important;
-    }
-    .leaflet-popup-content button,
-    .leaflet-popup-content-wrapper button {
-        all: unset !important;
-        display: inline-block !important;
-        background: #00ff00 !important;
-        color: #000 !important;
-        border: none !important;
-        border-radius: 4px !important;
-        padding: 4px 10px !important;
-        font-family: 'Courier New', monospace !important;
-        font-weight: bold !important;
-        font-size: 12px !important;
-        line-height: 1.4 !important;
-        text-align: center !important;
-        min-width: 50px !important;
-        cursor: pointer !important;
-        box-shadow: 0 0 5px rgba(0, 255, 0, 0.5) !important;
-        margin: 6px auto !important;
-    }
-    .leaflet-popup-content button:hover,
-    .leaflet-popup-content-wrapper button:hover {
-        background: #00cc00 !important;
-        box-shadow: 0 0 10px rgba(0, 255, 0, 0.8) !important;
-    }
-    body.dark-mode .leaflet-popup-content button,
-    body.dark-mode .leaflet-popup-content-wrapper button {
-        color: #000 !important;
-        background: #00ff00 !important;
-    }
-    body.dark-mode .leaflet-popup-content button:hover,
-    body.dark-mode .leaflet-popup-content-wrapper button:hover {
-        background: #00cc00 !important;
-    }
-    #itemDesc, #itemModal textarea {
-        height: 160px !important;
-        width: 100% !important;
-        max-width: none !important;
-        resize: none !important;
-        overflow-y: auto !important;
-        scrollbar-width: thin;
-        scrollbar-color: #00ff00 #000;
-    }
-    #itemDesc::-webkit-scrollbar, #itemModal textarea::-webkit-scrollbar {
-        width: 8px;
-    }
-    #itemDesc::-webkit-scrollbar-track, #itemModal textarea::-webkit-scrollbar-track {
-        background: #000;
-        border-left: 1px solid #00ff00;
-    }
-    #itemDesc::-webkit-scrollbar-thumb, #itemModal textarea::-webkit-scrollbar-thumb {
-        background: #00ff00;
-        border-radius: 0;
-    }
-    .marker-flash {
-        animation: flashGreen 3s ease-out forwards;
-    }
-    @keyframes flashGreen {
-        0% { box-shadow: 0 0 20px #00ff00; }
-        100% { box-shadow: 0 0 10px #00ff00; }
-    }
-    .marker-hover {
-        animation: pulseGreen 1.5s infinite ease-in-out;
-    }
-    @keyframes pulseGreen {
-        0%, 100% { filter: brightness(0.5); }
-        50% { filter: brightness(0.6); }
-    }
-    .share-spot {
-        position: fixed;
-        top: 20%;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #000;
-        color: #0f0;
-        padding: 20px 30px;
-        border: 3px solid #0f0;
-        box-shadow: 0 0 30px #0f0;
-        font: bold 18px monospace;
-        z-index: 99999;
-        border-radius: 10px;
-        text-align: center;
-        animation: pop 0.5s;
-        display: none;
-    }
-    @keyframes pop {
-        from { transform: translate(-50%, -20%); opacity: 0; }
-        to { transform: translateX(-50%); opacity: 1; }
-    }
+    .icon-circle { width: 24px !important; height: 24px !important; font-size: 13px !important; }
+    .text-location { font-size: 9px !important; max-width: 80px !important; }
+}
+.nuke-emoji-wrapper { text-align: center; margin: 12px 0; }
+.nuke-emoji-btn {
+    display: inline-block;
+    padding: 14px 18px;
+    background: #001100;
+    color: #00ff00 !important;
+    font-size: 3.2em;
+    text-decoration: none;
+    border: 3px solid #00ff00;
+    border-radius: 50%;
+    box-shadow: 0 0 14px #00ff00;
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+.nuke-emoji-btn:hover {
+    background: #002200;
+    transform: scale(1.12) rotate(8deg);
+    box-shadow: 0 0 22px #00ff00, 0 0 34px #00ff00;
+}
+.nuke-emoji-btn:active { transform: scale(0.96); }
+#voiceSearchBtn[disabled], #voiceSearchBtn[style*="opacity: 0.6"] {
+    pointer-events: auto !important;
+}
+#searchBar, #buttonGroup, #toolsToggleRow, #topBar {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+.map-ready #searchBar, .map-ready #buttonGroup,
+.map-ready #toolsToggleRow, .map-ready #topBar {
+    visibility: visible; opacity: 1;
+}
+.top-bar.hidden { display: none; }
+.tools-toggle-row { display: flex; justify-content: center; margin: 10px 0; }
+.button-group.hidden { display: none !important; }
+#lockAllBtn { display: none; margin: 5px; }
+#toggleTableBtn { display: none !important; }
+.leaflet-popup {
+    margin-bottom: 25px !important;
+}
+.leaflet-popup-tip {
+    margin-top: -6px !important;
+}
+.leaflet-popup-content button,
+.leaflet-popup-content-wrapper button {
+    all: unset !important;
+    display: inline-block !important;
+    background: #00ff00 !important;
+    color: #000 !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 4px 10px !important;
+    font-family: 'Courier New', monospace !important;
+    font-weight: bold !important;
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+    text-align: center !important;
+    min-width: 50px !important;
+    cursor: pointer !important;
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5) !important;
+    margin: 6px auto !important;
+}
+.leaflet-popup-content button:hover,
+.leaflet-popup-content-wrapper button:hover {
+    background: #00cc00 !important;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8) !important;
+}
+body.dark-mode .leaflet-popup-content button,
+body.dark-mode .leaflet-popup-content-wrapper button {
+    color: #000 !important;
+    background: #00ff00 !important;
+}
+body.dark-mode .leaflet-popup-content button:hover,
+body.dark-mode .leaflet-popup-content-wrapper button:hover {
+    background: #00cc00 !important;
+}
+#itemDesc, #itemModal textarea {
+    height: 160px !important;
+    width: 100% !important;
+    max-width: none !important;
+    resize: none !important;
+    overflow-y: auto !important;
+    scrollbar-width: thin;
+    scrollbar-color: #00ff00 #000;
+}
+#itemDesc::-webkit-scrollbar, #itemModal textarea::-webkit-scrollbar {
+    width: 8px;
+}
+#itemDesc::-webkit-scrollbar-track, #itemModal textarea::-webkit-scrollbar-track {
+    background: #000;
+    border-left: 1px solid #00ff00;
+}
+#itemDesc::-webkit-scrollbar-thumb, #itemModal textarea::-webkit-scrollbar-thumb {
+    background: #00ff00;
+    border-radius: 0;
+}
+.marker-hover {
+    animation: pulseGreen 1.5s infinite ease-in-out;
+}
+@keyframes pulseGreen {
+    0%, 100% { filter: brightness(0.5); }
+    50% { filter: brightness(0.6); }
+}
+.share-spot {
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #000;
+    color: #0f0;
+    padding: 20px 30px;
+    border: 3px solid #0f0;
+    box-shadow: 0 0 30px #0f0;
+    font: bold 18px monospace;
+    z-index: 99999;
+    border-radius: 10px;
+    text-align: center;
+    animation: pop 0.5s;
+    display: none;
+}
+@keyframes pop {
+    from { transform: translate(-50%, -20%); opacity: 0; }
+    to { transform: translateX(-50%); opacity: 1; }
+}
 @keyframes pulse {
     0%,100% { transform:scale(1); }
     50% { transform:scale(1.15); }
-    }
+}
 .leaflet-control-attribution.leaflet-control {
     display: none;
-    }
+}
 #resetAppBtn {
     color: #000 !important;
-    }
+}
 #confirmModalBtn,
-    #updateGotIt {
+#updateGotIt {
     color: #000 !important;
     background: #00ff00 !important;
-    }
-    @keyframes nukeFlash {
+}
+@keyframes nukeFlash {
     0% { opacity: 0; }
     10% { opacity: 1; }
     100% { opacity: 0; }
@@ -1223,77 +1140,34 @@ body.dark-mode #itemModal button:focus-visible {
 .leaflet-container {
     image-rendering: crisp-edges;
 }
-    #proceedWipeBtn:hover {
-        box-shadow: 0 0 25px 5px rgba(255, 68, 68, 0.8) !important;
-        filter: brightness(1.2);
-        transition: all 0.2s ease;
-    }
-    #cancelSafetyBtn:hover {
-        box-shadow: 0 0 25px 5px rgba(0, 255, 0, 0.6) !important;
-        filter: brightness(1.2);
-        transition: all 0.2s ease;
-    }
-/* Community Update Button - Available State (EXTRA SOFT green pulse) */
+#proceedWipeBtn:hover {
+    box-shadow: 0 0 25px 5px rgba(255, 68, 68, 0.8) !important;
+    filter: brightness(1.2);
+    transition: all 0.2s ease;
+}
+#cancelSafetyBtn:hover {
+    box-shadow: 0 0 25px 5px rgba(0, 255, 0, 0.6) !important;
+    filter: brightness(1.2);
+    transition: all 0.2s ease;
+}
+/* Community Update Button - Available State */
 #downloadCommunityBtn.available {
-    box-shadow: 0 0 6px rgba(0, 255, 136, 0.45),
-                0 0 14px rgba(0, 255, 136, 0.25),
-                inset 0 0 6px rgba(0, 255, 136, 0.15) !important;
-    animation: softPulse 3.2s ease-in-out infinite;
-    color: #00ffaa !important;
-    font-weight: bold !important;
-    background: #001400 !important;
-    border-color: #00aa66 !important;
+    box-shadow: 0 0 12px #00ff88,
+                0 0 25px #00ff88,
+                inset 0 0 8px rgba(0, 255, 136, 0.4);
+    animation: softPulse 2s ease-in-out infinite;
+    color: #00ff88;
+    font-weight: bold;
 }
-
-/* Reset to normal button appearance when NOT available */
-#downloadCommunityBtn:not(.available) {
-    box-shadow: none !important;
-    animation: none !important;
-    background-color: #1a3c34 !important;
-    color: #00ff00 !important;
-    border-color: #00ff00 !important;
-}
-
 @keyframes softPulse {
-    0%, 100% {
-        box-shadow: 0 0 6px rgba(0, 255, 136, 0.45),
-                    0 0 14px rgba(0, 255, 136, 0.25),
-                    inset 0 0 6px rgba(0, 255, 136, 0.15);
-    }
-    50% {
-        box-shadow: 0 0 10px rgba(0, 255, 136, 0.55),
-                    0 0 20px rgba(0, 255, 136, 0.30),
-                    inset 0 0 9px rgba(0, 255, 136, 0.22);
-    }
+    0%, 100% { box-shadow: 0 0 12px #00ff88, 0 0 25px #00ff88, inset 0 0 8px rgba(0, 255, 136, 0.4); }
+    50% { box-shadow: 0 0 18px #00ff88, 0 0 35px #00ff88, inset 0 0 12px rgba(0, 255, 136, 0.6); }
 }
 button:not(:hover):not(:active):not(:focus),
 #toggleButtonGroup:not(:hover):not(:active):not(:focus),
 #buttonGroup button:not(:hover):not(:active):not(:focus) {
     background-color: #1a3c34;
     box-shadow: none;
-}
-/* ── Mobile: bright green + glow during tap, fast clean fade on release ── */
-@media (hover: none) and (pointer: coarse) {
-    button,
-    #toggleButtonGroup,
-    #buttonGroup button {
-        background-color: #1a3c34;
-        transition: background-color 0.35s ease-out, box-shadow 0.35s ease-out;
-    }
-    button:active,
-    #toggleButtonGroup:active,
-    #buttonGroup button:active {
-        background-color: #00ff00 !important;
-        color: #000 !important;
-        box-shadow: 0 0 10px #00ff00 !important;
-        transition: none; /* instant bright feedback on press */
-    }
-    /* Fast fade-back class applied on touchend */
-    .fast-fade-release {
-        background-color: #1a3c34 !important;
-        box-shadow: none !important;
-        transition: background-color 0.25s ease-out, box-shadow 0.25s ease-out !important;
-    }
 }
 /* Global Fallout 76 Pip-Boy green scrollbars */
 ::-webkit-scrollbar {
@@ -1315,12 +1189,10 @@ button:not(:hover):not(:active):not(:focus),
     background: #00ff88;
     box-shadow: 0 0 8px #00ff88;
 }
-/* Firefox support */
 * {
     scrollbar-width: thin;
     scrollbar-color: #00ff00 #000;
 }
-/* Specific overrides for known scroll areas */
 #itemDesc,
 #itemModal textarea,
 #postcardMessage,
@@ -1336,7 +1208,6 @@ button:not(:hover):not(:active):not(:focus),
     -moz-user-select: none;
     -ms-user-select: none;
 }
-/* Add to your <style> block */
 .leaflet-marker-icon.long-press-hold {
     filter: brightness(1.3);
     box-shadow: 0 0 12px #00ff88;
@@ -1345,32 +1216,28 @@ button:not(:hover):not(:active):not(:focus),
 }
 @media (max-width: 768px) {
     #buttonGroup button {
-        white-space: normal !important; /* ← allow wrapping */
-        line-height: 1.3 !important; /* ← better spacing between lines */
-        padding: 8px 10px !important; /* ← slightly less horizontal padding */
-        height: auto !important; /* ← let height grow with wrapped text */
-        min-height: 54px; /* ← minimum to keep consistent look */
+        white-space: normal !important;
+        line-height: 1.3 !important;
+        padding: 8px 10px !important;
+        height: auto !important;
+        min-height: 54px;
     }
-   
-    /* Specifically target the long button if needed */
     #downloadCommunityBtn {
-        font-size: 13px !important; /* ← optional: slightly smaller text */
+        font-size: 13px !important;
     }
-@media (max-width: 768px) {
     #locationsTable tbody tr {
-        min-height: 52px !important; /* modest increase — comfortable tap target without excess height */
+        min-height: 52px !important;
         padding: 4px 0 !important;
-        gap: 8px !important; /* tighter gap between cells */
+        gap: 8px !important;
         align-items: center !important;
     }
     #locationsTable tbody td {
-        padding: 8px 6px !important; /* balanced padding for fingers */
+        padding: 8px 6px !important;
         font-size: 13px !important;
         line-height: 1.35 !important;
     }
-    /* Lock column — ensure it never collapses and toggle stays visible/centered */
     #locationsTable tbody td:nth-child(1) {
-        flex: 0 0 52px !important; /* fixed width prevents squashing */
+        flex: 0 0 52px !important;
         width: 52px !important;
         max-width: 52px !important;
         padding: 0 !important;
@@ -1379,14 +1246,13 @@ button:not(:hover):not(:active):not(:focus),
         justify-content: center !important;
     }
     .lock-toggle {
-        font-size: 24px !important; /* large enough to tap reliably */
+        font-size: 24px !important;
         line-height: 1 !important;
-        padding: 10px 6px !important; /* generous hit area */
+        padding: 10px 6px !important;
         margin: 0 auto !important;
         display: block !important;
         text-align: center !important;
     }
-    /* Description column — give it priority space */
     #locationsTable tbody td:nth-child(4) {
         flex: 4 !important;
         padding-left: 12px !important;
@@ -1394,7 +1260,6 @@ button:not(:hover):not(:active):not(:focus),
         justify-content: flex-start !important;
         align-items: center !important;
     }
-    /* Icon and category columns — keep compact */
     #locationsTable tbody td:nth-child(2),
     #locationsTable tbody td:nth-child(3) {
         flex: 0.8 !important;
@@ -1403,23 +1268,22 @@ button:not(:hover):not(:active):not(:focus),
 }
 @media (max-width: 768px) {
     #locationsTable tbody td:nth-child(4) {
-        flex: 5 !important; /* Give description even more priority space */
-        padding: 8px 10px 8px 14px !important; /* Left padding for breathing room, right for symmetry */
+        flex: 5 !important;
+        padding: 8px 10px 8px 14px !important;
         justify-content: flex-start !important;
-        align-items: flex-start !important; /* Align text to top for multi-line readability */
+        align-items: flex-start !important;
         font-size: 13px !important;
-        line-height: 1.45 !important; /* Slightly taller lines → easier to read wrapped text */
-        hyphens: auto !important; /* Better automatic hyphenation on long words */
+        line-height: 1.45 !important;
+        hyphens: auto !important;
         -webkit-hyphens: auto !important;
-        word-break: break-word !important; /* Force break on very long unbreakable strings */
+        word-break: break-word !important;
         overflow-wrap: break-word !important;
         white-space: normal !important;
-        max-height: 120px !important; /* Optional: cap height to prevent extreme row growth */
-        overflow-y: hidden !important; /* Hide excess if very long — user can scroll table */
+        max-height: 120px !important;
+        overflow-y: hidden !important;
     }
-    /* Subtle visual cue for truncated / multi-line descriptions */
     #locationsTable tbody td:nth-child(4)::after {
-        content: "…"; /* Ellipsis hint when text is long */
+        content: "…";
         position: absolute;
         right: 8px;
         bottom: 6px;
@@ -1428,7 +1292,6 @@ button:not(:hover):not(:active):not(:focus),
         opacity: 0.7;
         pointer-events: none;
     }
-    /* Hide ellipsis when text fits fully */
     #locationsTable tbody td:nth-child(4):not(.overflowing)::after {
         display: none;
     }
@@ -1449,12 +1312,11 @@ button:not(:hover):not(:active):not(:focus),
     color: #00ff88;
     font-weight: bold;
 }
-
 @keyframes softPulse {
     0%, 100% { box-shadow: 0 0 12px #00ff88, 0 0 25px #00ff88, inset 0 0 8px rgba(0, 255, 136, 0.4); }
-    50%      { box-shadow: 0 0 18px #00ff88, 0 0 35px #00ff88, inset 0 0 12px rgba(0, 255, 136, 0.6); }
+    50% { box-shadow: 0 0 18px #00ff88, 0 0 35px #00ff88, inset 0 0 12px rgba(0, 255, 136, 0.6); }
 }
-    </style>
+</style>
 </head>
 <body>
     <!-- DEV NOTE: TITLE TOGGLE BUTTON — FIXED -->
@@ -6042,42 +5904,39 @@ function triggerEpicFlash(icon = "CHECKMARK", title = "ACTION COMPLETE", line1 =
 
 // ── Memory Cleanup to Prevent Gradual Slowdown on Mobile ──
 let lastCleanupTime = Date.now();
-
 function performMemoryCleanup() {
     if (Date.now() - lastCleanupTime < 45000) return; // max once every ~45 seconds
     lastCleanupTime = Date.now();
 
-    // Safe guards in case objects are not yet initialized
     if (typeof clusteredMarkers !== 'undefined' && clusteredMarkers && typeof clusteredMarkers._unspiderfy === 'function') {
         clusteredMarkers._unspiderfy();
     }
-
     if (typeof map !== 'undefined' && map) {
         map.invalidateSize({ animate: false });
     }
-
-    // Optional browser GC hint
+    // Optional browser GC hint (harmless, does nothing in normal tabs)
     if (window.gc) window.gc();
 }
+setInterval(performMemoryCleanup, 30000);
 
-setInterval(performMemoryCleanup, 30000); // Run every 30 seconds
-
-// ── Unified Smooth Refresh for All Devices (iOS + Android + PC) ──
+// ── Unified Light Refresh for All Devices (iOS + Android + PC) ──
+// Light refresh every 8 seconds (was 5s) — more balanced for battery & smoothness
 setInterval(() => {
     if (document.visibilityState !== 'visible' || window.isDraggingAnyMarker) return;
 
-    // Skip heavy work while user is actively interacting
+    // Skip if user is actively interacting (popup open or cluster spiderfied)
     let isUserInteracting = false;
-    map.eachLayer(layer => {
-        if (layer instanceof L.MarkerClusterGroup && layer._spiderfied) isUserInteracting = true;
-        if (layer.getPopup && layer.getPopup().isOpen()) isUserInteracting = true;
-    });
-
+    if (typeof map !== 'undefined' && map) {
+        map.eachLayer(layer => {
+            if (layer instanceof L.MarkerClusterGroup && layer._spiderfied) isUserInteracting = true;
+            if (layer.getPopup && layer.getPopup().isOpen()) isUserInteracting = true;
+        });
+    }
     if (isUserInteracting) return;
 
-    // Always do the light refresh (glows, lock state, table) — very cheap
-    [clusteredMarkers, nonClusteredMarkers].forEach(g => {
-        g.eachLayer(m => {
+    // Light refresh — very cheap (glows, lock state, table)
+    if (typeof clusteredMarkers !== 'undefined' && clusteredMarkers) {
+        clusteredMarkers.eachLayer(m => {
             if (!m || !m.options || !m._icon) return;
             const loc = locations.find(l => l.id === m.options.id);
             if (!loc) return;
@@ -6099,17 +5958,16 @@ setInterval(() => {
                 m.dragging?.enable();
             }
         });
-    });
-
-    refreshTable(combinedSearch?.value || '', categoryFilter?.value || '');
-    updateLockAllBtn?.();
-
-    // Full heavy refresh (clear + re-add markers) — very rare on all devices
-    if (Math.random() < 0.08) {        // ~ once every 12–15 seconds on average
-        loadData(combinedSearch.value || '', categoryFilter.value || '');
     }
 
-}, 5000);   // 5 seconds for everyone — balanced sweet spot
+    refreshTable(combinedSearch?.value || '', categoryFilter?.value || '');
+    if (typeof updateLockAllBtn === 'function') updateLockAllBtn();
+
+    // Heavy refresh (full reload) — very rare, only ~once every 60–90 seconds on average
+    if (Math.random() < 0.055) {   // ~once every 90 seconds on average
+        loadData(combinedSearch.value || '', categoryFilter.value || '');
+    }
+}, 8000); // Changed from 5000ms to 8000ms for better battery & smoothness on phones
 
 // ——— IN-GAME NAME PERSISTENCE
 const playerNameInput = document.getElementById('playerNameInput');
@@ -6140,39 +5998,12 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 25-03-2026 C-53 • Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: 26-03-2026 C-54 • Version 76.READY Released • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
     })();
 });
-
-window.addEventListener('error', function(e) {
-    if (e.message && 
-        (e.message.includes('null (reading \'lng\')') || 
-         e.message.includes('Projection.LonLat') ||
-         e.message.includes('Cannot read properties of null'))) {
-        e.preventDefault();
-        return false;
-    }
-}, true);
-
-// Mobile: bright green during tap, force fast fade on release
-document.addEventListener('touchstart', e => {
-    const btn = e.target.closest('button, #toggleButtonGroup, #buttonGroup button');
-    if (btn) btn.style.transition = 'none';
-}, { passive: true });
-
-document.addEventListener('touchend', e => {
-    const btn = e.target.closest('button, #toggleButtonGroup, #buttonGroup button');
-    if (btn) {
-        btn.classList.add('fast-fade-release');
-        setTimeout(() => {
-            btn.classList.remove('fast-fade-release');
-            btn.style.transition = '';
-        }, 350); // matches fade duration
-    }
-}, { passive: true });
 </script>
 </body>
 </html>
