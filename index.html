@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=55">
+	<link rel="manifest" href="manifest.json?v=57">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1316,6 +1316,11 @@ button:not(:hover):not(:active):not(:focus),
     0%, 100% { box-shadow: 0 0 12px #00ff88, 0 0 25px #00ff88, inset 0 0 8px rgba(0, 255, 136, 0.4); }
     50% { box-shadow: 0 0 18px #00ff88, 0 0 35px #00ff88, inset 0 0 12px rgba(0, 255, 136, 0.6); }
 }
+/* Force black text on export backup buttons */
+#backupPersonalOnly, #backupWithKept,
+#backupPersonalOnly small, #backupWithKept small {
+    color: #000000 !important;
+}
 </style>
 </head>
 <body>
@@ -1492,6 +1497,10 @@ button:not(:hover):not(:active):not(:focus),
    style="color:#00ff88; text-decoration:underline; font-weight:bold; cursor:pointer;">
   View Pending Community Submissions
 </a>
+</p>
+<p style="margin-top:20px; text-align:center; font-size:1.0em; color:#88ff88;">
+    <strong>Backup Recommendation:</strong> Use “Export Markers” regularly.<br>
+    Choose “Personal Only” for a clean backup or “Personal + Kept” to include your edited community markers.
 </p>
 
 <p style="margin-top:28px; text-align:center; font-size:1.1em;">
@@ -1737,16 +1746,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const lng = loc.lng.toFixed(5);
     return `${loc.category}_${desc}_${lat}_${lng}`;
 }
-function hasBeenSubmitted(cid) {
-    const submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
-    return submitted.includes(cid);
+function hasBeenSubmitted(id) {
+    const submitted = JSON.parse(localStorage.getItem('submitted_ids') || '[]');
+    return submitted.includes(id);
 }
 
-function markAsSubmitted(cid) {
-    let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
-    if (!submitted.includes(cid)) {
-        submitted.push(cid);
-        localStorage.setItem('submitted_cids', JSON.stringify(submitted));
+function markAsSubmitted(id) {
+    let submitted = JSON.parse(localStorage.getItem('submitted_ids') || '[]');
+    if (!submitted.includes(id)) {
+        submitted.push(id);
+        localStorage.setItem('submitted_ids', JSON.stringify(submitted));
     }
 }
 
@@ -3356,31 +3365,55 @@ marker.bindPopup(`
     ${escapeHtml(loc.desc)}
 </div>
        
-        <!-- Static footer/buttons -->
-        ${loc.isCommunity && !loc.userEdited ? `
-        <div style="text-align:center; display:flex; flex-direction:column; gap:10px;">
-            <button onclick="exitFullscreenThenDo(() => keepCommunityMarker('${loc.id}'))"
-                    style="background:#00ff00; color:#000; border:none; padding:8px 16px; border-radius:4px; font-size:13px; font-weight:bold; cursor:pointer;">
-                Keep This Marker
-            </button>
-            <button onclick="exitFullscreenThenDo(() => startReport('${loc.id}'))"
-                    style="background:#300; color:#f00; border:2px solid #f00; padding:8px 16px; border-radius:4px; font-size:13px; font-weight:bold; cursor:pointer;">
-                Report Bad Marker
-            </button>
-            <div style="margin-top:8px; font-size:12px; color:#aaa;">
-                Keep = save permanently (editable)<br>
-                Report = ask MrCrazy to review & remove if needed
-            </div>
-        </div>` : ''}
-       
-        ${loc.userEdited && !loc.isPostcard ? `
-        <div style="margin:8px 0; text-align:center;">
-            <span class="popup-lock-toggle" onclick="toggleLockFromPopup(${locations.indexOf(loc)})">${loc.locked ? 'Locked' : 'Unlocked'}</span>
-        </div>
-        <button onclick="exitFullscreenThenDo(() => editMarkerFromPopup(${locations.indexOf(loc)}))"
-                style="background:#00ff00; color:#000; border:none; padding:8px 16px; border-radius:4px; font-size:13px; font-weight:bold; cursor:pointer;">
-            Edit
-        </button>` : ''}
+<!-- Static footer/buttons -->
+${loc.isCommunity && !loc.userEdited && !loc.wasCommunityKept ? `
+<div style="text-align:center; display:flex; flex-direction:column; gap:10px;">
+    <button onclick="exitFullscreenThenDo(() => keepCommunityMarker('${loc.id}'))"
+            style="background:#00ff00; color:#000; border:none; padding:8px 16px; border-radius:4px; font-size:13px; font-weight:bold; cursor:pointer;">
+        Keep This Marker
+    </button>
+    <button onclick="exitFullscreenThenDo(() => startReport('${loc.id}'))"
+            style="background:#300; color:#f00; border:2px solid #f00; padding:8px 16px; border-radius:4px; font-size:13px; font-weight:bold; cursor:pointer;">
+        Report Bad Marker
+    </button>
+    <div style="margin-top:8px; font-size:12px; color:#aaa;">
+        Keep = save permanently (editable)<br>
+        Report = ask MrCrazy to review & remove if needed
+    </div>
+</div>` : ''}
+
+${loc.wasCommunityKept ? `
+<div style="text-align:center; display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+    <div style="margin:8px 0; text-align:center;">
+        <span class="popup-lock-toggle" onclick="toggleLockFromPopup(${locations.indexOf(loc)})">${loc.locked ? '🔐 LOCKED' : '🔓 UNLOCKED'}</span>
+    </div>
+    <button onclick="exitFullscreenThenDo(() => editMarkerFromPopup(${locations.indexOf(loc)}))"
+            style="background:#00ff00; color:#000; border:none; padding:8px 16px; border-radius:4px; font-size:13px; font-weight:bold; cursor:pointer;">
+        Edit
+    </button>
+    <button onclick="exitFullscreenThenDo(() => revertToCommunityMarker('${loc.id}'))"
+            style="background:#ffaa00; color:#000; border:none; padding:8px 16px; border-radius:4px; font-size:13px; font-weight:bold; cursor:pointer;">
+        ↩ Revert back to Community
+    </button>
+    <div style="margin-top:6px; font-size:12px; color:#aaa; line-height:1.4;">
+        Revert = return to community map (no longer editable)<br>will receive updates again
+    </div>
+</div>` : ''}
+
+${loc.userEdited && !loc.isPostcard && !loc.wasCommunityKept ? `
+<div style="text-align:center; margin:12px 0 8px;">
+    <div style="margin:8px 0; text-align:center;">
+        <span class="popup-lock-toggle" onclick="toggleLockFromPopup(${locations.indexOf(loc)})">${loc.locked ? '🔐 LOCKED' : '🔓 UNLOCKED'}</span>
+    </div>
+    <button onclick="exitFullscreenThenDo(() => editMarkerFromPopup(${locations.indexOf(loc)}))"
+            style="background:#00ff00; color:#000; border:none; padding:8px 16px; border-radius:4px; font-size:13px; font-weight:bold; cursor:pointer;">
+        Edit
+    </button>
+    <div style="margin-top:10px; font-size:12px; color:#88ff88; line-height:1.4;">
+        You Created This Marker<br>
+        Feel free to share to the Community Map
+    </div>
+</div>` : ''}
     </div>
 `, {
     maxWidth: 280,
@@ -3465,21 +3498,35 @@ marker.bindPopup(`
     const appVersion = "76.READY";
     const communityVer = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
 
+    // Total Logged (respecting active categories)
     const total = locations.filter(l => activeCategories.has(l.category)).length;
 
-    const userTotal = locations.filter(l =>
-        (l.userEdited === true || l.wasCommunityKept === true) &&
+    // You Created - Pure personal markers you made yourself
+    const created = locations.filter(l => 
+        l.userEdited === true && 
+        !l.wasCommunityKept && 
         !l.isPostcard
     ).length;
+
+    // You Kept - Community markers you decided to keep permanently
+    const kept = locations.filter(l => 
+        l.wasCommunityKept === true && 
+        !l.isPostcard
+    ).length;
+
+    // Total You Logged (Created + Kept)
+    const userLogged = created + kept;
 
     counter.innerHTML = `
         <strong>Latest Version</strong><br>
         FO76-IFM v${appVersion}<br>
         Community Map v${communityVer}<br><br>
-		<strong>Stats</strong><br>
+        <strong>Stats</strong><br>
         Total Logged: <strong style="color:#00ff88;">${total}</strong><br>
-        You Logged → <strong style="color:#00ff88;">${userTotal}</strong><br>
-        You Are Level → <strong style="color:#00ff88;">${level}</strong>
+        You Created: <strong style="color:#00ff88;">${created}</strong><br>
+        You Kept: <strong style="color:#00ff88;">${kept}</strong><br>
+        You Logged: <strong style="color:#00ff88;">${userLogged}</strong><br>
+        Explorer Level: <strong style="color:#00ff88;">${level}</strong>
     `;
 }
         function refreshTable(search = '', cat = '') {
@@ -3888,7 +3935,9 @@ setInterval(() => {
                 }, 100);
             }
         }
-        function triggerNuke() {
+function triggerNuke() {
+    lockUIDuringAnimation(4500);   // Lock UI during the full nuke sequence
+
     const flash = document.createElement('div');
     flash.style.cssText = `
         position:fixed;top:0;left:0;width:100vw;height:100vh;
@@ -4035,6 +4084,7 @@ setInterval(() => {
     saveAppState();
     updateLockAllBtn();
     if (currentLocations.some(l => l.isPostcard)) startPostcardTicker();
+	updateCounterDisplay();
 }
         function forceReload() {
     const modalOpen = itemModal.style.display === 'block';
@@ -4171,6 +4221,7 @@ setInterval(() => {
 
                     // Nuke animation sequence
                     const nuke = document.createElement('div');
+					lockUIDuringAnimation(6000);   // Lock UI during the full nuclear wipe sequence
                     nuke.style.cssText = `
                         position:fixed;top:0;left:0;width:100vw;height:100vh;
                         background:#000;z-index:999999;display:flex;
@@ -4239,37 +4290,46 @@ setInterval(() => {
         }
     );
 };
-        exportBtn.onclick = () => {
+exportBtn.onclick = () => {
     playSound('click');
 
-    const userMarkers = locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard).length;
+    // Correct counts
+    const purePersonalCount = locations.filter(l => 
+        l.userEdited === true && 
+        !l.wasCommunityKept && 
+        !l.isPostcard
+    ).length;
+
+    const withKeptCount = locations.filter(l => 
+        (l.userEdited || l.wasCommunityKept) && 
+        !l.isPostcard
+    ).length;
 
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'block';
     modal.innerHTML = `
-        <div class="modal-content" style="max-width:540px;">
+        <div class="modal-content" style="max-width:560px;">
             <span class="close">×</span>
-            <h2>Backup Your Progress</h2>
-           
-            <div style="background:rgba(0,255,0,0.1);border:1px solid #0f0;padding:15px;border-radius:8px;margin:15px 0;text-align:center;">
-                <div style="font-size:1.4em;font-weight:bold;margin-bottom:8px;">
-                    Your Current Progress
-                </div>
-                <div style="line-height:1.6;font-size:1.05em;">
-                    • <strong>Level ${level}</strong> — ${xp} / 1000 XP<br>
-                    • <strong>Logged: ${userMarkers} marker${userMarkers === 1 ? '' : 's'}</strong> (yours + kept)<br>
-                    • Dark Mode: ${darkMode ? 'On' : 'Off'} | Sounds: ${soundsEnabled ? 'On' : 'Off'}<br>
-                    • Clustering: ${clusteringEnabled ? 'On' : 'Off'} | Grid: ${gridEnabled ? 'On' : 'Off'}
-                </div>
-            </div>
-
-            <div style="text-align:center;margin-top:20px;">
-                <button id="fullBackupBtn" style="background:#00ff00;color:#000;padding:18px;font-size:1.5em;width:90%;font-weight:bold;">
-                    DOWNLOAD FULL BACKUP<br>
-                    <small style="opacity:0.9;">Logged: ${userMarkers} marker${userMarkers === 1 ? '' : 's'} + Level ${level} + XP + All Settings</small>
+            <h2>Choose Backup Type</h2>
+            
+            <div style="margin:20px 0;">
+                <button id="backupPersonalOnly" style="width:100%; padding:16px; margin:8px 0; background:#00ff00; color:#000; font-weight:bold;">
+                    PERSONAL MARKERS YOU CREATED ONLY<br>
+                    <small style="opacity:0.9;">${purePersonalCount} marker${purePersonalCount === 1 ? '' : 's'} + Level ${level} + All Settings</small>
+                </button>
+                
+                <button id="backupWithKept" style="width:100%; padding:16px; margin:8px 0; background:#00d4ff; color:#000; font-weight:bold;">
+                    PERSONAL + KEPT COMMUNITY MARKERS<br>
+                    <small style="opacity:0.9;">${withKeptCount} marker${withKeptCount === 1 ? '' : 's'} + Level ${level} + All Settings</small>
                 </button>
             </div>
+            
+            <p style="text-align:center; font-size:0.9em; opacity:0.8;">
+                Personal Only = clean backup (recommended)<br>
+                With Kept = includes markers you decided to keep<br>
+                Missing markers? Download the community map again if needed.
+            </p>
         </div>
     `;
     document.body.appendChild(modal);
@@ -4281,169 +4341,264 @@ setInterval(() => {
         playSound('modalClose');
     };
 
-    document.getElementById('fullBackupBtn').onclick = () => {
-        const playerMarkers = locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard);
-        const fullBackup = {
-            version: "personal-v76.READY",
+    document.getElementById('backupPersonalOnly').onclick = () => {
+        const data = {
+            version: "personal-only-v76.READY",
             timestamp: new Date().toISOString(),
-            communityVersion,
-            customCategories,
-            locations: playerMarkers,
+            locations: locations.filter(l => l.userEdited === true && !l.wasCommunityKept && !l.isPostcard),
             level,
             xp,
+            customCategories,
             settings: {
-                clusteringEnabled,
-                gridEnabled,
-                currentMap,
-                darkMode,
-                soundsEnabled,
-                titleVisible,
-                toolsVisible,
+                clusteringEnabled, gridEnabled, currentMap, darkMode,
+                soundsEnabled, titleVisible, toolsVisible,
                 activeCategories: [...activeCategories]
             }
         };
-        const blob = new Blob([JSON.stringify(fullBackup, null, 2)], { type: 'application/json' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `FO76_MyBackup_Level_${level}_${userMarkers}_markers_${new Date().toISOString().slice(0,10)}.json`;
-        a.click();
-modal.remove();
-document.body.classList.remove('modal-open');
+        downloadBackupFile(data, `FO76_PersonalOnly_Level_${level}`);
+        modal.remove();
+        document.body.classList.remove('modal-open');
+    };
 
-showTempMessage('FULL BACKUP DOWNLOADED — YOU ARE SAFE!', 7000);
-triggerEpicFlash("💾", "BACKUP COMPLETE", 
-    `${playerMarkers.length} marker${playerMarkers.length === 1 ? '' : 's'} saved!`,
-    `Level ${level} + XP + All Settings`);
-playSound('saving');
+    document.getElementById('backupWithKept').onclick = () => {
+        const data = {
+            version: "personal-plus-kept-v76.READY",
+            timestamp: new Date().toISOString(),
+            locations: locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard),
+            level,
+            xp,
+            customCategories,
+            settings: {
+                clusteringEnabled, gridEnabled, currentMap, darkMode,
+                soundsEnabled, titleVisible, toolsVisible,
+                activeCategories: [...activeCategories]
+            }
+        };
+        downloadBackupFile(data, `FO76_PersonalPlusKept_Level_${level}`);
+        modal.remove();
+        document.body.classList.remove('modal-open');
     };
 };
-        importBtn.onclick = () => {
+
+function downloadBackupFile(data, filenamePrefix) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${filenamePrefix}_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+
+    triggerEpicFlash("💾", "BACKUP COMPLETE",
+        `${data.locations.length} marker${data.locations.length === 1 ? '' : 's'} saved!`,
+        `Level ${level} + XP + All Settings`);
+    playSound('saving');
+}
+importBtn.onclick = () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
     input.onchange = e => {
         const file = e.target.files[0];
         if (!file) return;
+
         const r = new FileReader();
         r.onload = ev => {
             try {
                 const data = JSON.parse(ev.target.result);
                 const incoming = data.locations || (Array.isArray(data) ? data : []);
+                
                 let added = 0, updated = 0, skipped = 0;
+                let personalRestored = 0, keptRestored = 0;
+                let personalSkipped = 0, keptSkipped = 0;
+                const isSingleMarker = incoming.length === 1;
+
                 const beforeState = JSON.stringify(locations);
+
                 const isPersonalFile = data.level !== undefined ||
                                        data.xp !== undefined ||
                                        file.name.includes('MyBackup') ||
-                                       file.name.includes('Shared_Markers');
+                                       file.name.includes('PersonalOnly') ||
+                                       file.name.includes('PersonalPlusKept') ||
+                                       (data.version && data.version.includes('personal'));
+
                 incoming.forEach(imp => {
-                    const existing = locations.find(l => l.cid === imp.cid);
-                    if (existing && isPersonalFile) {
-                        skipped++;
-                        return;
-                    }
+                    let existing = null;
+                    if (imp.id) existing = locations.find(l => l.id === imp.id);
+                    if (!existing && imp.cid) existing = locations.find(l => l.cid === imp.cid);
+
                     if (isPersonalFile) {
+                        const isPurePersonalInBackup = imp.userEdited === true && imp.wasCommunityKept !== true;
+
                         if (existing) {
-                            Object.assign(existing, imp);
-                            existing.userEdited = true;
-                            existing.wasCommunityKept = true;
-                            updated++;
+                            const isCurrentlyPurePersonal = existing.userEdited === true && existing.wasCommunityKept !== true;
+                            const isCurrentlyKept = existing.wasCommunityKept === true;
+
+                            const needsUpdate = JSON.stringify(existing) !== JSON.stringify({ ...existing, ...imp });
+
+                            if (needsUpdate) {
+                                Object.assign(existing, imp);
+                                existing.userEdited = true;
+                                existing.isCommunity = false;
+
+                                if (isCurrentlyPurePersonal) {
+                                    existing.wasCommunityKept = false;
+                                    personalRestored++;
+                                } else if (isCurrentlyKept) {
+                                    existing.wasCommunityKept = true;
+                                    keptRestored++;
+                                } else {
+                                    existing.wasCommunityKept = !!imp.wasCommunityKept;
+                                    if (existing.wasCommunityKept) keptRestored++;
+                                    else personalRestored++;
+                                }
+                                updated++;
+                            } else {
+                                // Already present and no change needed
+                                if (isCurrentlyPurePersonal) personalSkipped++;
+                                else if (isCurrentlyKept) keptSkipped++;
+                                else skipped++;
+                            }
                         } else {
                             locations.push({
                                 ...imp,
-                                id: generateUniqueId(),
+                                id: imp.id || generateUniqueId(),
                                 addedTime: Date.now(),
                                 locked: true,
                                 isPostcard: false,
                                 isTemp: false,
                                 userEdited: true,
-                                wasCommunityKept: true,
-								isCommunity: false
+                                wasCommunityKept: !!imp.wasCommunityKept,
+                                isCommunity: false
                             });
+                            if (isPurePersonalInBackup) personalRestored++;
+                            else keptRestored++;
                             added++;
                         }
                     } else {
-                        if (existing && existing.userEdited) {
+                        if (existing && (existing.userEdited || existing.wasCommunityKept)) {
                             skipped++;
                             return;
                         }
-                        // Merge custom category from single marker
+
                         if (imp.category && imp.icon && !defaultCategoryIcons[imp.category]) {
                             customCategories[imp.category] = imp.icon;
                             categoryIcons[imp.category] = imp.icon;
                             categoryColors[imp.category] = '#002F00';
-                            activeCategories.add(imp.category); // ← THIS MAKES IT VISIBLE BY DEFAULT
+                            activeCategories.add(imp.category);
                         }
+
                         if (existing) {
                             Object.assign(existing, imp);
                             existing.userEdited = false;
+                            existing.wasCommunityKept = false;
+                            existing.isCommunity = true;
                             updated++;
                         } else {
                             locations.push({
                                 ...imp,
-                                id: generateUniqueId(),
+                                id: imp.id || generateUniqueId(),
                                 addedTime: Date.now(),
                                 locked: true,
                                 isPostcard: false,
                                 isTemp: false,
-								isCommunity: false,
-								wasCommunityKept: true,
-                                userEdited: true
+                                isCommunity: true,
+                                userEdited: false,
+                                wasCommunityKept: false
                             });
                             added++;
                         }
                     }
                 });
-                // Save custom categories and active set
-                localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-                localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
+
+                // Restore categories and settings
                 if (data.customCategories) {
-    customCategories = { ...customCategories, ...data.customCategories };
-    categoryIcons = { ...defaultCategoryIcons, ...customCategories }; // ← you have this
-    localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-    
-    updateCategoryDropdowns();
-    renderCategoryToggles();
-}
-// Restore active categories from backup
-if (data.settings?.activeCategories) {
-    activeCategories = new Set(data.settings.activeCategories);
-    localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
-}
+                    customCategories = { ...customCategories, ...data.customCategories };
+                    categoryIcons = { ...defaultCategoryIcons, ...customCategories };
+                    localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+                    updateCategoryDropdowns();
+                    renderCategoryToggles();
+                }
+
+                if (data.settings?.activeCategories) {
+                    activeCategories = new Set(data.settings.activeCategories);
+                    localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
+                }
+
                 recalculateXP();
                 saveLocations();
                 forceReload();
-                showTempMessage(`IMPORTED ${added + updated} MARKER${added + updated === 1 ? '' : 'S'}`, 8000);
+
+                // Undo Import button with timer
+                if (added + updated > 0) {
+                    setTimeout(() => {
+                        const undoBtn = document.getElementById('undoImportBtn');
+                        if (undoBtn) {
+                            undoBtn.style.display = 'inline-block';
+                            undoBtn.textContent = `UNDO LAST IMPORT (${added + updated} markers)`;
+                            
+                            let undoSecondsLeft = 120;
+                            const updateUndoText = () => {
+                                undoBtn.textContent = `UNDO LAST IMPORT (${added + updated} markers) (${Math.floor(undoSecondsLeft / 60)}:${(undoSecondsLeft % 60).toString().padStart(2, '0')})`;
+                            };
+                            updateUndoText();
+
+                            const undoTimer = setInterval(() => {
+                                undoSecondsLeft--;
+                                if (undoSecondsLeft <= 0) {
+                                    clearInterval(undoTimer);
+                                    undoBtn.style.display = 'none';
+                                } else {
+                                    updateUndoText();
+                                }
+                            }, 1000);
+
+                            undoBtn.onclick = () => {
+                                clearInterval(undoTimer);
+                                locations = JSON.parse(beforeState);
+                                recalculateXP();
+                                saveLocations();
+                                forceReload();
+                                undoBtn.style.display = 'none';
+                                showTempMessage('IMPORT UNDONE', 4000);
+                                playSound('undo');
+                            };
+                        }
+                    }, 400);
+                }
+
+                showTempMessage(`IMPORTED ${added + updated + skipped} MARKER${(added + updated + skipped) === 1 ? '' : 'S'}`, 5000);
+
                 triggerEpicFlash("🧬", "IMPORT COMPLETE",
-                    `${added + updated} marker${added + updated === 1 ? '' : 's'} loaded!`,
+                    `${added + updated} marker${(added + updated) === 1 ? '' : 's'} loaded!`,
                     skipped > 0 ? `${skipped} protected` : "Ready to explore"
                 );
                 playSound('saving');
-                // Undo button
-                // Undo button (only if markers were added/updated)
-setTimeout(() => {
-    const undoBtn = document.getElementById('undoImportBtn');
-    if (undoBtn && (added + updated > 0)) {
-        undoBtn.onclick = () => {
-            locations = JSON.parse(beforeState);
-            recalculateXP();
-            saveLocations();
-            forceReload();
-            undoBtn.style.display = 'none';
-            showTempMessage('IMPORT UNDONE', 4000);
-            playSound('undo');
-        };
-        showUndoButton();  // ← Integrate timer here
-    }
-}, 100);
+
+                // Improved modal with better single-marker handling
+                let detailHTML = '';
+                if (isSingleMarker) {
+                    if (skipped > 0 || (personalSkipped + keptSkipped) > 0) {
+                        detailHTML = `<strong style="color:#ffa500;">Single marker skipped</strong><br>(already exists on your map)`;
+                    } else if (personalRestored + keptRestored + added + updated > 0) {
+                        detailHTML = `<strong style="color:#00ff88;">Single marker imported successfully</strong>`;
+                    }
+                } else {
+                    if (personalRestored > 0) detailHTML += `<strong style="color:#88ff88;">${personalRestored}</strong> personal markers restored<br>`;
+                    if (keptRestored > 0) detailHTML += `<strong style="color:#00d4ff;">${keptRestored}</strong> kept community markers restored<br>`;
+                    if (personalSkipped > 0) detailHTML += `<strong style="color:#ffa500;">${personalSkipped}</strong> personal markers skipped (already active)<br>`;
+                    if (keptSkipped > 0) detailHTML += `<strong style="color:#ffa500;">${keptSkipped}</strong> kept markers skipped (already active)<br>`;
+                    if (added > 0) detailHTML += `<strong style="color:#00ff88;">${added}</strong> new markers added<br>`;
+                }
+
                 showConfirmModal(
-                    '💾IMPORT COMPLETED💾',
+                    '💾 IMPORT COMPLETED 💾',
                     `<div style="text-align:left;line-height:1.9;font-size:1.1em;">
-                        Added: <strong style="color:#00ff88;">${added}</strong><br>
-                        Updated: <strong style="color:#00ff88;">${updated}</strong><br>
-                        Skipped: <strong style="color:#ffa500;">${skipped}</strong> (protected)
+                        ${detailHTML || '<strong style="color:#00ff88;">All markers processed successfully</strong>'}
+                        <br><strong>XP + Level restored</strong>
                     </div>`,
                     null
                 );
+
             } catch (err) {
                 console.error("Import failed:", err);
                 showTempMessage('INVALID FILE', 5000);
@@ -4454,168 +4609,180 @@ setTimeout(() => {
     };
     input.click();
 };
-                // ── IMPROVED COMMUNITY UPDATE (keeps ALL your original features + auto-approval) ──
-        downloadCommunityBtn.onclick = () => {
-            playSound('click');
+// ── COMMUNITY UPDATE ──
+downloadCommunityBtn.onclick = () => {
+    playSound('click');
 
-            showConfirmModal(
-                'UPDATE COMMUNITY MAP',
-                '<strong>Your personal markers & edits are 100% SAFE</strong><br><br>' +
-                'This will download the latest community markers.<br>' +
-                'Your own markers will never be overwritten.<br><br>' +
-                'Launch the update?',
-                async () => {
-                    downloadCommunityBtn.disabled = true;
-                    downloadCommunityBtn.textContent = 'Updating...';
+    showConfirmModal(
+        'UPDATE COMMUNITY MAP',
+        '<strong>Your personal markers & edits are 100% SAFE</strong><br><br>' +
+        'This will fetch the latest verified community markers.<br><br>' +
+        '• Community markers may receive description & category improvements<br>' +
+        '• Your own created and kept markers will never be changed or deleted<br>' +
+        '• Removed community markers will be cleaned up automatically<br><br>' +
+        'Proceed with the update?',
+        async () => {
+            downloadCommunityBtn.disabled = true;
+            downloadCommunityBtn.textContent = 'Updating...';
 
-                    try {
-                        const res = await fetchWithTimeout(
-                            'https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?t=' + Date.now(),
-                            12000
-                        );
-                        if (!res.ok) throw new Error('Bad response');
+            try {
+                const res = await fetchWithTimeout(
+                    'https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?t=' + Date.now(),
+                    12000
+                );
+                if (!res.ok) throw new Error('Bad response');
 
-                        const data = await res.json();
-                        const incoming = data.locations || [];
-                        let added = 0, updated = 0, skipped = 0;
-                        let approvedCount = 0;
+                const data = await res.json();
+                const incoming = data.locations || [];
+                let added = 0, refreshed = 0, skipped = 0, cleaned = 0;
+                let approvedCount = 0;
 
-                        incoming.forEach(imp => {
-                            const existing = locations.find(l => l.cid === imp.cid);
+                const incomingIds = new Set(incoming.map(m => m.id));
 
-                            // AUTO-APPROVAL for your previously submitted markers
-                            if (existing && hasBeenSubmitted(imp.cid)) {
-                                let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
-                                const idx = submitted.indexOf(imp.cid);
-                                if (idx !== -1) {
-                                    submitted.splice(idx, 1);
-                                    localStorage.setItem('submitted_cids', JSON.stringify(submitted));
-                                }
-                                existing.isCommunity = true;
-                                existing.userEdited = false;
-                                existing.wasCommunityKept = false;
-                                approvedCount++;
-                                showTempMessage(`Your marker "${imp.desc.substring(0,35)}${imp.desc.length > 35 ? '...' : ''}" was APPROVED!`, 10000);
-                                playSound('levelUp');
-                            }
+                const userMarkersBefore = locations.filter(l => 
+                    (l.userEdited === true || l.wasCommunityKept === true) && 
+                    !l.isCommunity && 
+                    !l.isPostcard
+                ).length;
 
-                            if (existing && (existing.userEdited || existing.wasCommunityKept)) {
-                                skipped++;
-                                return;
-                            }
+                incoming.forEach(imp => {
+                    const existing = locations.find(l => l.id === imp.id);
 
-                            let loc;
-                            if (existing) {
-                                Object.assign(existing, imp);
-                                loc = existing;
-                                updated++;
-                            } else {
-                                loc = {
-                                    ...imp,
-                                    id: generateUniqueId(),
-                                    addedTime: Date.now(),
-                                    locked: true,
-                                    isCommunity: true,
-                                    isTemp: false,
-                                    isPostcard: false,
-                                    userEdited: false,
-                                    wasCommunityKept: false
-                                };
-                                locations.push(loc);
-                                added++;
-                            }
-
-                            loc.isCommunity = true;
-                            loc.locked = true;
-                            loc.userEdited = false;
-                            loc.wasCommunityKept = !!existing?.wasCommunityKept;
-                        });
-
-                        if (data.customCategories) {
-                            customCategories = { ...customCategories, ...data.customCategories };
+                    if (existing && hasBeenSubmitted(imp.id)) {
+                        let submitted = JSON.parse(localStorage.getItem('submitted_ids') || '[]');
+                        const idx = submitted.indexOf(imp.id);
+                        if (idx !== -1) {
+                            submitted.splice(idx, 1);
+                            localStorage.setItem('submitted_ids', JSON.stringify(submitted));
                         }
+                        existing.isCommunity = true;
+                        existing.userEdited = false;
+                        existing.wasCommunityKept = false;
+                        approvedCount++;
+                        showTempMessage(`Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED!`, 10000);
+                        playSound('levelUp');
+                    }
 
-                        const newVersion = String(data.communityVersion || "1.0");
-                        localStorage.setItem(MAP_VERSION_KEY, newVersion);
-                        communityVersion = newVersion;
-                        localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+                    if (existing && (existing.userEdited || existing.wasCommunityKept)) {
+                        skipped++;
+                        return;
+                    }
 
-                        recalculateXP();
-                        updateCounterDisplay();
-                        forceReload();
-                        saveLocations();
+                    let loc;
+                    if (existing) {
+                        Object.assign(existing, imp);
+                        loc = existing;
+                        refreshed++;
+                    } else {
+                        loc = {
+                            ...imp,
+                            addedTime: Date.now(),
+                            locked: true,
+                            isCommunity: true,
+                            isTemp: false,
+                            isPostcard: false,
+                            userEdited: false,
+                            wasCommunityKept: false
+                        };
+                        locations.push(loc);
+                        added++;
+                    }
 
-                        // Your original-style success message
-                        showConfirmModal(
-                            '☢ COMMUNITY MAP UPDATED ☢',
-                            `<div style="text-align:left; line-height:1.9; font-size:1.1em;">
-                                <strong style="color:#00ff88;">${added}</strong> added: new markers added.<br>
-                                <strong style="color:#00ff88;">${updated}</strong> updated: existing community markers refreshed.<br>
-                                <strong style="color:#ffa500;">${skipped}</strong> skipped: your kept community markers, edited, and user-created markers are protected.<br>
-                                ${approvedCount > 0 ? `<strong style="color:#00ff88;">${approvedCount}</strong> of your submissions were approved!<br>` : ''}
-                                <strong style="color:#00ff00;">Total on your map: ${locations.length}</strong><br><br>
-                                <strong>You're all set — happy exploring!</strong>
-                            </div>`,
-                            null
-                        );
+                    loc.isCommunity = true;
+                    loc.locked = true;
+                    loc.userEdited = false;
+                    loc.wasCommunityKept = !!existing?.wasCommunityKept;
+                });
 
-                        playSound('saving');
-
-                        // ── Your original nuke animation (kept 100% intact) ──
-                        if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
-                            localStorage.setItem('seenCommunityNuke', 'true');
-                            setTimeout(() => {
-                                const flash = document.createElement('div');
-                                flash.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#fff;z-index:999999;pointer-events:none;animation:quickFlash 0.7s ease-out forwards;';
-                                document.body.appendChild(flash);
-
-                                setTimeout(() => {
-                                    const overlay = document.createElement('div');
-                                    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;padding:20px;box-sizing:border-box;font-family:"Courier New",monospace;text-align:center;';
-                                    overlay.innerHTML = `
-                                        <div class="nuke-symbol">☢️</div>
-                                        <h1 class="nuke-title">COMMUNITY MAP NUKED!</h1>
-                                        <p class="nuke-subtitle">
-                                            <strong>${added}</strong> new markers detonated across Appalachia!
-                                        </p>
-                                    `;
-                                    document.body.appendChild(overlay);
-                                    playSound('levelUp');
-
-                                    setTimeout(() => {
-                                        overlay.style.transition = 'opacity 1.8s';
-                                        overlay.style.opacity = '0';
-                                        setTimeout(() => overlay.remove(), 1800);
-                                    }, 4200);
-                                }, 400);
-
-                                setTimeout(() => flash.remove(), 700);
-                            }, 800);
-                        }
-
-                        // ── Your original glow clearing (kept 100% intact) ──
-                        localStorage.setItem(LAST_COMMUNITY_VERSION_KEY, newVersion);
-                        downloadCommunityBtn.classList.remove('update-available');
-
-                        fetch('https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?t=' + Date.now(), { method: 'HEAD' })
-                            .then(r => {
-                                const version = r.headers.get('etag') || r.headers.get('last-modified') || 'unknown';
-                                localStorage.setItem('fo76_community_last_etag', version);
-                            })
-                            .catch(() => {});
-
-                    } catch (err) {
-                        console.error('Fetch error:', err);
-                        showTempMessage('COMMUNITY UPDATE FAILED — CHECK CONNECTION', 6000);
-                        playSound('error');
-                    } finally {
-                        downloadCommunityBtn.disabled = false;
-                        downloadCommunityBtn.textContent = 'Update Community Map';
-						downloadCommunityBtn.classList.remove('available');
+                for (let i = locations.length - 1; i >= 0; i--) {
+                    const loc = locations[i];
+                    if (loc.isCommunity && !incomingIds.has(loc.id)) {
+                        locations.splice(i, 1);
+                        cleaned++;
                     }
                 }
-            );
-        };
+
+                if (data.customCategories) {
+                    customCategories = { ...customCategories, ...data.customCategories };
+                }
+
+                const newVersion = String(data.communityVersion || "1.0");
+                localStorage.setItem(MAP_VERSION_KEY, newVersion);
+                communityVersion = newVersion;
+                localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+
+                recalculateXP();
+                updateCounterDisplay();
+                forceReload();
+                saveLocations();
+
+                showConfirmModal(
+    '☢ COMMUNITY MAP UPDATED ☢',
+    `<div style="text-align:left; line-height:1.9; font-size:1.1em;">
+        <strong style="color:#00ff88;">${added}</strong> added — new markers<br>
+        <strong style="color:#00ff88;">${refreshed}</strong> refreshed — community markers updated<br>
+        <strong style="color:#ffa500;">${skipped}</strong> skipped — your kept/edited markers protected<br>
+        <strong style="color:#88ccff;">${userMarkersBefore}</strong> untouched — your personal markers<br>
+        ${cleaned > 0 ? `<strong style="color:#ff4444;">${cleaned}</strong> cleaned — deleted community markers removed<br>` : ''}
+        ${approvedCount > 0 ? `<strong style="color:#00ff88;">${approvedCount}</strong> of your submissions were approved!<br>` : ''}
+        <strong style="color:#00ff00;">Total markers on map: ${locations.length}</strong><br><br>
+        
+        <strong style="color:#88ccff;">• You kept ${skipped} community marker${skipped === 1 ? '' : 's'}</strong><br>
+        <strong style="color:#88ccff;">• You logged ${userMarkersBefore} personal marker${userMarkersBefore === 1 ? '' : 's'}</strong><br>
+        <strong style="color:#00ff88;">• You are Level ${level} explorer</strong><br><br>
+        
+        <strong>Community Map v${newVersion} loaded — happy exploring Appalachia!</strong>
+    </div>`,
+    null
+);
+
+                playSound('saving');
+
+                if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
+                    localStorage.setItem('seenCommunityNuke', 'true');
+                    setTimeout(() => {
+                        const flash = document.createElement('div');
+                        flash.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#fff;z-index:999999;pointer-events:none;animation:quickFlash 0.7s ease-out forwards;';
+                        document.body.appendChild(flash);
+                        setTimeout(() => {
+                            const overlay = document.createElement('div');
+                            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;padding:20px;box-sizing:border-box;font-family:"Courier New",monospace;text-align:center;';
+                            overlay.innerHTML = `
+                                <div class="nuke-symbol">☢️</div>
+                                <h1 class="nuke-title">COMMUNITY MAP NUKED!</h1>
+                                <p class="nuke-subtitle">
+                                    <strong>${added}</strong> new markers detonated across Appalachia!
+                                </p>
+                            `;
+                            document.body.appendChild(overlay);
+                            playSound('levelUp');
+                            setTimeout(() => {
+                                overlay.style.transition = 'opacity 1.8s';
+                                overlay.style.opacity = '0';
+                                setTimeout(() => overlay.remove(), 1800);
+                            }, 4200);
+                        }, 400);
+                        setTimeout(() => flash.remove(), 700);
+                    }, 800);
+                }
+
+                localStorage.setItem(LAST_COMMUNITY_VERSION_KEY, newVersion);
+                downloadCommunityBtn.classList.remove('update-available');
+
+            } catch (err) {
+                console.error('Fetch error:', err);
+                showTempMessage('COMMUNITY UPDATE FAILED — CHECK CONNECTION', 6000);
+                playSound('error');
+            } finally {
+                downloadCommunityBtn.disabled = false;
+                downloadCommunityBtn.textContent = 'Update Community Map';
+                downloadCommunityBtn.classList.remove('available');
+            }
+        },
+        'Yes — Update Now',
+        'Cancel'
+    );
+};
 
 // ── COMMUNITY MAP "AVAILABLE!" GLOW CHECK ──
     async function checkForCommunityUpdate() {
@@ -4967,17 +5134,25 @@ undoBtn.onclick = () => {
     safeFlyTo(lastDeleted.lat, lastDeleted.lng, 4);
     lastDeleted = null;  // Clear after success
 };
-        exportOneBtn.onclick = () => {
-            const loc = locations[currentIndex];
-            const blob = new Blob([JSON.stringify([loc], null, 2)], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `fo76_marker_${getGridFromLatLng(loc.lat, loc.lng) || 'unknown'}_${new Date().toISOString().slice(0,10)}.json`;
-            a.click();
-            URL.revokeObjectURL(a.href);
-            showTempMessage('MARKER EXPORTED', 3000);
-            playSound('saving');
-        };
+exportOneBtn.onclick = () => {
+    const loc = locations[currentIndex];
+    if (!loc) return;
+
+    const blob = new Blob([JSON.stringify([loc], null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `fo76_marker_${getGridFromLatLng(loc.lat, loc.lng) || 'unknown'}_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+
+    // Animated success message with interaction lock
+    triggerEpicFlash("📤", "MARKER EXPORTED SUCCESSFULLY", 
+        `Grid ${getGridFromLatLng(loc.lat, loc.lng) || 'Unknown'}`, 
+        "Saved to your Downloads folder");
+
+    playSound('saving');
+    closeModal(itemModal);
+};
 document.getElementById('submitCommunityBtn').onclick = () => {
     const loc = locations[currentIndex];
     if (!loc?.locked) {
@@ -4985,37 +5160,51 @@ document.getElementById('submitCommunityBtn').onclick = () => {
         playSound('error');
         return;
     }
-    if (hasBeenSubmitted(loc.cid || generateCid(loc))) {
+
+    // Prevent duplicate submission (now uses stable id)
+    if (hasBeenSubmitted(loc.id)) {
         showTempMessage('This marker has already been submitted — pending review.', 5000);
         return;
     }
+
     const playerNameInput = document.getElementById('playerNameInput');
     const playerName = playerNameInput?.value.trim() || 'Anonymous Wastelander';
     const finalDesc = loc.desc.includes('Submitted By')
         ? loc.desc
         : `${loc.desc}\nSubmitted By ${playerName}`;
+
     const iconToSend = categoryIcons[loc.category] || '📝';
     const cid = loc.cid || generateCid(loc);
+
+    // Record submission using the stable ID (this fixes the "skipped" problem)
+    markAsSubmitted(loc.id);
+
     const overlay = document.getElementById('submitLoadingOverlay');
     if (overlay) overlay.classList.add('show');
+
     const minDelay = new Promise(resolve => setTimeout(resolve, 1500));
+
     const params = new URLSearchParams({
-    lat: loc.lat,
-    lng: loc.lng,
-    category: loc.category,
-    desc: finalDesc,
-    icon: iconToSend,
-    id: loc.id,
-    cid: cid,
-    wasCommunityKept: loc.wasCommunityKept ? 'true' : 'false'
+        lat: loc.lat,
+        lng: loc.lng,
+        category: loc.category,
+        desc: finalDesc,
+        icon: iconToSend,
+        id: loc.id,           // Stable ID
+        cid: cid,
+        wasCommunityKept: loc.wasCommunityKept ? 'true' : 'false'
     });
+
     const url = `https://0mrcrazy0.github.io/fallout76-itemfindermap/submit.html?v=${Date.now()}&${params.toString()}`;
+
     minDelay.then(() => {
         window.open(url, '_blank', 'width=500,height=720,scrollbars=yes');
-        // Do NOT show success message here — wait for worker response
+        
         if (overlay) overlay.classList.remove('show');
         closeModal(itemModal);
         forceReload();
+
+        showTempMessage('MARKER SUBMITTED FOR REVIEW — THANK YOU!', 4000);
     });
 };
     map.on('dragstart', () => { isDraggingAny = true; });
@@ -5563,7 +5752,7 @@ if (urlParams.has('permshare')) {
             const beforeCount = locations.length;
             const undoState = JSON.stringify(locations);
             incoming.forEach(imp => {
-                const existing = locations.find(l => l.cid === imp.cid);
+                const existing = locations.find(l => l.id === imp.id);
                 if (existing && existing.userEdited) return;
                 // Merge custom category from shared marker
                 if (imp.category && imp.icon && !defaultCategoryIcons[imp.category]) {
@@ -5878,6 +6067,7 @@ window.keepCommunityMarker = function(markerId) {
         '• You can edit, move, or delete it<br>' +
         '• It will <strong>NOT</strong> receive future community updates<br>' +
         '• You will no longer be able to report it<br><br>' +
+		'You can always revert it back to a community map marker.<br>' +
         'You can always delete it and re-download the updated version later.',
         () => {
             marker.isCommunity = false;
@@ -5897,7 +6087,75 @@ window.keepCommunityMarker = function(markerId) {
     );
 };
 
-function triggerEpicFlash(icon = "CHECKMARK", title = "ACTION COMPLETE", line1 = "", line2 = "") {
+// ── Revert kept community marker back to community status ──
+window.revertToCommunityMarker = function(markerId) {
+    const marker = locations.find(l => l.id === markerId);
+    if (!marker || !marker.wasCommunityKept) {
+        showTempMessage('This is not a kept community marker.', 4000);
+        return;
+    }
+
+    showConfirmModal(
+        'REVERT TO COMMUNITY MARKER',
+        'This will turn the marker back into a normal community marker.<br><br>' +
+        '• You will lose edit/move rights and the XP from keeping it<br>' +
+        '• It will receive future community updates again<br>' +
+        '• The marker will be locked automatically<br><br>' +
+        'Proceed with revert?',
+        () => {
+            marker.isCommunity = true;
+            marker.userEdited = false;
+            marker.wasCommunityKept = false;
+            marker.locked = true;
+            marker.addedTime = Date.now();
+
+            saveLocations();
+            recalculateXP();
+            forceReload();
+            showTempMessage('MARKER REVERTED TO COMMUNITY STATUS', 4000);
+            playSound('saving');
+        },
+        'Yes — Revert',
+        'Cancel'
+    );
+};
+
+// ── ANIMATION INTERACTION LOCK ──
+// Temporarily disables clicks on buttons, map, AND ALL OPEN MODALS while major animations play
+let animationLockActive = false;
+
+function lockUIDuringAnimation(durationMs = 3800) {
+    if (animationLockActive) return;
+    animationLockActive = true;
+
+    const elementsToLock = [
+        document.getElementById('buttonGroup'),
+        document.getElementById('searchBar'),
+        document.getElementById('map'),
+        document.getElementById('itemModal')
+    ];
+
+    // Also lock every open modal (covers How to Use, Nuke Codes, Category modals, etc.)
+    document.querySelectorAll('.modal').forEach(modal => {
+        if (modal.style.display === 'block') {
+            elementsToLock.push(modal);
+        }
+    });
+
+    elementsToLock.forEach(el => {
+        if (el) el.style.pointerEvents = 'none';
+    });
+
+    // Re-enable interactions after the animation finishes
+    setTimeout(() => {
+        elementsToLock.forEach(el => {
+            if (el) el.style.pointerEvents = '';
+        });
+        animationLockActive = false;
+    }, durationMs);
+}
+
+function triggerEpicFlash(icon = "✅", title = "ACTION COMPLETE", line1 = "", line2 = "") {
     const flash = document.createElement('div');
     flash.style.cssText = `
         position:fixed;top:0;left:0;width:100vw;height:100vh;
@@ -5917,7 +6175,10 @@ function triggerEpicFlash(icon = "CHECKMARK", title = "ACTION COMPLETE", line1 =
         ${line2 ? `<p style="font-size:clamp(16px,5vw,38px);margin:0;opacity:0.9;">${line2}</p>` : ''}
     `;
     document.body.appendChild(flash);
+
     playSound('saving');
+    lockUIDuringAnimation(3800);
+
     setTimeout(() => flash.style.opacity = '1', 100);
     setTimeout(() => {
         flash.style.opacity = '0';
@@ -6021,7 +6282,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 26-03-2026 C-55 • Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: 28-03-2026 C-57 • Version 76.READY Released • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
