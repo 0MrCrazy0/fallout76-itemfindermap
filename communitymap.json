@@ -4302,24 +4302,6 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
-    },
-    {
-      "id": "id-45b30b4d-c7bc-4241-8873-c09fc0576220",
-      "cid": "misc_test_grid_h8_x_3252_y_2925_2925.04066_3252.50000",
-      "category": "misc",
-      "desc": "test\nGrid H8 (X: 3252, Y: 2925)\nSubmitted By Anonymous Wastelander",
-      "lat": 2925.0406628,
-      "lng": 3252.4999953089537,
-      "icon": "📝",
-      "addedTime": 1774668119010,
-      "locked": true,
-      "isPostcard": false,
-      "isTemp": false,
-      "startTime": null,
-      "keepBtnBound": false,
-      "userEdited": false,
-      "wasCommunityKept": false,
-      "isCommunity": true
     }
   ]
 }
