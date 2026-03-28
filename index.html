@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=57">
+	<link rel="manifest" href="manifest.json?v=58">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -3498,23 +3498,31 @@ ${loc.userEdited && !loc.isPostcard && !loc.wasCommunityKept ? `
     const appVersion = "76.READY";
     const communityVer = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
 
-    // Total Logged (respecting active categories)
-    const total = locations.filter(l => activeCategories.has(l.category)).length;
+    // Total visible markers on the user's map (respecting active categories)
+    const totalLogged = locations.filter(l => activeCategories.has(l.category)).length;
 
-    // You Created - Pure personal markers you made yourself
-    const created = locations.filter(l => 
-        l.userEdited === true && 
-        !l.wasCommunityKept && 
+    // Pure community markers (official base map — not kept or created by user)
+    const communityTotal = locations.filter(l =>
+        l.isCommunity === true &&
+        !l.userEdited &&
+        !l.wasCommunityKept &&
         !l.isPostcard
     ).length;
 
-    // You Kept - Community markers you decided to keep permanently
-    const kept = locations.filter(l => 
-        l.wasCommunityKept === true && 
+    // Pure personal markers you created yourself
+    const created = locations.filter(l =>
+        l.userEdited === true &&
+        !l.wasCommunityKept &&
         !l.isPostcard
     ).length;
 
-    // Total You Logged (Created + Kept)
+    // Community markers you decided to keep permanently
+    const kept = locations.filter(l =>
+        l.wasCommunityKept === true &&
+        !l.isPostcard
+    ).length;
+
+    // Total you personally logged (Created + Kept)
     const userLogged = created + kept;
 
     counter.innerHTML = `
@@ -3522,7 +3530,8 @@ ${loc.userEdited && !loc.isPostcard && !loc.wasCommunityKept ? `
         FO76-IFM v${appVersion}<br>
         Community Map v${communityVer}<br><br>
         <strong>Stats</strong><br>
-        Total Logged: <strong style="color:#00ff88;">${total}</strong><br>
+        Total Logged: <strong style="color:#00ff88;">${totalLogged}</strong><br>
+        Community Markers: <strong style="color:#88ccff;">${communityTotal}</strong><br>
         You Created: <strong style="color:#00ff88;">${created}</strong><br>
         You Kept: <strong style="color:#00ff88;">${kept}</strong><br>
         You Logged: <strong style="color:#00ff88;">${userLogged}</strong><br>
@@ -6282,7 +6291,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 28-03-2026 C-57 • Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: 28-03-2026 C-58 • Version 76.READY Released • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
