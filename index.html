@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=58">
+	<link rel="manifest" href="manifest.json?v=59">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1386,6 +1386,7 @@ button:not(:hover):not(:active):not(:focus),
         <button id="importBtn">Import Markers</button>
         <button id="downloadCommunityBtn">Update Community Map</button>
 		<button id="undoImportBtn" style="display:none; background:#cc8400 !important; color:#000 !important;">UNDO LAST IMPORT <span id="undoTimer"></span></button>
+		<button id="undoDeleteBtn" style="display:none; background:#cc8400 !important; color:#000 !important;">UNDO LAST DELETE</button>
         <button id="saveMapJpegBtn">Save Map as JPEG</button>
     </div>
     <!-- DEV NOTE: XP PROGRESS BAR -->
@@ -1420,12 +1421,15 @@ button:not(:hover):not(:active):not(:focus),
             <div style="margin-top:12px; text-align:center; display:flex; flex-wrap:wrap; justify-content:center; gap:10px;">
     <button id="saveItemBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:110px; padding:10px 20px; font-weight:bold;">Save</button>
     <button id="shareItemBtn" style="background:#00d4ff !important; color:#000000 !important; border:2px solid #00d4ff; min-width:110px; padding:10px 20px; font-weight:bold;">Share Map View</button>
-    <button id="exportOneBtn" style="background:#a569bd !important; color:#000000 !important; border:2px solid #a569bd; min-width:110px; padding:10px 20px; font-weight:bold;">Export Marker</button>
-    <button id="deleteItemBtn" style="display:none; background:#e74c3c !important; color:#000000 !important; border:2px solid #c0392d; min-width:110px; padding:10px 20px; font-weight:bold;">Delete</button>
-    <button id="shareOneBtn" style="background:#f7ee20 !important; color:#000000 !important; border:2px solid #f7ee20; min-width:110px; padding:10px 20px; font-weight:bold;">Share Marker</button>
-    <button id="submitCommunityBtn" style="display:none; background:#00ff88 !important; color:#000000 !important; border:2px solid #00ff88; min-width:110px; padding:10px 20px; font-weight:bold;">Submit to Community Map</button>
-    <button id="undoItemBtn" style="display:none; background:#cc8400 !important; color:#000000 !important; border:2px solid #cc8400; min-width:110px; padding:10px 20px; font-weight:bold;">Undo Delete</button>
-    <button id="duplicateItemBtn" style="display:none; background:#5E99F7 !important; color:#000000 !important; border:2px solid #5E99F7; min-width:110px; padding:10px 20px; font-weight:bold;">Duplicate</button>
+    
+    <!-- These buttons stay hidden for kept community markers -->
+    <!-- Export and Share are hidden for kept community markers; Duplicate stays visible -->
+<button id="exportOneBtn" style="background:#a569bd !important; color:#000000 !important; border:2px solid #a569bd; min-width:110px; padding:10px 20px; font-weight:bold;">Export Marker</button>
+<button id="shareOneBtn" style="background:#f7ee20 !important; color:#000000 !important; border:2px solid #f7ee20; min-width:110px; padding:10px 20px; font-weight:bold;">Share Marker</button>
+<button id="duplicateItemBtn" style="background:#5E99F7 !important; color:#000000 !important; border:2px solid #5E99F7; min-width:110px; padding:10px 20px; font-weight:bold;">Duplicate</button>
+
+<button id="deleteItemBtn" style="display:none; background:#e74c3c !important; color:#000000 !important; border:2px solid #c0392d; min-width:110px; padding:10px 20px; font-weight:bold;">Delete</button>
+<button id="submitCommunityBtn" style="display:none; background:#00ff88 !important; color:#000000 !important; border:2px solid #00ff88; min-width:110px; padding:10px 20px; font-weight:bold;">Submit to Community Map</button>
 </div>
         </div>
     </div>
@@ -2326,6 +2330,7 @@ let isDraggingAnyMarker = false;
         let lastMovedMarker = null;
         let lastLevel = level;
 let currentPopupMarkerId = null;
+let justClosedEditModal = false;
 map.on('popupopen', e => {
     const marker = e.popup._source;
     if (!marker || !marker.options.id) return;
@@ -3579,13 +3584,11 @@ ${loc.userEdited && !loc.isPostcard && !loc.wasCommunityKept ? `
         tr.onclick = e => {
     // Ignore clicks on the lock toggle
     if (e.target.tagName === 'SPAN' && !loc.isPostcard) return;
-
     // Single tap / left-click: scroll + zoom + open normal view popup
     document.getElementById('map').scrollIntoView({ behavior: 'smooth' });
     const targetLatLng = [loc.lat, loc.lng];
     const duration = map.getZoom() < 2 ? 2.5 : 1.5;
     map.flyTo(targetLatLng, 4, { duration });
-
     // After zoom finishes → open normal popup (view mode)
     map.once('moveend', () => {
         setTimeout(() => {
@@ -3594,37 +3597,40 @@ ${loc.userEdited && !loc.isPostcard && !loc.wasCommunityKept ? `
             if (m) {
                 m.openPopup();
                 playSound('click');
+                // Fallback: force click if popup still refuses to open
+                setTimeout(() => {
+                    if (!m.isPopupOpen()) m.fire('click', { latlng: m.getLatLng() });
+                }, 800);
             }
-        }, 500);
+        }, 650);   // Increased from 500ms for reliability
     });
 };
-                tr.oncontextmenu = e => {
+
+tr.oncontextmenu = e => {
     e.preventDefault();
     e.stopPropagation();
 
+    // Close any existing popup first (prevents fly-back)
+    map.closePopup();
+
     safeFlyTo(loc.lat, loc.lng, 4);
-    playSound('click');
 
-    const marker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
-        .find(m => m.options.id === loc.id);
+    map.once('moveend', () => {
+        setTimeout(() => {
+            const marker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
+                .find(m => m.options && m.options.id === loc.id);
+            if (marker) {
+                marker.openPopup();
+                playSound('click');
+            }
+        }, 750);
+    });
 
-    if (marker) {
-        if (loc.userEdited && !loc.isPostcard) {
-            const index = locations.findIndex(l => l.id === loc.id);
-            if (index !== -1) openModal('Edit Item', index);
-        } else {
-            // Community marker: zoom → extended wait → primary open → fallback fire click
-            map.once('moveend', () => {
-                setTimeout(() => {
-                    marker.openPopup();
-                    // Force Leaflet to handle as real click if programmatic open fails
-                    setTimeout(() => {
-                        if (!marker.isPopupOpen()) {
-                            marker.fire('click', { latlng: marker.getLatLng() });
-                        }
-                    }, 1500);  // Increased safety net
-                }, 1500);  // Longer delay for first-time reliability
-            });
+    // Only open Edit modal for your own/kept markers
+    if (loc.userEdited && !loc.isPostcard) {
+        const index = locations.findIndex(l => l.id === loc.id);
+        if (index !== -1) {
+            setTimeout(() => openModal('Edit Item', index), 1300);
         }
     }
     return false;
@@ -3813,7 +3819,8 @@ setInterval(() => {
             itemCategorySelect.innerHTML = cats.map(opt).join('');
             if (currentCategoryFilter && cats.includes(currentCategoryFilter)) categoryFilter.value = currentCategoryFilter;
         }
-                                function openModal(title, idx = -1) {
+ 
+                               function openModal(title, idx = -1) {
             const loc = idx >= 0 ? locations[idx] : null;
             const isCurrentlyLocked = loc ? loc.locked : false;
 
@@ -3889,15 +3896,63 @@ setInterval(() => {
                 };
             }
 
+// Hide ONLY Export and Share for kept community markers
+// Duplicate button remains visible (user tested and approved)
+if (loc && loc.wasCommunityKept) {
+    const exportBtn = document.getElementById('exportOneBtn');
+    const shareBtn = document.getElementById('shareOneBtn');
+    if (exportBtn) exportBtn.style.display = 'none';
+    if (shareBtn) shareBtn.style.display = 'none';
+    // Duplicate button is deliberately left visible
+}
+
             itemModal.style.display = 'block';
             document.body.classList.add('modal-open');
             playSound('click');
         }
-        function closeModal(m) {
-            m.style.display = 'none';
-            document.body.classList.remove('modal-open');
-            playSound('modalClose');
-        }
+		
+function closeModal(m) {
+    m.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    playSound('modalClose');
+
+    // Set flag so reopen only happens right after Edit modal close
+    justClosedEditModal = true;
+    setTimeout(() => { justClosedEditModal = false; }, 2000); // safety window
+
+    reopenPopupAfterModalClose();
+}
+		
+		// ── Re-open popup when Edit modal is closed (STRONG VERSION — guarded) ──
+function reopenPopupAfterModalClose() {
+    if (currentIndex === -1 || !justClosedEditModal) return;
+    const loc = locations[currentIndex];
+    if (!loc) return;
+
+    const marker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
+        .find(m => m.options && m.options.id === loc.id);
+
+    if (!marker) return;
+
+    // Your original strong timing (kept exactly as you like it)
+    setTimeout(() => {
+        marker.openPopup();
+
+        // First fallback
+        setTimeout(() => {
+            if (!marker.isPopupOpen()) {
+                marker.fire('click', { latlng: marker.getLatLng() });
+            }
+        }, 400);
+
+        // Final safety net (covers even very slow closes)
+        setTimeout(() => {
+            if (!marker.isPopupOpen()) {
+                marker.fire('click', { latlng: marker.getLatLng() });
+            }
+        }, 1200);
+    }, 650);
+}
         function recalculateXP() {
     const oldLevel = lastLevel;
     const userMarkers = locations.filter(l => l.userEdited === true && !l.isPostcard);
@@ -3944,6 +3999,100 @@ setInterval(() => {
                 }, 100);
             }
         }
+		
+// ── PERSISTENT UNDO (survives page refresh)
+function savePendingUndo(type, beforeState, extraData = {}) {
+    const undoData = {
+        type: type,
+        beforeState: beforeState,
+        timestamp: Date.now(),
+        ...extraData
+    };
+    localStorage.setItem('fo76_pendingUndo_' + type, JSON.stringify(undoData));
+}
+
+function restorePendingUndo() {
+    const types = ['import', 'delete'];
+    types.forEach(type => {
+        const key = 'fo76_pendingUndo_' + type;
+        const saved = localStorage.getItem(key);
+        if (!saved) return;
+
+        const data = JSON.parse(saved);
+        const elapsed = Date.now() - data.timestamp;
+        const remaining = Math.max(0, 120000 - elapsed);
+
+        if (remaining <= 0) {
+            localStorage.removeItem(key);
+            return;
+        }
+
+        if (type === 'import') {
+            const undoBtn = document.getElementById('undoImportBtn');
+            if (undoBtn) {
+                undoBtn.style.display = 'inline-block';
+                let secondsLeft = Math.floor(remaining / 1000);
+                const updateText = () => {
+                    undoBtn.textContent = `UNDO LAST IMPORT (${data.count || 0} markers) (${Math.floor(secondsLeft / 60)}:${(secondsLeft % 60).toString().padStart(2, '0')})`;
+                };
+                updateText();
+                window.undoImportTimer = setInterval(() => {
+                    secondsLeft--;
+                    if (secondsLeft <= 0) {
+                        clearInterval(window.undoImportTimer);
+                        window.undoImportTimer = null;
+                        undoBtn.style.display = 'none';
+                        localStorage.removeItem(key);
+                    } else updateText();
+                }, 1000);
+
+                undoBtn.onclick = () => {
+                    clearInterval(window.undoImportTimer);
+                    window.undoImportTimer = null;
+                    locations = JSON.parse(data.beforeState);
+                    recalculateXP();
+                    saveLocations();
+                    forceReload();
+                    undoBtn.style.display = 'none';
+                    localStorage.removeItem(key);
+                    showTempMessage('IMPORT UNDONE', 4000);
+                    playSound('undo');
+                };
+            }
+        } else if (type === 'delete') {
+            const undoBtn = document.getElementById('undoDeleteBtn');
+            if (undoBtn && data.lastDeleted) {
+                undoBtn.style.display = 'inline-block';
+                let secondsLeft = Math.floor(remaining / 1000);
+                const updateText = () => {
+                    undoBtn.textContent = `UNDO LAST DELETE (${Math.floor(secondsLeft / 60)}:${(secondsLeft % 60).toString().padStart(2, '0')})`;
+                };
+                updateText();
+                window.undoDeleteTimer = setInterval(() => {
+                    secondsLeft--;
+                    if (secondsLeft <= 0) {
+                        clearInterval(window.undoDeleteTimer);
+                        undoBtn.style.display = 'none';
+                        localStorage.removeItem(key);
+                    } else updateText();
+                }, 1000);
+
+                undoBtn.onclick = () => {
+                    clearInterval(window.undoDeleteTimer);
+                    locations.push({ ...data.lastDeleted });
+                    recalculateXP();
+                    saveLocations();
+                    forceReload();
+                    undoBtn.style.display = 'none';
+                    localStorage.removeItem(key);
+                    showTempMessage('MARKER RESTORED', 3000);
+                    playSound('undo');
+                };
+            }
+        }
+    });
+}		
+		
 function triggerNuke() {
     lockUIDuringAnimation(4500);   // Lock UI during the full nuke sequence
 
@@ -4128,39 +4277,33 @@ function triggerNuke() {
             return (s || '').toLowerCase().trim();
         }
         let flyTO;
-        function safeFlyTo(lat, lng, z = map.getZoom()) {
-            if (isNaN(lat) || isNaN(lng)) return;
-            clearTimeout(flyTO);
-            map.flyTo([lat, lng], z, {
-                animate: true,
-                duration: 1.5,
-                easeLinearity: 0.25
-            });
-        }
-        function fetchWithTimeout(url, timeout = 12000) {
-            return Promise.race([
-                fetch(url),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), timeout))
-            ]);
-        }
-        resetAppBtn.onclick = () => {
+function safeFlyTo(lat, lng, z = map.getZoom()) {
+    if (isNaN(lat) || isNaN(lng)) return;
+    clearTimeout(flyTO);
+    map.flyTo([lat, lng], z, {
+        animate: true,
+        duration: 1.5,
+        easeLinearity: 0.25
+    });
+}
+        
+resetAppBtn.onclick = () => {
     showConfirmModal(
         '☢ FULL APP RESET ☢',
         'This will wipe ALL data from your device, including:<br>' +
         '<strong style="color:#ff4444;">• Your personal markers and edits</strong><br>' +
         '<strong style="color:#ff4444;">• All community markers (they will be removed)</strong><br>' +
         '<strong style="color:#ff4444;">• Your XP, level, and app settings</strong><br><br>' +
-        '<strong style="color:#00ff88;">A backup of your personal markers, XP, level, and settings will be triggered first.</strong><br><br>' +
-        'Community markers can be re-added later by clicking the "Update Community Map" button.<br><br>' +
-        'After the download starts, verify the .json file saved successfully before proceeding.<br><br>' +
+        '<strong style="color:#00ff88;">A single backup of your personal markers and kept community markers, XP, level, and settings will be triggered first.</strong><br><br>' +
+        'Other Community markers can be re-added later by clicking the "Update Community Map" button.<br><br>' +
         'Ready to initiate reset protocol?',
         () => {
-            // Attempt backup download
             const userMarkers = locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard);
+            
             const personalBackup = {
-                version: "personal-v76.READY",
+                version: "personal-plus-kept-fullbackup-v76.READY",
                 timestamp: new Date().toISOString(),
-                communityVersion,
+                communityVersion: localStorage.getItem(MAP_VERSION_KEY) || "1.0",
                 customCategories,
                 locations: userMarkers,
                 level,
@@ -4172,19 +4315,10 @@ function triggerNuke() {
                 }
             };
 
-            const blob = new Blob([JSON.stringify(personalBackup, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `FO76_MyBackup_Level_${level}_${userMarkers.length}_markers_${new Date().toISOString().slice(0,10)}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            // SINGLE clean backup with epic animation
+            downloadBackupFile(personalBackup, `FO76_PersonalPlusKeptFullBackup_Level_${level}`);
 
-            showTempMessage('BACKUP DOWNLOAD TRIGGERED — CHECK DOWNLOADS FOLDER', 8000);
-
-            // Second safety confirmation
+            // Second safety confirmation (exactly as you had it)
             setTimeout(() => {
                 const safetyModal = document.createElement('div');
                 safetyModal.className = 'modal';
@@ -4201,15 +4335,12 @@ function triggerNuke() {
                             No recovery will be possible after this point.
                         </div>
                         <div style="text-align:center;margin-top:30px;display:flex;justify-content:center;gap:30px;flex-wrap:wrap;">
-                            <!-- CANCEL BUTTON -->
-<button id="cancelSafetyBtn" style="color-scheme: only light; background:#00ff00; color:#000 !important; padding:12px 30px; border:none; border-radius:6px; font-weight:bold; font-size:1.2em; min-width:180px; cursor:pointer;box-shadow: 0 0 15px #00ff00;">
-    CANCEL — BACKUP NOT SAVED
-</button>
-
-<!-- WIPE BUTTON -->
-<button id="proceedWipeBtn" style="color-scheme: only light; background:#ff4444; color:#000 !important; padding:12px 30px; border:none; border-radius:6px; font-weight:bold; font-size:1.2em; min-width:180px; cursor:pointer; box-shadow: 0 0 15px #00ff00;">
-    PROCEED WITH WIPE (IRREVERSIBLE)
-</button>
+                            <button id="cancelSafetyBtn" style="color-scheme: only light; background:#00ff00; color:#000 !important; padding:12px 30px; border:none; border-radius:6px; font-weight:bold; font-size:1.2em; min-width:180px; cursor:pointer;box-shadow: 0 0 15px #00ff00;">
+                                CANCEL — BACKUP NOT SAVED
+                            </button>
+                            <button id="proceedWipeBtn" style="color-scheme: only light; background:#ff4444; color:#000 !important; padding:12px 30px; border:none; border-radius:6px; font-weight:bold; font-size:1.2em; min-width:180px; cursor:pointer; box-shadow: 0 0 15px #00ff00;">
+                                PROCEED WITH WIPE (IRREVERSIBLE)
+                            </button>
                         </div>
                     </div>
                 `;
@@ -4224,13 +4355,12 @@ function triggerNuke() {
 
                 safetyModal.querySelector('.close').onclick = closeSafety;
                 safetyModal.querySelector('#cancelSafetyBtn').onclick = closeSafety;
-
                 safetyModal.querySelector('#proceedWipeBtn').onclick = () => {
                     closeSafety();
 
                     // Nuke animation sequence
                     const nuke = document.createElement('div');
-					lockUIDuringAnimation(6000);   // Lock UI during the full nuclear wipe sequence
+                    lockUIDuringAnimation(6000);
                     nuke.style.cssText = `
                         position:fixed;top:0;left:0;width:100vw;height:100vh;
                         background:#000;z-index:999999;display:flex;
@@ -4280,14 +4410,10 @@ function triggerNuke() {
                                 }
                                 localStorage.clear();
                                 Object.keys(savedReports).forEach(k => localStorage.setItem(k, savedReports[k]));
-
-                                // Flag for post-reset message
                                 localStorage.setItem('postResetMessageShown', 'true');
-
                                 if ('serviceWorker' in navigator) {
                                     navigator.serviceWorker.getRegistrations().then(r => r.forEach(reg => reg.unregister()));
                                 }
-
                                 nuke.style.transition = 'opacity 1.2s';
                                 nuke.style.opacity = '0';
                                 setTimeout(() => location.reload(), 1200);
@@ -4299,19 +4425,16 @@ function triggerNuke() {
         }
     );
 };
+
 exportBtn.onclick = () => {
     playSound('click');
 
-    // Correct counts
     const purePersonalCount = locations.filter(l => 
-        l.userEdited === true && 
-        !l.wasCommunityKept && 
-        !l.isPostcard
+        l.userEdited === true && !l.wasCommunityKept && !l.isPostcard
     ).length;
 
     const withKeptCount = locations.filter(l => 
-        (l.userEdited || l.wasCommunityKept) && 
-        !l.isPostcard
+        (l.userEdited || l.wasCommunityKept) && !l.isPostcard
     ).length;
 
     const modal = document.createElement('div');
@@ -4321,13 +4444,13 @@ exportBtn.onclick = () => {
         <div class="modal-content" style="max-width:560px;">
             <span class="close">×</span>
             <h2>Choose Backup Type</h2>
-            
+           
             <div style="margin:20px 0;">
                 <button id="backupPersonalOnly" style="width:100%; padding:16px; margin:8px 0; background:#00ff00; color:#000; font-weight:bold;">
                     PERSONAL MARKERS YOU CREATED ONLY<br>
                     <small style="opacity:0.9;">${purePersonalCount} marker${purePersonalCount === 1 ? '' : 's'} + Level ${level} + All Settings</small>
                 </button>
-                
+               
                 <button id="backupWithKept" style="width:100%; padding:16px; margin:8px 0; background:#00d4ff; color:#000; font-weight:bold;">
                     PERSONAL + KEPT COMMUNITY MARKERS<br>
                     <small style="opacity:0.9;">${withKeptCount} marker${withKeptCount === 1 ? '' : 's'} + Level ${level} + All Settings</small>
@@ -4354,7 +4477,12 @@ exportBtn.onclick = () => {
         const data = {
             version: "personal-only-v76.READY",
             timestamp: new Date().toISOString(),
-            locations: locations.filter(l => l.userEdited === true && !l.wasCommunityKept && !l.isPostcard),
+            locations: locations.filter(l => l.userEdited === true && !l.wasCommunityKept && !l.isPostcard).map(l => ({
+                ...l,
+                userEdited: true,
+                wasCommunityKept: false,
+                isCommunity: false
+            })),
             level,
             xp,
             customCategories,
@@ -4373,7 +4501,12 @@ exportBtn.onclick = () => {
         const data = {
             version: "personal-plus-kept-v76.READY",
             timestamp: new Date().toISOString(),
-            locations: locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard),
+            locations: locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard).map(l => ({
+                ...l,
+                userEdited: l.userEdited,
+                wasCommunityKept: l.wasCommunityKept,
+                isCommunity: false
+            })),
             level,
             xp,
             customCategories,
@@ -4402,6 +4535,7 @@ function downloadBackupFile(data, filenamePrefix) {
         `Level ${level} + XP + All Settings`);
     playSound('saving');
 }
+
 importBtn.onclick = () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -4409,165 +4543,115 @@ importBtn.onclick = () => {
     input.onchange = e => {
         const file = e.target.files[0];
         if (!file) return;
-
         const r = new FileReader();
         r.onload = ev => {
             try {
                 const data = JSON.parse(ev.target.result);
                 const incoming = data.locations || (Array.isArray(data) ? data : []);
                 
+                const isPersonalBackup = data.version && (
+                    data.version.startsWith("personal") ||
+                    file.name.includes("Personal") ||
+                    file.name.includes("MyBackup") ||
+                    file.name.includes("FullResetBackup") ||
+                    file.name.includes("PersonalPlusKeptFullBackup")
+                );
+                
+                const isPlusKeptBackup = data.version && data.version.includes("plus-kept");
+                
                 let added = 0, updated = 0, skipped = 0;
-                let personalRestored = 0, keptRestored = 0;
-                let personalSkipped = 0, keptSkipped = 0;
-                const isSingleMarker = incoming.length === 1;
-
                 const beforeState = JSON.stringify(locations);
 
-                const isPersonalFile = data.level !== undefined ||
-                                       data.xp !== undefined ||
-                                       file.name.includes('MyBackup') ||
-                                       file.name.includes('PersonalOnly') ||
-                                       file.name.includes('PersonalPlusKept') ||
-                                       (data.version && data.version.includes('personal'));
+                if (window.undoImportTimer) {
+                    clearInterval(window.undoImportTimer);
+                    window.undoImportTimer = null;
+                }
 
                 incoming.forEach(imp => {
                     let existing = null;
                     if (imp.id) existing = locations.find(l => l.id === imp.id);
                     if (!existing && imp.cid) existing = locations.find(l => l.cid === imp.cid);
 
-                    if (isPersonalFile) {
-                        const isPurePersonalInBackup = imp.userEdited === true && imp.wasCommunityKept !== true;
+                    if (existing) {
+                        skipped++; // ← This is the completed skip logic
+                        return;
+                    }
 
-                        if (existing) {
-                            const isCurrentlyPurePersonal = existing.userEdited === true && existing.wasCommunityKept !== true;
-                            const isCurrentlyKept = existing.wasCommunityKept === true;
-
-                            const needsUpdate = JSON.stringify(existing) !== JSON.stringify({ ...existing, ...imp });
-
-                            if (needsUpdate) {
-                                Object.assign(existing, imp);
-                                existing.userEdited = true;
-                                existing.isCommunity = false;
-
-                                if (isCurrentlyPurePersonal) {
-                                    existing.wasCommunityKept = false;
-                                    personalRestored++;
-                                } else if (isCurrentlyKept) {
-                                    existing.wasCommunityKept = true;
-                                    keptRestored++;
-                                } else {
-                                    existing.wasCommunityKept = !!imp.wasCommunityKept;
-                                    if (existing.wasCommunityKept) keptRestored++;
-                                    else personalRestored++;
-                                }
-                                updated++;
-                            } else {
-                                // Already present and no change needed
-                                if (isCurrentlyPurePersonal) personalSkipped++;
-                                else if (isCurrentlyKept) keptSkipped++;
-                                else skipped++;
-                            }
+                    if (isPersonalBackup) {
+                        const newMarker = { ...imp };
+                        if (isPlusKeptBackup) {
+                            newMarker.userEdited = imp.userEdited ?? false;
+                            newMarker.wasCommunityKept = imp.wasCommunityKept ?? false;
+                            newMarker.isCommunity = false;
                         } else {
-                            locations.push({
-                                ...imp,
-                                id: imp.id || generateUniqueId(),
-                                addedTime: Date.now(),
-                                locked: true,
-                                isPostcard: false,
-                                isTemp: false,
-                                userEdited: true,
-                                wasCommunityKept: !!imp.wasCommunityKept,
-                                isCommunity: false
-                            });
-                            if (isPurePersonalInBackup) personalRestored++;
-                            else keptRestored++;
-                            added++;
+                            newMarker.userEdited = true;
+                            newMarker.wasCommunityKept = false;
+                            newMarker.isCommunity = false;
                         }
+                        locations.push(newMarker);
+                        added++;
                     } else {
-                        if (existing && (existing.userEdited || existing.wasCommunityKept)) {
-                            skipped++;
-                            return;
-                        }
-
-                        if (imp.category && imp.icon && !defaultCategoryIcons[imp.category]) {
-                            customCategories[imp.category] = imp.icon;
-                            categoryIcons[imp.category] = imp.icon;
-                            categoryColors[imp.category] = '#002F00';
-                            activeCategories.add(imp.category);
-                        }
-
-                        if (existing) {
-                            Object.assign(existing, imp);
-                            existing.userEdited = false;
-                            existing.wasCommunityKept = false;
-                            existing.isCommunity = true;
-                            updated++;
-                        } else {
-                            locations.push({
-                                ...imp,
-                                id: imp.id || generateUniqueId(),
-                                addedTime: Date.now(),
-                                locked: true,
-                                isPostcard: false,
-                                isTemp: false,
-                                isCommunity: true,
-                                userEdited: false,
-                                wasCommunityKept: false
-                            });
-                            added++;
-                        }
+                        locations.push(imp);
+                        added++;
                     }
                 });
 
-                // Restore categories and settings
-                if (data.customCategories) {
-                    customCategories = { ...customCategories, ...data.customCategories };
-                    categoryIcons = { ...defaultCategoryIcons, ...customCategories };
-                    localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-                    updateCategoryDropdowns();
-                    renderCategoryToggles();
+                // ── ROBUST SETTINGS RESTORATION ──
+                if (isPersonalBackup && data.settings) {
+                    clusteringEnabled = data.settings.clusteringEnabled ?? clusteringEnabled;
+                    gridEnabled = data.settings.gridEnabled ?? gridEnabled;
+                    currentMap = data.settings.currentMap ?? currentMap;
+                    darkMode = data.settings.darkMode ?? darkMode;
+                    soundsEnabled = data.settings.soundsEnabled ?? soundsEnabled;
+                    titleVisible = data.settings.titleVisible ?? titleVisible;
+                    toolsVisible = data.settings.toolsVisible ?? toolsVisible;
+                    if (data.settings.activeCategories) activeCategories = new Set(data.settings.activeCategories);
+                    document.body.classList.toggle('dark-mode', darkMode);
+                    syncToggleButtonStates();
                 }
 
-                if (data.settings?.activeCategories) {
-                    activeCategories = new Set(data.settings.activeCategories);
-                    localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
+                if (isPersonalBackup) {
+                    if (data.level !== undefined) level = data.level;
+                    if (data.xp !== undefined) xp = data.xp;
+                    if (data.customCategories) customCategories = data.customCategories;
                 }
 
                 recalculateXP();
                 saveLocations();
                 forceReload();
 
-                // Undo Import button with timer
-                if (added + updated > 0) {
+                                if (added + updated > 0) {
+                    const count = added + updated;
+                    savePendingUndo('import', beforeState, { count: count });
+
                     setTimeout(() => {
                         const undoBtn = document.getElementById('undoImportBtn');
                         if (undoBtn) {
                             undoBtn.style.display = 'inline-block';
-                            undoBtn.textContent = `UNDO LAST IMPORT (${added + updated} markers)`;
-                            
-                            let undoSecondsLeft = 120;
-                            const updateUndoText = () => {
-                                undoBtn.textContent = `UNDO LAST IMPORT (${added + updated} markers) (${Math.floor(undoSecondsLeft / 60)}:${(undoSecondsLeft % 60).toString().padStart(2, '0')})`;
+                            let secondsLeft = 120;
+                            const updateText = () => {
+                                undoBtn.textContent = `UNDO LAST IMPORT (${count} markers) (${Math.floor(secondsLeft / 60)}:${(secondsLeft % 60).toString().padStart(2, '0')})`;
                             };
-                            updateUndoText();
-
-                            const undoTimer = setInterval(() => {
-                                undoSecondsLeft--;
-                                if (undoSecondsLeft <= 0) {
-                                    clearInterval(undoTimer);
+                            updateText();
+                            window.undoImportTimer = setInterval(() => {
+                                secondsLeft--;
+                                if (secondsLeft <= 0) {
+                                    clearInterval(window.undoImportTimer);
+                                    window.undoImportTimer = null;
                                     undoBtn.style.display = 'none';
-                                } else {
-                                    updateUndoText();
-                                }
+                                    localStorage.removeItem('fo76_pendingUndo_import');
+                                } else updateText();
                             }, 1000);
 
                             undoBtn.onclick = () => {
-                                clearInterval(undoTimer);
+                                clearInterval(window.undoImportTimer);
+                                window.undoImportTimer = null;
                                 locations = JSON.parse(beforeState);
                                 recalculateXP();
                                 saveLocations();
                                 forceReload();
                                 undoBtn.style.display = 'none';
+                                localStorage.removeItem('fo76_pendingUndo_import');
                                 showTempMessage('IMPORT UNDONE', 4000);
                                 playSound('undo');
                             };
@@ -4575,42 +4659,25 @@ importBtn.onclick = () => {
                     }, 400);
                 }
 
-                showTempMessage(`IMPORTED ${added + updated + skipped} MARKER${(added + updated + skipped) === 1 ? '' : 'S'}`, 5000);
-
-                triggerEpicFlash("🧬", "IMPORT COMPLETE",
-                    `${added + updated} marker${(added + updated) === 1 ? '' : 's'} loaded!`,
-                    skipped > 0 ? `${skipped} protected` : "Ready to explore"
-                );
-                playSound('saving');
-
-                // Improved modal with better single-marker handling
-                let detailHTML = '';
-                if (isSingleMarker) {
-                    if (skipped > 0 || (personalSkipped + keptSkipped) > 0) {
-                        detailHTML = `<strong style="color:#ffa500;">Single marker skipped</strong><br>(already exists on your map)`;
-                    } else if (personalRestored + keptRestored + added + updated > 0) {
-                        detailHTML = `<strong style="color:#00ff88;">Single marker imported successfully</strong>`;
-                    }
-                } else {
-                    if (personalRestored > 0) detailHTML += `<strong style="color:#88ff88;">${personalRestored}</strong> personal markers restored<br>`;
-                    if (keptRestored > 0) detailHTML += `<strong style="color:#00d4ff;">${keptRestored}</strong> kept community markers restored<br>`;
-                    if (personalSkipped > 0) detailHTML += `<strong style="color:#ffa500;">${personalSkipped}</strong> personal markers skipped (already active)<br>`;
-                    if (keptSkipped > 0) detailHTML += `<strong style="color:#ffa500;">${keptSkipped}</strong> kept markers skipped (already active)<br>`;
-                    if (added > 0) detailHTML += `<strong style="color:#00ff88;">${added}</strong> new markers added<br>`;
-                }
-
                 showConfirmModal(
                     '💾 IMPORT COMPLETED 💾',
                     `<div style="text-align:left;line-height:1.9;font-size:1.1em;">
-                        ${detailHTML || '<strong style="color:#00ff88;">All markers processed successfully</strong>'}
-                        <br><strong>XP + Level restored</strong>
+                        <strong style="color:#00ff88;">${added + updated} marker${(added + updated) === 1 ? '' : 's'} processed successfully</strong><br>
+                        ${skipped > 0 ? `Skipped: <strong style="color:#ffa500;">${skipped}</strong> (already present on map)<br>` : ''}
+                        <br>
+                        <strong style="color:#88ff88;">XP • Level • All Settings restored successfully</strong>
                     </div>`,
                     null
                 );
 
+                triggerEpicFlash("🧬", "IMPORT COMPLETE",
+                    `${added + updated} marker${(added + updated) === 1 ? '' : 's'} loaded!`,
+                    skipped > 0 ? `${skipped} markers skipped (already present)` : "Settings & progress restored");
+                playSound('saving');
+
             } catch (err) {
                 console.error("Import failed:", err);
-                showTempMessage('INVALID FILE', 5000);
+                showTempMessage('INVALID FILE OR CORRUPTED BACKUP', 5000);
                 playSound('error');
             }
         };
@@ -4618,6 +4685,7 @@ importBtn.onclick = () => {
     };
     input.click();
 };
+
 // ── COMMUNITY UPDATE ──
 downloadCommunityBtn.onclick = () => {
     playSound('click');
@@ -5079,7 +5147,8 @@ document.getElementById('shareOneBtn').onclick = () => {
             : 'none';
     }
 };
-        // Delete button – with confirmation
+
+  // Delete button – with confirmation
 deleteBtn.onclick = () => {
     if (currentIndex < 0) return;
     const loc = locations[currentIndex];
@@ -5088,73 +5157,89 @@ deleteBtn.onclick = () => {
         playSound('error');
         return;
     }
-
     showConfirmModal(
-    '☢ CONFIRM DELETION ☢',
-    `Are you sure you want to permanently delete this marker?<br><br>
-     <strong>Description:</strong> ${escapeHtml(loc.desc || '(no description)')}<br>
-     <strong>Category:</strong> ${loc.category}<br>
-     <strong>Grid:</strong> ${getGridFromLatLng(loc.lat, loc.lng) || 'Unknown'}<br><br>
-     This action cannot be undone after the "Undo Delete" button disappears (2 minutes).<br>
-     <strong>To undo:</strong> Open the edit modal on any of your markers — the Undo Delete button will appear there until time runs out.`,
-    () => {
-        // Confirmed deletion
-        lastDeleted = { ...loc };
-        locations.splice(currentIndex, 1);
-        recalculateXP();
-        closeModal(itemModal);
-        saveLocations();
-        forceReload();
-        undoBtn.style.display = 'inline-block';
-        showUndoButton();  // ← Call the new timer version
-        showTempMessage('MARKER DELETED — UNDO READY (2 min)', 5000);
-        playSound('delete');
-    },
-    'Yes — Delete It',
-    'Cancel'
-);
-
+        '☢ CONFIRM DELETION ☢',
+        `Are you sure you want to permanently delete this marker?<br><br>
+         <strong>Description:</strong> ${escapeHtml(loc.desc || '(no description)')}<br>
+         <strong>Category:</strong> ${loc.category}<br>
+         <strong>Grid:</strong> ${getGridFromLatLng(loc.lat, loc.lng) || 'Unknown'}<br><br>
+         This action can be undone for 2 minutes using the "Undo Last Delete" button in the Tools panel.`,
+        () => {
+            lastDeleted = { ...loc };
+            locations.splice(currentIndex, 1);
+            recalculateXP();
+            closeModal(itemModal);
+            saveLocations();
+            forceReload();
+            
+                        // Show the new tools-panel undo button
+            const undoDeleteBtn = document.getElementById('undoDeleteBtn');
+            if (undoDeleteBtn) {
+                undoDeleteBtn.style.display = 'inline-block';
+                savePendingUndo('delete', JSON.stringify(locations), { lastDeleted: { ...loc } });
+                showUndoDeleteButton();
+            }
+            showTempMessage('MARKER DELETED — UNDO READY (2 min)', 5000);
+            playSound('delete');
+        },
+        'Yes — Delete It',
+        'Cancel'
+    );
 };
 
-// Undo Delete button – with safety checks
-undoBtn.onclick = () => {
-    if (!lastDeleted) {
-        showTempMessage('Nothing to undo', 3000);
-        return;
-    }
+// Undo Last Delete (now in Tools panel)
+let undoDeleteTimer = null;
+function showUndoDeleteButton() {
+    const btn = document.getElementById('undoDeleteBtn');
+    if (!btn) return;
+    let secondsLeft = 120;
+    const updateText = () => {
+        btn.textContent = `UNDO LAST DELETE (${Math.floor(secondsLeft / 60)}:${(secondsLeft % 60).toString().padStart(2, '0')})`;
+    };
+    updateText();
+    if (undoDeleteTimer) clearInterval(undoDeleteTimer);
+    undoDeleteTimer = setInterval(() => {
+        secondsLeft--;
+        if (secondsLeft <= 0) {
+            clearInterval(undoDeleteTimer);
+            btn.style.display = 'none';
+        } else updateText();
+    }, 1000);
 
-    // Prevent restore if marker already exists (e.g. re-imported)
-    if (locations.some(l => l.cid === lastDeleted.cid)) {
-        showTempMessage('MARKER ALREADY RESTORED FROM COMMUNITY', 4000);
-        lastDeleted = null;
-        undoBtn.style.display = 'none';
-        return;
-    }
+    btn.onclick = () => {
+        clearInterval(undoDeleteTimer);
+        if (lastDeleted) {
+            locations.push({ ...lastDeleted });
+            recalculateXP();
+            saveLocations();
+            forceReload();
+            showTempMessage('MARKER RESTORED', 3000);
+            playSound('undo');
+            lastDeleted = null;
+        }
+        btn.style.display = 'none';
+    };
+}
 
-    // Restore the marker
-    locations.push({ ...lastDeleted });  // Fresh copy
-    recalculateXP();
-    saveLocations();
-    forceReload();
-    undoBtn.style.display = 'none';
-    showTempMessage('MARKER RESTORED', 3000);
-    playSound('undo');
-    closeModal(itemModal);
-    safeFlyTo(lastDeleted.lat, lastDeleted.lng, 4);
-    lastDeleted = null;  // Clear after success
-};
 exportOneBtn.onclick = () => {
     const loc = locations[currentIndex];
     if (!loc) return;
 
-    const blob = new Blob([JSON.stringify([loc], null, 2)], { type: 'application/json' });
+    const cleanLoc = {
+        ...loc,
+        userEdited: true,
+        wasCommunityKept: false,
+        isCommunity: false,
+        locked: loc.locked || false
+    };
+
+    const blob = new Blob([JSON.stringify([cleanLoc], null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `fo76_marker_${getGridFromLatLng(loc.lat, loc.lng) || 'unknown'}_${new Date().toISOString().slice(0,10)}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
 
-    // Animated success message with interaction lock
     triggerEpicFlash("📤", "MARKER EXPORTED SUCCESSFULLY", 
         `Grid ${getGridFromLatLng(loc.lat, loc.lng) || 'Unknown'}`, 
         "Saved to your Downloads folder");
@@ -5162,6 +5247,7 @@ exportOneBtn.onclick = () => {
     playSound('saving');
     closeModal(itemModal);
 };
+
 document.getElementById('submitCommunityBtn').onclick = () => {
     const loc = locations[currentIndex];
     if (!loc?.locked) {
@@ -5310,6 +5396,7 @@ map.on('dblclick', e => {
         loadData(currentSearch, currentCategoryFilter);
         drawGrid();
         updateXPBar();
+		restorePendingUndo();
         playSound('selectcategory');
 syncToggleButtonStates();
 
@@ -5336,37 +5423,7 @@ if (!localStorage.getItem('seenCommunityHint')) {
 }
 
         setTimeout(() => document.body.classList.add('map-ready'), 1000);
-		// ── COMMUNITY MAP "AVAILABLE!" GLOW CHECK ──
-async function checkForCommunityUpdate() {
-    try {
-        const response = await fetch('https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?v=' + Date.now(), { 
-            cache: 'no-store' 
-        });
-        if (!response.ok) return;
 
-        const data = await response.json();
-        const remoteVersion = String(data.communityVersion || data.version || "1.0");
-        const storedVersion = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
-
-        if (remoteVersion !== storedVersion) {
-            downloadCommunityBtn.classList.add('available');
-            downloadCommunityBtn.textContent = 'Update Community Map (Available!)';
-        } else {
-            downloadCommunityBtn.classList.remove('available');
-            downloadCommunityBtn.textContent = 'Update Community Map';
-        }
-    } catch (err) {
-        console.warn('Community version check failed:', err);
-        downloadCommunityBtn.classList.remove('available');
-        downloadCommunityBtn.textContent = 'Update Community Map';
-    }
-}
-
-// Run check on load and every 10 minutes
-document.addEventListener('DOMContentLoaded', () => {
-    checkForCommunityUpdate();
-    setInterval(checkForCommunityUpdate, 600000);
-});
         toggleDarkModeBtn.onclick = () => {
             darkMode = !darkMode;
             document.body.classList.toggle('dark-mode', darkMode);
@@ -5657,32 +5714,41 @@ searchInput.addEventListener('input', function(e) {
 
     if (unique.length === 0) return;
 
-    unique.forEach(item => {
-        const div = document.createElement('div');
-        div.textContent = item.display;
-        div.onclick = () => {
-    searchInput.value = '';
-	searchInput.dispatchEvent(new Event('input'));
-    suggestionsBox.style.display = 'none';
-
-    loadData('', categoryFilter.value);
-
-    safeFlyTo(item.lat, item.lng, 4);
-
-    map.once('moveend', () => {
-        setTimeout(() => {
-            const m = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
-                .find(m => m.options.id === item.id);
-            if (m) {
-                playSound('click');
-            }
-        }, 200);
-    });
-
-    playSound('click');
-};
-        suggestionsBox.appendChild(div);
-    });
+unique.forEach(item => {
+    const div = document.createElement('div');
+    div.textContent = item.display;
+    div.style.padding = '12px';
+    div.style.cursor = 'pointer';
+    div.style.borderBottom = '1px solid #00ff33';
+    div.onclick = () => {
+        combinedSearch.value = '';
+        clearBtn.style.display = 'none';
+        suggestionsBox.style.display = 'none';
+        loadData('', categoryFilter.value);
+        
+        // Strict ID-based lookup after fly-to
+        safeFlyTo(item.lat, item.lng, 4);
+        map.once('moveend', () => {
+            setTimeout(() => {
+                const marker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
+                    .find(m => m.options && m.options.id === item.id);
+                
+                if (marker) {
+                    marker.openPopup();
+                    playSound('click');
+                } else {
+                    // Fallback: force click on the exact marker if popup still fails
+                    const fallbackMarker = map._layers[Object.keys(map._layers).find(k => 
+                        map._layers[k].options && map._layers[k].options.id === item.id
+                    )];
+                    if (fallbackMarker) fallbackMarker.fire('click');
+                }
+            }, 650); // Increased timeout for reliable clustering/spiderfy
+        });
+        playSound('click');
+    };
+    suggestionsBox.appendChild(div);
+});
 
     suggestionsBox.style.display = 'block';
 });
@@ -6291,7 +6357,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: 28-03-2026 C-58 • Version 76.READY Released • Made with ❤️\n' +
+    'Last updated: Version Release • 76.READY-29-03-2026-C-59 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
