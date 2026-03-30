@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map</title>
 	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
-	<link rel="manifest" href="manifest.json?v=65">
+	<link rel="manifest" href="manifest.json?v=66">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1585,7 +1585,7 @@ button:not(:hover):not(:active):not(:focus),
         </div>
     </div>
 <script>
-const CURRENT_APP_VERSION = '76.65';
+const CURRENT_APP_VERSION = '76.66';
 
 // ── All version numbers now use this single line (change it here only) ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -4272,6 +4272,7 @@ function safeFlyTo(lat, lng, z = map.getZoom()) {
     });
 }
         
+// ── BULLETPROOF RESET WITH LOCKED BACKUP FLASH + YOUR PREFERRED NUKE (BIGGER ☢️) ──
 resetAppBtn.onclick = () => {
     showConfirmModal(
         '☢ FULL APP RESET ☢',
@@ -4283,8 +4284,8 @@ resetAppBtn.onclick = () => {
         'Other Community markers can be re-added later by clicking the "Update Community Map" button.<br><br>' +
         'Ready to initiate reset protocol?',
         () => {
+            // 1. Create and download backup
             const userMarkers = locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard);
-           
             const personalBackup = {
                 version: "personal-plus-kept-fullbackup",
                 timestamp: new Date().toISOString(),
@@ -4299,69 +4300,69 @@ resetAppBtn.onclick = () => {
                     activeCategories: [...activeCategories]
                 }
             };
-            // SINGLE clean backup with epic animation
             downloadBackupFile(personalBackup, `FO76_PersonalPlusKeptFullBackup_Level_${level}`);
-            // Second safety confirmation
+
+            // 2. Locked backup complete flash
+            triggerEpicFlash(
+                "💾",
+                "BACKUP COMPLETE",
+                `${userMarkers.length} marker${userMarkers.length === 1 ? '' : 's'} saved!`,
+                `Level ${level} + XP + All Settings`
+            );
+
+            // 3. Safety modal after flash
             setTimeout(() => {
                 const safetyModal = document.createElement('div');
                 safetyModal.className = 'modal';
                 safetyModal.style.display = 'block';
                 safetyModal.innerHTML = `
                     <div class="modal-content" style="max-width:520px; background:#1a3c34; border:3px solid #ff4444; box-shadow:0 0 25px #ff4444;">
-                        <span class="close" style="color:#ff4444;">X</span>
-                        <h2 style="color:#ff4444;text-shadow:0 0 15px #ff4444;text-align:center;margin-bottom:20px;">
-                            ☢ FINAL WIPE AUTHORIZATION ☢
-                        </h2>
+                        <span class="close" style="color:#ff4444;">×</span>
+                        <h2 style="color:#ff4444;text-shadow:0 0 15px #ff4444;text-align:center;margin-bottom:20px;">☢ FINAL WIPE AUTHORIZATION ☢</h2>
                         <div style="color:#00ff88;line-height:1.6;font-size:1.1em;text-align:center;margin:20px 0;">
                             <strong>Have you confirmed the backup file was saved?</strong><br><br>
                             Proceeding will <span style="color:#ff4444;font-weight:bold;">PERMANENTLY ERASE</span> all markers, XP, and settings.<br>
                             No recovery will be possible after this point.
                         </div>
                         <div style="text-align:center;margin-top:30px;display:flex;justify-content:center;gap:30px;flex-wrap:wrap;">
-                            <button id="cancelSafetyBtn" style="color-scheme: only light; background:#00ff00; color:#000 !important; padding:12px 30px; border:none; border-radius:6px; font-weight:bold; font-size:1.2em; min-width:180px; cursor:pointer;box-shadow: 0 0 15px #00ff00;">
-                                CANCEL — BACKUP NOT SAVED
-                            </button>
-                            <button id="proceedWipeBtn" style="color-scheme: only light; background:#ff4444; color:#000 !important; padding:12px 30px; border:none; border-radius:6px; font-weight:bold; font-size:1.2em; min-width:180px; cursor:pointer; box-shadow: 0 0 15px #00ff00;">
-                                PROCEED WITH WIPE (IRREVERSIBLE)
-                            </button>
+                            <button id="cancelSafetyBtn" style="background:#00ff00;color:#000;padding:12px 30px;border:none;border-radius:6px;font-weight:bold;font-size:1.2em;min-width:180px;cursor:pointer;">CANCEL — BACKUP NOT SAVED</button>
+                            <button id="proceedWipeBtn" style="background:#ff4444;color:#000;padding:12px 30px;border:none;border-radius:6px;font-weight:bold;font-size:1.2em;min-width:180px;cursor:pointer;">PROCEED WITH WIPE (IRREVERSIBLE)</button>
                         </div>
                     </div>
                 `;
                 document.body.appendChild(safetyModal);
                 document.body.classList.add('modal-open');
+
                 const closeSafety = () => {
                     safetyModal.remove();
                     document.body.classList.remove('modal-open');
-                    playSound('modalClose');
                 };
+
                 safetyModal.querySelector('.close').onclick = closeSafety;
                 safetyModal.querySelector('#cancelSafetyBtn').onclick = closeSafety;
+
+                // 4. YOUR PREFERRED NUKE ANIMATION — rocket flies exactly as before + BIGGER ☢️
                 safetyModal.querySelector('#proceedWipeBtn').onclick = () => {
                     closeSafety();
+                    lockUIDuringAnimation(6500);
 
-                    // ── POLISHED NUCLEAR WIPE ANIMATION (rocket → flash → reborn) ──
                     const nuke = document.createElement('div');
-                    lockUIDuringAnimation(6000);
-
                     nuke.style.cssText = `
                         position:fixed;top:0;left:0;width:100vw;height:100vh;
                         background:#000;z-index:9999999;display:flex;
                         align-items:center;justify-content:center;flex-direction:column;
-                        font-family:'Courier New',monospace;color:#0f0;
-                        pointer-events:none;gap:30px;
+                        gap:30px;font-family:'Courier New',monospace;color:#0f0;
+                        pointer-events:none;
                     `;
                     nuke.innerHTML = `
-                        <div id="wipeRocket" style="font-size:clamp(80px,25vw,220px);animation:rocketLaunchAnim 1.8s ease-out forwards;">🚀</div>
-                        <h1 style="font-size:clamp(32px,8vw,70px);margin:0;text-shadow:0 0 35px #0f0;letter-spacing:6px;">
-                            NUCLEAR WIPE
-                        </h1>
-                        <p id="wipeCountdown" style="font-size:clamp(22px,6vw,48px);margin:0;opacity:0.95;">
-                            Detonation in 3...
-                        </p>
+                        <div id="wipeRocket" style="font-size:clamp(80px,25vw,220px);">🚀</div>
+                        <h1 class="wipe-nuke-title">NUCLEAR WIPE INITIATED</h1>
+                        <p class="nuke-subtitle" style="font-size:clamp(18px,5vw,36px);">Detonation in 3...</p>
                     `;
                     document.body.appendChild(nuke);
+                    playSound('levelUp');
 
-                    // Rocket keyframes (reused from level-up nuke)
+                    // Your exact rocket keyframes
                     const style = document.createElement('style');
                     style.textContent = `
                         @keyframes rocketLaunchAnim {
@@ -4373,19 +4374,20 @@ resetAppBtn.onclick = () => {
                     `;
                     document.head.appendChild(style);
 
-                    playSound('levelUp');
+                    const rocket = document.getElementById('wipeRocket');
+                    rocket.style.animation = 'rocketLaunchAnim 1.8s ease-out forwards';
 
                     let count = 3;
-                    const countdownEl = document.getElementById('wipeCountdown');
-                    const countdownInterval = setInterval(() => {
+                    const countdown = setInterval(() => {
                         count--;
+                        const p = nuke.querySelector('p');
                         if (count > 0) {
-                            countdownEl.textContent = `Detonation in ${count}...`;
+                            p.textContent = `Detonation in ${count}...`;
                         } else {
-                            clearInterval(countdownInterval);
-                            countdownEl.textContent = 'BOOM!';
+                            clearInterval(countdown);
+                            p.textContent = 'BOOM!';
+                            nuke.style.background = '#fff';
 
-                            // White flash
                             const flash = document.createElement('div');
                             flash.style.cssText = `
                                 position:fixed;top:0;left:0;width:100vw;height:100vh;
@@ -4395,21 +4397,15 @@ resetAppBtn.onclick = () => {
                             document.body.appendChild(flash);
                             setTimeout(() => flash.remove(), 700);
 
-                            // Reborn screen
                             setTimeout(() => {
                                 nuke.innerHTML = `
-                                    <div class="nuke-symbol" style="color:#ff0;">☢️</div>
-                                    <h1 style="font-size:clamp(36px,9vw,80px);margin:0;text-shadow:0 0 40px #0f0;letter-spacing:6px;">
-                                        APPALACHIA REBORN
-                                    </h1>
-                                    <p style="font-size:clamp(20px,5.5vw,42px);margin:0;opacity:0.9;">
-                                        Reloading...
-                                    </p>
+                                    <div class="wipe-nuke-symbol" style="color:#ff0; font-size:clamp(160px,45vw,500px);">☢️</div>
+                                    <h1 class="wipe-nuke-title">APPALACHIA REBORN</h1>
+                                    <p class="nuke-subtitle" style="font-size:clamp(18px,5vw,36px);">Reloading clean map...</p>
                                 `;
                                 nuke.style.background = '#000';
                             }, 400);
 
-                            // Final reload
                             setTimeout(() => {
                                 const savedReports = {};
                                 for (let i = 0; i < localStorage.length; i++) {
@@ -4419,17 +4415,19 @@ resetAppBtn.onclick = () => {
                                 localStorage.clear();
                                 Object.keys(savedReports).forEach(k => localStorage.setItem(k, savedReports[k]));
                                 localStorage.setItem('postResetMessageShown', 'true');
+
                                 if ('serviceWorker' in navigator) {
                                     navigator.serviceWorker.getRegistrations().then(r => r.forEach(reg => reg.unregister()));
                                 }
-                                nuke.style.transition = 'opacity 1.2s';
+
+                                nuke.style.transition = 'opacity 1.4s';
                                 nuke.style.opacity = '0';
-                                setTimeout(() => location.reload(), 1200);
-                            }, 2800);
+                                setTimeout(() => location.reload(), 1400);
+                            }, 3800);
                         }
-                    }, 950);
+                    }, 1000);
                 };
-            }, 1500);
+            }, 4000);
         }
     );
 };
@@ -6494,7 +6492,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • C-65-31-03-2026 • Made with ❤️\n' +
+    'Last updated: • C-66-31-03-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
