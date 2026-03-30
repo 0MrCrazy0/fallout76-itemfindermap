@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map</title>
 	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
-	<link rel="manifest" href="manifest.json?v=66">
+	<link rel="manifest" href="manifest.json?v=67">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1585,7 +1585,7 @@ button:not(:hover):not(:active):not(:focus),
         </div>
     </div>
 <script>
-const CURRENT_APP_VERSION = '76.66';
+const CURRENT_APP_VERSION = '76.67';
 
 // ── All version numbers now use this single line (change it here only) ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -4434,12 +4434,10 @@ resetAppBtn.onclick = () => {
 
 exportBtn.onclick = () => {
     playSound('click');
-
-    const purePersonalCount = locations.filter(l => 
+    const purePersonalCount = locations.filter(l =>
         l.userEdited === true && !l.wasCommunityKept && !l.isPostcard
     ).length;
-
-    const withKeptCount = locations.filter(l => 
+    const withKeptCount = locations.filter(l =>
         (l.userEdited || l.wasCommunityKept) && !l.isPostcard
     ).length;
 
@@ -4450,19 +4448,19 @@ exportBtn.onclick = () => {
         <div class="modal-content" style="max-width:560px;">
             <span class="close">×</span>
             <h2>Choose Backup Type</h2>
-           
+          
             <div style="margin:20px 0;">
                 <button id="backupPersonalOnly" style="width:100%; padding:16px; margin:8px 0; background:#00ff00; color:#000; font-weight:bold;">
                     PERSONAL MARKERS YOU CREATED ONLY<br>
                     <small style="opacity:0.9;">${purePersonalCount} marker${purePersonalCount === 1 ? '' : 's'} + Level ${level} + All Settings</small>
                 </button>
-               
+              
                 <button id="backupWithKept" style="width:100%; padding:16px; margin:8px 0; background:#00d4ff; color:#000; font-weight:bold;">
                     PERSONAL + KEPT COMMUNITY MARKERS<br>
                     <small style="opacity:0.9;">${withKeptCount} marker${withKeptCount === 1 ? '' : 's'} + Level ${level} + All Settings</small>
                 </button>
             </div>
-            
+           
             <p style="text-align:center; font-size:0.9em; opacity:0.8;">
                 Personal Only = clean backup (recommended)<br>
                 With Kept = includes markers you decided to keep<br>
@@ -4480,10 +4478,11 @@ exportBtn.onclick = () => {
     };
 
     document.getElementById('backupPersonalOnly').onclick = () => {
+        const playerMarkers = locations.filter(l => l.userEdited === true && !l.wasCommunityKept && !l.isPostcard);
         const data = {
             version: "personal-only",
             timestamp: new Date().toISOString(),
-            locations: locations.filter(l => l.userEdited === true && !l.wasCommunityKept && !l.isPostcard).map(l => ({
+            locations: playerMarkers.map(l => ({
                 ...l,
                 userEdited: true,
                 wasCommunityKept: false,
@@ -4504,10 +4503,11 @@ exportBtn.onclick = () => {
     };
 
     document.getElementById('backupWithKept').onclick = () => {
+        const playerMarkers = locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard);
         const data = {
             version: "personal-plus-kept",
             timestamp: new Date().toISOString(),
-            locations: locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard).map(l => ({
+            locations: playerMarkers.map(l => ({
                 ...l,
                 userEdited: l.userEdited,
                 wasCommunityKept: l.wasCommunityKept,
@@ -4536,6 +4536,7 @@ function downloadBackupFile(data, filenamePrefix) {
     a.click();
     URL.revokeObjectURL(a.href);
 
+    // Locked flash
     triggerEpicFlash("💾", "BACKUP COMPLETE",
         `${data.locations.length} marker${data.locations.length === 1 ? '' : 's'} saved!`,
         `Level ${level} + XP + All Settings`);
@@ -4695,7 +4696,6 @@ importBtn.onclick = () => {
 // ── COMMUNITY UPDATE ──
 downloadCommunityBtn.onclick = () => {
     playSound('click');
-
     showConfirmModal(
     '🚀UPDATE COMMUNITY MAP🚀',
     `<div style="text-align:left; line-height:1.45; font-size:1.1em; padding:12px 20px;">
@@ -4709,30 +4709,24 @@ downloadCommunityBtn.onclick = () => {
     async () => {
         downloadCommunityBtn.disabled = true;
         downloadCommunityBtn.textContent = 'Updating...';
-
             try {
                 const res = await fetchWithTimeout(
                     'https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?t=' + Date.now(),
                     12000
                 );
                 if (!res.ok) throw new Error('Bad response');
-
                 const data = await res.json();
                 const incoming = data.locations || [];
                 let added = 0, refreshed = 0, skipped = 0, cleaned = 0;
                 let approvedCount = 0;
-
                 const incomingIds = new Set(incoming.map(m => m.id));
-
-                const userMarkersBefore = locations.filter(l => 
-                    (l.userEdited === true || l.wasCommunityKept === true) && 
-                    !l.isCommunity && 
+                const userMarkersBefore = locations.filter(l =>
+                    (l.userEdited === true || l.wasCommunityKept === true) &&
+                    !l.isCommunity &&
                     !l.isPostcard
                 ).length;
-
                 incoming.forEach(imp => {
                     const existing = locations.find(l => l.id === imp.id);
-
                     if (existing && hasBeenSubmitted(imp.id)) {
                         let submitted = JSON.parse(localStorage.getItem('submitted_ids') || '[]');
                         const idx = submitted.indexOf(imp.id);
@@ -4747,12 +4741,10 @@ downloadCommunityBtn.onclick = () => {
                         showTempMessage(`Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED!`, 10000);
                         playSound('levelUp');
                     }
-
                     if (existing && (existing.userEdited || existing.wasCommunityKept)) {
                         skipped++;
                         return;
                     }
-
                     let loc;
                     if (existing) {
                         Object.assign(existing, imp);
@@ -4772,13 +4764,11 @@ downloadCommunityBtn.onclick = () => {
                         locations.push(loc);
                         added++;
                     }
-
                     loc.isCommunity = true;
                     loc.locked = true;
                     loc.userEdited = false;
                     loc.wasCommunityKept = !!existing?.wasCommunityKept;
                 });
-
                 for (let i = locations.length - 1; i >= 0; i--) {
                     const loc = locations[i];
                     if (loc.isCommunity && !incomingIds.has(loc.id)) {
@@ -4786,16 +4776,13 @@ downloadCommunityBtn.onclick = () => {
                         cleaned++;
                     }
                 }
-
                 if (data.customCategories) {
                     customCategories = { ...customCategories, ...data.customCategories };
                 }
-
                 const newVersion = String(data.communityVersion || "1.0");
                 localStorage.setItem(MAP_VERSION_KEY, newVersion);
                 communityVersion = newVersion;
                 localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-
                 recalculateXP();
                 updateCounterDisplay();
                 forceReload();
@@ -4810,23 +4797,25 @@ showConfirmModal(
         <strong style="color:#ffcc00;">${userMarkersBefore}</strong> personal markers untouched<br>
         ${cleaned > 0 ? `<strong style="color:#ff4444;">${cleaned}</strong> deleted community markers removed<br>` : ''}
         ${approvedCount > 0 ? `<strong style="color:#00ff88;">${approvedCount}</strong> of your submissions approved!<br>` : ''}
-        
+       
         <strong style="color:#00ff00;">Total markers on map: ${locations.length}</strong><br><br>
-        
+       
         • You kept <strong style="color:#88ccff;">${skipped}</strong> community marker${skipped === 1 ? '' : 's'}<br>
         • You logged <strong style="color:#88ccff;">${userMarkersBefore}</strong> personal marker${userMarkersBefore === 1 ? '' : 's'}<br>
         • You are Level <strong style="color:#00ff88;">${level}</strong> explorer<br><br>
-        
+       
         <strong>Community Map v${newVersion} loaded — happy exploring Appalachia!</strong>
     </div>`,
     null
 );
-
                 playSound('saving');
 
-                                if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
+                // BIG CELEBRATION NUKE — NOW FULLY LOCKED
+                if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
                     localStorage.setItem('seenCommunityNuke', 'true');
                     setTimeout(() => {
+                        lockUIDuringAnimation(6500);   // ← UI is now completely locked during the entire nuke animation
+
                         const overlay = document.createElement('div');
                         overlay.style.cssText = `
                             position:fixed;top:0;left:0;width:100vw;height:100vh;
@@ -4843,19 +4832,17 @@ showConfirmModal(
                             <div style="font-size:clamp(22px,6vw,48px);margin-top:-30px;opacity:0.9;">LAUNCHING...</div>
                         `;
                         document.body.appendChild(overlay);
-
                         // Rocket animation keyframes
                         const style = document.createElement('style');
                         style.textContent = `
                             @keyframes rocketLaunchAnim {
-                                0%   { transform: translateY(80px) scale(0.8); opacity: 0; }
-                                30%  { transform: translateY(-40px) scale(1.1); opacity: 1; }
-                                70%  { transform: translateY(-180px) scale(1); }
+                                0% { transform: translateY(80px) scale(0.8); opacity: 0; }
+                                30% { transform: translateY(-40px) scale(1.1); opacity: 1; }
+                                70% { transform: translateY(-180px) scale(1); }
                                 100% { transform: translateY(-300px) scale(0.6); opacity: 0; }
                             }
                         `;
                         document.head.appendChild(style);
-
                         // Step 1: Rocket flies up (1.8s)
                         setTimeout(() => {
                             // Step 2: White flash
@@ -4867,7 +4854,6 @@ showConfirmModal(
                             `;
                             document.body.appendChild(flash);
                             setTimeout(() => flash.remove(), 700);
-
                             // Step 3: Your exact preferred nuke screen with smaller mobile text
                             overlay.innerHTML = `
                                 <div class="nuke-symbol">☢️</div>
@@ -4876,23 +4862,18 @@ showConfirmModal(
                                     <strong>${added}</strong> new markers detonated across Appalachia!
                                 </p>
                             `;
-
                             playSound('levelUp');
-
                             // Fade out after 3.2 seconds
                             setTimeout(() => {
                                 overlay.style.transition = 'opacity 1.4s';
                                 overlay.style.opacity = '0';
                                 setTimeout(() => overlay.remove(), 1400);
                             }, 3200);
-
                         }, 1900);
                     }, 800);
                 }
-
                 localStorage.setItem(LAST_COMMUNITY_VERSION_KEY, newVersion);
                 downloadCommunityBtn.classList.remove('update-available');
-
             } catch (err) {
                 console.error('Fetch error:', err);
                 showTempMessage('COMMUNITY UPDATE FAILED — CHECK CONNECTION', 6000);
@@ -6492,7 +6473,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • C-66-31-03-2026 • Made with ❤️\n' +
+    'Last updated: • C-67-31-03-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
