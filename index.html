@@ -4,9 +4,9 @@
     <!-- DEV NOTE: Meta tags for mobile + PWA support -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Fallout 76 Item Finder Map v76.READY</title>
-
-	<link rel="manifest" href="manifest.json?v=62">
+    <title>Fallout 76 Item Finder Map</title>
+	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
+	<link rel="manifest" href="manifest.json?v=63">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1585,7 +1585,7 @@ button:not(:hover):not(:active):not(:focus),
         </div>
     </div>
 <script>
-const CURRENT_APP_VERSION = '76.READY';
+const CURRENT_APP_VERSION = '76.63';
 // Prevent old app version string from interfering with community version
 const currentVer = localStorage.getItem('fo76_map_version');
 if (currentVer === '76.READY' || (currentVer && currentVer.includes('READY'))) {
@@ -3592,44 +3592,35 @@ ${loc.userEdited && !loc.isPostcard && !loc.wasCommunityKept ? `
         });
     }
 }
-        function updateCounterDisplay() {
-    const appVersion = "76.READY";
+
+function updateCounterDisplay() {
     const communityVer = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
-
-    // Total visible markers on the user's map (respecting active categories)
+    
     const totalLogged = locations.filter(l => activeCategories.has(l.category)).length;
-
-    // Pure community markers (official base map — not kept or created by user)
     const communityTotal = locations.filter(l =>
         l.isCommunity === true &&
         !l.userEdited &&
         !l.wasCommunityKept &&
         !l.isPostcard
     ).length;
-
-    // Pure personal markers you created yourself
     const created = locations.filter(l =>
         l.userEdited === true &&
         !l.wasCommunityKept &&
         !l.isPostcard
     ).length;
-
-    // Community markers you decided to keep permanently
     const kept = locations.filter(l =>
         l.wasCommunityKept === true &&
         !l.isPostcard
     ).length;
-
-    // Total you personally logged (Created + Kept)
     const userLogged = created + kept;
 
     counter.innerHTML = `
         <strong>Latest Version</strong><br>
-        FO76-IFM v${appVersion}<br>
+        FO76-IFM v${CURRENT_APP_VERSION}<br>
         Community Map v${communityVer}<br><br>
         <strong>Stats</strong><br>
         Total Logged: <strong style="color:#00ff88;">${totalLogged}</strong><br>
-        Community Markers: <strong style="color:#88ccff;">${communityTotal}</strong><br>
+        Unexplored: <strong style="color:#88ccff;">${communityTotal}</strong><br>
         You Created: <strong style="color:#00ff88;">${created}</strong><br>
         You Kept: <strong style="color:#00ff88;">${kept}</strong><br>
         You Logged: <strong style="color:#00ff88;">${userLogged}</strong><br>
@@ -6400,7 +6391,7 @@ if (playerNameInput) {
 
         console.log(
     '%c╔═════════════════════════════════════════════════════════════╗\n' +
-    '║           FALLOUT 76 ITEM FINDER MAP v76.READY              ║\n' +
+    '║           FALLOUT 76 ITEM FINDER MAP                        ║\n' +
     '╚═════════════════════════════════════════════════════════════╝',
     'color:#00ff00; font-family:monospace; font-size:14px; font-weight:bold; background:#000; padding:6px 0; line-height:1.4;'
 );
@@ -6417,7 +6408,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: Version Release • 76.READY-30-03-2026-C-62 • Made with ❤️\n' +
+    'Last updated: • 30-03-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
