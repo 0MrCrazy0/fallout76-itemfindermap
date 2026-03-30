@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map</title>
 	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
-	<link rel="manifest" href="manifest.json?v=63">
+	<link rel="manifest" href="manifest.json?v=64">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1513,7 +1513,7 @@ button:not(:hover):not(:active):not(:focus),
             <div style="text-align:center; margin:15px 0;">
                 <button id="resetAppBtn" class="reset-btn">Reset App (deletes everything)</button>
             </div>
-            <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version v76.READY Made By MrCrazy</p>
+            <p class="small" id="appVersionText">The Fallout 76 Item Finder Map Version Made By MrCrazy</p>
         </div>
     </div>
     <!-- DEV NOTE: NUKE CODES MODAL -->
@@ -1585,10 +1585,15 @@ button:not(:hover):not(:active):not(:focus),
         </div>
     </div>
 <script>
-const CURRENT_APP_VERSION = '76.63';
+const CURRENT_APP_VERSION = '76.64';
+
+// ── All version numbers now use this single line (change it here only) ──
+const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
+const APP_VERSION = "v" + CURRENT_APP_VERSION;
+
 // Prevent old app version string from interfering with community version
 const currentVer = localStorage.getItem('fo76_map_version');
-if (currentVer === '76.READY' || (currentVer && currentVer.includes('READY'))) {
+if (currentVer === CURRENT_APP_VERSION) {
     localStorage.setItem('fo76_map_version', '1.0');
 }
 
@@ -1614,7 +1619,7 @@ if ('serviceWorker' in navigator && !sessionStorage.getItem('recoveryDone')) {
         const storedVersion = localStorage.getItem('fo76_map_version') || '0';
         
         // Only clean if it's truly ancient (numeric value < 10)
-        if (parseFloat(storedVersion) < 10 && storedVersion !== '76.READY') {
+            if (parseFloat(storedVersion) < 10 && storedVersion !== CURRENT_APP_VERSION) {
             console.log('🔄 One-time cleanup of old caches (ancient version detected)');
             
             const registrations = await navigator.serviceWorker.getRegistrations();
@@ -1719,8 +1724,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const STORAGE_KEY = 'fo76_locations';
     const CUSTOM_CATEGORIES_KEY = '76_custom_categories';
     const MAP_VERSION_KEY = 'fo76_map_version';
-    const CURRENT_UPDATE_VERSION = 'v76.READY';
-    const APP_VERSION = "v76.READY";
+    const CURRENT_UPDATE_VERSION = 'CURRENT_UPDATE_VERSION';
+    const APP_VERSION = "APP_VERSION";
         let soundsEnabled = localStorage.getItem('soundsEnabled') !== 'false';
         const baseSounds = {
             click: new Audio("https://rpg.hamsterrepublic.com/wiki-images/8/84/Select8-Bit.ogg"),
@@ -1788,7 +1793,7 @@ function base64ToUtf8(str) {
 }
         let locations = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
-// One-time cleanup: remove markers with invalid lat/lng (run once on v76.READY+)
+// One-time cleanup: remove markers with invalid lat/lng (run once on v76.??+)
 if (!localStorage.getItem('nanCleanupDone_v76')) {
     console.log('Running one-time invalid coordinate cleanup...');
     const beforeCount = locations.length;
@@ -2176,17 +2181,20 @@ window.exitFullscreenThenDo = function(action) {
     }, 800);
 });
         })();
+
 let currentlySpiderfied = null;
 let currentClusterPopup = null;
+let isTransitioning = false;
+
 const clusteredMarkers = L.markerClusterGroup({
-    maxClusterRadius: 30,
+    maxClusterRadius: 32,
     disableClusteringAtZoom: 4,
     spiderfyOnMaxZoom: true,
     showCoverageOnHover: false,
     zoomToBoundsOnClick: false,
     removeOutsideVisibleBounds: false,
     animate: true,
-    spiderfyDistanceMultiplier: 1.8,
+    spiderfyDistanceMultiplier: 2.4,
     maxSpiderfySize: 1000,
     iconCreateFunction: function(cluster) {
         return L.divIcon({
@@ -2196,86 +2204,48 @@ const clusteredMarkers = L.markerClusterGroup({
         });
     }
 });
-clusteredMarkers.on('clustermouseover', function (a) {
-    if (a.layer._spiderfied) return;
-    a.layer.spiderfy();
-    currentlySpiderfied = a.layer;
-});
 
+// ── Click cluster → fly + zoom in → spiderfy (stable, no auto-popup) ──
 clusteredMarkers.on('clusterclick', function (a) {
-    if (a.layer._spiderfied) {
-        // If already spiderfied (e.g. from hover), treat click as confirmation → keep open
-        return;
+    if (currentlySpiderfied && currentlySpiderfied !== a.layer) {
+        currentlySpiderfied.unspiderfy();
     }
-    a.layer.spiderfy();
-    currentlySpiderfied = a.layer;
-
-    setTimeout(() => {
-        const childMarkers = a.layer.getAllChildMarkers()
-            .filter(m => m && typeof m.getLatLng === 'function' && m.getLatLng() !== null);
-        if (childMarkers.length === 0) return;
-
-        const sorted = childMarkers.slice().sort((a, b) => {
-            if (!a.getLatLng() || !b.getLatLng()) return 0;
-            const offsetA = a.options.zIndexOffset || 0;
-            const offsetB = b.options.zIndexOffset || 0;
-            if (offsetA !== offsetB) return offsetB - offsetA;
-            const locA = locations.find(l => l.id === a.options.id);
-            const locB = locations.find(l => l.id === b.options.id);
-            const timeA = locA?.addedTime || 0;
-            const timeB = locB?.addedTime || 0;
-            return timeB - timeA;
-        });
-
-        const topMarker = sorted[0];
-        if (!topMarker || !topMarker.getLatLng()) return;
-
-        topMarker.openPopup({ offset: [0, -100] });
-        currentClusterPopup = topMarker;
-
-        if (topMarker._icon) {
-            topMarker._icon.classList.add('marker-flash');
-            setTimeout(() => topMarker._icon.classList.remove('marker-flash'), 3000);
-        }
-    }, 120);
+    const cluster = a.layer;
+    const bounds = cluster.getBounds();
+    if (isTransitioning) return;
+    isTransitioning = true;
+    map.flyToBounds(bounds, {
+        padding: [120, 120],
+        maxZoom: map.getZoom() + 5,
+        duration: 1.4,
+        easeLinearity: 0.25
+    });
+    const onFlyEnd = function () {
+        map.off('moveend', onFlyEnd);
+        isTransitioning = false;
+        setTimeout(() => {
+            cluster.spiderfy();
+            currentlySpiderfied = cluster;
+        }, 80);
+    };
+    map.on('moveend', onFlyEnd);
 });
 
-// Auto-unspiderfy on mouse leave (unless clicked)
-clusteredMarkers.on('mouseleave', function (e) {
-    const cluster = e.layer;
-    if (cluster._spiderfied && !cluster._zooming) {
-        cluster.unspiderfy();
-        currentlySpiderfied = null;
-        currentClusterPopup = null;
-    }
+// Clean up when cluster closes
+clusteredMarkers.on('unspiderfy', function () {
+    currentlySpiderfied = null;
+    currentClusterPopup = null;
+    isTransitioning = false;
 });
+
 clusteredMarkers.on('click', function (e) {
-    L.DomEvent.stopPropagation(e); 
+    L.DomEvent.stopPropagation(e);
     const marker = e.layer;
-    if (!currentlySpiderfied) return;
-
     if (currentClusterPopup && currentClusterPopup !== marker) {
         currentClusterPopup.closePopup();
     }
-
     marker.openPopup();
     currentClusterPopup = marker;
-});
-
-let ignoreNextMapClick = false;
-let lastPopupCluster = null;
-
-map.on('popupclose', function (e) {
-    L.DomEvent.stopPropagation(e);
-
-    if (currentlySpiderfied) {
-        lastPopupCluster = currentlySpiderfied;
-    }
-
-    ignoreNextMapClick = true;
-    setTimeout(() => {
-        ignoreNextMapClick = false;
-    }, 400);
 });
 
 
@@ -3418,6 +3388,7 @@ function showConfirmModal(title, content, onConfirm) {
             if (isDragging) return;
             icon.classList.add('marker-flash');
             setTimeout(() => icon.classList.remove('marker-flash'), 3000);
+			playSound('click');
         });
         icon.addEventListener('mouseenter', () => icon.classList.add('marker-hover'));
         icon.addEventListener('mouseleave', () => icon.classList.remove('marker-hover'));
@@ -3476,7 +3447,7 @@ ${loc.isCommunity && !loc.userEdited && !loc.wasCommunityKept ? `
     </button>
     <div style="margin-top:8px; font-size:12px; color:#aaa;">
         Keep = save permanently (editable)<br>
-        Report = ask MrCrazy to review & remove if needed
+        Report = ask a Moderator to review & remove if needed
     </div>
 </div>` : ''}
 
@@ -3772,12 +3743,23 @@ function refreshTable(search = '', cat = '') {
                 playSound('selectcategory');
             });
         }
-        function updateCategoryDropdowns() {
+                function updateCategoryDropdowns() {
             const cats = [...Object.keys(defaultCategoryIcons), ...Object.keys(customCategories)].sort();
             const opt = c => `<option value="${c}">${c} ${categoryIcons[c]||''}</option>`;
+            
+            // Remember what the user currently had selected
+            const currentSelected = categoryFilter.value;
+            
+            // Rebuild the dropdown
             categoryFilter.innerHTML = '<option value="">All Categories</option>' + cats.map(opt).join('');
             itemCategorySelect.innerHTML = cats.map(opt).join('');
-            if (currentCategoryFilter && cats.includes(currentCategoryFilter)) categoryFilter.value = currentCategoryFilter;
+            
+            // Restore the user's previous selection
+            if (currentSelected && cats.includes(currentSelected)) {
+                categoryFilter.value = currentSelected;
+            } else if (currentCategoryFilter && cats.includes(currentCategoryFilter)) {
+                categoryFilter.value = currentCategoryFilter;
+            }
         }
  
                                function openModal(title, idx = -1) {
@@ -3812,7 +3794,7 @@ function refreshTable(search = '', cat = '') {
                     if (submitBtn) submitBtn.style.display = 'none';
                 } 
                 else if (loc.locked && !loc.isCommunity) {
-                    noteHTML = '<p style="color:#00ccff; text-align:center; margin:12px 0 8px;">Submit this marker to the community map for review by MrCrazy.</p>';
+                    noteHTML = '<p style="color:#00ccff; text-align:center; margin:12px 0 8px;">Submit this marker to the community map for review by a Moderator.</p>';
                     if (submitBtn) submitBtn.style.display = 'inline-block';
                 } 
                 else {
@@ -3913,52 +3895,65 @@ function reopenPopupAfterModalClose() {
         }, 1200);
     }, 650);
 }
-        function recalculateXP() {
+function recalculateXP() {
     const oldLevel = lastLevel;
     const userMarkers = locations.filter(l => l.userEdited === true && !l.isPostcard);
     xp = userMarkers.length * xpPerMarker;
     level = 1 + Math.floor(xp / xpPerLevel);
     xp = xp % xpPerLevel;
+
     if (level > oldLevel) {
         playSound('levelUp');
         triggerConfetti();
         showTempMessage(`LEVEL UP 🎉 — NOW LEVEL ${level}`, 5000);
-    
 
-    const bar = document.getElementById('xpProgress');
-    bar.classList.add('level-up');
-    setTimeout(() => bar.classList.remove('level-up'), 10000);
-    triggerNuke();
+        const bar = document.getElementById('xpProgress');
+        bar.classList.add('level-up');
+
+        // Increased from 10 seconds → 18 seconds (stays glowing longer after nuke animation)
+        setTimeout(() => bar.classList.remove('level-up'), 18000);
+
+        triggerNuke();
     }
+
     localStorage.setItem('fo76_level', level);
     localStorage.setItem('fo76_xp', xp);
     lastLevel = level;
     updateXPBar();
 }
-        function triggerConfetti() {
-            const fire = () => {
-                confetti({
-                    particleCount: 200,
-                    spread: 500,
-                    origin: { y: 0.60 },
-                    colors: ['#00ff00', '#00cc00', '#33ff33', '#00ff99'],
-                    ticks: 360,
-                    gravity: 0.5,
-                    scalar: 2.3
-                });
-            };
-            if (window.confettiReady) {
-                fire();
-            } else {
-                const start = Date.now();
-                const wait = setInterval(() => {
-                    if (window.confettiReady || Date.now() - start > 10000) {
-                        clearInterval(wait);
-                        if (typeof confetti === 'function') fire();
+function triggerConfetti() {
+    const fire = () => {
+        confetti({
+            particleCount: 280,          // more particles
+            spread: 100,
+            origin: { y: 0.50 },
+            colors: ['#00ff00', '#00cc00', '#33ff33', '#00ff99', '#88ff88'],
+            ticks: 1000,                  // longer duration
+            gravity: 0.30,
+            scalar: 1.0
+        });
+    };
+
+    // Slight delay so confetti starts after the nuke screen appears
+    setTimeout(() => {
+        if (window.confettiReady) {
+            fire();
+            // Second burst for extra visibility
+            setTimeout(fire, 380);
+        } else {
+            const start = Date.now();
+            const wait = setInterval(() => {
+                if (window.confettiReady || Date.now() - start > 12000) {
+                    clearInterval(wait);
+                    if (typeof confetti === 'function') {
+                        fire();
+                        setTimeout(fire, 380);
                     }
-                }, 100);
-            }
+                }
+            }, 100);
         }
+    }, 2200); // starts after nuke animation has begun
+}
 		
 // ── PERSISTENT UNDO (survives page refresh)
 function savePendingUndo(type, beforeState, extraData = {}) {
@@ -4054,44 +4049,72 @@ function restorePendingUndo() {
 }		
 		
 function triggerNuke() {
-    lockUIDuringAnimation(4500);   // Lock UI during the full nuke sequence
+    lockUIDuringAnimation(4500); // Lock UI during the full sequence
 
-    const flash = document.createElement('div');
-    flash.style.cssText = `
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
         position:fixed;top:0;left:0;width:100vw;height:100vh;
-        background:#fff;z-index:999999;pointer-events:none;
-        animation: quickFlash 0.7s ease-out forwards;
+        background:#000;z-index:9999999;display:flex;
+        align-items:center;justify-content:center;flex-direction:column;
+        font-family:'Courier New',monospace;color:#0f0;
+        pointer-events:none;gap:20px;
     `;
-    document.body.appendChild(flash);
+    overlay.innerHTML = `
+        <!-- Rocket Launch -->
+        <div id="levelRocket" style="font-size:clamp(80px,25vw,220px);animation:rocketLaunchAnim 1.8s ease-out forwards;">
+            🚀
+        </div>
+        <div style="font-size:clamp(22px,6vw,48px);margin-top:-30px;opacity:0.9;">LEVEL UP INCOMING...</div>
+    `;
+    document.body.appendChild(overlay);
 
+    // Rocket keyframes
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes rocketLaunchAnim {
+            0%   { transform: translateY(80px) scale(0.8); opacity: 0; }
+            30%  { transform: translateY(-40px) scale(1.1); opacity: 1; }
+            70%  { transform: translateY(-180px) scale(1); }
+            100% { transform: translateY(-300px) scale(0.6); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Step 1: Rocket flies up (1.8s)
     setTimeout(() => {
-        const overlay = document.createElement('div');
-        overlay.style.cssText = `
+        // Step 2: White flash
+        const flash = document.createElement('div');
+        flash.style.cssText = `
             position:fixed;top:0;left:0;width:100vw;height:100vh;
-            background:#000;z-index:999999;pointer-events:none;
-            display:flex;flex-direction:column;align-items:center;justify-content:center;
-            gap:20px;padding:20px;box-sizing:border-box;
-            font-family:'Courier New',monospace;text-align:center;
+            background:#fff;z-index:99999999;pointer-events:none;
+            animation:quickFlash 0.7s ease-out forwards;
         `;
+        document.body.appendChild(flash);
+        setTimeout(() => flash.remove(), 700);
+
+        // Step 3: Final level-up screen with shorter mobile-friendly text
+        const subtitleText = level % 5 === 0 
+            ? '☢️ NUKE DETONATED! ☢️' 
+            : '🎉 EXPLORER RANK UP! 🎉';
 
         overlay.innerHTML = `
-            <div class="nuke-symbol">🎉</div>
-            <h1 class="nuke-title">LEVEL ${level} ACHIEVED</h1>
-            <p class="nuke-subtitle">${level % 5 === 0 ? '🚀NUKE DETONATED!☢️' : 'RANK UP!'}</p>
+            <div class="nuke-symbol" style="color:#ff0;">☢️</div>
+            <h1 class="nuke-title">LEVEL ${level} ACHIEVED!</h1>
+            <p class="nuke-subtitle" style="font-size:clamp(16px,4vw,26px);max-width:92%;line-height:1.25;">
+                ${subtitleText}
+            </p>
         `;
 
-        document.body.appendChild(overlay);
         playSound('levelUp');
 
+        // Fade out after 3.2 seconds
         setTimeout(() => {
-            overlay.style.transition = 'opacity 1.2s';
+            overlay.style.transition = 'opacity 1.4s';
             overlay.style.opacity = '0';
-            setTimeout(() => overlay.remove(), 1200);
-        }, 3500);
+            setTimeout(() => overlay.remove(), 1400);
+        }, 3200);
 
-    }, 400);
-
-    setTimeout(() => flash.remove(), 700);
+    }, 1900); // rocket finishes before flash
 }
         // ── Nuke / Level-up animation styles (required for triggerNuke) ──
         const nukeStyle = document.createElement('style');
@@ -4263,7 +4286,7 @@ resetAppBtn.onclick = () => {
             const userMarkers = locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard);
             
             const personalBackup = {
-                version: "personal-plus-kept-fullbackup-v76.READY",
+                version: "personal-plus-kept-fullbackup",
                 timestamp: new Date().toISOString(),
                 communityVersion: localStorage.getItem(MAP_VERSION_KEY) || "1.0",
                 customCategories,
@@ -4437,7 +4460,7 @@ exportBtn.onclick = () => {
 
     document.getElementById('backupPersonalOnly').onclick = () => {
         const data = {
-            version: "personal-only-v76.READY",
+            version: "personal-only",
             timestamp: new Date().toISOString(),
             locations: locations.filter(l => l.userEdited === true && !l.wasCommunityKept && !l.isPostcard).map(l => ({
                 ...l,
@@ -4461,7 +4484,7 @@ exportBtn.onclick = () => {
 
     document.getElementById('backupWithKept').onclick = () => {
         const data = {
-            version: "personal-plus-kept-v76.READY",
+            version: "personal-plus-kept",
             timestamp: new Date().toISOString(),
             locations: locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard).map(l => ({
                 ...l,
@@ -4653,16 +4676,18 @@ downloadCommunityBtn.onclick = () => {
     playSound('click');
 
     showConfirmModal(
-        'UPDATE COMMUNITY MAP',
-        '<strong>Your personal markers & edits are 100% SAFE</strong><br><br>' +
-        'This will fetch the latest verified community markers.<br><br>' +
-        '• Community markers may receive description & category improvements<br>' +
-        '• Your own created and kept markers will never be changed or deleted<br>' +
-        '• Removed community markers will be cleaned up automatically<br><br>' +
-        'Proceed with the update?',
-        async () => {
-            downloadCommunityBtn.disabled = true;
-            downloadCommunityBtn.textContent = 'Updating...';
+    '🚀UPDATE COMMUNITY MAP🚀',
+    `<div style="text-align:left; line-height:1.45; font-size:1.1em; padding:12px 20px;">
+        <strong>Your personal markers & edits are 100% SAFE</strong><br><br>
+        This will fetch the latest verified community markers.<br><br>
+        • Community markers may receive description & category improvements<br>
+        • Your created and kept markers will never be changed or deleted<br>
+        • Removed community markers will be cleaned up automatically<br><br>
+        <strong>Proceed with the update?</strong>
+    </div>`,
+    async () => {
+        downloadCommunityBtn.disabled = true;
+        downloadCommunityBtn.textContent = 'Updating...';
 
             try {
                 const res = await fetchWithTimeout(
@@ -4755,20 +4780,21 @@ downloadCommunityBtn.onclick = () => {
                 forceReload();
                 saveLocations();
 
-                showConfirmModal(
+showConfirmModal(
     '☢ COMMUNITY MAP UPDATED ☢',
-    `<div style="text-align:left; line-height:1.9; font-size:1.1em;">
-        <strong style="color:#00ff88;">${added}</strong> added — new markers<br>
-        <strong style="color:#00ff88;">${refreshed}</strong> refreshed — community markers updated<br>
-        <strong style="color:#ffa500;">${skipped}</strong> skipped — your kept/edited markers protected<br>
-        <strong style="color:#88ccff;">${userMarkersBefore}</strong> untouched — your personal markers<br>
-        ${cleaned > 0 ? `<strong style="color:#ff4444;">${cleaned}</strong> cleaned — deleted community markers removed<br>` : ''}
-        ${approvedCount > 0 ? `<strong style="color:#00ff88;">${approvedCount}</strong> of your submissions were approved!<br>` : ''}
+    `<div style="text-align:left; line-height:1.45; font-size:1.1em; padding:12px 20px;">
+        <strong style="color:#00ff88;">${added}</strong> new markers added<br>
+        <strong style="color:#88ccff;">${refreshed}</strong> community markers refreshed<br>
+        <strong style="color:#ffa500;">${skipped}</strong> kept/edited markers protected<br>
+        <strong style="color:#ffcc00;">${userMarkersBefore}</strong> personal markers untouched<br>
+        ${cleaned > 0 ? `<strong style="color:#ff4444;">${cleaned}</strong> deleted community markers removed<br>` : ''}
+        ${approvedCount > 0 ? `<strong style="color:#00ff88;">${approvedCount}</strong> of your submissions approved!<br>` : ''}
+        
         <strong style="color:#00ff00;">Total markers on map: ${locations.length}</strong><br><br>
         
-        <strong style="color:#88ccff;">• You kept ${skipped} community marker${skipped === 1 ? '' : 's'}</strong><br>
-        <strong style="color:#88ccff;">• You logged ${userMarkersBefore} personal marker${userMarkersBefore === 1 ? '' : 's'}</strong><br>
-        <strong style="color:#00ff88;">• You are Level ${level} explorer</strong><br><br>
+        • You kept <strong style="color:#88ccff;">${skipped}</strong> community marker${skipped === 1 ? '' : 's'}<br>
+        • You logged <strong style="color:#88ccff;">${userMarkersBefore}</strong> personal marker${userMarkersBefore === 1 ? '' : 's'}<br>
+        • You are Level <strong style="color:#00ff88;">${level}</strong> explorer<br><br>
         
         <strong>Community Map v${newVersion} loaded — happy exploring Appalachia!</strong>
     </div>`,
@@ -4777,31 +4803,69 @@ downloadCommunityBtn.onclick = () => {
 
                 playSound('saving');
 
-                if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
+                                if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
                     localStorage.setItem('seenCommunityNuke', 'true');
                     setTimeout(() => {
-                        const flash = document.createElement('div');
-                        flash.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#fff;z-index:999999;pointer-events:none;animation:quickFlash 0.7s ease-out forwards;';
-                        document.body.appendChild(flash);
+                        const overlay = document.createElement('div');
+                        overlay.style.cssText = `
+                            position:fixed;top:0;left:0;width:100vw;height:100vh;
+                            background:#000;z-index:9999999;display:flex;
+                            align-items:center;justify-content:center;flex-direction:column;
+                            font-family:'Courier New',monospace;color:#0f0;
+                            pointer-events:none;gap:20px;
+                        `;
+                        overlay.innerHTML = `
+                            <!-- Rocket Launch -->
+                            <div id="rocketLaunch" style="font-size:clamp(80px,25vw,220px);animation:rocketLaunchAnim 1.8s ease-out forwards;">
+                                🚀
+                            </div>
+                            <div style="font-size:clamp(22px,6vw,48px);margin-top:-30px;opacity:0.9;">LAUNCHING...</div>
+                        `;
+                        document.body.appendChild(overlay);
+
+                        // Rocket animation keyframes
+                        const style = document.createElement('style');
+                        style.textContent = `
+                            @keyframes rocketLaunchAnim {
+                                0%   { transform: translateY(80px) scale(0.8); opacity: 0; }
+                                30%  { transform: translateY(-40px) scale(1.1); opacity: 1; }
+                                70%  { transform: translateY(-180px) scale(1); }
+                                100% { transform: translateY(-300px) scale(0.6); opacity: 0; }
+                            }
+                        `;
+                        document.head.appendChild(style);
+
+                        // Step 1: Rocket flies up (1.8s)
                         setTimeout(() => {
-                            const overlay = document.createElement('div');
-                            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;padding:20px;box-sizing:border-box;font-family:"Courier New",monospace;text-align:center;';
+                            // Step 2: White flash
+                            const flash = document.createElement('div');
+                            flash.style.cssText = `
+                                position:fixed;top:0;left:0;width:100vw;height:100vh;
+                                background:#fff;z-index:99999999;pointer-events:none;
+                                animation:quickFlash 0.7s ease-out forwards;
+                            `;
+                            document.body.appendChild(flash);
+                            setTimeout(() => flash.remove(), 700);
+
+                            // Step 3: Your exact preferred nuke screen with smaller mobile text
                             overlay.innerHTML = `
                                 <div class="nuke-symbol">☢️</div>
                                 <h1 class="nuke-title">COMMUNITY MAP NUKED!</h1>
-                                <p class="nuke-subtitle">
+                                <p class="nuke-subtitle" style="font-size:clamp(16px,4vw,26px);max-width:92%;line-height:1.25;">
                                     <strong>${added}</strong> new markers detonated across Appalachia!
                                 </p>
                             `;
-                            document.body.appendChild(overlay);
+
                             playSound('levelUp');
+
+                            // Fade out after 3.2 seconds
                             setTimeout(() => {
-                                overlay.style.transition = 'opacity 1.8s';
+                                overlay.style.transition = 'opacity 1.4s';
                                 overlay.style.opacity = '0';
-                                setTimeout(() => overlay.remove(), 1800);
-                            }, 4200);
-                        }, 400);
-                        setTimeout(() => flash.remove(), 700);
+                                setTimeout(() => overlay.remove(), 1400);
+                            }, 3200);
+
+                        }, 1900);
                     }, 800);
                 }
 
@@ -5359,7 +5423,6 @@ map.on('dblclick', e => {
         drawGrid();
         updateXPBar();
 		restorePendingUndo();
-        playSound('selectcategory');
 syncToggleButtonStates();
 
 if (!localStorage.getItem('seenCommunityHint')) {
@@ -5533,7 +5596,7 @@ if (SpeechRecognition && voiceSearchBtn) {
                     ☢ FALLOUT 76 ITEM FINDER MAP ☢
                 </h1>
                 <p style="margin:8px 0 0; font-size:1.3em; color:#0f0;">
-                    v76.READY — Built with ❤️ by MrCrazy
+                    Built with ❤️ by MrCrazy
                 </p>
             </div>
 
@@ -5573,7 +5636,8 @@ if (SpeechRecognition && voiceSearchBtn) {
         showTempMessage('WELCOME TO APPALACHIA, VAULT DWELLER', 20000);
     };
 }
-        function checkForUpdate() {
+// ── UPDATE POPUP (shows once per new version) ──
+function checkForUpdate() {
     const lastSeen = localStorage.getItem(LAST_VERSION_KEY);
     if (lastSeen !== CURRENT_UPDATE_VERSION) {
         const updateModal = document.createElement('div');
@@ -5584,22 +5648,21 @@ if (SpeechRecognition && voiceSearchBtn) {
             <div class="modal-content" style="max-width:600px; background:#000; border:2px solid #00ff00; box-shadow:0 0 30px #00ff00;">
                 <div style="background:#000; padding:18px; text-align:center; border-bottom:2px solid #00ff00;">
                     <h1 style="margin:0; font-size:2.4em; text-shadow:0 0 20px #00ff00; color:#0f0;">
-                        ☢ LATEST UPDATE ☢
+                        ☢ APP UPDATED ☢
                     </h1>
                 </div>
                 <div style="padding:30px; text-align:center; line-height:1.8;">
                     <ul style="text-align:left; display:inline-block; margin:25px 0; padding-left:30px; font-size:1.2em;">
-                        <li>Welcome To Version 76.READY</li>
-                        <li>This is The Latest Update — Reset Your App if needed.<br>
-                            Find this tip in the "How to Use" section.</li>
+                        <li>Welcome to Version ${CURRENT_APP_VERSION}</li>
+                        <li>Your map has been upgraded with the latest fixes and features.</li>
                     </ul>
                     <div style="margin:30px 0;">
                         <div id="updateGotItBtn" style="display:inline-block; padding:14px 50px; background:#000; border:3px solid #00ff00; color:#00ff00; font-size:1.6em; font-weight:bold; text-shadow:0 0 18px #00ff00; box-shadow:0 0 25px #00ff00; cursor:pointer;">
-                            GOT IT — LET'S GO!
+                            GOT IT — LET'S EXPLORE!
                         </div>
                     </div>
                     <p style="margin-top:20px; font-size:0.9em; opacity:0.8;">
-                        Thank you for using the Fallout 76 Item Finder Map!<br>
+                        Thank you for using the Fallout 76 Item Finder Map ❤️
                     </p>
                 </div>
             </div>
@@ -5618,14 +5681,14 @@ if (SpeechRecognition && voiceSearchBtn) {
         }
     }
 }
+        // ── WELCOME MODAL FIRST (new users) ──
         if (!localStorage.getItem(WELCOME_KEY)) {
             setTimeout(showWelcomeModal, 800);
+        } 
+        // ── UPDATE POPUP (returning users only) ──
+        else if (localStorage.getItem(LAST_VERSION_KEY) !== CURRENT_UPDATE_VERSION) {
+            setTimeout(checkForUpdate, 1400);
         }
-        /*
-if (localStorage.getItem(LAST_VERSION_KEY) !== 'v76.READY') {
-    setTimeout(checkForUpdate, 1400);
-}
-*/
 const searchInput = document.getElementById('combinedSearch');
 const suggestionsBox = document.getElementById('searchSuggestions');
 
@@ -5850,7 +5913,7 @@ setTimeout(() => {
 
         document.getElementById('backupAllBtn')?.addEventListener('click', () => {
     const fullBackup = {
-        version: "full-v76.READY",
+        version: "full-backup",
         timestamp: new Date().toISOString(),
         communityVersion: localStorage.getItem('fo76_map_version') || '1.0',
         locations: locations,
@@ -6007,7 +6070,7 @@ modal.innerHTML = `
             • Spam<br>
             • Wrong location<br>
             • Broken / outdated<br><br>
-            MrCrazy will review and remove if needed.
+            A Moderator will review and remove if needed.
         </div>
 
         <div style="text-align:center; font-weight:bold; color:#00ff88; margin-bottom:10px; font-size:1.1em;">
@@ -6407,8 +6470,8 @@ console.log(
 
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
-    '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: • 30-03-2026 • Made with ❤️\n' +
+    '© 2025 MrCrazy — All rights reserved\n' +
+    'Last updated: • C-64-30-03-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
