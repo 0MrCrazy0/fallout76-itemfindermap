@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=61">
+	<link rel="manifest" href="manifest.json?v=62">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -3006,7 +3006,7 @@ autoExitFullscreenForModal()
 // ── POSTCARD CREATION — HARD 280 LIMIT ON MOBILE (minimal fix) ──
                 document.getElementById('createPostcardBtn').onclick = () => {
             const textarea = document.getElementById('postcardMessage');
-            let msg = (textarea ? textarea.value.trim() : '') || 'Postcard Found!';
+            let msg = textarea ? textarea.value.trim() : 'Postcard Found!';
             
             // Hard cap for mobile (forces trim even if browser ignores maxlength)
             if (msg.length > 280) msg = msg.substring(0, 280);
@@ -6417,7 +6417,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: Version Release • 76.READY-30-03-2026-C-61 • Made with ❤️\n' +
+    'Last updated: Version Release • 76.READY-30-03-2026-C-62 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
