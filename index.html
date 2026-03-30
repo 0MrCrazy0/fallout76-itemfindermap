@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map v76.READY</title>
 
-	<link rel="manifest" href="manifest.json?v=60">
+	<link rel="manifest" href="manifest.json?v=61">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1859,6 +1859,39 @@ localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
         function stopPostcardTicker() {
             if (postcardTicker) { clearInterval(postcardTicker); postcardTicker = null; }
         }
+		        // ── LIVE POSTCARD TIMER UPDATER (this makes the table countdown tick) ──
+        function updatePostcardTimers() {
+            document.querySelectorAll('.postcard-timer').forEach(el => {
+                const id = el.getAttribute('data-id');
+                const loc = locations.find(l => l.id === id);
+                if (!loc || !loc.isPostcard) return;
+
+                const timeLeft = Math.max(0, 300000 - (Date.now() - (loc.startTime || Date.now())));
+                const mins = Math.floor(timeLeft / 60000);
+                const secs = Math.floor((timeLeft % 60000) / 1000).toString().padStart(2, '0');
+                el.textContent = `${mins}:${secs}`;
+
+                if (timeLeft <= 0) {
+                    el.textContent = '0:00';
+                }
+            });
+        }
+		
+// ── LIVE "NEW!" TIMER FOR GLOWING MARKERS (counts down in table) ──
+function updateNewMarkerTimers() {
+    document.querySelectorAll('.new-marker-timer').forEach(el => {
+        const id = el.getAttribute('data-id');
+        const loc = locations.find(l => l.id === id);
+        if (!loc || !isGlowing(loc)) {
+            el.textContent = '';
+            return;
+        }
+        const timeLeft = Math.max(0, 120000 - (Date.now() - loc.addedTime));
+        const mins = Math.floor(timeLeft / 60000);
+        const secs = Math.floor((timeLeft % 60000) / 1000).toString().padStart(2, '0');
+        el.innerHTML = `NEW! <span style="font-size:11px;">(${mins}:${secs})</span>`;
+    });
+}
         let customCategories = JSON.parse(localStorage.getItem(CUSTOM_CATEGORIES_KEY)) || {};
         let communityVersion = "1.0";
 function getCurrentCommunityVersion() {
@@ -2666,6 +2699,27 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
             showTempMessage(loc.locked ? '🔐 LOCKED' : '🔓 UNLOCKED', 3000);
             playSound('click');
         };
+		
+		window.toggleLockFromTable = function(index) {
+    const loc = locations[index];
+    if (!loc || loc.isPostcard) return;
+
+    // ── NEW PROTECTION ── Only owned markers can be unlocked
+    if (!loc.userEdited && !loc.wasCommunityKept) {
+        showTempMessage('❌ Only your own or KEPT markers can be unlocked', 4000);
+        playSound('error');
+        return;
+    }
+
+    loc.locked = !loc.locked;
+    loc.addedTime = Date.now();           // resets NEW! glow timer
+    saveLocations();
+    forceReload();
+
+    showTempMessage(loc.locked ? '🔐 LOCKED' : '🔓 UNLOCKED', 2000);
+    playSound('click');
+};
+
         duplicateBtn.onclick = () => {
     if (currentIndex < 0) return;
     const loc = locations[currentIndex];
@@ -3031,18 +3085,25 @@ document.head.appendChild(postcardStyle);
         exportOneBtn.style.display = 'inline-block';
         exportOneBtn.textContent = 'Export Marker';
         function createPopupContent(loc) {
-            const start = loc.startTime || Date.now();
-            const timeLeft = Math.max(0, 300000 - (Date.now() - start));
-            const mins = Math.floor(timeLeft / 60000);
-            const secs = Math.floor((timeLeft % 60000) / 1000).toString().padStart(2, '0');
-            return `
-                <div style="background:#000;color:#0f0;padding:14px;border:2px solid #0f0;border-radius:8px;font:bold 14px monospace;text-align:center;max-width:320px;word-wrap:break-word;">
-                    <div style="max-height:120px;overflow-y:auto;margin-bottom:10px;padding:0 4px;">${escapeHtml(loc.desc)}</div>
-                    <div style="font-size:13px;">Expires in: <span id="postcardTimer_${loc.id}">${mins}:${secs}</span></div>
-                    <button id="keepPostcardBtn_${loc.id}" style="margin-top:10px;background:#00ff00;color:#000;border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-weight:bold;">Keep It</button>
-                </div>
-            `;
-        }
+    const start = loc.startTime || Date.now();
+    const timeLeft = Math.max(0, 300000 - (Date.now() - start));
+    const mins = Math.floor(timeLeft / 60000);
+    const secs = Math.floor((timeLeft % 60000) / 1000).toString().padStart(2, '0');
+
+    // Always show "Postcard Found!" on top, then the custom message below
+    let displayMsg = 'Postcard Found!';
+    if (loc.desc && loc.desc !== 'Postcard Found!') {
+        displayMsg += '\n\n' + loc.desc;
+    }
+
+    return `
+        <div style="background:#000;color:#0f0;padding:14px;border:2px solid #0f0;border-radius:8px;font:bold 14px monospace;text-align:center;max-width:320px;word-wrap:break-word;">
+            <div style="max-height:160px;overflow-y:auto;margin-bottom:10px;padding:0 4px;white-space:pre-wrap;">${escapeHtml(displayMsg)}</div>
+            <div style="font-size:13px;">Expires in: <span id="postcardTimer_${loc.id}">${mins}:${secs}</span></div>
+            <button id="keepPostcardBtn_${loc.id}" style="margin-top:10px;background:#00ff00;color:#000;border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-weight:bold;">Keep It</button>
+        </div>
+    `;
+}
         function showPostcardMarker(loc) {
             const existing = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === loc.id);
             if (existing) existing.remove();
@@ -3241,36 +3302,45 @@ document.addEventListener('DOMContentLoaded', () => {
     // Re-check every 10 minutes
     setInterval(checkForCommunityUpdate, 600000);
 });
-        function showConfirmModal(title, content, onConfirm) {
-            const modal = document.createElement('div');
-            modal.className = 'modal';
-            modal.style.display = 'block';
-            modal.innerHTML = `
-                <div class="modal-content" style="max-width:500px;">
-                    <span class="close">X</span>
-                    <h2>${title}</h2>
-                    <div style="margin:15px 0; max-height:300px; overflow-y:auto; text-align:left; line-height:1.5;">${content}</div>
-                    <div style="text-align:center;">
-                        <button id="confirmModalBtn" style="background:#00ff00;color:#000;padding:8px 16px;border:none;border-radius:4px;cursor:pointer;font-weight:bold;">OK</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            document.body.classList.add('modal-open');
-            const closeBtn = modal.querySelector('.close');
-            const confirmBtn = modal.querySelector('#confirmModalBtn');
-            const cleanup = () => {
-                modal.remove();
-                document.body.classList.remove('modal-open');
-                playSound('modalClose');
-            };
-            closeBtn.onclick = cleanup;
-            confirmBtn.onclick = () => {
-                cleanup();
-                if (onConfirm) onConfirm();
-            };
-            playSound('levelUp');
-        }
+
+function showConfirmModal(title, content, onConfirm) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width:520px;">
+            <span class="close">X</span>
+            <h2>${title}</h2>
+            <div style="margin:15px 0; max-height:380px; overflow-y:auto; overflow-x:hidden; 
+                        text-align:left; line-height:1.6; word-break:break-word; 
+                        white-space:pre-wrap; padding-right:10px;">
+                ${content}
+            </div>
+            <div style="text-align:center;">
+                <button id="confirmModalBtn" style="background:#00ff00;color:#000;padding:10px 24px;border:none;border-radius:4px;cursor:pointer;font-weight:bold;">OK</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    document.body.classList.add('modal-open');
+
+    const closeBtn = modal.querySelector('.close');
+    const confirmBtn = modal.querySelector('#confirmModalBtn');
+
+    const cleanup = () => {
+        modal.remove();
+        document.body.classList.remove('modal-open');
+        playSound('modalClose');
+    };
+
+    closeBtn.onclick = cleanup;
+    confirmBtn.onclick = () => {
+        cleanup();
+        if (onConfirm) onConfirm();
+    };
+
+    playSound('levelUp');
+}
         window.editMarkerFromPopup = function(index) {
             map.closePopup();
             openModal('Edit Item', index);
@@ -3559,13 +3629,17 @@ ${loc.userEdited && !loc.isPostcard && !loc.wasCommunityKept ? `
         Explorer Level: <strong style="color:#00ff88;">${level}</strong>
     `;
 }
-        function refreshTable(search = '', cat = '') {
+
+function refreshTable(search = '', cat = '') {
     const tbody = document.querySelector('#locationsTable tbody');
     tbody.innerHTML = '';
+
     let list = locations.filter(l => activeCategories.has(l.category) && (!cat || l.category === cat));
+
     if (showOnlyMyMarkers) {
-        list = list.filter(l => l.userEdited || l.wasCommunityKept);  // ← FILTER HERE
+        list = list.filter(l => l.userEdited || l.wasCommunityKept);
     }
+
     if (search) {
         const normalizedSearch = normalizeString(search);
         list = list.filter(l => {
@@ -3573,246 +3647,118 @@ ${loc.userEdited && !loc.isPostcard && !loc.wasCommunityKept ? `
             return text.includes(normalizedSearch) || normalizedSearch.includes(text.split(' ')[0]);
         });
     }
-    const glow = list.filter(isGlowing).sort((a,b) => b.addedTime - a.addedTime);
-    const rest = list.filter(l => !isGlowing(l)).sort((a,b) => a.category.localeCompare(b.category) || a.desc.localeCompare(b.desc));
+
+    const glow = list.filter(isGlowing).sort((a, b) => b.addedTime - a.addedTime);
+    const rest = list.filter(l => !isGlowing(l)).sort((a, b) => a.category.localeCompare(b.category) || a.desc.localeCompare(b.desc));
     const sorted = [...glow, ...rest];
+
     const start = (tablePage - 1) * pageSize;
     sorted.slice(start, start + pageSize).forEach(loc => {
         const tr = document.createElement('tr');
+        tr.dataset.id = loc.id;
         if (isGlowing(loc)) tr.classList.add('glowing');
+
         const short = loc.desc.split('\n')[0].trim();
         let lockCell = '';
-        if (loc.isPostcard) {
-            const timeLeft = Math.max(0, 300000 - (Date.now() - loc.startTime));
-            const mins = Math.floor(timeLeft / 60000);
-            const secs = Math.floor((timeLeft % 60000) / 1000).toString().padStart(2, '0');
-            lockCell = `<span style="color:#ff0;font-size:11px;">${mins}:${secs}</span>`;
+
+                if (loc.isPostcard) {
+            lockCell = `<span style="color:#ff0;font-size:13px;font-weight:bold;">Expire: </span><span class="postcard-timer" data-id="${loc.id}" style="color:#ff0;font-size:13px;font-weight:bold;"></span>`;
+        } else if (isGlowing(loc)) {
+            // ── ONLY owned/kept markers get the real button ──
+            const isOwned = loc.userEdited || loc.wasCommunityKept;
+            if (isOwned) {
+                const lockText = loc.locked ? '🔐 Locked' : '🔓 Unlocked';
+                lockCell = `<button class="lock-toggle-btn" style="margin-right:10px;cursor:pointer;background:none;border:none;color:inherit;font:inherit;padding:0;">${lockText}</button>`;
+            } else {
+                // pure community marker → static locked icon (no button)
+                lockCell = `<span style="margin-right:10px;color:#666;">🔒</span>`;
+            }
+            lockCell += `<span class="new-marker-timer" data-id="${loc.id}" style="color:#ff0;font-size:13px;font-weight:bold;"></span>`;
         } else {
-            const lock = loc.locked ? 'Locked' : 'Unlocked';
-            lockCell = `<span class="lock-toggle" onclick="toggleLockFromTable(${locations.indexOf(loc)})">${lock}</span>`;
+            // normal owned/kept marker (not glowing)
+            const isOwned = loc.userEdited || loc.wasCommunityKept;
+            if (isOwned) {
+                const lockText = loc.locked ? '🔐 Locked' : '🔓 Unlocked';
+                lockCell = `<button class="lock-toggle-btn" style="margin-right:10px;cursor:pointer;background:none;border:none;color:inherit;font:inherit;padding:0;">${lockText}</button>`;
+            } else {
+                lockCell = `<span style="margin-right:10px;color:#666;">🔒</span>`;
+            }
         }
+
         tr.innerHTML = `
             <td>${lockCell}</td>
             <td>${['named locations','regions'].includes(loc.category) ? `<div class="text-location">${escapeHtml(short)}</div>` : `<div class="icon-circle" style="background:${categoryColors[loc.category]||'#808080'}">${loc.icon}</div>`}</td>
             <td>${escapeHtml(loc.category)} ${loc.icon}</td>
             <td>${escapeHtml(short)}</td>
         `;
+
+        // Attach real click listener to the lock button
+        const lockBtn = tr.querySelector('.lock-toggle-btn');
+        if (lockBtn) {
+            lockBtn.addEventListener('click', function(e) {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                toggleLockFromTable(locations.indexOf(loc));
+            });
+        }
+
+        // Row click – only fires if NOT tapping the lock button or timers
         tr.onclick = e => {
-    // Ignore clicks on the lock toggle
-    if (e.target.tagName === 'SPAN' && !loc.isPostcard) return;
-    // Single tap / left-click: scroll + zoom + open normal view popup
-    document.getElementById('map').scrollIntoView({ behavior: 'smooth' });
-    const targetLatLng = [loc.lat, loc.lng];
-    const duration = map.getZoom() < 2 ? 2.5 : 1.5;
-    map.flyTo(targetLatLng, 4, { duration });
-    // After zoom finishes → open normal popup (view mode)
-    map.once('moveend', () => {
-        setTimeout(() => {
-            const m = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
-                .find(m => m.options.id === loc.id);
-            if (m) {
-                m.openPopup();
-                playSound('click');
-                // Fallback: force click if popup still refuses to open
+            if (e.target.closest('.lock-toggle-btn') || 
+                e.target.closest('.new-marker-timer') || 
+                e.target.closest('.postcard-timer')) {
+                return;
+            }
+
+            document.getElementById('map').scrollIntoView({ behavior: 'smooth' });
+            const targetLatLng = [loc.lat, loc.lng];
+            map.flyTo(targetLatLng, 4, { duration: 1.5 });
+            map.once('moveend', () => {
                 setTimeout(() => {
-                    if (!m.isPopupOpen()) m.fire('click', { latlng: m.getLatLng() });
-                }, 800);
-            }
-        }, 650);   // Increased from 500ms for reliability
-    });
-};
+                    const m = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
+                        .find(m => m.options.id === loc.id);
+                    if (m) m.openPopup();
+					playSound('click');
+                }, 650);
+            });
+        };
 
-tr.oncontextmenu = e => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    // Close any existing popup first (prevents fly-back)
-    map.closePopup();
-
-    safeFlyTo(loc.lat, loc.lng, 4);
-
-    map.once('moveend', () => {
-        setTimeout(() => {
-            const marker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
-                .find(m => m.options && m.options.id === loc.id);
-            if (marker) {
-                marker.openPopup();
-                playSound('click');
-            }
-        }, 750);
-    });
-
-    // Only open Edit modal for your own/kept markers
-    if (loc.userEdited && !loc.isPostcard) {
-        const index = locations.findIndex(l => l.id === loc.id);
-        if (index !== -1) {
-            setTimeout(() => openModal('Edit Item', index), 1300);
-        }
-    }
-    return false;
-};
-
-// ── Mobile: reliable short tap vs long press on marker icons ──
-if ('ontouchstart' in window) {
-    let pressTimer = null;
-    let longPressFired = false;
-    let currentTarget = null;
-
-    // Helper: remove visual feedback class
-    const removeHoldStyle = () => {
-        if (currentTarget) {
-            currentTarget.classList.remove('long-press-hold');
-            currentTarget = null;
-        }
-    };
-
-    // ── Touch start on any marker icon ──
-    map.getContainer().addEventListener('touchstart', e => {
-        const target = e.target.closest('.leaflet-marker-icon');
-        if (!target) return;
-
-        // Reset state
-        longPressFired = false;
-        removeHoldStyle();
-
-        currentTarget = target;
-
-        // Start long-press timer
-        pressTimer = setTimeout(() => {
-            longPressFired = true;
-
-            // Visual feedback: apply hold style immediately when long-press is detected
-            target.classList.add('long-press-hold');
-
-            // Optional: short vibration to confirm long-press detected
-            if (navigator.vibrate) {
-                navigator.vibrate([60]); // 60 ms buzz – feels natural
-            }
-
-            // Find corresponding Leaflet marker
-            const marker = map._layers[target._leaflet_id];
-            if (!marker || !marker.options?.id) return;
-
-            const loc = locations.find(l => l.id === marker.options.id);
-            if (!loc) return;
-
-            // Only open Edit modal for your own / kept markers
-            if (loc.userEdited || loc.wasCommunityKept) {
-                currentIndex = locations.findIndex(l => l.id === marker.options.id);
-                if (currentIndex >= 0) {
-				    autoExitFullscreenForModal();
-                    openModal('Log Item');
-                    playSound('click');
-                }
-            }
-            // Community markers (not kept) → do nothing extra on long-press
-        }, 480); // 480 ms — balanced sweet spot (adjust to 550 if too sensitive)
-
-    }, { passive: true });
-
-    // ── Cancel on lift / move / cancel ──
-    const cancelLongPress = () => {
-        if (pressTimer) {
-            clearTimeout(pressTimer);
-            pressTimer = null;
-        }
-        removeHoldStyle();
-    };
-
-    map.getContainer().addEventListener('touchend', cancelLongPress, { passive: true });
-    map.getContainer().addEventListener('touchmove', cancelLongPress, { passive: true });
-    map.getContainer().addEventListener('touchcancel', cancelLongPress, { passive: true });
-
-    // ── Block native contextmenu on short taps only ──
-    map.getContainer().addEventListener('contextmenu', e => {
-        const isMarker = e.target.closest('.leaflet-marker-icon');
-        if (isMarker && !longPressFired) {
+        // Right-click / long-press unchanged
+        tr.oncontextmenu = e => {
             e.preventDefault();
             e.stopPropagation();
-            // Optional: immediately fly to + open view popup on accidental contextmenu
-            const marker = map._layers[e.target._leaflet_id];
-            if (marker && marker.options?.id) {
-                const loc = locations.find(l => l.id === marker.options.id);
-                if (loc) {
-                    safeFlyTo(loc.lat, loc.lng, 4);
-                    setTimeout(() => marker.openPopup(), 600);
-                }
+            map.closePopup();
+            safeFlyTo(loc.lat, loc.lng, 4);
+            map.once('moveend', () => {
+                setTimeout(() => {
+                    const marker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
+                        .find(m => m.options && m.options.id === loc.id);
+                    if (marker) marker.openPopup();
+					playSound('click');
+                }, 750);
+            });
+            if (loc.userEdited && !loc.isPostcard) {
+                const index = locations.findIndex(l => l.id === loc.id);
+                if (index !== -1) setTimeout(() => openModal('Edit Item', index), 1300);
             }
-        }
-        // Allow normal contextmenu on map background (postcard feature)
-    }, { passive: false }); // passive: false is required to call preventDefault()
-}
+            return false;
+        };
 
-tr.addEventListener('touchend touchmove touchcancel', () => {
-    clearTimeout(longPressTimer);
-});
         tbody.appendChild(tr);
     });
+
     const pages = Math.ceil(sorted.length / pageSize);
     tablePage = Math.min(tablePage, pages || 1);
-    pageInfo.textContent = `Page ${tablePage} of ${pages||1}`;
+    pageInfo.textContent = `Page ${tablePage} of ${pages || 1}`;
     prevPageBtn.disabled = tablePage <= 1;
     nextPageBtn.disabled = tablePage >= pages;
+
     updateCounterDisplay();
+    updatePostcardTimers();
+    updateNewMarkerTimers();
 }
-        window.toggleLockFromTable = i => {
-            const loc = locations[i];
-            if (loc.isPostcard) return;
-            loc.locked = !loc.locked;
-            loc.addedTime = Date.now();
-            saveLocations();
-            forceReload();
-            showTempMessage(loc.locked?'🔐 LOCKED' : '🔓 UNLOCKED',4000);
-            playSound('click');
-        };
-        // ── Gentle Background Refresh – Much smoother on mobile (S24+) ──
-setInterval(() => {
-    if (document.visibilityState !== 'visible' || window.isDraggingAnyMarker) return;
 
-    // Quick check for active user interaction
-    let isUserInteracting = false;
-    map.eachLayer(layer => {
-        if (layer instanceof L.MarkerClusterGroup && layer._spiderfied) isUserInteracting = true;
-        if (layer.getPopup && layer.getPopup().isOpen()) isUserInteracting = true;
-    });
-
-    if (isUserInteracting) return;   // Skip heavy work while user is touching the map
-
-    // Light refresh most of the time (glows + lock state only)
-    [clusteredMarkers, nonClusteredMarkers].forEach(g => {
-        g.eachLayer(m => {
-            if (!m || !m.options || !m._icon) return;
-            const loc = locations.find(l => l.id === m.options.id);
-            if (!loc) return;
-
-            const glow = isGlowing(loc);
-            const icon = m._icon;
-
-            if (glow && !icon.className.includes('glowing')) {
-                m.setIcon(createMarkerIcon(loc));
-                m.setZIndexOffset(10000);
-            } else if (!glow && icon.className.includes('glowing')) {
-                m.setIcon(createMarkerIcon(loc));
-                m.setZIndexOffset(0);
-            }
-
-            if (loc.locked || loc.isPostcard) {
-                m.dragging?.disable();
-            } else {
-                m.dragging?.enable();
-            }
-        });
-    });
-
-    refreshTable(combinedSearch?.value || '', categoryFilter?.value || '');
-    updateLockAllBtn?.();
-
-    // Full heavy refresh only occasionally (roughly every 8–12 seconds)
-    if (Math.random() < 0.12) {
-        loadData(combinedSearch.value || '', categoryFilter.value || '');
-    }
-
-}, 3000);   // Changed from 1000ms → 3000ms
+// Changed from 1000ms → 3000ms
         function renderCategoryToggles() {
             const box = document.getElementById('categoryCheckboxes');
             box.innerHTML = '';
@@ -4274,7 +4220,9 @@ function triggerNuke() {
             itemCategorySelect.value = currentModalCategory;
         }, 50);
     }
+	            updatePostcardTimers();   // ← Keeps table timers updated after reload
 }
+
         function saveAppState() {
             localStorage.setItem('currentSearch', combinedSearch?.value || '');
             localStorage.setItem('currentCategoryFilter', categoryFilter?.value || '');
@@ -6277,6 +6225,95 @@ function triggerEpicFlash(icon = "✅", title = "ACTION COMPLETE", line1 = "", l
     }, 3500);
 }
 
+// ── LIVE POSTCARD TIMER + INDEPENDENT GLOW (now 100% reliable) ──
+let liveTableTimer = null;
+let independentGlowTimer = null;
+
+function startLiveTableTimer() {
+    if (liveTableTimer) return;
+    liveTableTimer = setInterval(() => {
+        updatePostcardTimers();
+        if (!locations.some(l => l.isPostcard)) {
+            clearInterval(liveTableTimer);
+            liveTableTimer = null;
+        }
+    }, 980);
+}
+
+function startIndependentGlowRefresh() {
+    if (independentGlowTimer) return;
+    independentGlowTimer = setInterval(() => {
+        let glowExpired = false;
+
+        // Map markers
+        [clusteredMarkers, nonClusteredMarkers].forEach(group => {
+            group.eachLayer(marker => {
+                if (!marker?.options?.id) return;
+                const loc = locations.find(l => l.id === marker.options.id);
+                if (!loc) return;
+                const shouldGlow = isGlowing(loc);
+                const icon = marker._icon;
+                if (!icon) return;
+                const currentlyGlowing = icon.classList.contains('glowing');
+                if (shouldGlow && !currentlyGlowing) {
+                    marker.setIcon(createMarkerIcon(loc));
+                    marker.setZIndexOffset(10000);
+                } else if (!shouldGlow && currentlyGlowing) {
+                    marker.setIcon(createMarkerIcon(loc));
+                    marker.setZIndexOffset(0);
+                    glowExpired = true;   // ← triggers re-sort
+                }
+            });
+        });
+
+        // Table rows glow class + NEW! timer live update
+        document.querySelectorAll('#locationsTable tbody tr').forEach(tr => {
+            const id = tr.dataset.id;
+            if (!id) return;
+            const loc = locations.find(l => l.id === id);
+            if (!loc) return;
+            if (isGlowing(loc)) {
+                tr.classList.add('glowing');
+            } else {
+                tr.classList.remove('glowing');
+                glowExpired = true;   // ← triggers re-sort
+            }
+        });
+
+        updateNewMarkerTimers();   // ← keeps NEW! timer ticking live every cycle
+
+        // If any glow just expired → full refresh + re-sort the table
+        if (glowExpired) {
+            refreshTable(combinedSearch?.value || '', categoryFilter?.value || '');
+        }
+    }, 980);   // slightly faster for smooth live countdown
+}
+
+// Start both
+startLiveTableTimer();
+startIndependentGlowRefresh();
+
+// Restart after postcard creation or any full reload
+const originalCreateBtn = document.getElementById('createPostcardBtn');
+if (originalCreateBtn) {
+    const oldClick = originalCreateBtn.onclick;
+    originalCreateBtn.onclick = function(e) {
+        if (oldClick) oldClick.call(this, e);
+        setTimeout(() => {
+            startLiveTableTimer();
+            startPostcardTicker();
+            startIndependentGlowRefresh();
+        }, 100);
+    };
+}
+
+const originalForceReload = forceReload;
+forceReload = function() {
+    originalForceReload.call(this);
+    startLiveTableTimer();
+    startIndependentGlowRefresh();
+};
+
 // ── Memory Cleanup to Prevent Gradual Slowdown on Mobile ──
 let lastCleanupTime = Date.now();
 function performMemoryCleanup() {
@@ -6373,7 +6410,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2026 MrCrazy — All rights reserved\n' +
-    'Last updated: Version Release • 76.READY-29-03-2026-C-60 • Made with ❤️\n' +
+    'Last updated: Version Release • 76.READY-30-03-2026-C-61 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
