@@ -2997,13 +2997,20 @@ document.head.appendChild(postcardStyle);
                 .some(m => m.getLatLng().distanceTo(e.latlng) < 30);
             if (clickedOnMarker) return;
             currentPostcardLatLng = e.latlng;
-			autoExitFullscreenForModal()
+autoExitFullscreenForModal()
             postcardModal.style.display = 'block';
             document.getElementById('postcardMessage')?.focus();
             playSound('click');
         });
-                document.getElementById('createPostcardBtn')?.addEventListener('click', () => {
-            const msg = document.getElementById('postcardMessage')?.value.trim() || 'Postcard Found!';
+
+// ── POSTCARD CREATION — HARD 280 LIMIT ON MOBILE (minimal fix) ──
+                document.getElementById('createPostcardBtn').onclick = () => {
+            const textarea = document.getElementById('postcardMessage');
+            let msg = (textarea ? textarea.value.trim() : '') || 'Postcard Found!';
+            
+            // Hard cap for mobile (forces trim even if browser ignores maxlength)
+            if (msg.length > 280) msg = msg.substring(0, 280);
+
             if (!currentPostcardLatLng) return;
             const loc = createNewLocation(currentPostcardLatLng.lat, currentPostcardLatLng.lng, 'misc', msg, true);
             locations.push(loc);
@@ -3018,7 +3025,7 @@ document.head.appendChild(postcardStyle);
             });
             setTimeout(() => showPostcardMarker(loc), 500);
             startPostcardTicker();
-        });
+        };
         const urlParams = new URLSearchParams(window.location.search);
         let pendingPostcard = null;
         if (urlParams.has('postcard')) {
