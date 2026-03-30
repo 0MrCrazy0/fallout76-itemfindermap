@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map</title>
 	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
-	<link rel="manifest" href="manifest.json?v=64">
+	<link rel="manifest" href="manifest.json?v=65">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1585,7 +1585,7 @@ button:not(:hover):not(:active):not(:focus),
         </div>
     </div>
 <script>
-const CURRENT_APP_VERSION = '76.64';
+const CURRENT_APP_VERSION = '76.65';
 
 // ── All version numbers now use this single line (change it here only) ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -4284,7 +4284,7 @@ resetAppBtn.onclick = () => {
         'Ready to initiate reset protocol?',
         () => {
             const userMarkers = locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard);
-            
+           
             const personalBackup = {
                 version: "personal-plus-kept-fullbackup",
                 timestamp: new Date().toISOString(),
@@ -4299,11 +4299,9 @@ resetAppBtn.onclick = () => {
                     activeCategories: [...activeCategories]
                 }
             };
-
             // SINGLE clean backup with epic animation
             downloadBackupFile(personalBackup, `FO76_PersonalPlusKeptFullBackup_Level_${level}`);
-
-            // Second safety confirmation (exactly as you had it)
+            // Second safety confirmation
             setTimeout(() => {
                 const safetyModal = document.createElement('div');
                 safetyModal.className = 'modal';
@@ -4331,62 +4329,87 @@ resetAppBtn.onclick = () => {
                 `;
                 document.body.appendChild(safetyModal);
                 document.body.classList.add('modal-open');
-
                 const closeSafety = () => {
                     safetyModal.remove();
                     document.body.classList.remove('modal-open');
                     playSound('modalClose');
                 };
-
                 safetyModal.querySelector('.close').onclick = closeSafety;
                 safetyModal.querySelector('#cancelSafetyBtn').onclick = closeSafety;
                 safetyModal.querySelector('#proceedWipeBtn').onclick = () => {
                     closeSafety();
 
-                    // Nuke animation sequence
+                    // ── POLISHED NUCLEAR WIPE ANIMATION (rocket → flash → reborn) ──
                     const nuke = document.createElement('div');
                     lockUIDuringAnimation(6000);
+
                     nuke.style.cssText = `
                         position:fixed;top:0;left:0;width:100vw;height:100vh;
-                        background:#000;z-index:999999;display:flex;
+                        background:#000;z-index:9999999;display:flex;
                         align-items:center;justify-content:center;flex-direction:column;
-                        gap:30px;font-family:'Courier New',monospace;color:#0f0;
-                        pointer-events:none;
+                        font-family:'Courier New',monospace;color:#0f0;
+                        pointer-events:none;gap:30px;
                     `;
                     nuke.innerHTML = `
-                        <div class="nuke-symbol">🚀</div>
-                        <h1 style="font-size:clamp(28px,8vw,60px);margin:0;text-shadow:0 0 30px #0f0;letter-spacing:6px;">
+                        <div id="wipeRocket" style="font-size:clamp(80px,25vw,220px);animation:rocketLaunchAnim 1.8s ease-out forwards;">🚀</div>
+                        <h1 style="font-size:clamp(32px,8vw,70px);margin:0;text-shadow:0 0 35px #0f0;letter-spacing:6px;">
                             NUCLEAR WIPE
                         </h1>
-                        <p style="font-size:clamp(18px,5vw,36px);margin:0;opacity:0.9;">
+                        <p id="wipeCountdown" style="font-size:clamp(22px,6vw,48px);margin:0;opacity:0.95;">
                             Detonation in 3...
                         </p>
                     `;
                     document.body.appendChild(nuke);
+
+                    // Rocket keyframes (reused from level-up nuke)
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        @keyframes rocketLaunchAnim {
+                            0%   { transform: translateY(80px) scale(0.8); opacity: 0; }
+                            30%  { transform: translateY(-40px) scale(1.1); opacity: 1; }
+                            70%  { transform: translateY(-180px) scale(1); }
+                            100% { transform: translateY(-300px) scale(0.6); opacity: 0; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+
                     playSound('levelUp');
 
                     let count = 3;
-                    const countdown = setInterval(() => {
+                    const countdownEl = document.getElementById('wipeCountdown');
+                    const countdownInterval = setInterval(() => {
                         count--;
                         if (count > 0) {
-                            nuke.querySelector('p').textContent = `Detonation in ${count}...`;
+                            countdownEl.textContent = `Detonation in ${count}...`;
                         } else {
-                            clearInterval(countdown);
-                            nuke.querySelector('p').textContent = 'BOOM!';
-                            nuke.style.background = '#fff';
+                            clearInterval(countdownInterval);
+                            countdownEl.textContent = 'BOOM!';
+
+                            // White flash
+                            const flash = document.createElement('div');
+                            flash.style.cssText = `
+                                position:fixed;top:0;left:0;width:100vw;height:100vh;
+                                background:#fff;z-index:99999999;pointer-events:none;
+                                animation:quickFlash 0.7s ease-out forwards;
+                            `;
+                            document.body.appendChild(flash);
+                            setTimeout(() => flash.remove(), 700);
+
+                            // Reborn screen
                             setTimeout(() => {
                                 nuke.innerHTML = `
-                                    <div class="nuke-symbol">☢️</div>
-                                    <h1 style="font-size:clamp(28px,8vw,60px);margin:0;text-shadow:0 0 30px #0f0;">
+                                    <div class="nuke-symbol" style="color:#ff0;">☢️</div>
+                                    <h1 style="font-size:clamp(36px,9vw,80px);margin:0;text-shadow:0 0 40px #0f0;letter-spacing:6px;">
                                         APPALACHIA REBORN
                                     </h1>
-                                    <p style="font-size:clamp(18px,5vw,36px);margin:0;opacity:0.9;">
+                                    <p style="font-size:clamp(20px,5.5vw,42px);margin:0;opacity:0.9;">
                                         Reloading...
                                     </p>
                                 `;
                                 nuke.style.background = '#000';
-                            }, 300);
+                            }, 400);
 
+                            // Final reload
                             setTimeout(() => {
                                 const savedReports = {};
                                 for (let i = 0; i < localStorage.length; i++) {
@@ -4402,9 +4425,9 @@ resetAppBtn.onclick = () => {
                                 nuke.style.transition = 'opacity 1.2s';
                                 nuke.style.opacity = '0';
                                 setTimeout(() => location.reload(), 1200);
-                            }, 4500);
+                            }, 2800);
                         }
-                    }, 1000);
+                    }, 950);
                 };
             }, 1500);
         }
@@ -6471,7 +6494,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • C-64-30-03-2026 • Made with ❤️\n' +
+    'Last updated: • C-65-31-03-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
