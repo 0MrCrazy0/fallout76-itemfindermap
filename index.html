@@ -2500,12 +2500,11 @@ function formatTime(seconds) {
 
 
 let showOnlyMyMarkers = false;
-
 document.getElementById('toggleMyMarkersBtn').onclick = () => {
     showOnlyMyMarkers = !showOnlyMyMarkers;
-    document.getElementById('toggleMyMarkersBtn').textContent = 
+    document.getElementById('toggleMyMarkersBtn').textContent =
         showOnlyMyMarkers ? 'My Markers: ON' : 'My Markers: All';
-    
+   
     loadData(combinedSearch.value, categoryFilter.value);
     playSound('click');
 };
@@ -2565,18 +2564,29 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
         combinedSearch.style.cssText += 'width:260px;height:42px;font-size:16px;padding-right:40px;box-sizing:border-box;';
         categoryFilter.style.cssText += 'height:42px;font-size:16px;min-width:160px;';
         toggleCategoryModalBtn.style.cssText += 'height:42px;min-width:150px;padding:0 8px;font 14px;white-space:nowrap;';
+
+        // ── CLEAR BUTTON (×) — Now fully resets map to All Categories ──
         clearBtn.onclick = () => {
             combinedSearch.value = '';
-            combinedSearch.focus();
-            refreshTable();
+            categoryFilter.value = '';
+            currentCategoryFilter = '';
+            localStorage.setItem('currentCategoryFilter', '');
             clearBtn.style.display = 'none';
+            combinedSearch.focus();
+            refreshTable('', '');
+            loadData('', '');
             playSound('modalClose');
         };
+
         combinedSearch.addEventListener('input', () => {
     const val = combinedSearch.value.trim();
+if (categoryFilter.value !== '') {
+                categoryFilter.value = '';
+                currentCategoryFilter = '';
+                localStorage.setItem('currentCategoryFilter', '');
+            }
     clearBtn.style.display = val ? 'block' : 'none';
     playSound('type');
-
     // === GRID SEARCH ===
     const gridMatch = val.toUpperCase().match(/^([A-J])\s*([1-9]|10)$/);
     if (gridMatch) {
@@ -2594,11 +2604,10 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
             }
         }
     }
-
     // === TEXT SEARCH + SUGGESTIONS DROPDOWN ===
     const q = val.toLowerCase();
     suggestionsBox.innerHTML = '';
-    
+   
     if (q.length === 0) {
         suggestionsBox.style.display = 'none';
     } else {
@@ -2617,7 +2626,6 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
                 });
             }
         });
-
         const seen = new Set();
         const unique = matches.filter(item => {
             const key = item.desc + item.lat + item.lng;
@@ -2625,7 +2633,6 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
             seen.add(key);
             return true;
         }).slice(0, 12);
-
         if (unique.length > 0) {
             unique.forEach(item => {
                 const div = document.createElement('div');
@@ -2635,7 +2642,7 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
                 div.style.borderBottom = '1px solid #00ff33';
                 div.onclick = () => {
                     combinedSearch.value = '';
-					clearBtn.style.display = 'none';
+clearBtn.style.display = 'none';
                     suggestionsBox.style.display = 'none';
                     loadData('', categoryFilter.value);
                     safeFlyTo(item.lat, item.lng, 4);
@@ -2654,12 +2661,11 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
                 suggestionsBox.appendChild(div);
             });
             suggestionsBox.style.display = 'block';
-			playSound('selectcategory');
+playSound('selectcategory');
         } else {
             suggestionsBox.style.display = 'none';
         }
     }
-
     // === ITEM LOCATED MESSAGE ===
     const terms = q.split(/\s+/).filter(t => t.length > 1);
     const found = terms.length > 0 && locations.some(l => {
@@ -2671,7 +2677,6 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
         combinedSearch.style.boxShadow = '0 0 8px #0f0';
         setTimeout(() => combinedSearch.style.boxShadow = '', 1500);
     }
-
     refreshTable(val, categoryFilter.value);
     loadData(combinedSearch.value, categoryFilter.value);
     playSound('type');
