@@ -1,7 +1,7 @@
 // ——— SERVICE WORKER ———
 // Cache busting: Update this line on EVERY deployment that changes HTML, JS, or CSS.
 // Format: "fo76-ifm-v{VERSION}-{DDMMYYYY}" or "fo76-ifm-v{VERSION}-{DDMMYYYY}-buildN"
-const CACHE_NAME = "fo76-ifm-v76-C-71-31-03-2026";
+const CACHE_NAME = "fo76-ifm-v76-C-72-1-04-2026";
 
 self.addEventListener("install", e => {
   e.waitUntil(self.skipWaiting());
