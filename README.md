@@ -26,5 +26,4 @@ A simple, free, no-login browser-based map tool for Fallout 76 players to mark a
 
 Enjoy exploring Appalachia — and happy logging!
 
-Made with ❤️ by MrCrazy  
-Last updated: March 2025
+Made with ❤️ by MrCrazy
