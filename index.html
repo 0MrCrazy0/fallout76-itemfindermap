@@ -2377,6 +2377,7 @@ map.on('popupclose', () => {
         row.classList.remove('table-row-popup-glow');
     });
     currentPopupMarkerId = null;
+	playSound('modalClose');
 });
 
 let undoTimerInterval = null;
@@ -2499,7 +2500,7 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
             combinedSearch.focus();
             refreshTable();
             clearBtn.style.display = 'none';
-            playSound('click');
+            playSound('modalClose');
         };
         combinedSearch.addEventListener('input', () => {
     const val = combinedSearch.value.trim();
@@ -2595,18 +2596,18 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
         return terms.every(term => text.includes(term));
     });
     if (found && val) {
-        showTempMessage('ITEM LOCATED — CHECK CONTENT INVENTORY', 3000);
+        showTempMessage('ITEM LOCATED — CHECK DROP-DOWN SUGGESTIONS', 3000);
         combinedSearch.style.boxShadow = '0 0 8px #0f0';
         setTimeout(() => combinedSearch.style.boxShadow = '', 1500);
     }
 
     refreshTable(val, categoryFilter.value);
     loadData(combinedSearch.value, categoryFilter.value);
-    playSound('selectcategory');
+    playSound('type');
 });
         categoryFilter.onchange = () => {
             loadData(combinedSearch.value, categoryFilter.value);
-            playSound('selectcategory');
+            playSound('click');
         };
         function updateLockAllBtn() {
             const hasUnlocked = locations.some(l => !l.locked && !l.isPostcard);
@@ -3740,7 +3741,7 @@ function refreshTable(search = '', cat = '') {
                 cb.checked ? activeCategories.add(cb.value) : activeCategories.delete(cb.value);
                 localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
                 loadData(combinedSearch.value, categoryFilter.value);
-                playSound('selectcategory');
+                playSound('click');
             });
         }
                 function updateCategoryDropdowns() {
@@ -5035,7 +5036,7 @@ document.getElementById('shareOneBtn').onclick = () => {
         };
     }
    
-    playSound('selectcategory');
+    playSound('click');
 };
         document.getElementById('selectAllBtn').onclick = () => {
             activeCategories = new Set(Object.keys(categoryIcons));
