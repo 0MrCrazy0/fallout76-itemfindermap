@@ -2652,6 +2652,7 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
                 suggestionsBox.appendChild(div);
             });
             suggestionsBox.style.display = 'block';
+			playSound('selectcategory');
         } else {
             suggestionsBox.style.display = 'none';
         }
@@ -5658,7 +5659,7 @@ if (SpeechRecognition && voiceSearchBtn) {
 
     voiceSearchBtn.textContent = 'Voice Search';
     showTempMessage(`Heard: "${transcript}"`, 4000);
-    playSound('selectcategory');
+    playSound('click');
 };
 
     recognition.onerror = () => {
