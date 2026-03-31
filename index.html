@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map</title>
 	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
-	<link rel="manifest" href="manifest.json?v=68">
+	<link rel="manifest" href="manifest.json?v=69">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1585,7 +1585,7 @@ button:not(:hover):not(:active):not(:focus),
         </div>
     </div>
 <script>
-const CURRENT_APP_VERSION = '76.68';
+const CURRENT_APP_VERSION = '76.69';
 
 // ── All version numbers now use this single line (change it here only) ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -2402,7 +2402,9 @@ document.addEventListener('click', function(e) {
         const xpPerMarker = 100;
         const pageSize = 100;
         let tablePage = parseInt(localStorage.getItem('tablePage')) || 1;
-        let currentSearch = localStorage.getItem('currentSearch') || '';
+        let currentSearch = '';
+        localStorage.removeItem('currentSearch');
+
         let currentCategoryFilter = localStorage.getItem('currentCategoryFilter') || '';
         let darkMode = localStorage.getItem('darkMode') === 'true';
 if (darkMode) {
@@ -6573,7 +6575,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = C-68-31-03-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = C-69-31-03-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
