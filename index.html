@@ -3215,9 +3215,8 @@ document.getElementById('createPostcardBtn').onclick = () => {
         startPostcardTicker();
     });
 
-    // ── Small fix for jumping bug ──
+    // ── Fixed: Only the newly created postcard auto-opens (prevents jumping) ──
     if (window.justCreatedPostcardId === loc.id) {
-        map.flyTo([loc.lat, loc.lng], 5, { duration: 1.2 });
         setTimeout(() => {
             marker.openPopup();
             window.justCreatedPostcardId = null;   // clear flag
