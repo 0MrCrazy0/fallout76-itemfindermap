@@ -1321,6 +1321,17 @@ button:not(:hover):not(:active):not(:focus),
 #backupPersonalOnly small, #backupWithKept small {
     color: #000000 !important;
 }
+/* Force black text on final wipe modal buttons (never react to dark mode) */
+#cancelSafetyBtn,
+#proceedWipeBtn {
+    color: #000000 !important;
+}
+
+/* Optional: Make sure the small text inside stays black too */
+#cancelSafetyBtn small,
+#proceedWipeBtn small {
+    color: #000000 !important;
+}
 </style>
 </head>
 <body>
