@@ -2596,6 +2596,10 @@ if (categoryFilter.value !== '') {
                 currentCategoryFilter = '';
                 localStorage.setItem('currentCategoryFilter', '');
             }
+if (showOnlyMyMarkers === true) {
+        showOnlyMyMarkers = false;
+        document.getElementById('toggleMyMarkersBtn').textContent = 'My Markers: All';
+    }
     clearBtn.style.display = val ? 'block' : 'none';
     playSound('type');
     // === GRID SEARCH ===
