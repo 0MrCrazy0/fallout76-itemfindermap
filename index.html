@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map</title>
 	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
-	<link rel="manifest" href="manifest.json?v=73">
+	<link rel="manifest" href="manifest.json?v=74">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1596,7 +1596,7 @@ button:not(:hover):not(:active):not(:focus),
         </div>
     </div>
 <script>
-const CURRENT_APP_VERSION = '76.73';
+const CURRENT_APP_VERSION = '76.74';
 
 // ── All version numbers now use this single line (change it here only) ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -3065,18 +3065,23 @@ autoExitFullscreenForModal()
             playSound('click');
         });
 
-// ── POSTCARD CREATION — NO AUTO-ZOOM, BUT KEEP AUTO-POPUP ──
+// ── POSTCARD CREATION — STRONGER FIX FOR JUMPING BETWEEN POSTCARDS ──
 document.getElementById('createPostcardBtn').onclick = () => {
     const textarea = document.getElementById('postcardMessage');
     let msg = textarea ? textarea.value.trim() : 'Postcard Found!';
    
-    // Hard cap for mobile
     if (msg.length > 280) msg = msg.substring(0, 280);
     if (!currentPostcardLatLng) return;
 
     const loc = createNewLocation(currentPostcardLatLng.lat, currentPostcardLatLng.lng, 'misc', msg, true);
     locations.push(loc);
     saveLocations();
+
+    // Priority flag + reset any competing flags
+    window.justCreatedPostcardId = loc.id;
+    currentIndex = -1;
+    justClosedEditModal = false;
+
     forceReload();
 
     closeModal(postcardModal);
@@ -3090,10 +3095,10 @@ document.getElementById('createPostcardBtn').onclick = () => {
         playSound('postcard');
     });
 
-    // Auto-popup the speech bubble (no zoom/fly-to)
+    // Longer delay + guaranteed priority
     setTimeout(() => {
         showPostcardMarker(loc);
-    }, 700);
+    }, 850);
 
     startPostcardTicker();
 };
@@ -3182,7 +3187,11 @@ document.getElementById('createPostcardBtn').onclick = () => {
         </div>
     `;
 }
-        function showPostcardMarker(loc) {
+
+function showPostcardMarker(loc) {
+    // Close any open popups first (strongest protection against jumping)
+    map.closePopup();
+
     const existing = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === loc.id);
     if (existing) existing.remove();
 
@@ -3215,11 +3224,12 @@ document.getElementById('createPostcardBtn').onclick = () => {
         startPostcardTicker();
     });
 
-    // ── Fixed: Only the newly created postcard auto-opens (prevents jumping) ──
+    // Strong priority for the newly created postcard only
     if (window.justCreatedPostcardId === loc.id) {
         setTimeout(() => {
+            map.closePopup();           // extra safety
             marker.openPopup();
-            window.justCreatedPostcardId = null;   // clear flag
+            window.justCreatedPostcardId = null;
         }, 650);
     } else {
         marker.openPopup();
@@ -5246,11 +5256,12 @@ document.getElementById('shareOneBtn').onclick = () => {
 }
     );
 };
-                saveItemBtn.onclick = () => {
+saveItemBtn.onclick = () => {
     const cat = itemCategorySelect.value;
     let desc = itemDescInput.value.trim();
     const isNew = currentIndex < 0;
     let lat, lng;
+
     if (isNew) {
         if (tempLatLng && typeof tempLatLng.lat === 'number' && typeof tempLatLng.lng === 'number') {
             lat = tempLatLng.lat;
@@ -5270,6 +5281,7 @@ document.getElementById('shareOneBtn').onclick = () => {
         lat = loc.lat;
         lng = loc.lng;
     }
+
     if (!desc) {
         const grid = getGridFromLatLng(lat, lng);
         const x = Math.round(lng);
@@ -5279,6 +5291,7 @@ document.getElementById('shareOneBtn').onclick = () => {
     } else {
         desc = updateDescWithGrid(desc, lat, lng);
     }
+
     if (currentIndex >= 0) {
         const loc = locations[currentIndex];
         if (loc.locked) {
@@ -5292,21 +5305,38 @@ document.getElementById('shareOneBtn').onclick = () => {
         loc.addedTime = Date.now();
         loc.userEdited = true;
         loc.locked = true;
-		loc.cid = loc.cid || generateCid(loc);
+        loc.cid = loc.cid || generateCid(loc);
     } else {
         const newLoc = createNewLocation(lat, lng, cat, desc);
         newLoc.locked = true;
         locations.push(newLoc);
         recalculateXP();
+
+        // ── AUTO-OPEN POPUP FOR NEWLY CREATED NORMAL MARKER ──
+        window.justCreatedMarkerId = newLoc.id;
     }
+
     closeModal(itemModal);
     saveLocations();
     playSound('saving');
     showTempMessage('MARKER SAVED & LOCKED', 4000);
     forceReload();
+
+    // ── Auto-open the speech bubble on the marker you just created ──
+    if (window.justCreatedMarkerId) {
+        setTimeout(() => {
+            const marker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
+                .find(m => m.options && m.options.id === window.justCreatedMarkerId);
+            if (marker) {
+                marker.openPopup();
+                window.justCreatedMarkerId = null;
+            }
+        }, 750);
+    }
+
     const submitBtn = document.getElementById('submitCommunityBtn');
     if (submitBtn) {
-        submitBtn.style.display = 
+        submitBtn.style.display =
             (currentIndex >= 0 && locations[currentIndex]?.locked && !locations[currentIndex]?.isCommunity)
             ? 'inline-block'
             : 'none';
@@ -6323,16 +6353,28 @@ window.keepCommunityMarker = function(markerId) {
             marker.wasCommunityKept = true;
             marker.locked = true;
             marker.addedTime = Date.now();
+			
+			// ── Priority flag for auto-popup ──
+            window.justKeptMarkerId = markerId;
 
             saveLocations();
             recalculateXP();
             forceReload();
             showTempMessage(`MARKER KEPT — +100 XP (LEVEL ${level})`, 5000);
             playSound('saving');
+        // ── Auto-open speech bubble on the marker you just kept ──
+            setTimeout(() => {
+                const keptMarker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
+                    .find(m => m.options && m.options.id === markerId);
+                if (keptMarker) {
+                    keptMarker.openPopup();
+                    window.justKeptMarkerId = null;
+                }
+            }, 850);
         },
         'Yes — Keep It',
         'Cancel',
-		true
+        true
     );
 };
 
@@ -6651,7 +6693,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = C-73-1-04-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = C-74-1-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
