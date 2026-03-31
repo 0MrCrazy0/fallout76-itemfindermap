@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map</title>
 	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
-	<link rel="manifest" href="manifest.json?v=71">
+	<link rel="manifest" href="manifest.json?v=72">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1596,7 +1596,7 @@ button:not(:hover):not(:active):not(:focus),
         </div>
     </div>
 <script>
-const CURRENT_APP_VERSION = '76.71';
+const CURRENT_APP_VERSION = '76.72';
 
 // ── All version numbers now use this single line (change it here only) ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -3065,11 +3065,11 @@ autoExitFullscreenForModal()
             playSound('click');
         });
 
-// ── POSTCARD CREATION — HARD 280 LIMIT ON MOBILE (minimal fix) ──
+// ── POSTCARD CREATION — NO AUTO-ZOOM, BUT KEEP AUTO-POPUP ──
 document.getElementById('createPostcardBtn').onclick = () => {
     const textarea = document.getElementById('postcardMessage');
     let msg = textarea ? textarea.value.trim() : 'Postcard Found!';
-    
+   
     // Hard cap for mobile
     if (msg.length > 280) msg = msg.substring(0, 280);
     if (!currentPostcardLatLng) return;
@@ -3077,11 +3077,8 @@ document.getElementById('createPostcardBtn').onclick = () => {
     const loc = createNewLocation(currentPostcardLatLng.lat, currentPostcardLatLng.lng, 'misc', msg, true);
     locations.push(loc);
     saveLocations();
-
-    // Flag so addMarkerToMap knows to skip auto-popup for this one
-    window.justCreatedPostcardId = loc.id;
-
     forceReload();
+
     closeModal(postcardModal);
     postcardModal.style.display = 'none';
 
@@ -3093,10 +3090,9 @@ document.getElementById('createPostcardBtn').onclick = () => {
         playSound('postcard');
     });
 
-    // Open the popup ONLY after reload has finished
+    // Auto-popup the speech bubble (no zoom/fly-to)
     setTimeout(() => {
         showPostcardMarker(loc);
-        window.justCreatedPostcardId = null;   // clear flag
     }, 700);
 
     startPostcardTicker();
@@ -3892,97 +3888,103 @@ function refreshTable(search = '', cat = '') {
             }
         }
  
-                               function openModal(title, idx = -1) {
-							   autoExitFullscreenForModal();
-            const loc = idx >= 0 ? locations[idx] : null;
-            const isCurrentlyLocked = loc ? loc.locked : false;
+function openModal(title, idx = -1) {
+    autoExitFullscreenForModal();
+    const loc = idx >= 0 ? locations[idx] : null;
+    const isCreateMode = idx < 0;                    // true when creating a new marker
+    const isCurrentlyLocked = loc ? loc.locked : false;
 
-            modalTitle.innerHTML = `${title} <span id="modalLockToggle" style="font-size:22px;cursor:pointer;margin-left:10px;">${isCurrentlyLocked ? '🔐 LOCKED' : '🔓 UNLOCKED'}</span>`;
+    modalTitle.innerHTML = `${title} <span id="modalLockToggle" style="font-size:22px;cursor:pointer;margin-left:10px;">${isCurrentlyLocked ? '🔐 LOCKED' : '🔓 UNLOCKED'}</span>`;
+    currentIndex = idx;
 
-            currentIndex = idx;
-            itemCategorySelect.value = loc?.category || 'misc';
-            itemDescInput.value = loc?.desc || '';
+    itemCategorySelect.value = loc?.category || 'misc';
+    itemDescInput.value = loc?.desc || '';
 
-            itemCategorySelect.disabled = isCurrentlyLocked;
-            itemDescInput.disabled = isCurrentlyLocked;
-            deleteBtn.style.display = isCurrentlyLocked ? 'none' : 'inline-block';
-            duplicateBtn.style.display = isCurrentlyLocked ? 'none' : 'inline-block';
-            exportOneBtn.style.display = 'inline-block';
+    itemCategorySelect.disabled = isCurrentlyLocked;
+    itemDescInput.disabled = isCurrentlyLocked;
 
-            // ── Smart Submit Button & Note Logic ──
-            const submitBtn = document.getElementById('submitCommunityBtn');
-            let noteHTML = '';
+    // ── BUTTON VISIBILITY ──
+    // Delete & Duplicate require unlock (or create mode)
+    deleteBtn.style.display = isCurrentlyLocked || isCreateMode ? 'none' : 'inline-block';
+    duplicateBtn.style.display = isCurrentlyLocked || isCreateMode ? 'none' : 'inline-block';
 
-            if (loc && currentIndex >= 0) {
-                const cid = loc.cid || generateCid(loc);
+    // Export Marker, Share Marker, Share Map View, Submit to Community Map → hidden while creating
+    exportOneBtn.style.display = isCreateMode ? 'none' : 'inline-block';
+    shareOneBtn.style.display = isCreateMode ? 'none' : 'inline-block';
+    shareItemBtn.style.display = 'none';
+    submitCommunityBtn.style.display = 'none';
 
-                if (loc.isCommunity || loc.wasCommunityKept) {
-                    noteHTML = '<p style="color:#00ff88; text-align:center; margin:12px 0 8px;">This marker is now part of the official community map — no resubmission needed.</p>';
-                    if (submitBtn) submitBtn.style.display = 'none';
-                } 
-                else if (hasBeenSubmitted(cid)) {
-                    noteHTML = '<p style="color:#ffcc00; text-align:center; margin:12px 0 8px;">This marker was previously submitted.<br>If it does not appear in the Pending Submissions list, it was either merged or removed.<br>Delete this marker and create a new one if you wish to resubmit.</p>';
-                    if (submitBtn) submitBtn.style.display = 'none';
-                } 
-                else if (loc.locked && !loc.isCommunity) {
-                    noteHTML = '<p style="color:#00ccff; text-align:center; margin:12px 0 8px;">Submit this marker to the community map for review by a Moderator.</p>';
-                    if (submitBtn) submitBtn.style.display = 'inline-block';
-                } 
-                else {
-                    if (submitBtn) submitBtn.style.display = 'none';
-                }
-            } else {
-                if (submitBtn) submitBtn.style.display = 'none';
-            }
-
-            // Insert or update the note safely
-            let existingNote = document.getElementById('submitNote');
-            const buttonsDiv = document.querySelector('#itemModal .modal-content > div:last-child');
-
-            if (noteHTML) {
-                if (!existingNote) {
-                    existingNote = document.createElement('div');
-                    existingNote.id = 'submitNote';
-                    if (buttonsDiv) buttonsDiv.appendChild(existingNote);
-                }
-                existingNote.innerHTML = noteHTML;
-                existingNote.style.display = 'block';
-            } else if (existingNote) {
-                existingNote.style.display = 'none';
-            }
-
-            // Lock toggle handler
-            const modalToggle = document.getElementById('modalLockToggle');
-            if (modalToggle && loc) {
-                modalToggle.onclick = (e) => {
-                    e.stopPropagation();
-                    loc.locked = !loc.locked;
-                    modalToggle.textContent = loc.locked ? '🔐 LOCKED' : '🔓 UNLOCKED';
-                    itemCategorySelect.disabled = loc.locked;
-                    itemDescInput.disabled = loc.locked;
-                    deleteBtn.style.display = loc.locked ? 'none' : 'inline-block';
-                    duplicateBtn.style.display = loc.locked ? 'none' : 'inline-block';
-                    saveLocations();
-                    forceReload();
-                    showTempMessage(loc.locked ? '🔐 LOCKED' : '🔓 UNLOCKED', 2000);
-                    playSound('click');
-                };
-            }
-
-// Hide ONLY Export and Share for kept community markers
-// Duplicate button remains visible (user tested and approved)
-if (loc && loc.wasCommunityKept) {
-    const exportBtn = document.getElementById('exportOneBtn');
-    const shareBtn = document.getElementById('shareOneBtn');
-    if (exportBtn) exportBtn.style.display = 'none';
-    if (shareBtn) shareBtn.style.display = 'none';
-    // Duplicate button is deliberately left visible
-}
-
-            itemModal.style.display = 'block';
-            document.body.classList.add('modal-open');
-            playSound('click');
+    // ── Smart Submit Button & Note Logic ──
+    const submitBtn = document.getElementById('submitCommunityBtn');
+    let noteHTML = '';
+    if (loc && currentIndex >= 0) {
+        const cid = loc.cid || generateCid(loc);
+        if (loc.isCommunity || loc.wasCommunityKept) {
+            noteHTML = '<p style="color:#00ff88; text-align:center; margin:12px 0 8px;">This marker is now part of the official community map — no resubmission needed.</p>';
+            if (submitBtn) submitBtn.style.display = 'none';
         }
+        else if (hasBeenSubmitted(cid)) {
+            noteHTML = '<p style="color:#ffcc00; text-align:center; margin:12px 0 8px;">This marker was previously submitted.<br>If it does not appear in the Pending Submissions list, it was either merged or removed.<br>Delete this marker and create a new one if you wish to resubmit.</p>';
+            if (submitBtn) submitBtn.style.display = 'none';
+        }
+        else if (loc.locked && !loc.isCommunity) {
+            noteHTML = '<p style="color:#00ccff; text-align:center; margin:12px 0 8px;">Submit this marker to the community map for review by a Moderator.</p>';
+            if (submitBtn) submitBtn.style.display = 'inline-block';
+        }
+        else {
+            if (submitBtn) submitBtn.style.display = 'none';
+        }
+    } else {
+        if (submitBtn) submitBtn.style.display = 'none';
+    }
+
+    // Insert or update the note safely
+    let existingNote = document.getElementById('submitNote');
+    const buttonsDiv = document.querySelector('#itemModal .modal-content > div:last-child');
+    if (noteHTML) {
+        if (!existingNote) {
+            existingNote = document.createElement('div');
+            existingNote.id = 'submitNote';
+            if (buttonsDiv) buttonsDiv.appendChild(existingNote);
+        }
+        existingNote.innerHTML = noteHTML;
+        existingNote.style.display = 'block';
+    } else if (existingNote) {
+        existingNote.style.display = 'none';
+    }
+
+    // Lock toggle handler
+    const modalToggle = document.getElementById('modalLockToggle');
+    if (modalToggle && loc) {
+        modalToggle.onclick = (e) => {
+            e.stopPropagation();
+            loc.locked = !loc.locked;
+            modalToggle.textContent = loc.locked ? '🔐 LOCKED' : '🔓 UNLOCKED';
+            itemCategorySelect.disabled = loc.locked;
+            itemDescInput.disabled = loc.locked;
+            deleteBtn.style.display = loc.locked ? 'none' : 'inline-block';
+            duplicateBtn.style.display = loc.locked ? 'none' : 'inline-block';
+            saveLocations();
+            forceReload();
+            showTempMessage(loc.locked ? '🔐 LOCKED' : '🔓 UNLOCKED', 2000);
+            playSound('click');
+        };
+    }
+
+    // Hide ONLY Export and Share for kept community markers
+    // Duplicate button remains visible (user tested and approved)
+    if (loc && loc.wasCommunityKept) {
+        const exportBtn = document.getElementById('exportOneBtn');
+        const shareBtn = document.getElementById('shareOneBtn');
+        if (exportBtn) exportBtn.style.display = 'none';
+        if (shareBtn) shareBtn.style.display = 'none';
+        // Duplicate button is deliberately left visible
+    }
+
+    itemModal.style.display = 'block';
+    document.body.classList.add('modal-open');
+    playSound('click');
+}
 		
 function closeModal(m) {
     m.style.display = 'none';
@@ -5755,6 +5757,7 @@ if (SpeechRecognition && voiceSearchBtn) {
                     <li>This tool is for <strong>logging locations</strong>.</li>
                     <li>Exploring Appalachia sometimes its hard to keep track of things.</li>
                     <li>places you found, things you seen. this app was made just for that so start logging things.</li>
+					<li><strong style="color:#ff0;">Tip for shared links:</strong> After closing this popup, if the map looks empty → just refresh the page. The marker will appear.</li>
                     <li>Click <strong>"Update Community Map"</strong> for the latest community data.</li>
                     <li>Have fun exploring Appalachia — and share the app! ❤️</li>
                 </ul>
@@ -5999,20 +6002,24 @@ if (urlParams.has('permshare')) {
             const incoming = shareData.locations || [];
             const beforeCount = locations.length;
             const undoState = JSON.stringify(locations);
+
             incoming.forEach(imp => {
+                // Force as user-created marker (this is the fix)
                 const existing = locations.find(l => l.id === imp.id);
-                if (existing && existing.userEdited) return;
-                // Merge custom category from shared marker
+
+                // Merge custom category if needed
                 if (imp.category && imp.icon && !defaultCategoryIcons[imp.category]) {
                     customCategories[imp.category] = imp.icon;
                     categoryIcons[imp.category] = imp.icon;
                     categoryColors[imp.category] = '#002F00';
-                    activeCategories.add(imp.category); // Make visible by default
+                    activeCategories.add(imp.category);
                 }
+
                 if (existing) {
                     Object.assign(existing, imp);
                     existing.userEdited = true;
                     existing.isCommunity = false;
+                    existing.wasCommunityKept = false;
                 } else {
                     locations.push({
                         ...imp,
@@ -6021,39 +6028,44 @@ if (urlParams.has('permshare')) {
                         locked: true,
                         userEdited: true,
                         isCommunity: false,
-						wasCommunityKept: true,
+                        wasCommunityKept: false,
                         isTemp: false,
                         isPostcard: false
                     });
                 }
             });
+
             const added = locations.length - beforeCount;
             localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
             localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
             saveLocations();
             forceReload();
-            showTempMessage(`SHARED MARKERS IMPORTED: ${added} — READY TO EDIT`, 6000);
+
+            showTempMessage(`SHARED MARKER${added > 1 ? 'S' : ''} IMPORTED — NOW YOURS TO EDIT`, 6000);
             playSound('saving');
-            // Undo button
-            // Undo button (only if markers were added/updated)
-setTimeout(() => {
-    const undoBtn = document.getElementById('undoImportBtn');
-    if (undoBtn && (added + updated > 0)) {
-        undoBtn.onclick = () => {
-            locations = JSON.parse(beforeState);
-            recalculateXP();
-            saveLocations();
-            forceReload();
-            undoBtn.style.display = 'none';
-            showTempMessage('IMPORT UNDONE', 4000);
-            playSound('undo');
-        };
-        showUndoButton();  // ← Integrate timer here
-    }
-}, 100);
+
+            // Undo support
+            if (added > 0) {
+                setTimeout(() => {
+                    const undoBtn = document.getElementById('undoImportBtn');
+                    if (undoBtn) {
+                        undoBtn.style.display = 'inline-block';
+                        undoBtn.onclick = () => {
+                            locations = JSON.parse(undoState);
+                            recalculateXP();
+                            saveLocations();
+                            forceReload();
+                            undoBtn.style.display = 'none';
+                            showTempMessage('IMPORT UNDONE', 4000);
+                            playSound('undo');
+                        };
+                    }
+                }, 100);
+            }
+
             history.replaceState(null, null, location.pathname);
         } catch (e) {
-            showTempMessage('SINGLE MARKER IMPORTED — READY TO EDIT', 5000);
+            showTempMessage('SHARED MARKER IMPORTED — NOW YOURS TO EDIT', 5000);
             console.error('Permshare import error:', e);
         }
     }
@@ -6401,7 +6413,8 @@ function triggerEpicFlash(icon = "✅", title = "ACTION COMPLETE", line1 = "", l
         background:#000;z-index:9999999;display:flex;
         align-items:center;justify-content:center;flex-direction:column;
         gap:30px;font-family:'Courier New',monospace;color:#00ff00;
-        pointer-events:none;opacity:0;transition:opacity 0.6s;
+        pointer-events:auto;           /* ← NOW BLOCKS ALL TAPS/CLICKS */
+        opacity:0;transition:opacity 0.6s;
     `;
     flash.innerHTML = `
         <div style="font-size:clamp(80px,20vw,200px);text-shadow:0 0 80px #00ff00;animation:pulse 2s infinite;">
@@ -6416,9 +6429,10 @@ function triggerEpicFlash(icon = "✅", title = "ACTION COMPLETE", line1 = "", l
     document.body.appendChild(flash);
 
     playSound('saving');
-    lockUIDuringAnimation(3800);
+    lockUIDuringAnimation(3800);   /* ← Locks entire UI for full duration */
 
     setTimeout(() => flash.style.opacity = '1', 100);
+
     setTimeout(() => {
         flash.style.opacity = '0';
         setTimeout(() => flash.remove(), 1000);
@@ -6590,7 +6604,36 @@ if (playerNameInput) {
         localStorage.setItem('fo76_playerName', playerNameInput.value.trim());
     });
 }
+// ── SAFE SHARED-LINK REDRAW AFTER WELCOME MODAL (no tip, no onclick change) ──
+const sharedLinkObserver = new MutationObserver(() => {
+    if (!document.getElementById('welcomeModal')) {
+        sharedLinkObserver.disconnect();
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('postcard') || urlParams.has('permshare') || urlParams.has('lat')) {
+            setTimeout(() => {
+                clusteredMarkers.clearLayers();
+                nonClusteredMarkers.clearLayers();
+                renderCategoryToggles();
+                updateCategoryDropdowns();
+                forceReload();
+                map.invalidateSize({ animate: false });
+                
+                // Final guaranteed zoom
+                if (urlParams.has('lat') && urlParams.has('lng')) {
+                    const lat = parseFloat(urlParams.get('lat'));
+                    const lng = parseFloat(urlParams.get('lng'));
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        map.flyTo([lat, lng], 5, { duration: 1.2 });
+                    }
+                }
+            }, 900); // slightly longer delay for complete map readiness
+        }
+    }
+});
 
+if (!localStorage.getItem('fo76_welcome_accepted')) {
+    sharedLinkObserver.observe(document.body, { childList: true, subtree: true });
+}
         console.log(
     '%c╔═════════════════════════════════════════════════════════════╗\n' +
     '║           FALLOUT 76 ITEM FINDER MAP                        ║\n' +
@@ -6610,7 +6653,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = C-71-31-03-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = C-72-1-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
