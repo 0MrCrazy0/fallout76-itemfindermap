@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map</title>
 	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
-	<link rel="manifest" href="manifest.json?v=67">
+	<link rel="manifest" href="manifest.json?v=68">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1585,7 +1585,7 @@ button:not(:hover):not(:active):not(:focus),
         </div>
     </div>
 <script>
-const CURRENT_APP_VERSION = '76.67';
+const CURRENT_APP_VERSION = '76.68';
 
 // ── All version numbers now use this single line (change it here only) ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -1791,7 +1791,7 @@ function utf8ToBase64(str) {
 function base64ToUtf8(str) {
     return decodeURIComponent(escape(atob(str)));
 }
-        let locations = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+let locations = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
 // One-time cleanup: remove markers with invalid lat/lng (run once on v76.??+)
 if (!localStorage.getItem('nanCleanupDone_v76')) {
@@ -1978,29 +1978,28 @@ Object.keys(customCategories).forEach(cat => {
         let imageOverlay = L.imageOverlay(mapUrls[currentMap], imageBounds).addTo(map);
         map.fitBounds(imageBounds);
         L.control.zoom({ position: 'topleft' }).addTo(map);
-// ── Fullscreen Toggle (☢ button) ──
+// ── FULLSCREEN TOGGLE (🔭 button) ──
 const fullscreenControl = L.control({ position: 'topright' });
 fullscreenControl.onAdd = function(map) {
     const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
     const link = L.DomUtil.create('a', '', container);
     link.href = '#';
     link.title = 'Toggle fullscreen';
-    link.innerHTML = '☢';
+    link.innerHTML = '🔭';
     link.style.cssText = `
         display: block; width:34px; height:34px; line-height:34px; text-align:center;
         font-size:20px; background:#1a3c34; color:#00ff00; border:none;
         box-shadow:0 0 8px #00ff00; cursor:pointer;
     `;
-
-    link.onmouseover = () => { 
-        link.style.background = '#00ff00'; 
-        link.style.color = '#000'; 
-        link.style.boxShadow = '0 0 12px #00ff88, 0 0 20px #00ff00'; 
+    link.onmouseover = () => {
+        link.style.background = '#00ff00';
+        link.style.color = '#000';
+        link.style.boxShadow = '0 0 12px #00ff88, 0 0 20px #00ff00';
     };
-    link.onmouseout = () => { 
-        link.style.background = '#1a3c34'; 
-        link.style.color = '#00ff00'; 
-        link.style.boxShadow = '0 0 8px #00ff00'; 
+    link.onmouseout = () => {
+        link.style.background = '#1a3c34';
+        link.style.color = '#00ff00';
+        link.style.boxShadow = '0 0 8px #00ff00';
     };
 
     L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
@@ -2010,13 +2009,9 @@ fullscreenControl.onAdd = function(map) {
                   if (!document.fullscreenElement && !document.webkitFullscreenElement) {
                       if (mapEl.requestFullscreen) mapEl.requestFullscreen().catch(() => {});
                       else if (mapEl.webkitRequestFullscreen) mapEl.webkitRequestFullscreen();
-                      link.innerHTML = '✖';
-                      link.title = 'Exit fullscreen';
                   } else {
                       if (document.exitFullscreen) document.exitFullscreen();
                       else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-                      link.innerHTML = '☢';
-                      link.title = 'Toggle fullscreen';
                   }
               });
 
@@ -2024,19 +2019,22 @@ fullscreenControl.onAdd = function(map) {
         if (document.fullscreenElement || document.webkitFullscreenElement) {
             link.innerHTML = '✖';
             link.title = 'Exit fullscreen';
+            screenshotControl.getContainer().style.display = 'block';   // show 📸
         } else {
-            link.innerHTML = '☢';
+            link.innerHTML = '🔭';                                      // back to 🔭
             link.title = 'Toggle fullscreen';
+            screenshotControl.getContainer().style.display = 'none';    // hide 📸
         }
-        updateScreenshotVisibility(); // ← Sync screenshot button visibility
     };
+
     document.addEventListener('fullscreenchange', updateIcon);
     document.addEventListener('webkitfullscreenchange', updateIcon);
-
+    setTimeout(updateIcon, 50);   // correct icon on load
     return container;
 };
 fullscreenControl.addTo(map);
-/// ── Screenshot Button — only visible in fullscreen ──
+
+// ── Screenshot Button (📸) — only visible in fullscreen ──
 const screenshotControl = L.control({ position: 'topright' });
 screenshotControl.onAdd = function(map) {
     const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
@@ -2049,22 +2047,21 @@ screenshotControl.onAdd = function(map) {
         font-size:20px; background:#1a3c34; color:#00ff00; border:none;
         box-shadow:0 0 8px #00ff00; cursor:pointer; margin-top:4px;
     `;
-
-    link.onmouseover = () => { 
-        link.style.background = '#00ff00'; 
-        link.style.color = '#000'; 
-        link.style.boxShadow = '0 0 12px #00ff88, 0 0 20px #00ff00'; 
+    link.onmouseover = () => {
+        link.style.background = '#00ff00';
+        link.style.color = '#000';
+        link.style.boxShadow = '0 0 12px #00ff88, 0 0 20px #00ff00';
     };
-    link.onmouseout = () => { 
-        link.style.background = '#1a3c34'; 
-        link.style.color = '#00ff00'; 
-        link.style.boxShadow = '0 0 8px #00ff00'; 
+    link.onmouseout = () => {
+        link.style.background = '#1a3c34';
+        link.style.color = '#00ff00';
+        link.style.boxShadow = '0 0 8px #00ff00';
     };
-
     L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
               .on(link, 'click', L.DomEvent.preventDefault)
               .on(link, 'click', captureHighResScreenshot);
 
+    container.style.display = 'none';   // start hidden
     return container;
 };
 screenshotControl.addTo(map);
@@ -2110,36 +2107,107 @@ function captureHighResScreenshot() {
         });
     }, 300);
 }
+// ── FULLSCREEN RESTORE LOGIC (STRONG + DEBUG) ──
+let wasInFullscreenBeforeModal = false;
+let restoreFullscreenBtn = null;
+
 function exitFullscreenIfActive() {
+    console.log('🔭 exitFullscreenIfActive called — checking fullscreen state');
     if (document.fullscreenElement || document.webkitFullscreenElement) {
+        wasInFullscreenBeforeModal = true;
+        console.log('✅ Fullscreen detected → setting wasInFullscreenBeforeModal = true');
         if (document.exitFullscreen) document.exitFullscreen();
         else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-    }
-}
-
-function updateScreenshotVisibility() {
-    const isFS = !!document.fullscreenElement || !!document.webkitFullscreenElement;
-    screenshotControl.getContainer().style.display = isFS ? 'block' : 'none';
-}
-
-// Auto-exit fullscreen when user tries to open a modal via map actions
-function autoExitFullscreenForModal() {
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
-        exitFullscreenIfActive();
-        // No delay needed — browser usually exits fast enough for the modal to appear visible
-    }
-}
-// Auto-exit fullscreen when modals open (add to EVERY modal open line)
-document.addEventListener('fullscreenchange', updateScreenshotVisibility);
-document.addEventListener('webkitfullscreenchange', updateScreenshotVisibility);
-// Helper: Exit fullscreen if active, then execute the given action
-window.exitFullscreenThenDo = function(action) {
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
-        exitFullscreenIfActive();
-        setTimeout(action, 80);
     } else {
-        action();
+        console.log('ℹ️ Not in fullscreen — flag not changed');
     }
+}
+
+function autoExitFullscreenForModal() {
+    console.log('🔭 autoExitFullscreenForModal called');
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+        exitFullscreenIfActive();
+    } else {
+        console.log('ℹ️ No fullscreen to exit');
+    }
+}
+
+function showRestoreFullscreenButton() {
+    console.log('🔭 showRestoreFullscreenButton called — flag was', wasInFullscreenBeforeModal);
+    if (restoreFullscreenBtn) return;
+
+    restoreFullscreenBtn = document.createElement('div');
+    restoreFullscreenBtn.style.cssText = `
+        position:fixed;
+        top:100px; 
+        left:50%;
+        transform:translateX(-50%);
+        background:#001a00;
+        color:#00ff00;
+        padding:12px 28px;
+        border:2px solid #00ff00;
+        border-radius:6px;
+        font-family:'Courier New',monospace;
+        font-size:15px;
+        font-weight:bold;
+        box-shadow:0 0 20px #00ff00;
+        cursor:pointer;
+        z-index:999999;
+        white-space:nowrap;
+        max-width:92vw;
+        box-sizing:border-box;
+        opacity:0;
+        transition:opacity 0.6s;
+    `;
+    restoreFullscreenBtn.innerHTML = `🔭 Return to Fullscreen`;
+    document.body.appendChild(restoreFullscreenBtn);
+
+    // Fade in
+    setTimeout(() => { restoreFullscreenBtn.style.opacity = '1'; }, 10);
+
+    // Auto-hide after 8 seconds
+    const autoHide = setTimeout(() => {
+        if (restoreFullscreenBtn) {
+            restoreFullscreenBtn.style.opacity = '0';
+            setTimeout(() => {
+                if (restoreFullscreenBtn && restoreFullscreenBtn.parentNode) {
+                    restoreFullscreenBtn.parentNode.removeChild(restoreFullscreenBtn);
+                    restoreFullscreenBtn = null;
+                }
+            }, 600);
+        }
+    }, 8000);
+
+    // Click handler
+    restoreFullscreenBtn.onclick = () => {
+        clearTimeout(autoHide);
+        const mapEl = document.getElementById('map');
+        if (mapEl.requestFullscreen) mapEl.requestFullscreen();
+        else if (mapEl.webkitRequestFullscreen) mapEl.webkitRequestFullscreen();
+        
+        restoreFullscreenBtn.style.opacity = '0';
+        setTimeout(() => {
+            if (restoreFullscreenBtn && restoreFullscreenBtn.parentNode) {
+                restoreFullscreenBtn.parentNode.removeChild(restoreFullscreenBtn);
+                restoreFullscreenBtn = null;
+            }
+        }, 600);
+    };
+}
+// ── HELPER: Exit fullscreen BEFORE running popup actions (Keep / Edit / Report) ──
+window.exitFullscreenThenDo = function(callback) {
+    console.log('🔭 exitFullscreenThenDo called — preparing to run action');
+    
+    // Exit fullscreen and set the restore flag
+    exitFullscreenIfActive();
+    
+    // Run the actual action (keep, edit, report, etc.) after a tiny delay
+    // so the fullscreen exit has time to complete
+    setTimeout(() => {
+        if (typeof callback === 'function') {
+            callback();
+        }
+    }, 50);
 };
         (function() {
             const mapContainer = document.getElementById('map');
@@ -2975,28 +3043,41 @@ autoExitFullscreenForModal()
         });
 
 // ── POSTCARD CREATION — HARD 280 LIMIT ON MOBILE (minimal fix) ──
-                document.getElementById('createPostcardBtn').onclick = () => {
-            const textarea = document.getElementById('postcardMessage');
-            let msg = textarea ? textarea.value.trim() : 'Postcard Found!';
-            
-            // Hard cap for mobile (forces trim even if browser ignores maxlength)
-            if (msg.length > 280) msg = msg.substring(0, 280);
+document.getElementById('createPostcardBtn').onclick = () => {
+    const textarea = document.getElementById('postcardMessage');
+    let msg = textarea ? textarea.value.trim() : 'Postcard Found!';
+    
+    // Hard cap for mobile
+    if (msg.length > 280) msg = msg.substring(0, 280);
+    if (!currentPostcardLatLng) return;
 
-            if (!currentPostcardLatLng) return;
-            const loc = createNewLocation(currentPostcardLatLng.lat, currentPostcardLatLng.lng, 'misc', msg, true);
-            locations.push(loc);
-            saveLocations();
-            forceReload();
-            postcardModal.style.display = 'none';
-            const encodedMsg = encodeURIComponent(msg);
-            const url = `${window.location.href.split('?')[0].split('#')[0]}?postcard=${loc.id}&lat=${Math.round(loc.lat)}&lng=${Math.round(loc.lng)}&msg=${encodedMsg}`;
-            navigator.clipboard.writeText(url).then(() => {
-                showTempMessage('POSTCARD LINK COPIED', 4000);
-                playSound('postcard');
-            });
-            setTimeout(() => showPostcardMarker(loc), 500);
-            startPostcardTicker();
-        };
+    const loc = createNewLocation(currentPostcardLatLng.lat, currentPostcardLatLng.lng, 'misc', msg, true);
+    locations.push(loc);
+    saveLocations();
+
+    // Flag so addMarkerToMap knows to skip auto-popup for this one
+    window.justCreatedPostcardId = loc.id;
+
+    forceReload();
+    closeModal(postcardModal);
+    postcardModal.style.display = 'none';
+
+    const encodedMsg = encodeURIComponent(msg);
+    const url = `${window.location.href.split('?')[0].split('#')[0]}?postcard=${loc.id}&lat=${Math.round(loc.lat)}&lng=${Math.round(loc.lng)}&msg=${encodedMsg}`;
+
+    navigator.clipboard.writeText(url).then(() => {
+        showTempMessage('POSTCARD LINK COPIED', 4000);
+        playSound('postcard');
+    });
+
+    // Open the popup ONLY after reload has finished
+    setTimeout(() => {
+        showPostcardMarker(loc);
+        window.justCreatedPostcardId = null;   // clear flag
+    }, 700);
+
+    startPostcardTicker();
+};
         const urlParams = new URLSearchParams(window.location.search);
         let pendingPostcard = null;
         if (urlParams.has('postcard')) {
@@ -3281,7 +3362,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(checkForCommunityUpdate, 600000);
 });
 
-function showConfirmModal(title, content, onConfirm) {
+function showConfirmModal(title, content, onConfirm, restoreFullscreenOnClose = false) {
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'block';
@@ -3289,8 +3370,8 @@ function showConfirmModal(title, content, onConfirm) {
         <div class="modal-content" style="max-width:520px;">
             <span class="close">X</span>
             <h2>${title}</h2>
-            <div style="margin:15px 0; max-height:380px; overflow-y:auto; overflow-x:hidden; 
-                        text-align:left; line-height:1.6; word-break:break-word; 
+            <div style="margin:15px 0; max-height:380px; overflow-y:auto; overflow-x:hidden;
+                        text-align:left; line-height:1.6; word-break:break-word;
                         white-space:pre-wrap; padding-right:10px;">
                 ${content}
             </div>
@@ -3309,12 +3390,18 @@ function showConfirmModal(title, content, onConfirm) {
         modal.remove();
         document.body.classList.remove('modal-open');
         playSound('modalClose');
+
+        // ── NEW: Show Return to Fullscreen button if we were in fullscreen ──
+        if (restoreFullscreenOnClose && wasInFullscreenBeforeModal) {
+            wasInFullscreenBeforeModal = false;
+            showRestoreFullscreenButton();
+        }
     };
 
     closeBtn.onclick = cleanup;
     confirmBtn.onclick = () => {
         cleanup();
-        if (onConfirm) onConfirm();
+        if (typeof onConfirm === 'function') onConfirm();
     };
 
     playSound('levelUp');
@@ -3495,10 +3582,16 @@ ${loc.userEdited && !loc.isPostcard && !loc.wasCommunityKept ? `
         }
     });
 }
-        function addMarkerToMap(loc) {
+function addMarkerToMap(loc) {
     if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number' || isNaN(loc.lat) || isNaN(loc.lng)) {
         console.warn('Skipping marker — invalid coordinates:', loc);
         return;
+    }
+
+    // ── Prevent random popup jumping on freshly created postcards ──
+    if (window.justCreatedPostcardId && window.justCreatedPostcardId === loc.id) {
+        // we will open it manually in the setTimeout above
+        // (this guard stops any other code from opening a different marker)
     }
 
     const marker = L.marker([loc.lat, loc.lng], {
@@ -3509,10 +3602,10 @@ ${loc.userEdited && !loc.isPostcard && !loc.wasCommunityKept ? `
         autoPanPadding: [80, 80],
         autoPanSpeed: 30
     });
+
     attachDragHandler(marker, loc);
 
     const textOnly = ['named locations', 'regions'].includes(loc.category);
-
     (clusteringEnabled && !textOnly ? clusteredMarkers : nonClusteredMarkers).addLayer(marker);
 
     if (textOnly) {
@@ -3534,7 +3627,7 @@ ${loc.userEdited && !loc.isPostcard && !loc.wasCommunityKept ? `
         }, 100);
     }
 
-        if (lastMovedMarker && lastMovedMarker.options.id === loc.id) {
+    if (lastMovedMarker && lastMovedMarker.options.id === loc.id) {
         setTimeout(() => {
             marker.openPopup();
             lastMovedMarker = null;
@@ -3546,11 +3639,9 @@ ${loc.userEdited && !loc.isPostcard && !loc.wasCommunityKept ? `
             e.preventDefault();
             e.stopPropagation();
         });
-
         L.DomEvent.on(marker._icon, 'contextmenu', function() {
             marker.openPopup();
         });
-
         let longPressTimer;
         L.DomEvent.on(marker._icon, 'touchstart', function(e) {
             if (e.touches.length === 8) {
@@ -3764,6 +3855,7 @@ function refreshTable(search = '', cat = '') {
         }
  
                                function openModal(title, idx = -1) {
+							   autoExitFullscreenForModal();
             const loc = idx >= 0 ? locations[idx] : null;
             const isCurrentlyLocked = loc ? loc.locked : false;
 
@@ -3859,10 +3951,15 @@ function closeModal(m) {
     document.body.classList.remove('modal-open');
     playSound('modalClose');
 
-    // Set flag so reopen only happens right after Edit modal close
+    console.log('🔭 closeModal called — wasInFullscreenBeforeModal =', wasInFullscreenBeforeModal);
+    if (wasInFullscreenBeforeModal) {
+        wasInFullscreenBeforeModal = false;
+        console.log('✅ Showing Return to Fullscreen button');
+        showRestoreFullscreenButton();
+    }
+
     justClosedEditModal = true;
     setTimeout(() => { justClosedEditModal = false; }, 2000); // safety window
-
     reopenPopupAfterModalClose();
 }
 		
@@ -5506,13 +5603,21 @@ if (localStorage.getItem('postResetMessageShown') === 'true') {
                 playSound('click');
             };
         }
+                // ── FIXED GENERIC MODAL CLOSE (calls proper closeModal for itemModal) ──
         document.querySelectorAll('.modal .close').forEach(closeBtn => {
             closeBtn.onclick = (e) => {
                 e.stopPropagation();
                 const modal = closeBtn.closest('.modal');
-                modal.style.display = 'none';
-                document.body.classList.remove('modal-open');
-                playSound('modalClose');
+
+                if (modal.id === 'itemModal') {
+                    // Use our special closeModal that restores fullscreen
+                    closeModal(modal);
+                } else {
+                    // All other modals close normally
+                    modal.style.display = 'none';
+                    document.body.classList.remove('modal-open');
+                    playSound('modalClose');
+                }
             };
         });
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -5639,10 +5744,11 @@ if (SpeechRecognition && voiceSearchBtn) {
         showTempMessage('WELCOME TO APPALACHIA, VAULT DWELLER', 20000);
     };
 }
-// ── UPDATE POPUP (shows once per new version) ──
+// ── APP UPDATED MODAL (shows ONLY when version actually changes) ──
 function checkForUpdate() {
-    const lastSeen = localStorage.getItem(LAST_VERSION_KEY);
-    if (lastSeen !== CURRENT_UPDATE_VERSION) {
+    const lastSeen = localStorage.getItem('fo76_last_seen_version') || '0';
+
+    if (lastSeen !== CURRENT_APP_VERSION) {
         const updateModal = document.createElement('div');
         updateModal.id = 'updateModal';
         updateModal.className = 'modal';
@@ -5676,7 +5782,7 @@ function checkForUpdate() {
         const btn = document.getElementById('updateGotItBtn');
         if (btn) {
             btn.onclick = () => {
-                localStorage.setItem(LAST_VERSION_KEY, CURRENT_UPDATE_VERSION);
+                localStorage.setItem('fo76_last_seen_version', CURRENT_APP_VERSION);  // only mark as seen AFTER click
                 updateModal.remove();
                 document.body.classList.remove('modal-open');
                 playSound('levelUp');
@@ -5687,11 +5793,12 @@ function checkForUpdate() {
         // ── WELCOME MODAL FIRST (new users) ──
         if (!localStorage.getItem(WELCOME_KEY)) {
             setTimeout(showWelcomeModal, 800);
-        } 
-        // ── UPDATE POPUP (returning users only) ──
-        else if (localStorage.getItem(LAST_VERSION_KEY) !== CURRENT_UPDATE_VERSION) {
-            setTimeout(checkForUpdate, 1400);
         }
+        // ── APP UPDATED MODAL (returning users only — shows only on version change) ──
+        else if (localStorage.getItem('fo76_map_version') !== CURRENT_APP_VERSION) {
+            setTimeout(checkForUpdate, 800);
+        }
+		
 const searchInput = document.getElementById('combinedSearch');
 const suggestionsBox = document.getElementById('searchSuggestions');
 
@@ -6041,86 +6148,77 @@ setTimeout(() => {
     input.click();
 });
 let reportTimer = null;
+
 // Permanent report block — uses cid, survives refresh/reset
+// ── REPORT BAD MARKER MODAL (matches Postcard modal behaviour) ──
 window.startReport = function(markerId) {
     const marker = locations.find(l => l.id === markerId);
     if (!marker) {
         showTempMessage('ERROR: MARKER NOT FOUND!', 5000);
         return;
     }
-    // Guarantee cid exists
+
     if (!marker.cid) {
         marker.cid = generateCid(marker);
         saveLocations();
     }
+
     const reportKey = "reported_cid_" + marker.cid;
-    // Already reported?
+
     if (localStorage.getItem(reportKey) === "true") {
         showTempMessage('ALREADY REPORTED — THANK YOU!', 6000);
         return;
     }
-    // Custom modal with optional message
+
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'block';
-modal.innerHTML = `
-    <div class="modal-content" style="max-width:560px; width:94vw; padding:24px; box-sizing:border-box;">
-        <span class="close">X</span>
-        <h2 style="text-align:center; margin:0 0 24px; font-size:1.8em;">👎 REPORT BAD MARKER ❌</h2>
-        
-        <div style="text-align:left; line-height:1.9; font-size:1.1em; margin-bottom:24px;">
-            Only report if it is:<br>
-            • Spam<br>
-            • Wrong location<br>
-            • Broken / outdated<br><br>
-            A Moderator will review and remove if needed.
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width:560px; width:94vw; padding:24px; box-sizing:border-box;">
+            <span class="close">X</span>
+            <h2 style="text-align:center; margin:0 0 24px; font-size:1.8em;">👎 REPORT BAD MARKER ❌</h2>
+            
+            <div style="text-align:left; line-height:1.9; font-size:1.1em; margin-bottom:24px;">
+                Only report if it is:<br>
+                • Spam<br>
+                • Wrong location<br>
+                • Broken / outdated<br><br>
+                A Moderator will review and remove if needed.
+            </div>
+            
+            <div style="text-align:center; font-weight:bold; color:#00ff88; margin-bottom:10px; font-size:1.1em;">
+                Optional message (highly appreciated!)
+            </div>
+            <textarea id="reportMessageTxt"
+                      placeholder="e.g. Wrong location — should be E8, not E9"
+                      style="width:100%; max-width:none; height:130px; background:#000; color:#0f0; border:4px solid #00ff00; padding:16px; font-family:'Courier New',monospace; font-size:1em; box-sizing:border-box; resize:vertical; outline:none; display:block; margin:0 auto;"></textarea>
+            
+            <div style="text-align:center; margin-top:28px;">
+                <button id="sendReportNow"
+                        style="background:#00ff00; color:#000; padding:14px 50px; font-size:1.4em; font-weight:bold;">
+                    SEND REPORT
+                </button>
+            </div>
         </div>
+    `;
 
-        <div style="text-align:center; font-weight:bold; color:#00ff88; margin-bottom:10px; font-size:1.1em;">
-            Optional message (highly appreciated!)
-        </div>
-
-        <textarea id="reportMessageTxt" 
-                  placeholder="e.g. Wrong location — should be E8, not E9, Or Reason For Reporting"
-                  style="width:100%; 
-                         max-width:none; 
-                         height:130px; 
-                         background:#000; 
-                         color:#0f0; 
-                         border:4px solid #00ff00; 
-                         padding:16px; 
-                         font-family:'Courier New',monospace; 
-                         font-size:1em; 
-                         box-sizing:border-box; 
-                         resize:vertical; 
-                         outline:none; 
-                         display:block; 
-                         margin:0 auto;"></textarea>
-
-        <div style="text-align:center; margin-top:28px;">
-            <button id="sendReportNow" 
-                    style="background:#00ff00; color:#000; padding:14px 50px; font-size:1.4em; font-weight:bold;">
-                SEND REPORT
-            </button>
-        </div>
-    </div>
-`;
     document.body.appendChild(modal);
     document.body.classList.add('modal-open');
 
-    const closeModal = () => {
-        modal.remove();
-        document.body.classList.remove('modal-open');
-        playSound('modalClose');
+    const closeBtn = modal.querySelector('.close');
+    const sendBtn = modal.querySelector('#sendReportNow');
+
+    // Both X and SEND REPORT now use the global closeModal (respects fullscreen flag)
+    closeBtn.onclick = (e) => {
+        e.stopPropagation();
+        closeModal(modal);
     };
 
-    modal.querySelector('.close').onclick = closeModal;
-
-    modal.querySelector('#sendReportNow').onclick = () => {
+    sendBtn.onclick = () => {
         const extraMessage = modal.querySelector('#reportMessageTxt').value.trim();
-
+        
         localStorage.setItem(reportKey, "true");
-
+        
         fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -6129,10 +6227,10 @@ modal.innerHTML = `
                 markerId: markerId,
                 message: extraMessage || "(no message provided)",
                 marker: {
-				    id: markerId,
-				    cid: marker.cid || generateCid(marker),
-					userEdited: marker.userEdited || false,
-					wasCommunityKept: marker.wasCommunityKept || false,
+                    id: markerId,
+                    cid: marker.cid || generateCid(marker),
+                    userEdited: marker.userEdited || false,
+                    wasCommunityKept: marker.wasCommunityKept || false,
                     lat: marker.lat,
                     lng: marker.lng,
                     category: marker.category,
@@ -6141,16 +6239,15 @@ modal.innerHTML = `
                 }
             })
         })
-    .then(r => r.ok ? r.text() : Promise.reject('Server rejected'))
-    .then(() => showTempMessage('REPORT SENT — THANK YOU IT WILL BE REVIEWED.', 6000))
-    .catch(err => {
-        console.error("Report failed:", err);
-        showTempMessage('REPORT SENT FAILED — GITHUB OFFLINE.', 6000);
-    });
+        .then(r => r.ok ? r.text() : Promise.reject('Server rejected'))
+        .then(() => showTempMessage('REPORT SENT — THANK YOU IT WILL BE REVIEWED.', 6000))
+        .catch(err => {
+            console.error("Report failed:", err);
+            showTempMessage('REPORT SENT FAILED — GITHUB OFFLINE.', 6000);
+        });
 
-    closeModal();
-    playSound('error');
-};
+        closeModal(modal);   // ← Global closeModal — triggers Return to Fullscreen ONLY if you were in fullscreen before
+    };
 
     playSound('error');
 };
@@ -6186,7 +6283,8 @@ window.keepCommunityMarker = function(markerId) {
             playSound('saving');
         },
         'Yes — Keep It',
-        'Cancel'
+        'Cancel',
+		true
     );
 };
 
@@ -6474,7 +6572,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • C-67-31-03-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = C-68-31-03-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
