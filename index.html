@@ -4119,25 +4119,40 @@ function recalculateXP() {
     updateXPBar();
 }
 function triggerConfetti() {
-    const fire = () => {
+    const fire = (options = {}) => {
         confetti({
-            particleCount: 280,          // more particles
-            spread: 100,
+            particleCount: 680,           // dense and full
+            spread: 240,                  // very wide full-screen coverage
             origin: { y: 0.50 },
-            colors: ['#00ff00', '#00cc00', '#33ff33', '#00ff99', '#88ff88'],
-            ticks: 1000,                  // longer duration
+            colors: [
+                '#00ff00', '#00cc00', '#33ff33', '#00ff99', '#88ff88',  // classic Fallout greens
+                '#00ffff', '#00ddff', '#66ffff',                        // bright cyan / teal accents
+                '#ffff00', '#ffdd00', '#ffee66',                        // glowing yellow highlights
+                '#ff88ff', '#dd44dd'                                    // subtle magenta/pink pops
+            ],
+            ticks: 1350,
             gravity: 0.30,
-            scalar: 1.0
+            scalar: 0.65,                 // tiny confetti pieces
+            ...options
         });
     };
 
     // Slight delay so confetti starts after the nuke screen appears
     setTimeout(() => {
         if (window.confettiReady) {
-            fire();
-            // Second burst for extra visibility
-            setTimeout(fire, 380);
+            // Left side burst
+            fire({ origin: { x: 0.05, y: 0.55 }, angle: 55 });
+            // Centre main explosion
+            fire({ origin: { x: 0.50, y: 0.48 } });
+            // Right side burst
+            fire({ origin: { x: 0.95, y: 0.55 }, angle: 125 });
+            
+            // Extra full-screen bursts for a rich, dense look
+            setTimeout(() => fire({ origin: { x: 0.25, y: 0.42 }, spread: 260 }), 140);
+            setTimeout(() => fire({ origin: { x: 0.75, y: 0.42 }, spread: 260 }), 280);
+            setTimeout(() => fire({ origin: { x: 0.50, y: 0.38 }, spread: 280 }), 420);
         } else {
+            // Exact fallback you already had
             const start = Date.now();
             const wait = setInterval(() => {
                 if (window.confettiReady || Date.now() - start > 12000) {
@@ -4149,7 +4164,7 @@ function triggerConfetti() {
                 }
             }, 100);
         }
-    }, 2200); // starts after nuke animation has begun
+    }, 2200);
 }
 		
 // ── PERSISTENT UNDO (survives page refresh)
