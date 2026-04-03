@@ -5433,7 +5433,7 @@ document.getElementById('submitCommunityBtn').onclick = () => {
 
     // Prevent duplicate submission (now uses stable id)
     if (hasBeenSubmitted(loc.id)) {
-        showTempMessage('This marker has already been submitted — pending review.', 5000);
+        showTempMessage('This marker was attempted to be submitted or has been submitted — Create a New Marker and re-submit pending review.', 5000);
         return;
     }
 
