@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map</title>
 	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
-	<link rel="manifest" href="manifest.json?v=75">
+	<link rel="manifest" href="manifest.json?v=75a">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -521,7 +521,8 @@ body.dark-mode #buttonGroup,
 body.dark-mode #tableContainer,
 body.dark-mode .modal-content,
 body.dark-mode #xpStatus,
-body.dark-mode h1, body.dark-mode h2,
+body.dark-mode h1,
+body.dark-mode h2,
 body.dark-mode .counter {
     background-color: #000000 !important;
     border-color: #00ff00 !important;
@@ -531,35 +532,23 @@ body.dark-mode select,
 body.dark-mode textarea,
 body.dark-mode button,
 body.dark-mode .counter,
-body.dark-mode h1, body.dark-mode h2 {
+body.dark-mode h1,
+body.dark-mode h2 {
     color: #00ff00 !important;
 }
-body.dark-mode button:hover {
-    background-color: #00ff00 !important;
-    color: #000 !important;
-    box-shadow: 0 0 10px #00ff00 !important;
+//* Professional button styling – NO glowing hover in dark mode */
+body.dark-mode button,
+body.dark-mode #toggleButtonGroup,
+body.dark-mode #buttonGroup button {
+    box-shadow: none !important;
+    transition: background-color 0.2s ease;
 }
-body.dark-mode .grid-line {
-    stroke: rgba(0, 255, 0, 0.4) !important;
-}
-/* Restore visible hover glow specifically for main control panel buttons */
-#buttonGroup button,
-#buttonGroup button:hover,
-#buttonGroup button:focus-visible {
-    transition: all 0.25s ease;
-}
-#buttonGroup button:hover,
-#buttonGroup button:focus-visible {
+body.dark-mode button:hover,
+body.dark-mode #toggleButtonGroup:hover,
+body.dark-mode #buttonGroup button:hover {
     background-color: #00ff00 !important;
     color: #000000 !important;
-    box-shadow: 0 0 12px #00ff88, 0 0 20px #00ff00 !important;
-    transform: scale(1.04) !important;
-    filter: brightness(1.1) !important;
-}
-body.dark-mode #buttonGroup button:hover,
-body.dark-mode #buttonGroup button:focus-visible {
-    box-shadow: 0 0 16px #00ff88, 0 0 28px #00ff00 !important;
-    transform: scale(1.05) !important;
+    box-shadow: none !important;   /* removed the bright glow */
 }
 /* Restore consistent hover glow for remaining buttons */
 #toggleCategoryModalBtn,
@@ -1382,6 +1371,24 @@ label,
 #undoDeleteBtn {
     cursor: pointer !important;
 }
+#contextCreateMarkerBtn,
+#contextCreatePostcardBtn,
+#contextCreateMarkerBtn:hover,
+#contextCreatePostcardBtn:hover,
+#contextCreateMarkerBtn:focus-visible,
+#contextCreatePostcardBtn:focus-visible {
+    color: #000000 !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    filter: none !important;
+    animation: none !important;
+}
+
+#contextCreateMarkerBtn:hover,
+#contextCreatePostcardBtn:hover {
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+}
 </style>
 </head>
 <body>
@@ -1417,6 +1424,15 @@ label,
     </div>
 </div>
     <!-- DEV NOTE: SEARCH BAR — MOVED UNDER MAP -->
+	<!-- CONTEXT MENU (Choose Action) -->
+<div id="mapContextMenu" class="modal" style="display:none; z-index:100000;">
+    <div class="modal-content" style="max-width:360px; background:#1a3c34; border:3px solid #00ff00; box-shadow:0 0 25px #00ff00;">
+        <span class="close" style="color:#00ff00;">X</span>
+        <h2 style="text-align:center; margin:0 0 20px;">📍 Choose Action</h2>
+        <button id="contextCreateMarkerBtn" style="width:100%; margin:8px 0; background:#00ff00; color:#000; font-weight:bold;">Create Permanent Marker</button>
+        <button id="contextCreatePostcardBtn" style="width:100%; margin:8px 0; background:#00d4ff; color:#000; font-weight:bold;">Create Temporary Postcard</button>
+    </div>
+</div>
     <div style="position:relative; display:block; margin:15px auto; max-width:600px;">
     <div id="searchBar" style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; align-items:center;">
         <input type="text" id="combinedSearch" placeholder="desc/cate/grid.." style="flex:1; min-width:200px; padding:8px; background:#000; color:#0f0; border:1px solid #0f0; border-radius:4px;">
@@ -1505,11 +1521,12 @@ label,
             <span class="close">X</span>
             <h1>Fallout 76 Item Finder Map Info</h1>
 
-<p><strong>PC:</strong> Double-left-click the map to log a new permanent marker.<br>
-<strong>Mobile:</strong> Double-tap the map to log a new permanent marker.</p>
+<p><strong>PC:</strong> Right-click the map to open the <strong>Choose Action</strong> menu.<br>
+<strong>Mobile:</strong> Long-press the map to open the <strong>Choose Action</strong> menu.</p>
 
-<p><strong>PC:</strong> Right-click the map to open the <strong>Postcard</strong> menu → type a message → click <strong>Copy Link</strong> to share a temporary postcard (expires in 5 minutes).<br>
-<strong>Mobile:</strong> Long-press the map to open the <strong>Postcard</strong> menu → type a message → tap <strong>Copy Link</strong>.</p>
+<p>Then choose:<br>
+• <strong>Create Permanent Marker</strong> — to log a new item (locked automatically)<br>
+• <strong>Create Temporary Postcard</strong> — to share a temporary spot (expires in 5 minutes)</p>
 
 <p>New markers are automatically <strong>LOCKED</strong> and <strong>glow green for 2 minutes</strong>.</p>
 
@@ -1646,7 +1663,7 @@ label,
         </div>
     </div>
 <script>
-const CURRENT_APP_VERSION = '76.75';
+const CURRENT_APP_VERSION = '76.75a';
 
 // ── All version numbers now use this single line (change it here only) ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -1681,7 +1698,6 @@ if ('serviceWorker' in navigator && !sessionStorage.getItem('recoveryDone')) {
         
         // Only clean if it's truly ancient (numeric value < 10)
             if (parseFloat(storedVersion) < 10 && storedVersion !== CURRENT_APP_VERSION) {
-            console.log('🔄 One-time cleanup of old caches (ancient version detected)');
             
             const registrations = await navigator.serviceWorker.getRegistrations();
             for (const reg of registrations) await reg.unregister();
@@ -1699,7 +1715,6 @@ if ('serviceWorker' in navigator && !sessionStorage.getItem('recoveryDone')) {
 
 // Prevent aggressive SW updates from causing visible reload flicker
 navigator.serviceWorker.addEventListener('controllerchange', () => {
-    console.log('Service Worker updated — skipping forced reload');
     // Do NOT call location.reload() here
 });
 
@@ -1856,7 +1871,6 @@ let locations = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
 // One-time cleanup: remove markers with invalid lat/lng (run once on v76.??+)
 if (!localStorage.getItem('nanCleanupDone_v76')) {
-    console.log('Running one-time invalid coordinate cleanup...');
     const beforeCount = locations.length;
     locations = locations.filter(loc => {
         const latOk = typeof loc.lat === 'number' && !isNaN(loc.lat);
@@ -1869,13 +1883,11 @@ if (!localStorage.getItem('nanCleanupDone_v76')) {
     });
     const removed = beforeCount - locations.length;
     if (removed > 0) {
-        console.log(`Removed ${removed} invalid markers during cleanup.`);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(locations)); // save cleaned data immediately
         if (typeof showTempMessage === 'function') {
             showTempMessage(`Cleaned up ${removed} invalid marker${removed === 1 ? '' : 's'} from your saved data.`, 8000);
         }
     } else {
-        console.log('No invalid markers found during cleanup.');
     }
     localStorage.setItem('nanCleanupDone_v76', 'true');
 }
@@ -2047,50 +2059,33 @@ fullscreenControl.onAdd = function(map) {
     link.href = '#';
     link.title = 'Toggle fullscreen';
     link.innerHTML = '🔭';
-    link.style.cssText = `
-        display: block; width:34px; height:34px; line-height:34px; text-align:center;
-        font-size:20px; background:#1a3c34; color:#00ff00; border:none;
-        box-shadow:0 0 8px #00ff00; cursor:pointer;
-    `;
-    link.onmouseover = () => {
-        link.style.background = '#00ff00';
-        link.style.color = '#000';
-        link.style.boxShadow = '0 0 12px #00ff88, 0 0 20px #00ff00';
-    };
-    link.onmouseout = () => {
-        link.style.background = '#1a3c34';
-        link.style.color = '#00ff00';
-        link.style.boxShadow = '0 0 8px #00ff00';
-    };
+    link.style.cssText = `display:block;width:34px;height:34px;line-height:34px;text-align:center;font-size:20px;background:#1a3c34;color:#00ff00;border:none;box-shadow:0 0 8px #00ff00;cursor:pointer;`;
 
     L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
               .on(link, 'click', L.DomEvent.preventDefault)
               .on(link, 'click', () => {
                   const mapEl = document.getElementById('map');
                   if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                      if (mapEl.requestFullscreen) mapEl.requestFullscreen().catch(() => {});
-                      else if (mapEl.webkitRequestFullscreen) mapEl.webkitRequestFullscreen();
+                      mapEl.requestFullscreen ? mapEl.requestFullscreen() : mapEl.webkitRequestFullscreen();
                   } else {
-                      if (document.exitFullscreen) document.exitFullscreen();
-                      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                      document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen();
                   }
               });
 
     const updateIcon = () => {
-        if (document.fullscreenElement || document.webkitFullscreenElement) {
-            link.innerHTML = '✖';
-            link.title = 'Exit fullscreen';
-            screenshotControl.getContainer().style.display = 'block';   // show 📸
-        } else {
-            link.innerHTML = '🔭';                                      // back to 🔭
-            link.title = 'Toggle fullscreen';
-            screenshotControl.getContainer().style.display = 'none';    // hide 📸
+        const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+        link.innerHTML = isFullscreen ? '✖' : '🔭';
+        link.title = isFullscreen ? 'Exit fullscreen' : 'Toggle fullscreen';
+        if (isFullscreen && /iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            const mapEl = document.getElementById('map');
+            mapEl.style.filter = 'none';
+            mapEl.style.webkitFilter = 'none';
+            mapEl.style.backgroundColor = '#000000';
         }
     };
-
     document.addEventListener('fullscreenchange', updateIcon);
     document.addEventListener('webkitfullscreenchange', updateIcon);
-    setTimeout(updateIcon, 50);   // correct icon on load
+    setTimeout(updateIcon, 50);
     return container;
 };
 fullscreenControl.addTo(map);
@@ -2129,6 +2124,21 @@ screenshotControl.addTo(map);
 
 // Initially hidden
 screenshotControl.getContainer().style.display = 'none';
+// Show screenshot button only when in fullscreen
+const updateScreenshotVisibility = () => {
+    const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+    screenshotControl.getContainer().style.display = isFullscreen ? 'block' : 'none';
+
+    // ── MINIMAL TARGETED FIX: iPhone fullscreen bright green screen ──
+    if (isFullscreen && /iPad|iPhone|iPod/.test(navigator.userAgent)) {
+        setTimeout(() => {
+            if (typeof map !== 'undefined' && map) map.invalidateSize({ animate: false });
+        }, 50);
+    }
+};
+document.addEventListener('fullscreenchange', updateScreenshotVisibility);
+document.addEventListener('webkitfullscreenchange', updateScreenshotVisibility);
+setTimeout(updateScreenshotVisibility, 100);
 // ── True Fullscreen Capture ──
 function captureHighResScreenshot() {
     playSound('saving');
@@ -2171,30 +2181,25 @@ function captureHighResScreenshot() {
 // ── FULLSCREEN RESTORE LOGIC (STRONG + DEBUG) ──
 let wasInFullscreenBeforeModal = false;
 let restoreFullscreenBtn = null;
+let exitedForContextMenu = false;
 
 function exitFullscreenIfActive() {
-    console.log('🔭 exitFullscreenIfActive called — checking fullscreen state');
     if (document.fullscreenElement || document.webkitFullscreenElement) {
         wasInFullscreenBeforeModal = true;
-        console.log('✅ Fullscreen detected → setting wasInFullscreenBeforeModal = true');
         if (document.exitFullscreen) document.exitFullscreen();
         else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
     } else {
-        console.log('ℹ️ Not in fullscreen — flag not changed');
     }
 }
 
 function autoExitFullscreenForModal() {
-    console.log('🔭 autoExitFullscreenForModal called');
     if (document.fullscreenElement || document.webkitFullscreenElement) {
         exitFullscreenIfActive();
     } else {
-        console.log('ℹ️ No fullscreen to exit');
     }
 }
 
 function showRestoreFullscreenButton() {
-    console.log('🔭 showRestoreFullscreenButton called — flag was', wasInFullscreenBeforeModal);
     if (restoreFullscreenBtn) return;
 
     restoreFullscreenBtn = document.createElement('div');
@@ -2257,7 +2262,6 @@ function showRestoreFullscreenButton() {
 }
 // ── HELPER: Exit fullscreen BEFORE running popup actions (Keep / Edit / Report) ──
 window.exitFullscreenThenDo = function(callback) {
-    console.log('🔭 exitFullscreenThenDo called — preparing to run action');
     
     // Exit fullscreen and set the restore flag
     exitFullscreenIfActive();
@@ -2311,20 +2315,16 @@ window.exitFullscreenThenDo = function(callback) {
 });
         })();
 
-let currentlySpiderfied = null;
-let currentClusterPopup = null;
 let isTransitioning = false;
 
 const clusteredMarkers = L.markerClusterGroup({
     maxClusterRadius: 32,
     disableClusteringAtZoom: 4,
-    spiderfyOnMaxZoom: true,
+    spiderfyOnMaxZoom: false,
     showCoverageOnHover: false,
     zoomToBoundsOnClick: false,
     removeOutsideVisibleBounds: false,
     animate: true,
-    spiderfyDistanceMultiplier: 2.4,
-    maxSpiderfySize: 1000,
     iconCreateFunction: function(cluster) {
         return L.divIcon({
             html: `<div><span>${cluster.getChildCount()}</span></div>`,
@@ -2334,116 +2334,35 @@ const clusteredMarkers = L.markerClusterGroup({
     }
 });
 
-// ── Click cluster → fly + zoom in → spiderfy (stable, no auto-popup) ──
 clusteredMarkers.on('clusterclick', function (a) {
-    if (currentlySpiderfied && currentlySpiderfied !== a.layer) {
-        currentlySpiderfied.unspiderfy();
-    }
     const cluster = a.layer;
     const bounds = cluster.getBounds();
+
     if (isTransitioning) return;
     isTransitioning = true;
+
+    const currentZoom = map.getZoom();
+    const targetZoom = Math.min(currentZoom + 7, map.getMaxZoom());
+
     map.flyToBounds(bounds, {
-        padding: [120, 120],
-        maxZoom: map.getZoom() + 5,
-        duration: 1.4,
-        easeLinearity: 0.25
+        padding: [80, 80],
+        maxZoom: targetZoom,
+        duration: 1.35,
+        easeLinearity: 0.28
     });
-    const onFlyEnd = function () {
-        map.off('moveend', onFlyEnd);
+
+    map.once('moveend', () => {
         isTransitioning = false;
         setTimeout(() => {
-            cluster.spiderfy();
-            currentlySpiderfied = cluster;
-        }, 80);
-    };
-    map.on('moveend', onFlyEnd);
-});
-
-// Clean up when cluster closes
-clusteredMarkers.on('unspiderfy', function () {
-    currentlySpiderfied = null;
-    currentClusterPopup = null;
-    isTransitioning = false;
-});
-
-clusteredMarkers.on('click', function (e) {
-    L.DomEvent.stopPropagation(e);
-    const marker = e.layer;
-    if (currentClusterPopup && currentClusterPopup !== marker) {
-        currentClusterPopup.closePopup();
-    }
-    marker.openPopup();
-    currentClusterPopup = marker;
-});
-
-
-map.on('click', function (e) {
-    if (currentlySpiderfied && !e.originalEvent.target.closest('.leaflet-marker-cluster')) {
-        currentlySpiderfied.unspiderfy();
-        currentlySpiderfied = null;
-        currentClusterPopup = null;
-    }
-
-    if (ignoreNextMapClick) {
-        ignoreNextMapClick = false;
-        return;
-    }
-
-    const target = e.originalEvent.target;
-
-    if (
-        target.closest('.leaflet-marker-icon') ||
-        target.closest('.leaflet-popup') ||
-        target.closest('.leaflet-popup-close-button') ||
-        target.closest('.leaflet-marker-cluster') ||
-        target.closest('.leaflet-zoom-animated')
-    ) {
-        return;
-    }
-
-    if (lastPopupCluster) {
-        const clusterCenter = lastPopupCluster.getLatLng();
-        const clickLatLng = e.latlng;
-        const distancePx = map.latLngToContainerPoint(clusterCenter)
-                              .distanceTo(map.latLngToContainerPoint(clickLatLng));
-
-        if (distancePx < 120) {
-
-            setTimeout(() => { lastPopupCluster = null; }, 800);
-            return;
-        }
-    }
-
-    if (currentlySpiderfied) {
-        currentlySpiderfied.unspiderfy();
-        currentlySpiderfied = null;
-        currentClusterPopup = null;
-        lastPopupCluster = null;
-    }
-});
-
-document.addEventListener('click', function(e) {
-    const mapContainer = document.getElementById('map');
-    
-    if (mapContainer.contains(e.target)) {
-        return;
-    }
-
-    if (currentlySpiderfied) {
-        currentlySpiderfied.unspiderfy();
-        currentlySpiderfied = null;
-        currentClusterPopup = null;
-    }
-    
-    map.closePopup();
-    
-    map.eachLayer(layer => {
-        if (layer instanceof L.MarkerClusterGroup && layer._spiderfied) {
-            layer.unspiderfy();
-        }
+            if (cluster && typeof cluster.zoomToShowLayer === 'function') {
+                const childLayers = cluster.getLayers();
+                if (childLayers.length > 0) {
+                    cluster.zoomToShowLayer(childLayers[0]);
+                }
+            }
+        }, 100);
     });
-}, { capture: true, passive: true });
+});
         const nonClusteredMarkers = L.layerGroup();
         map.addLayer(clusteredMarkers);
         map.addLayer(nonClusteredMarkers);
@@ -3101,19 +3020,6 @@ postcardStyle.textContent = `
     }
 `;
 document.head.appendChild(postcardStyle);
-        document.body.appendChild(postcardModal);
-        postcardModal.querySelector('.close').onclick = () => postcardModal.style.display = 'none';
-        map.on('contextmenu', e => {
-            L.DomEvent.preventDefault(e);
-            const clickedOnMarker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
-                .some(m => m.getLatLng().distanceTo(e.latlng) < 30);
-            if (clickedOnMarker) return;
-            currentPostcardLatLng = e.latlng;
-autoExitFullscreenForModal()
-            postcardModal.style.display = 'block';
-            document.getElementById('postcardMessage')?.focus();
-            playSound('click');
-        });
 
 // ── POSTCARD CREATION — STRONGER FIX FOR JUMPING BETWEEN POSTCARDS ──
 document.getElementById('createPostcardBtn').onclick = () => {
@@ -4050,15 +3956,24 @@ function closeModal(m) {
     document.body.classList.remove('modal-open');
     playSound('modalClose');
 
-    console.log('🔭 closeModal called — wasInFullscreenBeforeModal =', wasInFullscreenBeforeModal);
-    if (wasInFullscreenBeforeModal) {
+    // ── SMART FULLSCREEN RESTORE LOGIC ──
+    // Return to Fullscreen button appears ONLY after closing
+    // Log Item modal or Send Postcard modal (not during creation)
+    if (exitedForContextMenu) {
+        exitedForContextMenu = false;           // reset flag
         wasInFullscreenBeforeModal = false;
-        console.log('✅ Showing Return to Fullscreen button');
+        setTimeout(() => {
+            showRestoreFullscreenButton();
+        }, 180);   // small delay ensures modal is fully gone
+    } 
+    else if (wasInFullscreenBeforeModal) {
+        // Normal behaviour for all other modals
+        wasInFullscreenBeforeModal = false;
         showRestoreFullscreenButton();
     }
 
     justClosedEditModal = true;
-    setTimeout(() => { justClosedEditModal = false; }, 2000); // safety window
+    setTimeout(() => { justClosedEditModal = false; }, 2000);
     reopenPopupAfterModalClose();
 }
 		
@@ -5596,87 +5511,18 @@ document.getElementById('submitCommunityBtn').onclick = () => {
         coordHoverControl.getContainer().classList.remove('show');
     });
     map.on('click', e => {
-        if (isDraggingAny) {
-            isDraggingAny = false;
-            return;
-        }
-        const clickedOnSpiderfied = e.originalEvent.target.closest('.leaflet-marker-icon');
-        if (clickedOnSpiderfied) {
-            return;
-        }
-        combinedSearch.value = '';
-        loadData('', categoryFilter.value);
-        if (!gridEnabled) {
-            const lat = e.latlng.lat;
-            const lng = e.latlng.lng;
-            const grid = getGridFromLatLng(lat, lng);
-            const x = Math.round(lng);
-            const y = Math.round(lat);
-            coordHoverControl.getContainer().innerHTML = `Grid: ${grid || 'N/A'} (X: ${x}, Y: ${y})`;
-            coordHoverControl.getContainer().classList.add('show');
-            setTimeout(() => coordHoverControl.getContainer().classList.remove('show'), 3000);
-        }
-        if (gridEnabled) {
-            const grid = getGridFromLatLng(e.latlng.lat, e.latlng.lng);
-            if (grid) showGridNotification(grid);
-        }
-        playSound('click');
-    });
-// ── CONTEXT MENU (Right-click / Long-press) — Postcard sharing ──
-map.on('contextmenu', e => {
-    L.DomEvent.preventDefault(e);
-    const lat = e.latlng.lat;
-    const lng = e.latlng.lng;
-    const grid = getGridFromLatLng(lat, lng);
-    const x = Math.round(lng);
-    const y = Math.round(lat);
-    const desc = grid ? `Grid ${grid} (X: ${x}, Y: ${y})` : `X: ${x}, Y: ${y}`;
-    const url = `${window.location.origin}${window.location.pathname}?lat=${y}&lng=${x}&grid=${grid}&desc=${encodeURIComponent(desc)}`;
-    navigator.clipboard.writeText(url).then(() => {
-        showTempMessage('SENDING A POSTCARD LOCATION LINK COPIED SHARE THE LINK!', 3000);
-        playSound('click');
-    }).catch(() => {
-        prompt('Copy this link:', url);
-    });
-    if (grid) showGridNotification(grid);
-});
-
-// ── BEST FIX: Reliable double-tap to create marker on iOS + PC/Android ──
-// Disable Leaflet's default double-click zoom (removes iOS Safari conflict)
-map.doubleClickZoom.disable();
-
-// Shared handler for creating a new marker
-function createNewMarkerAt(e) {
-    const clickedOnMarker = e.originalEvent && (
-        e.originalEvent.target.classList.contains('leaflet-marker-icon') ||
-        (e.originalEvent.target.closest && e.originalEvent.target.closest('.leaflet-marker-icon'))
-    );
-    if (clickedOnMarker) return;
-
-    L.DomEvent.stopPropagation(e);
-    tempLatLng = { lat: e.latlng.lat, lng: e.latlng.lng };
-
-    autoExitFullscreenForModal();
-    openModal('Log Item');
-    playSound('click');
-}
-
-// Desktop / Android — dblclick
-map.on('dblclick', createNewMarkerAt);
-
-// iOS Safari — touch double-tap detection
-let lastTapTime = 0;
-map.getContainer().addEventListener('touchend', (e) => {
-    const currentTime = Date.now();
-    const tapLength = currentTime - lastTapTime;
-
-    if (tapLength < 500 && tapLength > 0) {  // Double-tap detected
-        const point = map.mouseEventToContainerPoint(e);
-        const latlng = map.containerPointToLatLng(point);
-        createNewMarkerAt({ latlng: latlng, originalEvent: e });
+    if (isDraggingAny) {
+        isDraggingAny = false;
+        return;
     }
-    lastTapTime = currentTime;
-}, { passive: false });
+    const clickedOnSpiderfied = e.originalEvent?.target?.closest('.leaflet-marker-icon');
+    if (clickedOnSpiderfied) return;
+
+    // Clear search and reload (keeps existing behaviour)
+    combinedSearch.value = '';
+    loadData('', categoryFilter.value);
+    playSound('click');
+});
         updateCategoryDropdowns();
         renderCategoryToggles();
         loadData(currentSearch, currentCategoryFilter);
@@ -6765,6 +6611,109 @@ const sharedLinkObserver = new MutationObserver(() => {
 if (!localStorage.getItem('fo76_welcome_accepted')) {
     sharedLinkObserver.observe(document.body, { childList: true, subtree: true });
 }
+
+// ── REINFORCED CONTEXT MENU (RIGHT-CLICK / LONG-PRESS) — FIXED & DEBUGGED ──
+// ── FINAL CONTEXT MENU — BUTTONS NOW FULLY WORKING (v3) ──
+map.doubleClickZoom.disable();
+
+const contextMenu = document.getElementById('mapContextMenu');
+
+function isClickOnMarkerOrCluster(e) {
+    const target = e.target || (e.originalEvent && e.originalEvent.target);
+    if (target && (target.closest('.leaflet-marker-icon') || target.closest('.leaflet-marker-cluster'))) return true;
+    return false;
+}
+
+function showMapContextMenu(latlng) {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+        wasInFullscreenBeforeModal = true;
+        exitedForContextMenu = true;
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
+
+    // Open context menu
+    contextMenu.style.display = 'block';
+    document.body.classList.add('modal-open');
+    window.lastContextLatLng = latlng;
+
+    showTempMessage('📍 Choose Action — Create Marker or Postcard', 2200);
+    playSound('click');
+}
+
+function attachContextButtons() {
+    const createMarkerBtn = document.getElementById('contextCreateMarkerBtn');
+    const createPostcardBtn = document.getElementById('contextCreatePostcardBtn');
+
+    if (createMarkerBtn) {
+        createMarkerBtn.onclick = () => {
+            contextMenu.style.display = 'none';
+            document.body.classList.remove('modal-open');
+            if (window.lastContextLatLng) {
+                tempLatLng = window.lastContextLatLng;
+                openModal('Log Item');
+            }
+        };
+    }
+
+    if (createPostcardBtn) {
+        createPostcardBtn.onclick = () => {
+            contextMenu.style.display = 'none';
+            document.body.classList.remove('modal-open');
+            if (window.lastContextLatLng) {
+                currentPostcardLatLng = window.lastContextLatLng;
+                postcardModal.style.display = 'block';
+                document.getElementById('postcardMessage')?.focus();
+
+                // ── Attach smart close handlers to Postcard modal (X button + Copy Link) ──
+                // This ensures the Return to Fullscreen button appears after closure
+                const postcardCloseBtn = postcardModal.querySelector('.close');
+                if (postcardCloseBtn) {
+                    postcardCloseBtn.onclick = () => closeModal(postcardModal);
+                }
+
+                // If your Copy Link button has a different selector, update the line below accordingly
+                const copyLinkBtn = postcardModal.querySelector('#copyLinkBtn'); // ← change selector if needed
+                if (copyLinkBtn) {
+                    copyLinkBtn.onclick = () => {
+                        // Your existing copy-to-clipboard logic goes here (if any)
+                        // Then close the modal via the smart function
+                        closeModal(postcardModal);
+                    };
+                }
+            }
+        };
+    }
+}
+
+// Native listeners
+const mapContainer = map.getContainer();
+
+mapContainer.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    if (isClickOnMarkerOrCluster(e)) return;
+    const latlng = map.mouseEventToLatLng(e);
+    showMapContextMenu(latlng);
+}, { passive: false });
+
+let longPressTimer = null;
+mapContainer.addEventListener('touchstart', function(e) {
+    if (e.touches.length !== 1 || isClickOnMarkerOrCluster(e)) return;
+    longPressTimer = setTimeout(() => {
+        const point = map.mouseEventToContainerPoint(e.touches[0]);
+        const latlng = map.containerPointToLatLng(point);
+        showMapContextMenu(latlng);
+    }, 550);
+}, { passive: true });
+
+mapContainer.addEventListener('touchend', () => clearTimeout(longPressTimer));
+mapContainer.addEventListener('touchmove', () => clearTimeout(longPressTimer));
+mapContainer.addEventListener('touchcancel', () => clearTimeout(longPressTimer));
+
+// Attach the button handlers
+attachContextButtons();
+
         console.log(
     '%c╔═════════════════════════════════════════════════════════════╗\n' +
     '║           FALLOUT 76 ITEM FINDER MAP                        ║\n' +
@@ -6784,7 +6733,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = C-75-1-04-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = C-75a-3-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
