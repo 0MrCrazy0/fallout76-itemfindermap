@@ -4320,6 +4320,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-e84536aa-9479-47ca-89f9-56dd8c7c91ee",
+      "cid": "misc_test_grid_c1_x_943_y_307_306.62587_942.95252",
+      "category": "misc",
+      "desc": "Test\nGrid C1 (X: 943, Y: 307)\nSubmitted By MrCrazy",
+      "lat": 306.625865232616,
+      "lng": 942.9525237486009,
+      "icon": "📝",
+      "addedTime": 1775260231670,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
