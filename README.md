@@ -45,9 +45,10 @@ Q: What does the Community Map do?
 A: The Community Map adds high-quality, hand-picked markers that have been submitted by players and reviewed/approved by moderators. All user-submitted markers are checked before they are added to the official community JSON file.
 You can click “Update Community Map” regularly to receive the latest verified discoveries. If you have kept a community marker and later find something wrong with it, you can revert it back to community status or report it directly from its popup.
 Q: Can I use the app on iPhone or Android?
-A: Yes — the app is fully supported on both iPhone and Android.
+A: Yes — the app is fully supported on both iPhone and Android. Recent updates have resolved all known iPhone touch and fullscreen issues, so the experience is now smooth and reliable on mobile devices.
 Q: How do I install the app as a PWA (Progressive Web App)?
 A:
+
 iPhone (iOS): Open the map in Safari → tap the Share button → scroll down and select “Add to Home Screen”.
 Android: Open the map in Chrome → tap the three-dot menu → select “Add to Home Screen” or “Install app”.
 PC (Chrome/Edge): Click the Install icon in the address bar (or go to the three-dot menu → “Install Fallout 76 Item Finder Map”).
