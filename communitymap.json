@@ -4320,6 +4320,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-0580d459-f1e7-4387-976d-49aad38e82de",
+      "cid": "plans_test_marker_delete_me_grid_c1_x_862_y_342_341.73876_862.27165",
+      "category": "plans",
+      "desc": "Test marker delete me.\nGrid C1 (X: 862, Y: 342)\nSubmitted By MrCrazy",
+      "lat": 341.73876295231287,
+      "lng": 862.2716487050704,
+      "icon": "📜",
+      "addedTime": 1775274128144,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
