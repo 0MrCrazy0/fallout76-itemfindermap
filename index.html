@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map</title>
 	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
-	<link rel="manifest" href="manifest.json?v=75b">
+	<link rel="manifest" href="manifest.json?v=75c">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1663,7 +1663,7 @@ label,
         </div>
     </div>
 <script>
-const CURRENT_APP_VERSION = '76.75b';
+const CURRENT_APP_VERSION = '76.75c';
 
 // ── All version numbers now use this single line (change it here only) ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -2051,7 +2051,7 @@ Object.keys(customCategories).forEach(cat => {
         let imageOverlay = L.imageOverlay(mapUrls[currentMap], imageBounds).addTo(map);
         map.fitBounds(imageBounds);
         L.control.zoom({ position: 'topleft' }).addTo(map);
-// ── FULLSCREEN TOGGLE (🔭 button) ──
+// ── FULLSCREEN TOGGLE (🔭 button) – IMPROVED FOR iPHONE SAFARI / PWA ──
 const fullscreenControl = L.control({ position: 'topright' });
 fullscreenControl.onAdd = function(map) {
     const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
@@ -2065,10 +2065,30 @@ fullscreenControl.onAdd = function(map) {
               .on(link, 'click', L.DomEvent.preventDefault)
               .on(link, 'click', () => {
                   const mapEl = document.getElementById('map');
-                  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                      mapEl.requestFullscreen ? mapEl.requestFullscreen() : mapEl.webkitRequestFullscreen();
+                  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+                  if (isIOS) {
+                      // Improved iOS pseudo-fullscreen (2026 best practice)
+                      mapEl.style.position = 'fixed';
+                      mapEl.style.top = '0';
+                      mapEl.style.left = '0';
+                      mapEl.style.width = '100vw';
+                      mapEl.style.height = '100dvh';           // ← modern dynamic height
+                      mapEl.style.paddingTop = 'env(safe-area-inset-top)';
+                      mapEl.style.paddingBottom = 'env(safe-area-inset-bottom)';
+                      mapEl.style.zIndex = '999999';
+                      mapEl.style.border = 'none';
+                      map.invalidateSize({ animate: false });
+                      setTimeout(() => map.invalidateSize({ animate: false }), 150);
+                      setTimeout(() => map.invalidateSize({ animate: false }), 400);
+                      showTempMessage('MAXIMIZED VIEW (iOS limitation)', 2500);
                   } else {
-                      document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen();
+                      // Normal devices – native fullscreen
+                      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                          mapEl.requestFullscreen ? mapEl.requestFullscreen() : mapEl.webkitRequestFullscreen();
+                      } else {
+                          document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen();
+                      }
                   }
               });
 
@@ -2076,12 +2096,6 @@ fullscreenControl.onAdd = function(map) {
         const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
         link.innerHTML = isFullscreen ? '✖' : '🔭';
         link.title = isFullscreen ? 'Exit fullscreen' : 'Toggle fullscreen';
-        if (isFullscreen && /iPad|iPhone|iPod/.test(navigator.userAgent)) {
-            const mapEl = document.getElementById('map');
-            mapEl.style.filter = 'none';
-            mapEl.style.webkitFilter = 'none';
-            mapEl.style.backgroundColor = '#000000';
-        }
     };
     document.addEventListener('fullscreenchange', updateIcon);
     document.addEventListener('webkitfullscreenchange', updateIcon);
@@ -5423,58 +5437,57 @@ exportOneBtn.onclick = () => {
     closeModal(itemModal);
 };
 
+// ── SUBMIT TO COMMUNITY – FIXED FOR iPHONE (76.75d) ──
 document.getElementById('submitCommunityBtn').onclick = () => {
-    const loc = locations[currentIndex];
-    if (!loc?.locked) {
-        showTempMessage('LOCK THE MARKER FIRST', 5000);
-        playSound('error');
-        return;
-    }
+    window.exitFullscreenThenDo(() => {
+        const loc = locations[currentIndex];
+        if (!loc?.locked) {
+            showTempMessage('LOCK THE MARKER FIRST', 5000);
+            playSound('error');
+            return;
+        }
+        if (hasBeenSubmitted(loc.id)) {
+            showTempMessage('This marker has already been submitted — pending review.', 5000);
+            return;
+        }
 
-    // Prevent duplicate submission (now uses stable id)
-    if (hasBeenSubmitted(loc.id)) {
-        showTempMessage('This marker was attempted to be submitted or has been submitted — Create a New Marker and re-submit pending review.', 5000);
-        return;
-    }
+        const playerName = document.getElementById('playerNameInput')?.value.trim() || 'Anonymous Wastelander';
+        const finalDesc = loc.desc.includes('Submitted By') ? loc.desc : `${loc.desc}\nSubmitted By ${playerName}`;
+        const iconToSend = categoryIcons[loc.category] || '📝';
+        const cid = loc.cid || generateCid(loc);
+        markAsSubmitted(loc.id);
 
-    const playerNameInput = document.getElementById('playerNameInput');
-    const playerName = playerNameInput?.value.trim() || 'Anonymous Wastelander';
-    const finalDesc = loc.desc.includes('Submitted By')
-        ? loc.desc
-        : `${loc.desc}\nSubmitted By ${playerName}`;
+        const overlay = document.getElementById('submitLoadingOverlay');
+        if (overlay) overlay.classList.add('show');
 
-    const iconToSend = categoryIcons[loc.category] || '📝';
-    const cid = loc.cid || generateCid(loc);
+        const params = new URLSearchParams({
+            lat: loc.lat,
+            lng: loc.lng,
+            category: loc.category,
+            desc: finalDesc,
+            icon: iconToSend,
+            id: loc.id,
+            cid: cid,
+            wasCommunityKept: loc.wasCommunityKept ? 'true' : 'false'
+        });
 
-    // Record submission using the stable ID (this fixes the "skipped" problem)
-    markAsSubmitted(loc.id);
+        const url = `https://0mrcrazy0.github.io/fallout76-itemfindermap/submit.html?v=${Date.now()}&${params.toString()}`;
 
-    const overlay = document.getElementById('submitLoadingOverlay');
-    if (overlay) overlay.classList.add('show');
+        // iOS-safe popup method
+        setTimeout(() => {
+            const a = document.createElement('a');
+            a.href = url;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
 
-    const minDelay = new Promise(resolve => setTimeout(resolve, 1500));
-
-    const params = new URLSearchParams({
-        lat: loc.lat,
-        lng: loc.lng,
-        category: loc.category,
-        desc: finalDesc,
-        icon: iconToSend,
-        id: loc.id,           // Stable ID
-        cid: cid,
-        wasCommunityKept: loc.wasCommunityKept ? 'true' : 'false'
-    });
-
-    const url = `https://0mrcrazy0.github.io/fallout76-itemfindermap/submit.html?v=${Date.now()}&${params.toString()}`;
-
-    minDelay.then(() => {
-        window.open(url, '_blank', 'width=500,height=720,scrollbars=yes');
-        
-        if (overlay) overlay.classList.remove('show');
-        closeModal(itemModal);
-        forceReload();
-
-        showTempMessage('MARKER SUBMITTED FOR REVIEW — THANK YOU!', 4000);
+            if (overlay) overlay.classList.remove('show');
+            closeModal(itemModal);
+            forceReload();
+            showTempMessage('MARKER SUBMITTED FOR REVIEW — THANK YOU!', 4000);
+        }, 0);
     });
 };
     map.on('dragstart', () => { isDraggingAny = true; });
@@ -6733,7 +6746,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = C-75b-3-04-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = C-75c-4-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
