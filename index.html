@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map</title>
 	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
-	<link rel="manifest" href="manifest.json?v=75d">
+	<link rel="manifest" href="manifest.json?v=75e">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1660,7 +1660,7 @@ label,
         </div>
     </div>
 <script>
-const CURRENT_APP_VERSION = '76.75d';
+const CURRENT_APP_VERSION = '76.75e';
 
 // ── All version numbers now use this single line (change it here only) ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -6124,7 +6124,7 @@ document.addEventListener('click', e => {
     }
 });
 
-// === PWA INSTALL BANNER — ❤️ Love the map? (Edge Fixed v2) ===
+// === PWA INSTALL BANNER — ❤️ Love the map? (FINAL — All Devices + Persistent) ===
 let deferredPrompt = null;
 const PWA_DISMISSED_KEY = 'pwaInstallPromptDismissed';
 
@@ -6135,21 +6135,14 @@ const isInstalled = () =>
     window.matchMedia('(display-mode: fullscreen)').matches ||
     window.navigator.standalone === true;
 
-console.log('🔍 PWA banner script loaded');
-
 window.addEventListener('beforeinstallprompt', (e) => {
-    console.log('✅ beforeinstallprompt event received');
     e.preventDefault();
     deferredPrompt = e;
 });
 
 setTimeout(() => {
-    if (isInstalled() || localStorage.getItem(PWA_DISMISSED_KEY) === 'true') {
-        console.log('✅ Banner skipped (already installed or dismissed)');
-        return;
-    }
+    if (isInstalled() || localStorage.getItem(PWA_DISMISSED_KEY) === 'true') return;
 
-    console.log('⏳ Showing banner after 30 seconds');
     const banner = document.createElement('div');
     banner.style.cssText = `
         position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
@@ -6179,22 +6172,12 @@ setTimeout(() => {
     const dismissBanner = () => {
         banner.remove();
         localStorage.setItem(PWA_DISMISSED_KEY, 'true');
-        console.log('✅ Banner permanently dismissed');
     };
 
     document.getElementById('installYes').onclick = () => {
-        console.log('🚀 Install button clicked');
         if (!isIOS() && deferredPrompt) {
             deferredPrompt.prompt();
-            deferredPrompt.userChoice.then((choice) => {
-                console.log('📋 Install outcome →', choice.outcome);   // ← This is the key log
-                if (choice.outcome === 'accepted') {
-                    console.log('🎉 User accepted install');
-                } else {
-                    console.log('❌ User dismissed or cancelled');
-                }
-                dismissBanner();
-            });
+            deferredPrompt.userChoice.then(() => dismissBanner());
         } else {
             dismissBanner();
         }
@@ -6204,10 +6187,9 @@ setTimeout(() => {
 
 }, 30000);
 
-// Final safety
+// Auto-dismiss permanently if the app is installed
 window.addEventListener('appinstalled', () => {
     localStorage.setItem(PWA_DISMISSED_KEY, 'true');
-    console.log('✅ App was successfully installed');
 });
 
 if (urlParams.has('permshare')) {
@@ -7036,7 +7018,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = C-75d-5-04-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = C-75e-5-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
