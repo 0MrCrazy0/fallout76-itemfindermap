@@ -79,22 +79,22 @@
 </head>
 <body>
     <h1>Pending Community Map Submissions</h1>
-
     <div class="instruction">
         This page shows pending submissions.<br><br>
         <strong>When finished, click the button below to return to the map<br>and reopen the How to Use instructions.</strong>
     </div>
-
     <button onclick="returnToMap()" class="close-btn">
         RETURN TO MAP ← Show How to Use
     </button>
-
     <div id="list" class="loading">Loading pending markers…</div>
 
     <script>
         function returnToMap() {
-            // Reliable redirect + reopen How to Use modal
-            window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/?showInstructions=true');
+            // Set one-time flag so main map knows we came from Pending
+            sessionStorage.setItem('returnFromPending', 'true');
+            
+            // Clean redirect (no query parameter)
+            window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
         }
 
         // Strong cache buster
