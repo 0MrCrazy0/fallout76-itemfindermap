@@ -1775,7 +1775,8 @@ document.addEventListener('DOMContentLoaded', () => {
             instructionsModal.style.display = 'block';
             document.body.classList.add('modal-open');
             playSound('click');
-            history.replaceState(null, '', window.location.pathname);
+            // Clean the URL so the modal does NOT reappear on page refresh
+history.replaceState({}, document.title, window.location.pathname);
         }, 800);
     }
 
