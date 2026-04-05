@@ -4320,6 +4320,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-f757949d-a622-4435-95ab-9792b6071f2b",
+      "cid": "misc_grid_d1_x_1316_y_370_370.17432_1315.53125",
+      "category": "misc",
+      "desc": "Grid D1 (X: 1316, Y: 370)\nSubmitted By Anonymous Wastelander",
+      "lat": 370.17431640625,
+      "lng": 1315.53125,
+      "icon": "📝",
+      "addedTime": 1775371755550,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
