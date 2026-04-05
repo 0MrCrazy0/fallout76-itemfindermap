@@ -90,10 +90,8 @@
 
     <script>
         function returnToMap() {
-            // Set one-time flag so main map knows we came from Pending
+            // This flag tells the main map to open How to Use ONLY this time
             sessionStorage.setItem('returnFromPending', 'true');
-            
-            // Clean redirect (no query parameter)
             window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
         }
 
