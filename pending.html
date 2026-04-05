@@ -86,15 +86,15 @@
     </div>
 
     <button onclick="returnToMap()" class="close-btn">
-        RETURN TO MAP ← Go Back.
+        RETURN TO MAP ← Show How to Use
     </button>
 
     <div id="list" class="loading">Loading pending markers…</div>
 
     <script>
         function returnToMap() {
-            // Reliable redirect back to the main map with How to Use modal open
-            window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
+            // Reliable redirect + reopen How to Use modal
+            window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/?showInstructions=true');
         }
 
         // Strong cache buster
