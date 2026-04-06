@@ -1,5 +1,1657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- DEV NOTE: Meta tags for mobile + PWA support -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Fallout 76 Item Finder Map</title>
+	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
+	<link rel="manifest" href="manifest.json?v=75h">
+
 <script>
-const CURRENT_APP_VERSION = '76.75g';
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/fallout76-itemfindermap/service-worker.js', { updateViaCache: 'none' });
+  }
+</script>
+    <!-- DEV NOTE: Leaflet + Clustering + Screenshot Libraries -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=10" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js?v=10"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js?v=10"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js?v=10"></script>
+
+    <!-- DEV NOTE: Icons & Theme -->
+    <link rel="icon" href="/fallout76-itemfindermap/icon-192-v2.png" sizes="192x192">
+    <link rel="icon" href="/fallout76-itemfindermap/icon-512-v2.png" sizes="512x512">
+    <link rel="apple-touch-icon" href="/fallout76-itemfindermap/icon-192-v2.png">
+    <meta name="theme-color" content="#00ff00">
+
+<style>
+/* ── MOBILE GRID + NO-CLUSTER FLICKER (Low-Zoom Focused) ── */
+@media (hover: none) and (pointer: coarse) {
+    .grid-line {
+        opacity: 0.06 !important;
+        stroke-width: 0.6px !important;
+    }
+
+    /* Extra low-zoom stability — reduces repaint thrashing at full zoom-out */
+    .leaflet-zoom--3 .grid-line,
+    .leaflet-zoom--2 .grid-line,
+    .leaflet-zoom--1 .grid-line,
+    .leaflet-zoom-0 .grid-line {
+        opacity: 0.04 !important;
+    }
+   
+    .grid-label {
+        font-size: 11px !important;
+        opacity: 0.30 !important;
+        transition: opacity 0.4s ease-out !important;
+    }
+
+    .leaflet-container {
+        transform: translate3d(0,0,0) !important;
+        backface-visibility: hidden !important;
+        -webkit-backface-visibility: hidden !important;
+    }
+}
+    body { 
+        font-family: 'Courier New', monospace; 
+        margin: 20px; 
+        background-color: #0a2a2a; 
+        color: #00ff00; 
+        overflow-x: hidden; 
+    }
+    h1 {
+    color: #00ff00;
+    text-align: center;
+    text-shadow: 0 0 10px #00ff00;
+    font-size: 2.2em;
+    margin-bottom: 12px;
+}
+#map {
+    height: 750px;
+    max-width: 95%;
+    margin: 0 auto 20px;
+    border: 2px solid #00ff00;
+    box-shadow: 0 0 15px #00ff00;
+    background-color: #000000;
+    position: relative;
+}
+#titleToggleContainer {
+    text-align: center;
+    margin-bottom: 8px;
+}
+#toggleTitleBtn {
+    padding: 2px 6px;
+    font-size: 0.9em;
+    max-width: 40px;
+    margin: 0 auto;
+    background: #1a3c34;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    border-radius: 0;
+    cursor: pointer;
+}
+#toggleTitleBtn:hover {
+    background: #00ff00;
+    color: #000;
+}
+#searchBar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 10px auto;
+    padding: 10px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid #0f0;
+    border-radius: 8px;
+    max-width: 90%;
+}
+#toolsToggleRow {
+    text-align: center;
+    margin: 10px 0;
+}
+#toggleButtonGroup {
+    padding: 8px 16px;
+    max-width: 200px;
+    background: #1a3c34;
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    border-radius: 0;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
+#toggleButtonGroup:hover {
+    background: #00ff00;
+    color: #000;
+}
+#buttonGroup {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    justify-items: stretch;
+    align-items: center;
+    margin: 15px auto;
+    padding: 16px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid #0f0;
+    border-radius: 8px;
+    max-width: 420px;
+    width: calc(100% - 32px);
+    box-sizing: border-box;
+    place-self: center;
+}
+#buttonGroup button {
+    width: 100% !important;
+    height: 48px !important;
+    padding: 8px 12px !important;
+    margin: 0 !important;
+    font-size: 14px !important;
+    font-weight: bold;
+    text-align: center !important;
+    line-height: 1.4;
+    white-space: normal;
+    word-wrap: break-word;
+    box-sizing: border-box !important;
+    font-family: 'Courier New', monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#voiceSearchBtn {
+    grid-column: 1 / -1;
+    width: 100% !important;
+    max-width: none !important;
+    font-size: 16px !important;
+}
+#buttonGroup.hidden {
+    display: none !important;
+}
+.controls {
+    margin-bottom: 20px;
+    text-align: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+input[type="text"], select, textarea {
+    padding: 8px;
+    width: 100%;
+    max-width: 200px;
+    box-sizing: border-box;
+    border: 2px solid #00ff00;
+    border-radius: 0;
+    background-color: #000;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+}
+textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+.leaflet-marker-icon,
+.leaflet-marker-cluster {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: none !important;
+}
+.leaflet-marker-icon {
+    transform: scale(1.1);
+    margin-left: -16.5px !important;
+    margin-top: -16.5px !important;
+}
+#combinedSearch {
+    max-width: 250px;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+#combinedSearch.grid-highlight, #combinedSearch.item-highlight {
+    background-color: #0a3a0a !important;
+    box-shadow: 0 0 15px #00ff00, inset 0 0 10px rgba(0, 255, 0, 0.3);
+    animation: pulseSearch 1.5s ease-out;
+}
+@keyframes pulseSearch {
+    0%, 100% { box-shadow: 0 0 15px #00ff00, inset 0 0 10px rgba(0, 255, 0, 0.3); }
+    50% { box-shadow: 0 0 25px #00ff00, inset 0 0 15px rgba(0, 255, 0, 0.5); }
+}
+button {
+    padding: 8px 16px;
+    width: 100%;
+    max-width: 200px;
+    box-sizing: border-box;
+    background-color: #1a3c34;
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    border-radius: 0;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    transition: background-color 0.3s;
+    margin: 5px;
+    font-weight: bold;
+}
+button.reset-btn {
+    background-color: #F7615E !important;
+    color: #000 !important;
+    font-weight: 700;
+}
+#modalLockToggle, .popup-lock-toggle {
+    color: #ffa500;
+    cursor: pointer;
+}
+#modalLockToggle:hover, .popup-lock-toggle:hover {
+    color: #00ff00;
+}
+#tableContainer {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    contain: paint;
+    padding: 10px;
+    background: rgba(0,0,0,0.7);
+    border: 1px solid #0f0;
+    border-radius: 8px;
+    display: block !important;
+}
+.text-marker {
+    transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+    will-change: transform;
+}
+/* Restore hover glow for Delete Category button in delete modal */
+#confirmDeleteCategoryBtn,
+#confirmDeleteCategoryBtn:hover,
+#confirmDeleteCategoryBtn:focus-visible {
+    transition: all 0.25s ease !important;
+}
+#confirmDeleteCategoryBtn:hover,
+#confirmDeleteCategoryBtn:focus-visible {
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+    box-shadow:
+        0 0 12px #ffffff,
+        0 0 24px #00ff88,
+        0 0 36px #00ff00 !important;
+    transform: scale(1.06) !important;
+    filter: brightness(1.15) !important;
+}
+body.dark-mode #confirmDeleteCategoryBtn:hover,
+body.dark-mode #confirmDeleteCategoryBtn:focus-visible {
+    box-shadow:
+        0 0 16px #ffffff,
+        0 0 32px #00ff88,
+        0 0 48px #00ff00 !important;
+    transform: scale(1.06) !important;
+}
+.leaflet-marker-icon {
+    will-change: transform;
+}
+.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 15px 0;
+    width: 100%;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+.counter {
+    width: 200px !important;
+    margin: 10px auto !important;
+    text-align: center !important;
+    font-weight: bold !important;
+}
+#customTableHeader {
+    display: table !important;
+    width: 100% !important;
+    table-layout: fixed !important;
+    border-spacing: 0 12px !important;
+    margin-bottom: -12px !important;
+}
+#customTableHeader > div {
+    display: table-row !important;
+    background: rgba(0, 255, 0, 0.2) !important;
+    border: 1px solid #0f0 !important;
+    border-radius: 8px !important;
+}
+#customTableHeader > div > div {
+    display: table-cell !important;
+    padding: 10px !important;
+    text-align: center !important;
+    color: #0f0 !important;
+    font-weight: bold !important;
+}
+#locationsTable {
+    width: 100% !important;
+    border-collapse: separate !important;
+    border-spacing: 0 12px !important;
+    table-layout: fixed !important;
+    margin: 0 !important;
+}
+#locationsTable thead { display: none !important; }
+#locationsTable tbody { display: block !important; width: 100% !important; }
+#locationsTable tbody tr {
+    display: flex !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid #0f0 !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+#locationsTable tbody tr:hover {
+    background: rgba(0, 255, 0, 0.08) !important;
+    box-shadow: 0 0 8px #0f0 !important;
+}
+#locationsTable tbody tr.glowing {
+    background: rgba(0, 255, 0, 0.15) !important;
+    box-shadow: 0 0 12px #0f0, 0 0 20px #0f0 !important;
+    animation: tablePulse 1.5s infinite ease-in-out !important;
+    border: 2px solid #00ff88 !important;
+}
+@keyframes tablePulse {
+    0%, 100% { box-shadow: 0 0 12px #0f0, 0 0 20px #0f0; }
+    50% { box-shadow: 0 0 18px #0f0, 0 0 30px #0f0; }
+}
+#locationsTable tbody td {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px !important;
+    word-wrap: break-word !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+}
+#locationsTable tbody td:nth-child(1) { flex: 0.6; } /* Lock */
+#locationsTable tbody td:nth-child(2) { flex: 0.9; } /* Icon */
+#locationsTable tbody td:nth-child(3) { flex: 1.5; } /* Category */
+#locationsTable tbody td:nth-child(4) {
+    flex: 3;
+    justify-content: flex-start !important;
+    padding-left: 15px !important;
+}
+.icon-circle {
+    width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 16px; font-weight: bold; color: #000;
+}
+.text-location {
+    background: #000; color: #fff; padding: 2px 6px; border: 1px solid #0f0; border-radius: 3px; font-size: 11px; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; margin: 0 auto;
+}
+.lock-toggle { font-size: 18px; cursor: pointer; display: block; margin: 0 auto; }
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background-color: rgba(0, 42, 42, 0.8);
+}
+.modal-content {
+    background-color: #1a3c34;
+    margin: 8% auto;
+    padding: 16px;
+    border: 2px solid #00ff00;
+    width: 100%;
+    max-width: 360px;
+    box-sizing: border-box;
+    border-radius: 0;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    overflow-y: auto;
+    max-height: 80vh;
+    -webkit-overflow-scrolling: touch;
+}
+#submitLoadingOverlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 999999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 1.4em;
+    text-shadow: 0 0 10px #00ff00;
+}
+#submitLoadingOverlay.show {
+    display: flex;
+}
+#submitLoadingOverlay .spinner {
+    width: 60px;
+    height: 60px;
+    border: 6px solid #00ff00;
+    border-top: 6px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.close {
+    color: #00ff00;
+    float: right;
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+}
+.close:hover { color: #0a2a2a; }
+#itemModal .modal-content > div:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 12px;
+}
+#exportOneBtn, #shareOneBtn {
+    flex: 1;
+    min-width: 120px;
+}
+.marker-cluster div {
+    width: 30px; height: 30px; margin-left: 5px; margin-top: 5px; text-align: center; border-radius: 15px;
+    font: bold 12px/30px "Helvetica Neue", Arial, Helvetica, sans-serif;
+    background-color: #ffff00; color: #000000;
+}
+.grid-line {
+    pointer-events: none;
+    stroke: rgba(0, 255, 0, 0.35);
+    stroke-width: 1;
+    stroke-dasharray: 4, 4;
+}
+.grid-label {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: bold;
+    fill: #00ff00;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    pointer-events: none;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+#gridNotification {
+    position: fixed;
+    bottom: 120px !important;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 40, 0, 0.95);
+    color: #00ff00;
+    padding: 16px 28px;
+    border: 3px solid #00ff00;
+    border-radius: 0;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    font-size: 18px;
+    box-shadow: 0 0 30px #00ff00, inset 0 0 20px rgba(0, 255, 0, 0.4);
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+    backdrop-filter: blur(4px);
+    text-shadow: 0 0 10px #00ff00;
+}
+#gridNotification.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-10px);
+    animation: gridPulse 1.5s ease-out;
+}
+@keyframes gridPulse {
+    0% { box-shadow: 0 0 30px #00ff00; }
+    50% { box-shadow: 0 0 50px #00ff88; }
+    100% { box-shadow: 0 0 30px #00ff00; }
+}
+body.dark-mode {
+    background-color: #000000 !important;
+}
+body.dark-mode #searchBar,
+body.dark-mode #buttonGroup,
+body.dark-mode #tableContainer,
+body.dark-mode .modal-content,
+body.dark-mode #xpStatus,
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode .counter {
+    background-color: #000000 !important;
+    border-color: #00ff00 !important;
+}
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea,
+body.dark-mode button,
+body.dark-mode .counter,
+body.dark-mode h1,
+body.dark-mode h2 {
+    color: #00ff00 !important;
+}
+//* Professional button styling – NO glowing hover in dark mode */
+body.dark-mode button,
+body.dark-mode #toggleButtonGroup,
+body.dark-mode #buttonGroup button {
+    box-shadow: none !important;
+    transition: background-color 0.2s ease;
+}
+body.dark-mode button:hover,
+body.dark-mode #toggleButtonGroup:hover,
+body.dark-mode #buttonGroup button:hover {
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+    box-shadow: none !important;   /* removed the bright glow */
+}
+/* Restore consistent hover glow for remaining buttons */
+#toggleCategoryModalBtn,
+#prevPageBtn,
+#nextPageBtn,
+#toggleCategoryModalBtn:hover,
+#prevPageBtn:hover,
+#nextPageBtn:hover,
+#toggleCategoryModalBtn:focus-visible,
+#prevPageBtn:focus-visible,
+#nextPageBtn:focus-visible {
+    transition: all 0.25s ease !important;
+}
+#toggleCategoryModalBtn:hover,
+#prevPageBtn:hover,
+#nextPageBtn:hover,
+#toggleCategoryModalBtn:focus-visible,
+#prevPageBtn:focus-visible,
+#nextPageBtn:focus-visible {
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+    box-shadow:
+        0 0 12px #00ff88,
+        0 0 20px #00ff00 !important;
+    transform: scale(1.04) !important;
+    filter: brightness(1.1) !important;
+}
+body.dark-mode #toggleCategoryModalBtn:hover,
+body.dark-mode #prevPageBtn:hover,
+body.dark-mode #nextPageBtn:hover,
+body.dark-mode #toggleCategoryModalBtn:focus-visible,
+body.dark-mode #prevPageBtn:focus-visible,
+body.dark-mode #nextPageBtn:focus-visible {
+    box-shadow:
+        0 0 16px #00ff88,
+        0 0 28px #00ff00 !important;
+    transform: scale(1.05) !important;
+}
+/* Category management & postcard buttons */
+#selectAllBtn,
+#deselectAllBtn,
+#createCategoryBtn,
+#deleteCategoryBtn,
+#closeCategoryToggleBtn,
+#saveCategoryBtn,
+#createPostcardBtn {
+    background-color: #1a3c34 !important;
+    color: #00ff00 !important;
+    border: 2px solid #00ff00 !important;
+    min-width: 140px;
+    padding: 10px 20px;
+    font-weight: bold;
+    transition: all 0.25s ease;
+}
+#selectAllBtn:hover,
+#deselectAllBtn:hover,
+#createCategoryBtn:hover,
+#deleteCategoryBtn:hover,
+#closeCategoryToggleBtn:hover,
+#saveCategoryBtn:hover,
+#createPostcardBtn:hover,
+#selectAllBtn:focus-visible,
+#deselectAllBtn:focus-visible,
+#createCategoryBtn:focus-visible,
+#deleteCategoryBtn:focus-visible,
+#closeCategoryToggleBtn:focus-visible,
+#saveCategoryBtn:focus-visible,
+#createPostcardBtn:focus-visible {
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+    box-shadow:
+        0 0 12px #ffffff,
+        0 0 24px #00ff88,
+        0 0 36px #00ff00 !important;
+    transform: scale(1.06) !important;
+    filter: brightness(1.15) !important;
+}
+body.dark-mode #selectAllBtn:hover,
+body.dark-mode #deselectAllBtn:hover,
+body.dark-mode #createCategoryBtn:hover,
+body.dark-mode #deleteCategoryBtn:hover,
+body.dark-mode #closeCategoryToggleBtn:hover,
+body.dark-mode #saveCategoryBtn:hover,
+body.dark-mode #createPostcardBtn:hover,
+body.dark-mode #selectAllBtn:focus-visible,
+body.dark-mode #deselectAllBtn:focus-visible,
+body.dark-mode #createCategoryBtn:focus-visible,
+body.dark-mode #deleteCategoryBtn:focus-visible,
+body.dark-mode #closeCategoryToggleBtn:focus-visible,
+body.dark-mode #saveCategoryBtn:focus-visible,
+body.dark-mode #createPostcardBtn:focus-visible {
+    box-shadow:
+        0 0 16px #ffffff,
+        0 0 32px #00ff88,
+        0 0 48px #00ff00 !important;
+}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+    background-color: #1a3c34 !important;
+    color: #00ff00 !important;
+    font-family: 'Courier New', monospace !important;
+    border: 2px solid #00ff00 !important;
+}
+body.dark-mode .leaflet-popup-content-wrapper,
+body.dark-mode .leaflet-popup-tip {
+    background-color: #1a3c34 !important;
+    color: #00ff00 !important;
+}
+.modal-content button#exportMineBtn,
+.modal-content button#fullBackupBtn {
+    color: #000000 !important;
+}
+.leaflet-control-zoom {
+    top: -60px !important;
+    left: 60px !important;
+    margin: 0 !important;
+    margin-top: 70px !important;
+    left: 10px !important;
+}
+.leaflet-control-zoom a {
+    background-color: #000000 !important;
+    color: #00ff00 !important;
+    border: 2px solid #00ff00 !important;
+    font-family: 'Courier New', monospace !important;
+    font-weight: bold !important;
+    text-shadow: 0 0 5px #00ff00 !important;
+    box-shadow: 0 0 8px #00ff00 !important;
+    border-radius: 0 !important;
+    width: 30px !important;
+    height: 30px !important;
+    line-height: 26px !important;
+    font-size: 18px !important;
+    text-align: center !important;
+}
+.leaflet-control-zoom a:hover {
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+    box-shadow: 0 0 15px #00ff00, inset 0 0 10px #00ff00 !important;
+}
+.leaflet-popup button {
+    background: #00ff00 !important;
+    color: #000 !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 4px 10px !important;
+    font-weight: bold !important;
+    font-size: 12px !important;
+    cursor: pointer !important;
+    font-family: 'Courier New', monospace !important;
+    min-width: 50px !important;
+    text-align: center !important;
+}
+.leaflet-popup button:hover {
+    background: #00cc00 !important;
+}
+#itemModal button {
+    transition: all 0.3s ease !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+#itemModal button:hover,
+#itemModal button:focus-visible {
+    background-color: inherit !important;
+    box-shadow:
+        0 0 12px #ffffff,
+        0 0 24px #00ff88,
+        0 0 36px #00ff00 !important;
+    transform: scale(1.08) !important;
+    filter: brightness(1.2) !important;
+    opacity: 0.92 !important;
+}
+body.dark-mode #itemModal button:hover,
+body.dark-mode #itemModal button:focus-visible {
+    box-shadow:
+        0 0 16px #ffffff,
+        0 0 32px #00ff88,
+        0 0 48px #00ff00 !important;
+    transform: scale(1.08) !important;
+}
+body.dark-mode .leaflet-popup button {
+    color: #000 !important;
+    background: #00ff00 !important;
+}
+body.dark-mode .leaflet-popup button:hover {
+    background: #00cc00 !important;
+}
+.custom-icon.glowing {
+    box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00 !important;
+    animation: glowPulse 1.5s infinite ease-in-out;
+}
+@keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00; }
+    50% { box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff00; }
+}
+.custom-icon,
+.custom-icon.glowing,
+.custom-icon.glowing .marker-background {
+    box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
+}
+.custom-icon.glowing {
+    filter: drop-shadow(0 0 2px #00ff00) drop-shadow(0 0 2px #00ff00) brightness(1.0) !important;
+    animation: glowPulse 1.5s infinite ease-in-out;
+}
+.marker-background {
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    opacity: 0.90 !important;
+    border: 1.5px solid #000 !important;
+    box-sizing: border-box !important;
+}
+#categoryCheckboxes label {
+    display: block !important;
+    margin: 8px 0 !important;
+    padding: 6px !important;
+    background: rgba(0,0,0,0.3);
+    border-radius: 4px;
+}
+.small a {
+    color: #00ff00 !important;
+    text-decoration: underline;
+    font-weight: bold;
+}
+.small a:hover {
+    color: #00ff88 !important;
+    text-shadow: 0 0 8px #00ff00;
+}
+@media (max-width: 768px) {
+    #map { height: 600px; max-width: 100%; }
+    .controls { flex-direction: column; align-items: center; }
+    input[type="text"], select, textarea, button {
+        width: 100%; max-width: 100%; margin: 5px 0;
+        font-size: clamp(14px, 4vw, 16px);
+        padding: clamp(10px, 2vw, 12px);
+    }
+    #combinedSearch { max-width: 100%; }
+    .modal-content { max-width: 90%; padding: 12px; font-size: clamp(14px, 3.5vw, 16px); max-height: 80vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .close { font-size: clamp(20px, 5vw, 22px); }
+    #gridNotification { bottom: 10px; right: 10px; font-size: 13px; padding: 10px 16px; box-shadow: 0 0 15px #00ff00; }
+    #tableContainer { padding: 8px; }
+    #customTableHeader > div > div,
+    #locationsTable tbody td {
+        font-size: 11px !important;
+        padding: 6px 4px !important;
+    }
+    #locationsTable tbody td:nth-child(4) {
+        font-size: 10px !important;
+        white-space: normal !important;
+        line-height: 1.3 !important;
+        word-break: break-word !important;
+    }
+    .icon-circle { width: 24px !important; height: 24px !important; font-size: 13px !important; }
+    .text-location { font-size: 9px !important; max-width: 80px !important; }
+}
+.nuke-emoji-wrapper { text-align: center; margin: 12px 0; }
+.nuke-emoji-btn {
+    display: inline-block;
+    padding: 14px 18px;
+    background: #001100;
+    color: #00ff00 !important;
+    font-size: 3.2em;
+    text-decoration: none;
+    border: 3px solid #00ff00;
+    border-radius: 50%;
+    box-shadow: 0 0 14px #00ff00;
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+.nuke-emoji-btn:hover {
+    background: #002200;
+    transform: scale(1.12) rotate(8deg);
+    box-shadow: 0 0 22px #00ff00, 0 0 34px #00ff00;
+}
+.nuke-emoji-btn:active { transform: scale(0.96); }
+#voiceSearchBtn[disabled], #voiceSearchBtn[style*="opacity: 0.6"] {
+    pointer-events: auto !important;
+}
+#searchBar, #buttonGroup, #toolsToggleRow, #topBar {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+.map-ready #searchBar, .map-ready #buttonGroup,
+.map-ready #toolsToggleRow, .map-ready #topBar {
+    visibility: visible; opacity: 1;
+}
+.top-bar.hidden { display: none; }
+.tools-toggle-row { display: flex; justify-content: center; margin: 10px 0; }
+.button-group.hidden { display: none !important; }
+#lockAllBtn { display: none; margin: 5px; }
+#toggleTableBtn { display: none !important; }
+.leaflet-popup {
+    margin-bottom: 25px !important;
+}
+.leaflet-popup-tip {
+    margin-top: -6px !important;
+}
+.leaflet-popup-content button,
+.leaflet-popup-content-wrapper button {
+    all: unset !important;
+    display: inline-block !important;
+    background: #00ff00 !important;
+    color: #000 !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 4px 10px !important;
+    font-family: 'Courier New', monospace !important;
+    font-weight: bold !important;
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+    text-align: center !important;
+    min-width: 50px !important;
+    cursor: pointer !important;
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5) !important;
+    margin: 6px auto !important;
+}
+.leaflet-popup-content button:hover,
+.leaflet-popup-content-wrapper button:hover {
+    background: #00cc00 !important;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8) !important;
+}
+body.dark-mode .leaflet-popup-content button,
+body.dark-mode .leaflet-popup-content-wrapper button {
+    color: #000 !important;
+    background: #00ff00 !important;
+}
+body.dark-mode .leaflet-popup-content button:hover,
+body.dark-mode .leaflet-popup-content-wrapper button:hover {
+    background: #00cc00 !important;
+}
+#itemDesc, #itemModal textarea {
+    height: 160px !important;
+    width: 100% !important;
+    max-width: none !important;
+    resize: none !important;
+    overflow-y: auto !important;
+    scrollbar-width: thin;
+    scrollbar-color: #00ff00 #000;
+}
+#itemDesc::-webkit-scrollbar, #itemModal textarea::-webkit-scrollbar {
+    width: 8px;
+}
+#itemDesc::-webkit-scrollbar-track, #itemModal textarea::-webkit-scrollbar-track {
+    background: #000;
+    border-left: 1px solid #00ff00;
+}
+#itemDesc::-webkit-scrollbar-thumb, #itemModal textarea::-webkit-scrollbar-thumb {
+    background: #00ff00;
+    border-radius: 0;
+}
+.marker-hover {
+    animation: pulseGreen 1.5s infinite ease-in-out;
+}
+@keyframes pulseGreen {
+    0%, 100% { filter: brightness(0.5); }
+    50% { filter: brightness(0.6); }
+}
+.share-spot {
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #000;
+    color: #0f0;
+    padding: 20px 30px;
+    border: 3px solid #0f0;
+    box-shadow: 0 0 30px #0f0;
+    font: bold 18px monospace;
+    z-index: 99999;
+    border-radius: 10px;
+    text-align: center;
+    animation: pop 0.5s;
+    display: none;
+}
+@keyframes pop {
+    from { transform: translate(-50%, -20%); opacity: 0; }
+    to { transform: translateX(-50%); opacity: 1; }
+}
+@keyframes pulse {
+    0%,100% { transform:scale(1); }
+    50% { transform:scale(1.15); }
+}
+.leaflet-control-attribution.leaflet-control {
+    display: none;
+}
+#resetAppBtn {
+    color: #000 !important;
+}
+#confirmModalBtn,
+#updateGotIt {
+    color: #000 !important;
+    background: #00ff00 !important;
+}
+@keyframes nukeFlash {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    100% { opacity: 0; }
+}
+@keyframes mushroomCloud {
+    0% { font-size: 0; opacity: 0; }
+    50% { font-size: 400px; opacity: 1; }
+    100% { font-size: 600px; opacity: 0; }
+}
+@keyframes textAppear {
+    to { opacity: 1; }
+}
+@keyframes quickFlash {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    100% { opacity: 0; }
+}
+.nuke-symbol {
+    font-size: clamp(80px, 28vw, 300px);
+    color: #0f0;
+    animation: symbolDrop 1.2s ease-out forwards;
+    text-shadow: 0 0 60px #0f0;
+}
+.nuke-title {
+    font-size: clamp(32px, 8vw, 80px);
+    color: #0f0;
+    margin: 0;
+    animation: textFadeIn 1.2s forwards;
+    text-shadow: 0 0 35px #0f0;
+    letter-spacing: 6px;
+}
+.nuke-subtitle {
+    font-size: clamp(24px, 6vw, 60px);
+    color: #0f0;
+    margin: 0;
+    font-weight: bold;
+    animation: textFadeIn 1.2s 0.3s forwards;
+    text-shadow: 0 0 30px #0f0;
+}
+@keyframes symbolDrop {
+    0% { opacity: 0; transform: translateY(-60px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes textFadeIn {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+.popup-glow {
+    filter: drop-shadow(0 0 12px #00ff00) brightness(0.6) !important;
+    z-index: 10000 !important;
+    animation: pulse-glow 2s infinite alternate;
+}
+.table-row-popup-glow {
+    background: rgba(0, 255, 0, 0.15) !important;
+    box-shadow: 0 0 12px #00ff00 !important;
+    animation: pulse-glow 2s infinite alternate;
+}
+@keyframes pulse-glow {
+    from { filter: drop-shadow(0 0 12px #00ff00) brightness(0.6); }
+    to { filter: drop-shadow(0 0 18px #00ff80) brightness(1.2); }
+}
+#exportAllBtn,
+#exportMineBtn,
+#installYes,
+#confirmModalBtn,
+#saveItemBtn,
+#shareItemBtn,
+#exportOneBtn,
+#sendReportNow,
+#submitCommunityBtn {
+    color: #000000 !important;
+    font-weight: bold !important;
+}
+.modal-content button#exportAllBtn,
+.modal-content button#exportMineBtn {
+    color: #000000 !important;
+}
+#searchSuggestions {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    max-height: 300px !important;
+    overflow-y: auto !important;
+    background: #0a2a2a !important;
+    border: 2px solid #00ff00 !important;
+    z-index: 999999 !important;
+    display: none;
+    box-shadow: 0 0 15px #00ff00 !important;
+    pointer-events: auto !important;
+}
+#searchBar {
+    position: relative !important;
+    z-index: 10 !important;
+}
+#searchSuggestions div {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #00ff22;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+}
+#searchSuggestions div:hover {
+    background: #00ff00;
+    color: #000;
+}
+#searchSuggestions .category-match { font-weight: bold; color: #aaffaa; }
+#searchSuggestions .desc-match { opacity: 0.9; }
+}
+.leaflet-popup-tip-container {
+    left: 70% !important;
+    transform: translateX(-50%);
+}
+.leaflet-popup-tip {
+    margin-left: 18% !important;
+}
+#xpProgress.level-up {
+    animation: barGlow 2.5s ease-out forwards;
+    box-shadow: 0 0 25px #00ff88 !important;
+}
+@keyframes barGlow {
+    0% { box-shadow: 0 0 25px #00ff88; }
+    50% { box-shadow: 0 0 50px #00ff88; }
+    100% { box-shadow: 0 0 0px transparent; }
+}
+@keyframes pulse {
+    0%,100% { transform:scale(1); }
+    50% { transform:scale(1.15); }
+}
+.leaflet-marker-icon:has(.grid-label) {
+    pointer-events: none !important;
+}
+.leaflet-marker-icon:has(.grid-label)::before,
+.leaflet-marker-icon:has(.grid-label):hover::before {
+    display: none !important;
+    opacity: 0 !important;
+    content: none !important;
+}
+.leaflet-marker-icon:not(:has(.grid-label))::before {
+    content: '';
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border: 2px solid rgba(0, 255, 0, 0.3);
+    border-radius: 50%;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.leaflet-marker-icon:not(:has(.grid-label)):hover::before {
+    opacity: 1;
+}
+.leaflet-popup {
+    pointer-events: auto !important;
+}
+.leaflet-popup-content-wrapper {
+    pointer-events: auto;
+}
+.leaflet-interactive {
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+}
+.marker-cluster {
+    background-clip: padding-box;
+    border-radius: 20px;
+    touch-action: manipulation;
+}
+.leaflet-popup-close-button {
+    pointer-events: auto !important;
+    z-index: 1000;
+}
+.leaflet-zoom-animated {
+    will-change: transform;
+    transform: translate3d(0,0,0);
+}
+.leaflet-container {
+    image-rendering: crisp-edges;
+}
+#proceedWipeBtn:hover {
+    box-shadow: 0 0 25px 5px rgba(255, 68, 68, 0.8) !important;
+    filter: brightness(1.2);
+    transition: all 0.2s ease;
+}
+#cancelSafetyBtn:hover {
+    box-shadow: 0 0 25px 5px rgba(0, 255, 0, 0.6) !important;
+    filter: brightness(1.2);
+    transition: all 0.2s ease;
+}
+#downloadCommunityBtn.available {
+    box-shadow: 0 0 12px #00ff88,
+                0 0 25px #00ff88,
+                inset 0 0 8px rgba(0, 255, 136, 0.4);
+    animation: softPulse 2s ease-in-out infinite;
+    color: #00ff88;
+    font-weight: bold;
+}
+@keyframes softPulse {
+    0%, 100% { box-shadow: 0 0 12px #00ff88, 0 0 25px #00ff88, inset 0 0 8px rgba(0, 255, 136, 0.4); }
+    50% { box-shadow: 0 0 18px #00ff88, 0 0 35px #00ff88, inset 0 0 12px rgba(0, 255, 136, 0.6); }
+}
+button:not(:hover):not(:active):not(:focus),
+#toggleButtonGroup:not(:hover):not(:active):not(:focus),
+#buttonGroup button:not(:hover):not(:active):not(:focus) {
+    background-color: #1a3c34;
+    box-shadow: none;
+}
+/* Global Fallout 76 Pip-Boy green scrollbars */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #000;
+    border-left: 1px solid #00ff00;
+    border-right: 1px solid #00ff00;
+    box-shadow: inset 0 0 6px rgba(0, 255, 0, 0.2);
+}
+::-webkit-scrollbar-thumb {
+    background: #00ff00;
+    border: 2px solid #000;
+    border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #00ff88;
+    box-shadow: 0 0 8px #00ff88;
+}
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #00ff00 #000;
+}
+#itemDesc,
+#itemModal textarea,
+#postcardMessage,
+.leaflet-popup-content-wrapper > div,
+.modal-content > div {
+    scrollbar-width: thin !important;
+    scrollbar-color: #00ff00 #000 !important;
+}
+.close,
+.modal-content .close {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+.leaflet-marker-icon.long-press-hold {
+    filter: brightness(1.3);
+    box-shadow: 0 0 12px #00ff88;
+    transform: scale(1.15);
+    transition: all 0.2s;
+}
+@media (max-width: 768px) {
+    #buttonGroup button {
+        white-space: normal !important;
+        line-height: 1.3 !important;
+        padding: 8px 10px !important;
+        height: auto !important;
+        min-height: 54px;
+    }
+    #downloadCommunityBtn {
+        font-size: 13px !important;
+    }
+    #locationsTable tbody tr {
+        min-height: 52px !important;
+        padding: 4px 0 !important;
+        gap: 8px !important;
+        align-items: center !important;
+    }
+    #locationsTable tbody td {
+        padding: 8px 6px !important;
+        font-size: 13px !important;
+        line-height: 1.35 !important;
+    }
+    #locationsTable tbody td:nth-child(1) {
+        flex: 0 0 52px !important;
+        width: 52px !important;
+        max-width: 52px !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    .lock-toggle {
+        font-size: 24px !important;
+        line-height: 1 !important;
+        padding: 10px 6px !important;
+        margin: 0 auto !important;
+        display: block !important;
+        text-align: center !important;
+    }
+    #locationsTable tbody td:nth-child(4) {
+        flex: 4 !important;
+        padding-left: 12px !important;
+        padding-right: 8px !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+    }
+    #locationsTable tbody td:nth-child(2),
+    #locationsTable tbody td:nth-child(3) {
+        flex: 0.8 !important;
+        min-width: 44px !important;
+    }
+}
+@media (max-width: 768px) {
+    #locationsTable tbody td:nth-child(4) {
+        flex: 5 !important;
+        padding: 8px 10px 8px 14px !important;
+        justify-content: flex-start !important;
+        align-items: flex-start !important;
+        font-size: 13px !important;
+        line-height: 1.45 !important;
+        hyphens: auto !important;
+        -webkit-hyphens: auto !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        white-space: normal !important;
+        max-height: 120px !important;
+        overflow-y: hidden !important;
+    }
+    #locationsTable tbody td:nth-child(4)::after {
+        content: "…";
+        position: absolute;
+        right: 8px;
+        bottom: 6px;
+        color: #00cc66;
+        font-size: 12px;
+        opacity: 0.7;
+        pointer-events: none;
+    }
+    #locationsTable tbody td:nth-child(4):not(.overflowing)::after {
+        display: none;
+    }
+}
+@media (max-width: 768px) {
+    #locationsTable tbody tr:active {
+        background: rgba(0, 255, 0, 0.12) !important;
+        box-shadow: 0 0 12px rgba(0, 255, 0, 0.4) !important;
+        transition: all 0.12s ease;
+    }
+}
+/* Force black text on export backup buttons */
+#backupPersonalOnly, #backupWithKept,
+#backupPersonalOnly small, #backupWithKept small {
+    color: #000000 !important;
+}
+/* Force black text on final wipe modal buttons (never react to dark mode) */
+#cancelSafetyBtn,
+#proceedWipeBtn {
+    color: #000000 !important;
+}
+
+/* Make sure the small text inside stays black too */
+#cancelSafetyBtn small,
+#proceedWipeBtn small {
+    color: #000000 !important;
+}
+/* Hand pointer on ALL clickable elements */
+button,
+a,
+label,
+#locationsTable tbody tr,
+#categoryCheckboxes label,
+#categoryCheckboxes label span,
+.leaflet-control a,
+.leaflet-popup button,
+#itemModal button,
+#buttonGroup button,
+#toggleCategoryModalBtn,
+#prevPageBtn,
+#nextPageBtn,
+#selectAllBtn,
+#deselectAllBtn,
+#createCategoryBtn,
+#deleteCategoryBtn,
+#closeCategoryToggleBtn,
+#saveCategoryBtn,
+#createPostcardBtn,
+#confirmDeleteCategoryBtn,
+#confirmModalBtn,
+#updateGotItBtn,
+#exportOneBtn,
+#shareOneBtn,
+#duplicateItemBtn,
+#deleteItemBtn,
+#submitCommunityBtn,
+#saveItemBtn,
+#shareItemBtn,
+#exportJsonBtn,
+#importBtn,
+#downloadCommunityBtn,
+#saveMapJpegBtn,
+#resetAppBtn,
+#voiceSearchBtn,
+#lockAllBtn,
+#toggleClusterBtn,
+#toggleMapBtn,
+#toggleGridBtn,
+#toggleSoundsBtn,
+#toggleDarkModeBtn,
+#toggleMyMarkersBtn,
+#howToUseBtn,
+#nukeCodesBtn,
+#undoImportBtn,
+#undoDeleteBtn {
+    cursor: pointer !important;
+}
+#contextCreateMarkerBtn,
+#contextCreatePostcardBtn,
+#contextCreateMarkerBtn:hover,
+#contextCreatePostcardBtn:hover,
+#contextCreateMarkerBtn:focus-visible,
+#contextCreatePostcardBtn:focus-visible {
+    color: #000000 !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    filter: none !important;
+    animation: none !important;
+}
+
+#contextCreateMarkerBtn:hover,
+#contextCreatePostcardBtn:hover {
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+}
+</style>
+</head>
+<body>
+    <!-- DEV NOTE: TITLE TOGGLE BUTTON — FIXED -->
+    <div id="titleToggleContainer">
+        <button id="toggleTitleBtn">-</button>
+    </div>
+    <h1 id="mainTitle">The Fallout 76 Item Finder Map! Quickly log items while exploring Appalachia.</h1>
+	<!-- PLAYER NAME INPUT — PERSISTENT -->
+<div style="text-align:center; margin:10px auto 20px; max-width:420px;">
+  <input type="text" id="playerNameInput" placeholder="Your In-Game Name (optional)" 
+         style="width:100%; padding:12px; background:#000; color:#0f0; border:2px solid #0f0; 
+                font-family:'Courier New',monospace; font-size:16px; text-align:center; 
+                box-sizing:border-box;">
+</div>
+    <!-- DEV NOTE: MAIN MAP CONTAINER -->
+    <div id="map">
+        <div id="mapLoadingOverlay" style="position:absolute;top:0;left:0;right:0;bottom:0;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;pointer-events:none;opacity:0;transition:opacity 0.6s;">
+          <div style="background:transparent;padding:40px 80px;border:5px solid #00ff00;border-radius:16px;text-align:center;box-shadow:0 0 60px #00ff00,inset 0 0 30px #00ff00;">
+            <h2 style="margin:0 0 30px 0;color:#00ff00;font-size:2.8em;text-shadow:0 0 25px #00ff00;letter-spacing:2px;">MAP LOADING…</h2>
+            <div style="font-size:2.4em;margin:25px 0;color:#00ff88;">
+              <span id="loadTimer">12</span><span style="opacity:0.7;font-size:0.8em;"> sec</span>
+            </div>
+            <div style="font-size:1.4em;line-height:1.7;opacity:0.95;">
+              • loading Appalachia map ~3–4 MB • <br>
+  • first load can be slow give it time • <br>
+  • click Show No-Name Map button to render •<br>
+  • ☢ click the update community map button ☢ •
+            </div>
+          </div>
+        </div>
+        <!-- ← END OF OVERLAY -->
+    </div>
+</div>
+    <!-- DEV NOTE: SEARCH BAR — MOVED UNDER MAP -->
+	<!-- CONTEXT MENU (Choose Action) -->
+<div id="mapContextMenu" class="modal" style="display:none; z-index:100000;">
+    <div class="modal-content" style="max-width:360px; background:#1a3c34; border:3px solid #00ff00; box-shadow:0 0 25px #00ff00;">
+        <span class="close" style="color:#00ff00;">X</span>
+        <h2 style="text-align:center; margin:0 0 20px;">📍 Choose Action</h2>
+        <button id="contextCreateMarkerBtn" style="width:100%; margin:8px 0; background:#00ff00; color:#000; font-weight:bold;">Create Permanent Marker</button>
+        <button id="contextCreatePostcardBtn" style="width:100%; margin:8px 0; background:#00d4ff; color:#000; font-weight:bold;">Create Temporary Postcard</button>
+    </div>
+</div>
+    <div style="position:relative; display:block; margin:15px auto; max-width:600px;">
+    <div id="searchBar" style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; align-items:center;">
+        <input type="text" id="combinedSearch" placeholder="desc/cate/grid.." style="flex:1; min-width:200px; padding:8px; background:#000; color:#0f0; border:1px solid #0f0; border-radius:4px;">
+        <button id="clearSearchBtn" style="background:none; border:none; color:#00ff00; font-size:18px; cursor:pointer; display:none; padding:0 8px;">X</button>
+        <select id="categoryFilter" style="padding:8px; background:#000; color:#0f0; border:1px solid #0f0; border-radius:4px;"><option value="">All Categories</option></select>
+        <button id="toggleCategoryModalBtn" style="padding:8px 12px; background:#1a3c34; color:#0f0; border:1px solid #0f0; border-radius:4px;">Toggle Categories</button>
+    </div>
+    <!-- AUTOCOMPLETE DROPDOWN — NOW PERFECTLY UNDER THE BAR -->
+    <div id="searchSuggestions"></div>
+</div>
+    <!-- DEV NOTE: TOOLS TOGGLE — OUTSIDE TOOLS PANEL -->
+    <div id="toolsToggleRow">
+        <button id="toggleButtonGroup">Hide Tools</button>
+    </div>
+    <!-- DEV NOTE: TOOLS PANEL — HIDDEN BY DEFAULT -->
+    <div id="buttonGroup" class="hidden">
+        <button id="voiceSearchBtn">Voice Search</button>
+		<button id="lockAllBtn">Lock All</button>
+        <button id="toggleClusterBtn">Clustering: On</button>
+        <button id="toggleMapBtn">Show No-Name Map</button>
+        <button id="toggleGridBtn">Grid: Off</button>
+		<button id="toggleSoundsBtn">Sounds: On</button>
+		<button id="toggleDarkModeBtn">Dark Mode: On</button>
+		<button id="toggleMyMarkersBtn">My Markers: All</button>
+        <button id="howToUseBtn">How to Use</button>
+        <button id="nukeCodesBtn">Nuke Codes & Minerva</button>
+        <button id="exportJsonBtn">Export Markers</button>
+        <button id="importBtn">Import Markers</button>
+        <button id="downloadCommunityBtn">Update Community Map</button>
+		<button id="undoImportBtn" style="display:none; background:#cc8400 !important; color:#000 !important;">UNDO LAST IMPORT <span id="undoTimer"></span></button>
+		<button id="undoDeleteBtn" style="display:none; background:#cc8400 !important; color:#000 !important;">UNDO LAST DELETE</button>
+        <button id="saveMapJpegBtn">Save Map as JPEG</button>
+    </div>
+    <!-- DEV NOTE: XP PROGRESS BAR -->
+    <div id="xpStatus" style="text-align:center; margin:10px; color:#0f0; font-weight:bold;">
+    Explorer Level: <span id="levelSpan">1</span><br>
+    XP: <progress id="xpProgress" value="0" max="1000" style="width:200px;"></progress> <span id="xpText">0 / 1000</span>
+</div>
+    <!-- DEV NOTE: CONTENT INVENTORY TABLE -->
+    <h2 style="text-align:center; margin:15px 0 5px;">Content Inventory</h2>
+    <p id="counter" class="counter"></p>
+    <div id="tableContainer" style="margin:0 auto 20px; max-width:90%; background:rgba(0,0,0,0.7); border:1px solid #0f0; border-radius:8px; padding:10px;">
+        <div class="pagination">
+            <button id="prevPageBtn" disabled>Prev</button>
+            <span id="pageInfo">Page 1 of 1</span>
+            <button id="nextPageBtn" disabled>Next</button>
+        </div>
+        <table id="locationsTable" style="width:100%; border-collapse:collapse; color:#0f0;">
+            <tbody></tbody>
+        </table>
+    </div>
+    <!-- DEV NOTE: GRID NOTIFICATION POPUP -->
+    <div id="gridNotification"></div>
+    <!-- DEV NOTE: ITEM LOGGING MODAL -->
+    <div id="itemModal" class="modal">
+        <div class="modal-content">
+            <span class="close">X</span>
+            <h2 id="modalTitle">Log Item <span id="modalLockToggle" style="font-size:22px; cursor:pointer; margin-left:10px;">Unlock</span></h2>
+            <label>Category:</label>
+            <select id="itemCategory"></select>
+            <label>Description:</label>
+            <textarea id="itemDesc" placeholder="Enter item and location details or leave blank auto puts gid location"></textarea>
+            <div style="margin-top:12px; text-align:center; display:flex; flex-wrap:wrap; justify-content:center; gap:10px;">
+    <button id="saveItemBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:110px; padding:10px 20px; font-weight:bold;">Save</button>
+    <button id="shareItemBtn" style="background:#00d4ff !important; color:#000000 !important; border:2px solid #00d4ff; min-width:110px; padding:10px 20px; font-weight:bold;">Share Map View</button>
+    
+    <!-- These buttons stay hidden for kept community markers -->
+    <!-- Export and Share are hidden for kept community markers; Duplicate stays visible -->
+<button id="exportOneBtn" style="background:#a569bd !important; color:#000000 !important; border:2px solid #a569bd; min-width:110px; padding:10px 20px; font-weight:bold;">Export Marker</button>
+<button id="shareOneBtn" style="background:#f7ee20 !important; color:#000000 !important; border:2px solid #f7ee20; min-width:110px; padding:10px 20px; font-weight:bold;">Share Marker</button>
+<button id="duplicateItemBtn" style="background:#5E99F7 !important; color:#000000 !important; border:2px solid #5E99F7; min-width:110px; padding:10px 20px; font-weight:bold;">Duplicate</button>
+
+<button id="deleteItemBtn" style="display:none; background:#e74c3c !important; color:#000000 !important; border:2px solid #c0392d; min-width:110px; padding:10px 20px; font-weight:bold;">Delete</button>
+<button id="submitCommunityBtn" style="display:none; background:#00ff88 !important; color:#000000 !important; border:2px solid #00ff88; min-width:110px; padding:10px 20px; font-weight:bold;">Submit to Community Map</button>
+</div>
+        </div>
+    </div>
+	<div id="submitLoadingOverlay">
+        <div class="spinner"></div>
+        <div>Submitting marker to community map...</div>
+        <div style="font-size:0.8em; margin-top:15px; opacity:0.8;">Please wait a moment</div>
+    </div>
+    <!-- DEV NOTE: HOW TO USE MODAL -->
+    <div id="instructionsModal" class="modal">
+        <div class="modal-content">
+            <span class="close">X</span>
+            <h1>Fallout 76 Item Finder Map Info</h1>
+
+<p><strong>PC:</strong> Right-click the map to open the <strong>Choose Action</strong> menu.<br>
+<strong>Mobile:</strong> Long-press the map to open the <strong>Choose Action</strong> menu.</p>
+
+<p>Then choose:<br>
+• <strong>Create Permanent Marker</strong> — to log a new item (locked automatically)<br>
+• <strong>Create Temporary Postcard</strong> — to share a temporary spot (expires in 5 minutes)</p>
+
+<p>New markers are automatically <strong>LOCKED</strong> and <strong>glow green for 2 minutes</strong>.</p>
+
+<p><strong>Unlock</strong> a marker in its popup or edit modal to allow dragging.</p>
+
+<p><strong>Drag any unlocked marker</strong> — drop to auto-save the new position (it will glow and re-lock for safety).</p>
+
+<p><strong>PC:</strong> Left-click any marker to open its popup (community) or Edit menu (yours/kept).<br>
+<strong>Mobile:</strong> Single-tap any marker to open its popup or Edit menu.</p>
+
+<p><strong>PC:</strong> Left-click a row in the Content Inventory to instantly zoom to that marker location.<br>
+<strong>Mobile:</strong> Single-tap a row in the Content Inventory to instantly zoom to that marker location.</p>
+
+<p><strong>PC:</strong> Right-click a row in the Content Inventory:<br>
+<strong>Mobile:</strong> Long-press a row in the Content Inventory:</p>
+<ul style="margin: 8px 0 16px 24px; line-height: 1.5;">
+    <li>Your markers (created or kept) → opens the Edit modal + zooms to the location</li>
+    <li>Community markers → opens the marker popup + zooms to the location</li>
+</ul>
+
+<p>Use the <strong>Search Bar</strong> to filter by description, category, or grid coordinates (e.g. C4).</p>
+
+<p>The <strong>Toggle Map</strong> button switches between the named map and the clean (no-name) map.</p>
+
+<p>Click/tap anywhere on the map → displays the current <strong>grid coordinate</strong> in a green popup.</p>
+
+<p>The <strong>Grid button</strong> toggles the 10×10 grid overlay on or off.</p>
+
+<p>Create and manage <strong>Custom Categories</strong> in the Toggle Categories menu.</p>
+
+<p><strong>Export / Import</strong> your markers — duplicates are automatically skipped.</p>
+
+<p><strong>Save Map As JPEG</strong> captures your current view with all visible markers.</p>
+
+<p>Earn <strong>XP</strong> for every marker you place — level up like in the game!</p>
+
+<p>Lose <strong>XP</strong> when deleting markers.</p>
+
+<p>The map works fully <strong>offline</strong> after the first load (ideal for areas with no signal).</p>
+
+<p>Periodically tap <strong>Download Community Map</strong> to receive the latest community updates.</p>
+
+<p style="margin-top:28px; text-align:center; font-size:1.1em;">
+    <strong>Enjoy Appalachia — & Happy Exploring!</strong>
+</p>
+<p style="margin-top:28px; text-align:center; font-size:1.1em;" class="small" id="appVersionText">The Fallout 76 Item Finder Map - Made By MrCrazy</p>
+
+<p style="margin-top:24px; text-align:center; font-size:1.05em; color:#00ff88;">
+    Want to see markers waiting for review and approval?<br>
+    Check the pending submissions list below.
+</p>
+
+<div style="text-align:center; margin:15px 0;">
+    <button onclick="window.open('/fallout76-itemfindermap/pending.html', '_blank')" 
+            style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; 
+                   padding:12px 32px; font-size:1.1em; font-weight:bold; cursor:pointer;">
+        View Pending Community Submissions
+    </button>
+</div>
+</p>
+<p style="margin-top:20px; text-align:center; font-size:1.0em; color:#88ff88;">
+    <strong>Backup Recommendation:</strong> Use “Export Markers” regularly.<br>
+    Choose “Personal Only” for a clean backup or “Personal + Kept” to include your edited community markers.
+</p>
+            <div style="text-align:center; margin:15px 0;">
+                <button id="resetAppBtn" class="reset-btn">Reset App (deletes everything)</button>
+            </div>
+        </div>
+    </div>
+    <!-- DEV NOTE: NUKE CODES MODAL -->
+    <div id="nukeCodesModal" class="modal">
+        <div class="modal-content">
+            <span class="close">X</span>
+            <h1>Nuke Codes & Minerva</h1>
+            <div class="nuke-emoji-wrapper">
+                <a href="https://www.falloutbuilds.com/fo76/nuke-codes/" target="_blank" rel="noopener noreferrer" class="nuke-emoji-btn" title="Launch codes – click the rocket">🚀</a>
+            </div>
+            <p style="text-align:center; margin-top:20px;">
+                <strong>Weekly launch codes — always up to date!</strong>
+            </p>
+			<div class="nuke-emoji-wrapper">
+                <a href="https://www.falloutbuilds.com/fo76/minerva/" target="_blank" rel="noopener noreferrer" class="nuke-emoji-btn" title="Where is Minerva Today? – click the radio">📻</a>
+            </div>
+            <p style="text-align:center; margin-top:20px;">
+                <strong>Where is Minerva Today? — always up to date!</strong>
+            </p>
+        </div>
+    </div>
+    <!-- DEV NOTE: CATEGORY TOGGLE MODAL -->
+    <div id="categoryToggleModal" class="modal">
+        <div class="modal-content">
+            <span class="close">X</span>
+            <h2>Toggle Categories</h2>
+            <div style="margin-bottom:10px; text-align:center;">
+                <button id="selectAllBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Select All</button>
+    <button id="deselectAllBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Deselect All</button>
+    <button id="createCategoryBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Create Category</button>
+    <button id="deleteCategoryBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Delete Category</button>
+            </div>
+            <div id="categoryCheckboxes"></div>
+            <button id="closeCategoryToggleBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Close</button>
+        </div>
+    </div>
+    <!-- DEV NOTE: CREATE CATEGORY MODAL -->
+    <div id="createCategoryModal" class="modal">
+        <div class="modal-content">
+            <span class="close">X</span>
+            <h2>Create New Category</h2>
+            <label style="display:block; margin:10px 0 4px;">Category Name:</label>
+            <input type="text" id="newCategoryName" placeholder="Enter category name" style="width:100%; padding:8px; margin-bottom:10px;">
+            <label style="display:block; margin:10px 0 4px;">Emoji (only one):</label>
+            <input type="text" id="newCategoryEmoji" placeholder="Paste emoji" maxlength="2" inputmode="text" style="width:100%; padding:8px; margin-bottom:10px;">
+            <p class="small">Paste one emoji. Only emojis allowed.</p>
+            <div style="margin-top:12px; text-align:center;">
+    <button id="saveCategoryBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Save Category</button>
+</div>
+            </div>
+        </div>
+    </div>
+    <!-- DEV NOTE: DELETE CATEGORY MODAL -->
+    <div id="deleteCategoryModal" class="modal">
+        <div class="modal-content">
+            <span class="close">X</span>
+            <h2>Delete Category</h2>
+            <label>Select Category to Delete:</label>
+            <select id="deleteCategorySelect">
+                <option value="">Select a custom category</option>
+            </select>
+            <p class="small">Deleting a category will reassign all its markers to "misc".</p>
+            <div style="margin-top:12px; text-align:center;">
+                <button id="confirmDeleteCategoryBtn" 
+        style="background:#e74c3c !important; color:#000000 !important; border:2px solid #c0392d; min-width:140px; padding:10px 20px; font-weight:bold;">
+    Delete Category
+</button>
+            </div>
+        </div>
+    </div>
+<script>
+const CURRENT_APP_VERSION = '76.75h';
 
 // ── All version numbers now use this single line (change it here only) ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -159,12 +1811,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 function playSound(type) {
             if (!soundsEnabled || !baseSounds[type]) return;
+            if (!audioUnlocked) unlockAudio(); // ← extra safety
+
             const now = Date.now();
             if (!window.lastSoundTime) window.lastSoundTime = {};
-            // Per-sound cooldowns – tuned for pleasant feel
             const cooldowns = {
                 type: 150,
-                click: 130,     // ← Increased from 70 ms (much smoother on rapid taps)
+                click: 130,
                 saving: 80,
                 modalClose: 80,
                 selectcategory: 80,
@@ -184,7 +1837,7 @@ document.addEventListener('DOMContentLoaded', () => {
             baseSounds[type].play().catch(() => {});
         }
 
-        // ── iOS SAFARI AUDIO UNLOCK (required for ALL iPhones & iPads) ──
+                // ── iOS SAFARI AUDIO UNLOCK (more reliable for Safari) ──
         let audioUnlocked = false;
         function unlockAudio() {
             if (audioUnlocked) return;
@@ -197,11 +1850,16 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('🔊 Audio unlocked for iOS Safari');
         }
 
-        // Safe document-level listeners (these run immediately)
-        document.documentElement.addEventListener('touchstart', unlockAudio, { once: true });
-        document.documentElement.addEventListener('click', unlockAudio, { once: true });
+        // Extra robust unlock on common user interactions
+        function attachAudioUnlockListeners() {
+            const events = ['touchstart', 'click', 'mousedown'];
+            events.forEach(ev => {
+                document.documentElement.addEventListener(ev, unlockAudio, { once: true });
+                document.getElementById('map')?.addEventListener(ev, unlockAudio, { once: true });
+            });
+        }
 
-        // ── FETCH WITH TIMEOUT HELPER (PASTE THIS ENTIRE BLOCK HERE) ──
+        // ── FETCH WITH TIMEOUT HELPER
         async function fetchWithTimeout(url, timeout = 12000) {
             const controller = new AbortController();
             const id = setTimeout(() => controller.abort(), timeout);
@@ -1781,14 +3439,12 @@ function showConfirmModal(title, content, onConfirm, restoreFullscreenOnClose = 
     modal.innerHTML = `
         <div class="modal-content" style="max-width:520px;">
             <span class="close">X</span>
-            <h2>${title}</h2>
-            <div style="margin:15px 0; max-height:380px; overflow-y:auto; overflow-x:hidden;
-                        text-align:left; line-height:1.6; word-break:break-word;
-                        white-space:pre-wrap; padding-right:10px;">
+            <h2 style="margin-bottom:8px !important;">${title}</h2>
+            <div style="margin:0 !important; padding:6px 22px 22px 22px; text-align:left !important; line-height:1.48; font-size:1.07em; word-break:break-word;">
                 ${content}
             </div>
             <div style="text-align:center;">
-                <button id="confirmModalBtn" style="background:#00ff00;color:#000;padding:10px 24px;border:none;border-radius:4px;cursor:pointer;font-weight:bold;">OK</button>
+                <button id="confirmModalBtn" style="background:#00ff00;color:#000;padding:11px 28px;border:none;border-radius:4px;cursor:pointer;font-weight:bold;">OK</button>
             </div>
         </div>
     `;
@@ -1802,8 +3458,6 @@ function showConfirmModal(title, content, onConfirm, restoreFullscreenOnClose = 
         modal.remove();
         document.body.classList.remove('modal-open');
         playSound('modalClose');
-
-        // ── NEW: Show Return to Fullscreen button if we were in fullscreen ──
         if (restoreFullscreenOnClose && wasInFullscreenBeforeModal) {
             wasInFullscreenBeforeModal = false;
             showRestoreFullscreenButton();
@@ -1815,7 +3469,6 @@ function showConfirmModal(title, content, onConfirm, restoreFullscreenOnClose = 
         cleanup();
         if (typeof onConfirm === 'function') onConfirm();
     };
-
     playSound('levelUp');
 }
         window.editMarkerFromPopup = function(index) {
@@ -3081,26 +4734,25 @@ exportBtn.onclick = () => {
     modal.innerHTML = `
         <div class="modal-content" style="max-width:560px;">
             <span class="close">×</span>
-            <h2>Choose Backup Type</h2>
+            <h2 style="text-align:center; margin-bottom:18px;">Choose Backup Type</h2>
+         
+<div style="max-width:460px; margin:0 auto; padding:0 10px;">
+    <button id="backupPersonalOnly" style="width:100%; padding:18px 12px; margin:10px 0; background:#00ff00; color:#000; font-weight:bold; font-size:1.05em; line-height:1.45; border-radius:4px;">
+        PERSONAL MARKERS YOU CREATED ONLY<br>
+        <small style="opacity:0.9; font-size:0.93em;">${purePersonalCount} marker${purePersonalCount === 1 ? '' : 's'} + Level ${level} + All Settings</small>
+    </button>
+             
+    <button id="backupWithKept" style="width:100%; padding:18px 12px; margin:10px 0; background:#00d4ff; color:#000; font-weight:bold; font-size:1.05em; line-height:1.45; border-radius:4px;">
+        PERSONAL + KEPT COMMUNITY MARKERS<br>
+        <small style="opacity:0.9; font-size:0.93em;">${withKeptCount} marker${withKeptCount === 1 ? '' : 's'} + Level ${level} + All Settings</small>
+    </button>
+</div>
           
-            <div style="margin:20px 0;">
-                <button id="backupPersonalOnly" style="width:100%; padding:16px; margin:8px 0; background:#00ff00; color:#000; font-weight:bold;">
-                    PERSONAL MARKERS YOU CREATED ONLY<br>
-                    <small style="opacity:0.9;">${purePersonalCount} marker${purePersonalCount === 1 ? '' : 's'} + Level ${level} + All Settings</small>
-                </button>
-              
-                <button id="backupWithKept" style="width:100%; padding:16px; margin:8px 0; background:#00d4ff; color:#000; font-weight:bold;">
-                    PERSONAL + KEPT COMMUNITY MARKERS<br>
-                    <small style="opacity:0.9;">${withKeptCount} marker${withKeptCount === 1 ? '' : 's'} + Level ${level} + All Settings</small>
-                </button>
-            </div>
-           
-            <p style="text-align:center; font-size:0.9em; opacity:0.8;">
-                Personal Only = clean backup (recommended)<br>
-                With Kept = includes markers you decided to keep<br>
-                Missing markers? Download the community map again if needed.
-            </p>
-        </div>
+<p style="text-align:center; font-size:0.95em; opacity:0.9; line-height:1.5; margin:20px auto 0; max-width:460px;">
+    Personal Only = clean backup (recommended)<br>
+    With Kept = includes markers you decided to keep<br>
+    Missing markers? Download the community map again if needed.
+</p>
     `;
     document.body.appendChild(modal);
     document.body.classList.add('modal-open');
@@ -3332,14 +4984,12 @@ downloadCommunityBtn.onclick = () => {
     playSound('click');
     showConfirmModal(
     '🚀UPDATE COMMUNITY MAP🚀',
-    `<div style="text-align:left; line-height:1.45; font-size:1.1em; padding:12px 20px;">
-        <strong>Your personal markers & edits are 100% SAFE</strong><br><br>
-        This will fetch the latest verified community markers.<br><br>
-        • Community markers may receive description & category improvements<br>
-        • Your created and kept markers will never be changed or deleted<br>
-        • Removed community markers will be cleaned up automatically<br><br>
-        <strong>Proceed with the update?</strong>
-    </div>`,
+`<strong style="display:block; text-align:left !important;">Your personal markers & edits are 100% SAFE</strong><br><br>
+This will fetch the latest verified community markers.<br><br>
+• Community markers may receive description & category improvements<br>
+• Your created and kept markers will never be changed or deleted<br>
+• Removed community markers will be cleaned up automatically<br><br>
+<strong style="display:block; text-align:left !important;">Proceed with the update?</strong>`,
     async () => {
         downloadCommunityBtn.disabled = true;
         downloadCommunityBtn.textContent = 'Updating...';
@@ -3424,22 +5074,19 @@ downloadCommunityBtn.onclick = () => {
 
 showConfirmModal(
     '☢ COMMUNITY MAP UPDATED ☢',
-    `<div style="text-align:left; line-height:1.45; font-size:1.1em; padding:12px 20px;">
-        <strong style="color:#00ff88;">${added}</strong> new markers added<br>
-        <strong style="color:#88ccff;">${refreshed}</strong> community markers refreshed<br>
-        <strong style="color:#ffa500;">${skipped}</strong> kept/edited markers protected<br>
-        <strong style="color:#ffcc00;">${userMarkersBefore}</strong> personal markers untouched<br>
-        ${cleaned > 0 ? `<strong style="color:#ff4444;">${cleaned}</strong> deleted community markers removed<br>` : ''}
-        ${approvedCount > 0 ? `<strong style="color:#00ff88;">${approvedCount}</strong> of your submissions approved!<br>` : ''}
-       
-        <strong style="color:#00ff00;">Total markers on map: ${locations.length}</strong><br><br>
-       
-        • You kept <strong style="color:#88ccff;">${skipped}</strong> community marker${skipped === 1 ? '' : 's'}<br>
-        • You logged <strong style="color:#88ccff;">${userMarkersBefore}</strong> personal marker${userMarkersBefore === 1 ? '' : 's'}<br>
-        • You are Level <strong style="color:#00ff88;">${level}</strong> explorer<br><br>
-       
-        <strong>Community Map v${newVersion} loaded — happy exploring Appalachia!</strong>
-    </div>`,
+`<strong style="color:#00ff88;">${added}</strong> - new markers added<br>
+<strong style="color:#88ccff;">${refreshed}</strong> - community markers refreshed<br>
+<strong style="color:#ffa500;">${skipped}</strong> - kept/edited markers protected<br>
+<strong style="color:#ffcc00;">${userMarkersBefore}</strong> - personal markers untouched<br>
+${cleaned > 0 ? `<strong style="color:#ff4444;">${cleaned}</strong> - deleted community markers removed<br>` : ''}
+${approvedCount > 0 ? `<strong style="color:#00ff88;">${approvedCount}</strong> - of your submissions approved!<br>` : ''}
+<strong style="color:#00ff00;">Total markers on map: ${locations.length}</strong><br><br>
+
+• You kept <strong style="color:#88ccff;">${skipped}</strong> community marker${skipped === 1 ? '' : 's'}<br>
+• You logged <strong style="color:#88ccff;">${userMarkersBefore}</strong> personal marker${userMarkersBefore === 1 ? '' : 's'}<br>
+• You are Level <strong style="color:#00ff88;">${level}</strong> explorer<br><br>
+
+<strong>Community Map v${newVersion} loaded — happy exploring Appalachia!</strong>`,
     null
 );
                 playSound('saving');
@@ -4158,24 +5805,26 @@ if (localStorage.getItem('postResetMessageShown') === 'true') {
     }, 1800);
 }
 
-const nukeBtn = document.getElementById('nukeCodesBtn');
-const toggleCatBtn = document.getElementById('toggleCategoryModalBtn');
-
-if (nukeBtn) {
-    nukeBtn.addEventListener('click', function(e) {
-        e.stopImmediatePropagation();
-        const modal = document.getElementById('nukeCodesModal');
-        if (modal) {
-            modal.style.display = 'block';
-            document.body.classList.add('modal-open');
-            playSound('click');
-        }
-    });
+// ── FINAL CLEAN SINGLE HANDLERS (exactly like working 76.75c + anti-stack protection) ──
+if (howToUseBtn) {
+    howToUseBtn.onclick = () => {
+        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        instructionsModal.style.display = 'block';
+        document.body.classList.add('modal-open');
+        playSound('click');
+    };
 }
-
-if (toggleCatBtn) {
-    toggleCatBtn.addEventListener('click', function(e) {
-        e.stopImmediatePropagation();
+if (nukeCodesBtn) {
+    nukeCodesBtn.onclick = () => {
+        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        nukeCodesModal.style.display = 'block';
+        document.body.classList.add('modal-open');
+        playSound('click');
+    };
+}
+if (toggleCategoryModalBtn) {
+    toggleCategoryModalBtn.onclick = () => {
+        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
         const modal = document.getElementById('categoryToggleModal');
         if (modal) {
             modal.style.display = 'block';
@@ -4183,32 +5832,22 @@ if (toggleCatBtn) {
             renderCategoryToggles();
             playSound('click');
         }
-    });
+    };
 }
 
-if (howToUseBtn) {
-            howToUseBtn.onclick = () => {
-                instructionsModal.style.display = 'block';
-                document.body.classList.add('modal-open');
-                playSound('click');
-            };
+// ── FIXED GENERIC MODAL CLOSE (kept exactly as you had it) ──
+document.querySelectorAll('.modal .close').forEach(closeBtn => {
+    closeBtn.onclick = (e) => {
+        e.stopPropagation();
+        const modal = closeBtn.closest('.modal');
+        if (modal.id === 'itemModal') {
+            closeModal(modal);
+        } else {
+            modal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+            playSound('modalClose');
         }
-                // ── FIXED GENERIC MODAL CLOSE (calls proper closeModal for itemModal) ──
-        document.querySelectorAll('.modal .close').forEach(closeBtn => {
-            closeBtn.onclick = (e) => {
-                e.stopPropagation();
-                const modal = closeBtn.closest('.modal');
-
-                if (modal.id === 'itemModal') {
-                    // Use our special closeModal that restores fullscreen
-                    closeModal(modal);
-                } else {
-                    // All other modals close normally
-                    modal.style.display = 'none';
-                    document.body.classList.remove('modal-open');
-                    playSound('modalClose');
-                }
-            };
+    };
         });
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 if (SpeechRecognition && voiceSearchBtn) {
@@ -4484,21 +6123,19 @@ document.addEventListener('click', e => {
     }
 });
 
-// === PWA INSTALL BANNER — ❤️ Love the map? (FINAL — All Devices + Persistent) ===
+// === PWA INSTALL BANNER — Correct iOS instructions (no broken Install button) ===
 let deferredPrompt = null;
 const PWA_DISMISSED_KEY = 'pwaInstallPromptDismissed';
 
-const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-const isInstalled = () => 
+const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+const isInstalled = () =>
     window.matchMedia('(display-mode: standalone)').matches ||
     window.matchMedia('(display-mode: minimal-ui)').matches ||
-    window.matchMedia('(display-mode: fullscreen)').matches ||
     window.navigator.standalone === true;
 
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-});
+window.addEventListener('beforeinstallprompt', e => { deferredPrompt = e; });
 
 setTimeout(() => {
     if (isInstalled() || localStorage.getItem(PWA_DISMISSED_KEY) === 'true') return;
@@ -4514,15 +6151,15 @@ setTimeout(() => {
     if (isIOS()) {
         banner.innerHTML = `
             ❤️ Love the map?<br>
-            <span style="font-size:15px;line-height:1.3;">Tap the <strong>Share</strong> button <span style="font-size:20px;">⎇</span> at the bottom,<br>then select <strong>“Add to Home Screen”</strong>.</span><br><br>
-            <button id="installYes" style="background:#00ff00;color:#000;padding:8px 16px;border:none;margin:8px;cursor:pointer;">Got it</button>
+            <span style="font-size:15px;line-height:1.35;">Tap the <strong>Share</strong> button <span style="font-size:22px;">⎇</span> at the bottom of Safari,<br>then choose <strong>“Add to Home Screen”</strong>.</span><br><br>
+            <button id="installYes" style="background:#00ff00;color:#000;padding:10px 24px;border:none;margin:8px;cursor:pointer;">Got it</button>
             <button id="installNo" style="background:transparent;color:#00ff00;border:none;margin:8px;cursor:pointer;">Maybe later</button>
         `;
     } else {
         banner.innerHTML = `
             ❤️ Love the map?<br>
             <span style="font-size:14px;">Add this app to your home screen for quick access.</span><br><br>
-            <button id="installYes" style="background:#00ff00;color:#000;padding:8px 16px;border:none;margin:8px;cursor:pointer;">Install</button>
+            <button id="installYes" style="background:#00ff00;color:#000;padding:10px 24px;border:none;margin:8px;cursor:pointer;">Install</button>
             <button id="installNo" style="background:transparent;color:#00ff00;border:none;margin:8px;cursor:pointer;">Maybe later</button>
         `;
     }
@@ -4544,8 +6181,7 @@ setTimeout(() => {
     };
 
     document.getElementById('installNo').onclick = dismissBanner;
-
-}, 30000);
+}, 25000);
 
 // Auto-dismiss permanently if the app is installed
 window.addEventListener('appinstalled', () => {
@@ -5382,10 +7018,12 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = C-75g-5-04-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = C-75h-6-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
     })();
 });
 </script>
+</body>
+</html>
