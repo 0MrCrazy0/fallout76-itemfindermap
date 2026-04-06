@@ -73,7 +73,7 @@
         <div style="font-size:0.8em; margin-top:15px; opacity:0.8;">Please wait a moment</div>
     </div>
 
-        <script>
+<script>
         const params = new URLSearchParams(window.location.search);
         const lat = params.get('lat');
         const lng = params.get('lng');
@@ -83,6 +83,10 @@
         const id = params.get('id');
         const cid = params.get('cid');
         const wasCommunityKept = params.get('wasCommunityKept') === 'true';
+
+        // PWA detection (works on both Android and iOS)
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                             window.navigator.standalone === true;
 
         document.getElementById('latLng').textContent = lat && lng ? `${lat}, ${lng}` : '(location missing)';
         document.getElementById('category').textContent = icon && category ? `${icon} ${category}` : '(category missing)';
@@ -118,15 +122,21 @@
         }
 
         function closeAndReturn() {
-            if (window.opener) {
-                window.opener.focus();   // Bring the original map tab to the front
-            }
-            window.close();              // Attempt to close this tab
-
-            // Fallback (in case the browser blocks window.close())
-            setTimeout(() => {
+            if (isStandalone) {
+                // PWA mode (Android or iOS): navigate back safely
                 window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
-            }, 80);
+            } else {
+                // Normal desktop browser behaviour
+                if (window.opener) {
+                    window.opener.focus();
+                }
+                window.close();
+
+                // Fallback in case the browser blocks window.close()
+                setTimeout(() => {
+                    window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
+                }, 80);
+            }
         }
 
         // CANCEL removes the CID from localStorage so you can try again
