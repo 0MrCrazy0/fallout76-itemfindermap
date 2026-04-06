@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: 'Courier New', monospace;
-            background: #0a2a2a;
+            background: #000000;           /* ← Pure black background behind the popup */
             color: #00ff00;
             padding: 20px;
             text-align: center;
@@ -31,11 +31,13 @@
         }
         p {
             line-height: 1.5;
+            color: #00ff00;
         }
         label {
             display: block;
             margin: 15px 0 5px;
             font-weight: bold;
+            color: #00ff88;
         }
         input {
             width: 100%;
@@ -60,6 +62,14 @@
         }
         button:hover {
             background: #00cc00;
+        }
+        .return-btn {
+            background: #00ff88;
+            color: #000;
+            padding: 14px 32px;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 25px;
         }
         #success, #error, #warningBlock {
             margin-top: 25px;
@@ -87,6 +97,9 @@
     <div class="container">
         <h1>Submit Marker to Community Map</h1>
         <p>Share your discovery with the wasteland!<br>A Moderator will review and merge it soon.</p>
+
+        <!-- Return to Map button always visible on main form -->
+        <button onclick="returnToMap()" class="return-btn" style="margin-bottom:20px;">← Return to Map</button>
 
         <!-- Warning / Duplicate Block -->
         <div id="warningBlock" style="display:none;">
