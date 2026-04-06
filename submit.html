@@ -117,13 +117,17 @@
             form.style.display = 'block';
         }
 
-        // Safer return function – works for both new tabs and popups
         function closeAndReturn() {
             window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
         }
 
-        // Cancel does NOT touch localStorage
+        // CANCEL removes the CID from localStorage so you can try again
         function cancelSubmit() {
+            if (cid) {
+                let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
+                submitted = submitted.filter(c => c !== cid);
+                localStorage.setItem('submitted_cids', JSON.stringify(submitted));
+            }
             closeAndReturn();
         }
 
