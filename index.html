@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map</title>
 	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
-	<link rel="manifest" href="manifest.json?v=76.75.2">
+	<link rel="manifest" href="manifest.json?v=76.75.3">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1673,7 +1673,7 @@ select#itemCategory:hover {
         </div>
     </div>
 <script>
-const CURRENT_APP_VERSION = '76.75.2';
+const CURRENT_APP_VERSION = '76.75.3';
 
 // ── All version numbers now use this single line (change it here only) ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -1689,49 +1689,20 @@ if (currentVer === CURRENT_APP_VERSION) {
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/fallout76-itemfindermap/service-worker.js', { updateViaCache: 'none' })
         .then(reg => {
-            // Force immediate update check on every app launch
-            reg.update();
+            reg.update();   // Force check for updates every time the app opens
 
-            // Listen for a new version being ready
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;
                 if (newWorker) {
                     newWorker.addEventListener('statechange', () => {
                         if (newWorker.state === 'installed') {
-                            showPWAUpdateBanner();
+                            showUpdateNotice();   // Only the original small notice
                         }
                     });
                 }
             });
         })
         .catch(err => console.warn('SW registration failed:', err));
-}
-
-// ── Clean, prominent update banner (shows immediately on launch) ──
-function showPWAUpdateBanner() {
-    if (document.getElementById('pwaUpdateBanner')) return;
-
-    const banner = document.createElement('div');
-    banner.id = 'pwaUpdateBanner';
-    banner.style.cssText = `
-        position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
-        background: #001a00; color: #00ff88; padding: 18px 26px; border: 4px solid #00ff00;
-        border-radius: 8px; font: bold 17px 'Courier New', monospace; text-align: center;
-        z-index: 999999; box-shadow: 0 0 30px #00ff00; max-width: 92%;
-    `;
-    banner.innerHTML = `
-        🚀 New version available!<br>
-        <span style="font-size:15px;">App updated to v${CURRENT_APP_VERSION}</span><br>
-        <button id="updateNowBtn" style="margin-top:12px; background:#00ff00; color:#000; border:none; padding:12px 32px; font-weight:bold; cursor:pointer; border-radius:4px; font-size:16px;">
-            UPDATE NOW
-        </button>
-    `;
-    document.body.appendChild(banner);
-
-    document.getElementById('updateNowBtn').onclick = () => {
-        banner.remove();
-        window.location.reload(true);   // Forces the new version to activate
-    };
 }
 
 // One-time migration for ancient versions (pre-v76) — runs ONLY ONCE ever
@@ -1749,48 +1720,61 @@ if ('serviceWorker' in navigator && !sessionStorage.getItem('recoveryDone')) {
     }, 1200);
 }
 
-// Passive update notice (kept for consistency)
+// Passive update notice (the original small banner you already had)
 function showUpdateNotice() {
     if (document.getElementById('updateBanner')) return;
     const communityVer = localStorage.getItem('fo76_map_version') || "1.0";
     const banner = document.createElement('div');
     banner.id = 'updateBanner';
     banner.style.cssText = `
-        position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-        background: #001a00; color: #00ff88; padding: 14px 20px; text-align: center;
-        font: bold 15px 'Courier New', monospace; z-index: 999999;
-        box-shadow: 0 -4px 15px rgba(0, 255, 0, 0.4); border-top: 2px solid #00ff00;
-        max-width: 96%; width: 96%; line-height: 1.5; text-shadow: 0 0 8px #00ff00;
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #001a00;
+        color: #00ff88;
+        padding: 14px 20px;
+        text-align: center;
+        font: bold 15px 'Courier New', monospace;
+        z-index: 999999;
+        box-shadow: 0 -4px 15px rgba(0, 255, 0, 0.4);
+        border-top: 2px solid #00ff00;
+        max-width: 96%;
+        width: 96%;
+        line-height: 1.5;
+        text-shadow: 0 0 8px #00ff00;
     `;
     banner.innerHTML = `
         App updated to v${CURRENT_APP_VERSION}<br>
         Community Map: v${communityVer}<br>
-        <span style="color:#88ff88; font-size:13px;">Tap "Update Community Map" for latest markers</span>
+        <span style="color:#88ff88; font-size:13px;">
+            Tap "Update Community Map" for latest markers
+        </span>
     `;
     document.body.appendChild(banner);
     setTimeout(() => {
         banner.style.opacity = '0';
-        setTimeout(() => { if (banner.parentNode) banner.parentNode.removeChild(banner); }, 1400);
+        setTimeout(() => {
+            if (banner.parentNode) banner.parentNode.removeChild(banner);
+        }, 1400);
     }, 5000);
 }
 
 // Check and show notice only if version changed
 document.addEventListener('DOMContentLoaded', () => {
     const storedVersion = localStorage.getItem('fo76_map_version') || '0';
+   
     if (storedVersion !== CURRENT_APP_VERSION) {
         showUpdateNotice();
     }
-
     if (sessionStorage.getItem('returnFromPending') === 'true') {
-        sessionStorage.removeItem('returnFromPending');   // clear flag immediately
-        
+        sessionStorage.removeItem('returnFromPending');
         setTimeout(() => {
             instructionsModal.style.display = 'block';
             document.body.classList.add('modal-open');
             playSound('click');
         }, 800);
     }
-
     // === POST REFRESH MESSAGE ===
     const postRefreshMsg = localStorage.getItem('postRefreshMessage');
     if (postRefreshMsg && !sessionStorage.getItem('postRefreshShown')) {
@@ -7025,7 +7009,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = 76.75.2 • 6-04-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = 76.75.3 • 6-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
