@@ -1831,32 +1831,11 @@ const baseSounds = {
 
 Object.values(baseSounds).forEach(s => { s.volume = 0.30; });
 
-// Global debounce to prevent overlapping sounds
-let lastGlobalSoundTime = 0;
-const GLOBAL_DEBOUNCE_MS = 100;
-
 function playSound(type) {
-    if (!soundsEnabled || !baseSounds[type]) return;
-
-    const now = Date.now();
-    if (now - lastGlobalSoundTime < GLOBAL_DEBOUNCE_MS) return;
-    lastGlobalSoundTime = now;
-
-    // Per-type cooldowns 
-    if (!window.lastSoundTime) window.lastSoundTime = {};
-    const cooldowns = {
-        type: 150, click: 130, saving: 80, modalClose: 80,
-        selectcategory: 80, postcard: 80, dust: 80,
-        duplicate: 80, error: 80, undo: 80, levelUp: 80
-    };
-    const cooldown = cooldowns[type] || 80;
-    if (window.lastSoundTime[type] && now - window.lastSoundTime[type] < cooldown) return;
-    window.lastSoundTime[type] = now;
-
-    if (!audioUnlocked) unlockAudio(); // safety
-
-    baseSounds[type].currentTime = 0;
-    baseSounds[type].play().catch(() => {});
+    if (soundsEnabled && baseSounds[type]) {
+        baseSounds[type].currentTime = 0;
+        baseSounds[type].play().catch(() => {});
+    }
 }
 
 // ── iOS SAFARI AUDIO UNLOCK ──
@@ -1865,7 +1844,6 @@ let audioUnlocked = false;
 function unlockAudio() {
     if (audioUnlocked) return;
     audioUnlocked = true;
-
     Object.values(baseSounds).forEach(sound => {
         sound.volume = 0.30;
         sound.play().catch(() => {});
@@ -1874,31 +1852,9 @@ function unlockAudio() {
     console.log('🔊 Audio unlocked for iOS Safari');
 }
 
-// Resume audio immediately when returning to app
-function resumeAudioOnReturn() {
-    if (!audioUnlocked) {
-        unlockAudio();
-    } else {
-        // Re-activate any suspended audio
-        Object.values(baseSounds).forEach(sound => {
-            if (sound.paused) {
-                sound.play().catch(() => {}).then(() => sound.pause());
-            }
-        });
-    }
-}
-
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') resumeAudioOnReturn();
-});
-
-document.addEventListener('pageshow', (event) => {
-    if (event.persisted) resumeAudioOnReturn(); // PWA "return to app"
-});
-
-// Extra robust unlock on common user interactions
+// Attach unlock listeners ONLY once
 function attachAudioUnlockListeners() {
-    const events = ['touchstart', 'click', 'mousedown'];
+    const events = ['touchstart', 'click'];
     events.forEach(ev => {
         document.documentElement.addEventListener(ev, unlockAudio, { once: true });
         document.getElementById('map')?.addEventListener(ev, unlockAudio, { once: true });
