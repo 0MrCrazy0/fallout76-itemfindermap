@@ -1814,73 +1814,98 @@ document.addEventListener('DOMContentLoaded', () => {
     const APP_VERSION = "APP_VERSION";
         let soundsEnabled = localStorage.getItem('soundsEnabled') !== 'false';
 
-        const baseSounds = {
-            click: new Audio("https://rpg.hamsterrepublic.com/wiki-images/8/84/Select8-Bit.ogg"),
-            type: new Audio("https://rpg.hamsterrepublic.com/wiki-images/3/3a/Thip.ogg"),
-            error: new Audio("https://rpg.hamsterrepublic.com/wiki-images/1/12/Ping-da-ding-ding-ding.ogg"),
-            duplicate: new Audio("https://rpg.hamsterrepublic.com/wiki-images/0/0b/Robot_2.ogg"),
-            saving: new Audio("https://rpg.hamsterrepublic.com/wiki-images/9/9c/Robot_1.ogg"),
-            undo: new Audio("https://rpg.hamsterrepublic.com/wiki-images/d/d7/Oddbounce.ogg"),
-            delete: new Audio("https://rpg.hamsterrepublic.com/wiki-images/0/04/TextboxBloop8-Bit.ogg"),
-            levelUp: new Audio("https://rpg.hamsterrepublic.com/wiki-images/d/d5/Menu8-Bit.ogg"),
-            modalClose: new Audio("https://rpg.hamsterrepublic.com/wiki-images/8/8e/Confirm8-Bit.ogg"),
-            selectcategory: new Audio("https://rpg.hamsterrepublic.com/wiki-images/a/a8/Rolling_Switch.ogg"),
-            postcard: new Audio("https://rpg.hamsterrepublic.com/wiki-images/0/0b/Robot_2.ogg"),
-            dust: new Audio("https://rpg.hamsterrepublic.com/wiki-images/0/04/TextboxBloop8-Bit.ogg")
-        };
+const baseSounds = {
+    click: new Audio("https://rpg.hamsterrepublic.com/wiki-images/8/84/Select8-Bit.ogg"),
+    type: new Audio("https://rpg.hamsterrepublic.com/wiki-images/3/3a/Thip.ogg"),
+    error: new Audio("https://rpg.hamsterrepublic.com/wiki-images/1/12/Ping-da-ding-ding-ding.ogg"),
+    duplicate: new Audio("https://rpg.hamsterrepublic.com/wiki-images/0/0b/Robot_2.ogg"),
+    saving: new Audio("https://rpg.hamsterrepublic.com/wiki-images/9/9c/Robot_1.ogg"),
+    undo: new Audio("https://rpg.hamsterrepublic.com/wiki-images/d/d7/Oddbounce.ogg"),
+    delete: new Audio("https://rpg.hamsterrepublic.com/wiki-images/0/04/TextboxBloop8-Bit.ogg"),
+    levelUp: new Audio("https://rpg.hamsterrepublic.com/wiki-images/d/d5/Menu8-Bit.ogg"),
+    modalClose: new Audio("https://rpg.hamsterrepublic.com/wiki-images/8/8e/Confirm8-Bit.ogg"),
+    selectcategory: new Audio("https://rpg.hamsterrepublic.com/wiki-images/a/a8/Rolling_Switch.ogg"),
+    postcard: new Audio("https://rpg.hamsterrepublic.com/wiki-images/0/0b/Robot_2.ogg"),
+    dust: new Audio("https://rpg.hamsterrepublic.com/wiki-images/0/04/TextboxBloop8-Bit.ogg")
+};
 
-        Object.values(baseSounds).forEach(s => { s.volume = 0.30; });
+Object.values(baseSounds).forEach(s => { s.volume = 0.30; });
 
-                function playSound(type) {
-            if (!soundsEnabled || !baseSounds[type]) return;
-            if (!audioUnlocked) unlockAudio(); // ← extra safety
+// Global debounce to prevent overlapping sounds
+let lastGlobalSoundTime = 0;
+const GLOBAL_DEBOUNCE_MS = 100;
 
-            const now = Date.now();
-            if (!window.lastSoundTime) window.lastSoundTime = {};
-            const cooldowns = {
-                type: 150,
-                click: 130,
-                saving: 80,
-                modalClose: 80,
-                selectcategory: 80,
-                postcard: 80,
-                dust: 80,
-                duplicate: 80,
-                error: 80,
-                undo: 80,
-                levelUp: 80
-            };
-            const cooldown = cooldowns[type] || 80;
-            if (window.lastSoundTime[type] && now - window.lastSoundTime[type] < cooldown) {
-                return;
+function playSound(type) {
+    if (!soundsEnabled || !baseSounds[type]) return;
+
+    const now = Date.now();
+    if (now - lastGlobalSoundTime < GLOBAL_DEBOUNCE_MS) return;
+    lastGlobalSoundTime = now;
+
+    // Per-type cooldowns 
+    if (!window.lastSoundTime) window.lastSoundTime = {};
+    const cooldowns = {
+        type: 150, click: 130, saving: 80, modalClose: 80,
+        selectcategory: 80, postcard: 80, dust: 80,
+        duplicate: 80, error: 80, undo: 80, levelUp: 80
+    };
+    const cooldown = cooldowns[type] || 80;
+    if (window.lastSoundTime[type] && now - window.lastSoundTime[type] < cooldown) return;
+    window.lastSoundTime[type] = now;
+
+    if (!audioUnlocked) unlockAudio(); // safety
+
+    baseSounds[type].currentTime = 0;
+    baseSounds[type].play().catch(() => {});
+}
+
+// ── iOS SAFARI AUDIO UNLOCK ──
+let audioUnlocked = false;
+
+function unlockAudio() {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+
+    Object.values(baseSounds).forEach(sound => {
+        sound.volume = 0.30;
+        sound.play().catch(() => {});
+        setTimeout(() => { sound.pause(); sound.currentTime = 0; }, 10);
+    });
+    console.log('🔊 Audio unlocked for iOS Safari');
+}
+
+// Resume audio immediately when returning to app
+function resumeAudioOnReturn() {
+    if (!audioUnlocked) {
+        unlockAudio();
+    } else {
+        // Re-activate any suspended audio
+        Object.values(baseSounds).forEach(sound => {
+            if (sound.paused) {
+                sound.play().catch(() => {}).then(() => sound.pause());
             }
-            window.lastSoundTime[type] = now;
-            baseSounds[type].currentTime = 0;
-            baseSounds[type].play().catch(() => {});
-        }
+        });
+    }
+}
 
-                // ── iOS SAFARI AUDIO UNLOCK ──
-        let audioUnlocked = false;
-        function unlockAudio() {
-            if (audioUnlocked) return;
-            audioUnlocked = true;
-            Object.values(baseSounds).forEach(sound => {
-                sound.volume = 0.30;
-                sound.play().catch(() => {});
-                setTimeout(() => { sound.pause(); sound.currentTime = 0; }, 10);
-            });
-            console.log('🔊 Audio unlocked for iOS Safari');
-        }
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') resumeAudioOnReturn();
+});
 
-        // Extra robust unlock on common user interactions
-        function attachAudioUnlockListeners() {
-            const events = ['touchstart', 'click', 'mousedown'];
-            events.forEach(ev => {
-                document.documentElement.addEventListener(ev, unlockAudio, { once: true });
-                document.getElementById('map')?.addEventListener(ev, unlockAudio, { once: true });
-            });
-        }
-		attachAudioUnlockListeners();
+document.addEventListener('pageshow', (event) => {
+    if (event.persisted) resumeAudioOnReturn(); // PWA "return to app"
+});
+
+// Extra robust unlock on common user interactions
+function attachAudioUnlockListeners() {
+    const events = ['touchstart', 'click', 'mousedown'];
+    events.forEach(ev => {
+        document.documentElement.addEventListener(ev, unlockAudio, { once: true });
+        document.getElementById('map')?.addEventListener(ev, unlockAudio, { once: true });
+    });
+}
+
+attachAudioUnlockListeners();
 
         // ── FETCH WITH TIMEOUT HELPER
         async function fetchWithTimeout(url, timeout = 12000) {
