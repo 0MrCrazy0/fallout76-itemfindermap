@@ -73,7 +73,7 @@
         <div style="font-size:0.8em; margin-top:15px; opacity:0.8;">Please wait a moment</div>
     </div>
 
-    <script>
+        <script>
         const params = new URLSearchParams(window.location.search);
         const lat = params.get('lat');
         const lng = params.get('lng');
@@ -118,7 +118,15 @@
         }
 
         function closeAndReturn() {
-            window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
+            if (window.opener) {
+                window.opener.focus();   // Bring the original map tab to the front
+            }
+            window.close();              // Attempt to close this tab
+
+            // Fallback (in case the browser blocks window.close())
+            setTimeout(() => {
+                window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
+            }, 80);
         }
 
         // CANCEL removes the CID from localStorage so you can try again
