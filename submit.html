@@ -13,6 +13,8 @@
         input { width: 100%; padding: 10px; background: #000; color: #00ff00; border: 2px solid #00ff00; font-family: inherit; font-size: 1em; box-sizing: border-box; }
         button { margin-top: 20px; padding: 14px 32px; background: #00ff00; color: #000; border: none; font-weight: bold; font-size: 1.2em; cursor: pointer; box-shadow: 0 0 12px #00ff00; }
         button:hover { background: #00cc00; }
+        .cancel-btn { background: #ff4444; color: #fff; }
+        .cancel-btn:hover { background: #cc0000; }
         .return-btn { background: #00ff88; color: #000; padding: 14px 32px; font-size: 1.2em; font-weight: bold; margin-top: 25px; }
         #success, #error, #warningBlock { margin-top: 25px; padding: 20px; border: 2px solid; border-radius: 4px; }
         #success { background: rgba(0,255,0,0.15); border-color: #00ff00; }
@@ -22,6 +24,7 @@
         #submitLoadingOverlay.show { display: flex; }
         .spinner { width: 60px; height: 60px; border: 6px solid #00ff00; border-top: 6px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .button-row { display: flex; justify-content: center; gap: 15px; margin-top: 20px; flex-wrap: wrap; }
     </style>
 </head>
 <body>
@@ -38,7 +41,10 @@
             <label for="playerName">Your In-Game Name (optional)</label>
             <input type="text" id="playerName" placeholder="e.g., VaultDweller42">
 
-            <button type="submit" id="submitBtn">SUBMIT MARKER</button>
+            <div class="button-row">
+                <button type="submit" id="submitBtn">SUBMIT MARKER</button>
+                <button type="button" onclick="cancelSubmit()" class="cancel-btn">CANCEL</button>
+            </div>
         </form>
 
         <div id="success" style="display:none;">
@@ -111,9 +117,14 @@
             form.style.display = 'block';
         }
 
+        // Safer return function – works for both new tabs and popups
         function closeAndReturn() {
-            window.close();
-            setTimeout(() => { window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/'); }, 300);
+            window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
+        }
+
+        // Cancel does NOT touch localStorage
+        function cancelSubmit() {
+            closeAndReturn();
         }
 
         form.addEventListener('submit', async (e) => {
