@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map</title>
 	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
-	<link rel="manifest" href="manifest.json?v=75h">
+	<link rel="manifest" href="manifest.json?v=76.75i">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -536,7 +536,6 @@ body.dark-mode h1,
 body.dark-mode h2 {
     color: #00ff00 !important;
 }
-//* Professional button styling – NO glowing hover in dark mode */
 body.dark-mode button,
 body.dark-mode #toggleButtonGroup,
 body.dark-mode #buttonGroup button {
@@ -1291,34 +1290,32 @@ button:not(:hover):not(:active):not(:focus),
         transition: all 0.12s ease;
     }
 }
-/* Force black text on export backup buttons */
 #backupPersonalOnly, #backupWithKept,
 #backupPersonalOnly small, #backupWithKept small {
     color: #000000 !important;
 }
-/* Force black text on final wipe modal buttons (never react to dark mode) */
 #cancelSafetyBtn,
 #proceedWipeBtn {
     color: #000000 !important;
 }
-
-/* Make sure the small text inside stays black too */
 #cancelSafetyBtn small,
 #proceedWipeBtn small {
     color: #000000 !important;
 }
-/* Hand pointer on ALL clickable elements */
 button,
 a,
 label,
+select,
+#categoryFilter,
+#itemCategory,
+#toggleCategoryModalBtn,
 #locationsTable tbody tr,
-#categoryCheckboxes label,
-#categoryCheckboxes label span,
+#buttonGroup button,
+#contextCreateMarkerBtn,
+#contextCreatePostcardBtn,
 .leaflet-control a,
 .leaflet-popup button,
 #itemModal button,
-#buttonGroup button,
-#toggleCategoryModalBtn,
 #prevPageBtn,
 #nextPageBtn,
 #selectAllBtn,
@@ -1330,7 +1327,6 @@ label,
 #createPostcardBtn,
 #confirmDeleteCategoryBtn,
 #confirmModalBtn,
-#updateGotItBtn,
 #exportOneBtn,
 #shareOneBtn,
 #duplicateItemBtn,
@@ -1369,11 +1365,25 @@ label,
     filter: none !important;
     animation: none !important;
 }
-
 #contextCreateMarkerBtn:hover,
 #contextCreatePostcardBtn:hover {
     background-color: #00ff00 !important;
     color: #000000 !important;
+}
+#categoryFilter,
+#itemCategory,
+select#categoryFilter,
+select#itemCategory,
+#searchBar select,
+#searchBar select#categoryFilter {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+#categoryFilter:hover,
+#itemCategory:hover,
+select#categoryFilter:hover,
+select#itemCategory:hover {
+    cursor: pointer !important;
 }
 </style>
 </head>
@@ -1651,7 +1661,7 @@ label,
         </div>
     </div>
 <script>
-const CURRENT_APP_VERSION = '76.75h';
+const CURRENT_APP_VERSION = '76.75i';
 
 // ── All version numbers now use this single line (change it here only) ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -1807,7 +1817,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dust: new Audio("https://rpg.hamsterrepublic.com/wiki-images/0/04/TextboxBloop8-Bit.ogg")
         };
 
-        Object.values(baseSounds).forEach(s => { s.volume = 0.15; });
+        Object.values(baseSounds).forEach(s => { s.volume = 0.30; });
 
                 function playSound(type) {
             if (!soundsEnabled || !baseSounds[type]) return;
@@ -1837,13 +1847,13 @@ document.addEventListener('DOMContentLoaded', () => {
             baseSounds[type].play().catch(() => {});
         }
 
-                // ── iOS SAFARI AUDIO UNLOCK (more reliable for Safari) ──
+                // ── iOS SAFARI AUDIO UNLOCK ──
         let audioUnlocked = false;
         function unlockAudio() {
             if (audioUnlocked) return;
             audioUnlocked = true;
             Object.values(baseSounds).forEach(sound => {
-                sound.volume = 0.01;
+                sound.volume = 0.30;
                 sound.play().catch(() => {});
                 setTimeout(() => { sound.pause(); sound.currentTime = 0; }, 10);
             });
@@ -1858,6 +1868,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('map')?.addEventListener(ev, unlockAudio, { once: true });
             });
         }
+		attachAudioUnlockListeners();
 
         // ── FETCH WITH TIMEOUT HELPER
         async function fetchWithTimeout(url, timeout = 12000) {
@@ -2083,8 +2094,9 @@ Object.keys(customCategories).forEach(cat => {
         let imageOverlay = L.imageOverlay(mapUrls[currentMap], imageBounds).addTo(map);
         map.fitBounds(imageBounds);
         L.control.zoom({ position: 'topleft' }).addTo(map);
-// ── FULLSCREEN TOGGLE (🔭 button) – IMPROVED FOR iPHONE SAFARI / PWA ──
+// ── FULLSCREEN TOGGLE (🔭 button) FOR iPHONE SAFARI / PWA ──
 const fullscreenControl = L.control({ position: 'topright' });
+/* STRONGER iOS FULLSCREEN (replaces existing fullscreenControl.onAdd) */
 fullscreenControl.onAdd = function(map) {
     const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
     const link = L.DomUtil.create('a', '', container);
@@ -2092,30 +2104,26 @@ fullscreenControl.onAdd = function(map) {
     link.title = 'Toggle fullscreen';
     link.innerHTML = '🔭';
     link.style.cssText = `display:block;width:34px;height:34px;line-height:34px;text-align:center;font-size:20px;background:#1a3c34;color:#00ff00;border:none;box-shadow:0 0 8px #00ff00;cursor:pointer;`;
-
     L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
               .on(link, 'click', L.DomEvent.preventDefault)
               .on(link, 'click', () => {
                   const mapEl = document.getElementById('map');
                   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
                   if (isIOS) {
-                      // Improved iOS pseudo-fullscreen (2026 best practice)
                       mapEl.style.position = 'fixed';
                       mapEl.style.top = '0';
                       mapEl.style.left = '0';
                       mapEl.style.width = '100vw';
-                      mapEl.style.height = '100dvh';           // ← modern dynamic height
+                      mapEl.style.height = '100dvh';
                       mapEl.style.paddingTop = 'env(safe-area-inset-top)';
                       mapEl.style.paddingBottom = 'env(safe-area-inset-bottom)';
                       mapEl.style.zIndex = '999999';
                       mapEl.style.border = 'none';
                       map.invalidateSize({ animate: false });
-                      setTimeout(() => map.invalidateSize({ animate: false }), 150);
-                      setTimeout(() => map.invalidateSize({ animate: false }), 400);
-                      showTempMessage('MAXIMIZED VIEW (iOS limitation)', 2500);
+                      setTimeout(() => map.invalidateSize({ animate: false }), 80);
+                      setTimeout(() => map.invalidateSize({ animate: false }), 300);
+                      showTempMessage('MAXIMIZED VIEW (iOS)', 1800);
                   } else {
-                      // Normal devices – native fullscreen
                       if (!document.fullscreenElement && !document.webkitFullscreenElement) {
                           mapEl.requestFullscreen ? mapEl.requestFullscreen() : mapEl.webkitRequestFullscreen();
                       } else {
@@ -2123,7 +2131,6 @@ fullscreenControl.onAdd = function(map) {
                       }
                   }
               });
-
     const updateIcon = () => {
         const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
         link.innerHTML = isFullscreen ? '✖' : '🔭';
@@ -2175,7 +2182,6 @@ const updateScreenshotVisibility = () => {
     const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
     screenshotControl.getContainer().style.display = isFullscreen ? 'block' : 'none';
 
-    // ── MINIMAL TARGETED FIX: iPhone fullscreen bright green screen ──
     if (isFullscreen && /iPad|iPhone|iPod/.test(navigator.userAgent)) {
         setTimeout(() => {
             if (typeof map !== 'undefined' && map) map.invalidateSize({ animate: false });
@@ -2224,7 +2230,7 @@ function captureHighResScreenshot() {
         });
     }, 300);
 }
-// ── FULLSCREEN RESTORE LOGIC (STRONG + DEBUG) ──
+// ── FULLSCREEN RESTORE LOGIC ──
 let wasInFullscreenBeforeModal = false;
 let restoreFullscreenBtn = null;
 let exitedForContextMenu = false;
@@ -2367,6 +2373,14 @@ window.exitFullscreenThenDo = function(callback) {
         console.warn('Map image failed to load – forcing fallback');
         setTimeout(forceInitialRender, 300);
     });
+	// STRONGER SAFARI INITIAL RENDER (add after existing forceInitialRender code)
+imageOverlay.on('load', () => {
+    setTimeout(() => {
+        map.invalidateSize({ animate: false });
+        map.setZoom(map.getZoom() + 0.01);
+        setTimeout(() => map.setZoom(map.getZoom() - 0.01), 120);
+    }, 450);
+});
 
     // Safety net for very slow/old devices
     setTimeout(() => {
@@ -3092,7 +3106,7 @@ postcardStyle.textContent = `
 `;
 document.head.appendChild(postcardStyle);
 
-// ── POSTCARD CREATION — STRONGER FIX FOR JUMPING BETWEEN POSTCARDS ──
+// ── POSTCARD CREATION ──
 document.getElementById('createPostcardBtn').onclick = () => {
     const textarea = document.getElementById('postcardMessage');
     let msg = textarea ? textarea.value.trim() : 'Postcard Found!';
@@ -4240,7 +4254,7 @@ function restorePendingUndo() {
     });
 }		
 		
-// ── POLISHED LEVEL-UP CELEBRATION (subtitle text now smaller for mobile) ──
+// ── LEVEL-UP CELEBRATION (subtitle text now smaller for mobile) ──
 function triggerNuke() {
     lockUIDuringAnimation(11000);
 
@@ -4529,7 +4543,7 @@ resetAppBtn.onclick = () => {
         'Other Community markers can be re-added later by clicking the "Update Community Map" button.<br><br>' +
         'Ready to initiate reset protocol?',
         () => {
-            // 1. Backup first
+            // Backup first
             const userMarkers = locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard);
             const personalBackup = {
                 version: "personal-plus-kept-fullbackup",
@@ -4549,7 +4563,7 @@ resetAppBtn.onclick = () => {
 
             triggerEpicFlash("💾", "BACKUP COMPLETE", `${userMarkers.length} marker${userMarkers.length === 1 ? '' : 's'} saved!`, `Level ${level} + XP + All Settings`);
 
-            // 2. Safety modal
+            // Safety modal
             setTimeout(() => {
                 const safetyModal = document.createElement('div');
                 safetyModal.className = 'modal';
@@ -4889,7 +4903,7 @@ importBtn.onclick = () => {
                     }
                 });
 
-                // ── ROBUST SETTINGS RESTORATION ──
+                // ── SETTINGS RESTORATION ──
                 if (isPersonalBackup && data.settings) {
                     clusteringEnabled = data.settings.clusteringEnabled ?? clusteringEnabled;
                     gridEnabled = data.settings.gridEnabled ?? gridEnabled;
@@ -5091,7 +5105,7 @@ ${approvedCount > 0 ? `<strong style="color:#00ff88;">${approvedCount}</strong> 
 );
                 playSound('saving');
 
-// ── POLISHED COMMUNITY MAP CELEBRATION NUKE (original colours restored, new-markers text centred & readable) ──
+// ── COMMUNITY MAP CELEBRATION NUKE ──
 if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
     localStorage.setItem('seenCommunityNuke', 'true');
     setTimeout(() => {
@@ -5635,7 +5649,7 @@ exportOneBtn.onclick = () => {
     closeModal(itemModal);
 };
 
-// ── SUBMIT TO COMMUNITY – FIXED FOR iPHONE (76.75d) ──
+// ── SUBMIT TO COMMUNITY – FIX FOR IOS DEVICES ──
 document.getElementById('submitCommunityBtn').onclick = () => {
     window.exitFullscreenThenDo(() => {
         const loc = locations[currentIndex];
@@ -5648,16 +5662,14 @@ document.getElementById('submitCommunityBtn').onclick = () => {
             showTempMessage('This marker has already been submitted — pending review.', 5000);
             return;
         }
-
         const playerName = document.getElementById('playerNameInput')?.value.trim() || 'Anonymous Wastelander';
         const finalDesc = loc.desc.includes('Submitted By') ? loc.desc : `${loc.desc}\nSubmitted By ${playerName}`;
         const iconToSend = categoryIcons[loc.category] || '📝';
         const cid = loc.cid || generateCid(loc);
         markAsSubmitted(loc.id);
-
         const overlay = document.getElementById('submitLoadingOverlay');
         if (overlay) overlay.classList.add('show');
-
+        
         const params = new URLSearchParams({
             lat: loc.lat,
             lng: loc.lng,
@@ -5668,10 +5680,8 @@ document.getElementById('submitCommunityBtn').onclick = () => {
             cid: cid,
             wasCommunityKept: loc.wasCommunityKept ? 'true' : 'false'
         });
-
         const url = `https://0mrcrazy0.github.io/fallout76-itemfindermap/submit.html?v=${Date.now()}&${params.toString()}`;
-
-        // iOS-safe popup method
+        
         setTimeout(() => {
             const a = document.createElement('a');
             a.href = url;
@@ -5680,12 +5690,11 @@ document.getElementById('submitCommunityBtn').onclick = () => {
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-
             if (overlay) overlay.classList.remove('show');
             closeModal(itemModal);
             forceReload();
             showTempMessage('MARKER SUBMITTED FOR REVIEW — THANK YOU!', 4000);
-        }, 0);
+        }, 120); // increased delay for reliable iOS fullscreen exit
     });
 };
     map.on('dragstart', () => { isDraggingAny = true; });
@@ -5805,7 +5814,7 @@ if (localStorage.getItem('postResetMessageShown') === 'true') {
     }, 1800);
 }
 
-// ── FINAL CLEAN SINGLE HANDLERS (exactly like working 76.75c + anti-stack protection) ──
+// ── SINGLE HANDLERS ──
 if (howToUseBtn) {
     howToUseBtn.onclick = () => {
         document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
@@ -5835,7 +5844,7 @@ if (toggleCategoryModalBtn) {
     };
 }
 
-// ── FIXED GENERIC MODAL CLOSE (kept exactly as you had it) ──
+// ── GENERIC MODAL CLOSE──
 document.querySelectorAll('.modal .close').forEach(closeBtn => {
     closeBtn.onclick = (e) => {
         e.stopPropagation();
@@ -6123,7 +6132,7 @@ document.addEventListener('click', e => {
     }
 });
 
-// === PWA INSTALL BANNER — Correct iOS instructions (no broken Install button) ===
+// === PWA INSTALL BANNER — Correct iOS instructions ===
 let deferredPrompt = null;
 const PWA_DISMISSED_KEY = 'pwaInstallPromptDismissed';
 
@@ -6897,8 +6906,7 @@ if (!localStorage.getItem('fo76_welcome_accepted')) {
     sharedLinkObserver.observe(document.body, { childList: true, subtree: true });
 }
 
-// ── REINFORCED CONTEXT MENU (RIGHT-CLICK / LONG-PRESS) — FIXED & DEBUGGED ──
-// ── FINAL CONTEXT MENU — BUTTONS NOW FULLY WORKING (v3) ──
+// ── CONTEXT MENU (RIGHT-CLICK / LONG-PRESS) ──
 map.doubleClickZoom.disable();
 
 const contextMenu = document.getElementById('mapContextMenu');
@@ -7018,7 +7026,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = C-75h-6-04-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = C-75i-6-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
