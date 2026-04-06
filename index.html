@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map</title>
 	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
-	<link rel="manifest" href="manifest.json?v=76.75.5">
+	<link rel="manifest" href="manifest.json?v=76.75.6">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1673,7 +1673,7 @@ select#itemCategory:hover {
         </div>
     </div>
 <script>
-const CURRENT_APP_VERSION = '76.75.5';
+const CURRENT_APP_VERSION = '76.75.6';
 
 // ── All version numbers now use this single line (change it here only) ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -1689,14 +1689,15 @@ if (currentVer === CURRENT_APP_VERSION) {
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/fallout76-itemfindermap/service-worker.js', { updateViaCache: 'none' })
         .then(reg => {
-            reg.update();   // Force check for updates every time the app opens
-
+            reg.update(); // Force check for updates every time the app opens
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;
                 if (newWorker) {
                     newWorker.addEventListener('statechange', () => {
                         if (newWorker.state === 'installed') {
-                            showUpdateNotice();   // Only the original small notice
+                            showUpdateNotice(); // Only the original small notice
+                            // ── FIX: Auto-activate new version on mobile (iOS/Android) ──
+                            newWorker.postMessage({ action: 'skipWaiting' });
                         }
                     });
                 }
@@ -1704,6 +1705,11 @@ if ('serviceWorker' in navigator) {
         })
         .catch(err => console.warn('SW registration failed:', err));
 }
+
+// Auto-reload when the new service worker takes control (mobile fix)
+navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+});
 
 // One-time migration for ancient versions (pre-v76) — runs ONLY ONCE ever
 if ('serviceWorker' in navigator && !sessionStorage.getItem('recoveryDone')) {
@@ -1719,7 +1725,6 @@ if ('serviceWorker' in navigator && !sessionStorage.getItem('recoveryDone')) {
         sessionStorage.setItem('recoveryDone', 'true');
     }, 1200);
 }
-
 // Passive update notice (the original small banner you already had)
 function showUpdateNotice() {
     if (document.getElementById('updateBanner')) return;
@@ -1759,11 +1764,10 @@ function showUpdateNotice() {
         }, 1400);
     }, 5000);
 }
-
 // Check and show notice only if version changed
 document.addEventListener('DOMContentLoaded', () => {
     const storedVersion = localStorage.getItem('fo76_map_version') || '0';
-   
+  
     if (storedVersion !== CURRENT_APP_VERSION) {
         showUpdateNotice();
     }
@@ -1829,33 +1833,48 @@ function playSound(type) {
 
 // ── STRONGEST iOS / PWA AUDIO UNLOCK (handles external audio files) ──
 let audioUnlocked = false;
+let soundBurstGuard = false;   // Prevents multiple unlock calls on first tap
 
 function unlockAudio() {
-    if (audioUnlocked) return;
+    if (audioUnlocked || soundBurstGuard) return;
+
     audioUnlocked = true;
     appFullyReady = true;
-
-    // Unlock every sound (required for external URLs on iOS/PWA)
-    Object.values(baseSounds).forEach(sound => {
-        sound.volume = 0.30;
-        sound.play().catch(() => {});           // attempt play
-        setTimeout(() => { 
-            sound.pause(); 
-            sound.currentTime = 0; 
-        }, 10);
-    });
+    soundBurstGuard = true;   // Block any immediate follow-up plays
 
     console.log('🔊 Audio fully unlocked for iOS / PWA');
+
+    Object.values(baseSounds).forEach(sound => {
+        sound.volume = 0.30;
+        sound.play().catch(() => {}).then(() => {
+            sound.pause();
+            sound.currentTime = 0;
+        });
+    });
+
+    // Release guard after a short delay so normal playSound() works normally
+    setTimeout(() => {
+        soundBurstGuard = false;
+    }, 300);
 }
 
 function attachAudioUnlockListeners() {
-    const events = ['touchstart', 'click', 'pointerdown', 'touchend'];
-    events.forEach(ev => {
-        document.documentElement.addEventListener(ev, unlockAudio, { once: true });
-        const mapEl = document.getElementById('map');
-        if (mapEl) mapEl.addEventListener(ev, unlockAudio, { once: true });
+    const events = ['touchstart', 'click'];   // Reduced to the two most reliable events
+    const targets = [document.documentElement];
+
+    const mapEl = document.getElementById('map');
+    if (mapEl) targets.push(mapEl);
+
+    targets.forEach(target => {
+        events.forEach(ev => {
+            target.addEventListener(ev, unlockAudio, { 
+                once: true, 
+                passive: true 
+            });
+        });
     });
 }
+
 attachAudioUnlockListeners();
 
         // ── FETCH WITH TIMEOUT HELPER
@@ -7063,7 +7082,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = 76.75.5 • 6-04-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = 76.75.6 • 6-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
