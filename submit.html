@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: 'Courier New', monospace;
-            background: #000000;           /* ← Pure black background behind the popup */
+            background: #000000;
             color: #00ff00;
             padding: 20px;
             text-align: center;
@@ -91,22 +91,41 @@
             border-color: #ffcc00;
             color: #ffcc00;
         }
+        #submitLoadingOverlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: #00ff00;
+            font-size: 1.4em;
+            text-shadow: 0 0 10px #00ff00;
+        }
+        #submitLoadingOverlay.show {
+            display: flex;
+        }
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #00ff00;
+            border-top: 6px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Submit Marker to Community Map</h1>
         <p>Share your discovery with the wasteland!<br>A Moderator will review and merge it soon.</p>
-
-        <!-- Return to Map button always visible on main form -->
-        <button onclick="returnToMap()" class="return-btn" style="margin-bottom:20px;">← Return to Map</button>
-
-        <!-- Warning / Duplicate Block -->
-        <div id="warningBlock" style="display:none;">
-            <h2 id="warningTitle"></h2>
-            <p id="warningText"></p>
-            <button onclick="returnToMap()" class="return-btn">Return to Map</button>
-        </div>
 
         <!-- Submit Form -->
         <form id="submitForm">
@@ -125,7 +144,7 @@
         <div id="success" style="display:none;">
             <h2 style="color:#00ff88;">Thank you!</h2>
             <p>Your marker has been submitted successfully.<br>A Moderator will review and merge it soon.</p>
-            <button onclick="returnToMap()" class="return-btn">Return to Map</button>
+            <button onclick="closeAndReturn()" class="return-btn">Close Tab & Return to Map</button>
         </div>
 
         <!-- Error Screen -->
@@ -133,8 +152,22 @@
             <h2 style="color:#ff8888;">Submission failed</h2>
             <p id="errorMsg"></p>
             <button onclick="location.reload()">Try Again</button>
-            <button onclick="returnToMap()" class="return-btn" style="margin-left:10px;">Return to Map</button>
+            <button onclick="closeAndReturn()" class="return-btn" style="margin-left:10px;">Close Tab & Return to Map</button>
         </div>
+
+        <!-- Warning / Duplicate Block -->
+        <div id="warningBlock" style="display:none;">
+            <h2 id="warningTitle"></h2>
+            <p id="warningText"></p>
+            <button onclick="closeAndReturn()" class="return-btn">Close Tab & Return to Map</button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="submitLoadingOverlay">
+        <div class="spinner"></div>
+        <div>Submitting marker to community map...</div>
+        <div style="font-size:0.8em; margin-top:15px; opacity:0.8;">Please wait a moment</div>
     </div>
 
     <script>
@@ -154,6 +187,7 @@
 
         const form = document.getElementById('submitForm');
         const submitBtn = document.getElementById('submitBtn');
+        const loadingOverlay = document.getElementById('submitLoadingOverlay');
         const successDiv = document.getElementById('success');
         const errorDiv = document.getElementById('error');
         const warningBlock = document.getElementById('warningBlock');
@@ -182,13 +216,17 @@
             form.style.display = 'block';
         }
 
-        function returnToMap() {
-            window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
+        function closeAndReturn() {
+            window.close();                     // Try to close this tab
+            setTimeout(() => {
+                window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
+            }, 300);
         }
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            loadingOverlay.classList.add('show');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
 
@@ -220,11 +258,13 @@
                         }
                     }
                     form.style.display = 'none';
+                    loadingOverlay.classList.remove('show');
                     successDiv.style.display = 'block';
                 } else {
                     throw new Error('Server rejected submission');
                 }
             } catch (err) {
+                loadingOverlay.classList.remove('show');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'SUBMIT MARKER';
                 errorDiv.style.display = 'block';
