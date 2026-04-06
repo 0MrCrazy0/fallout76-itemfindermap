@@ -5,129 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Submit to Community Map</title>
     <style>
-        body {
-            font-family: 'Courier New', monospace;
-            background: #000000;
-            color: #00ff00;
-            padding: 20px;
-            text-align: center;
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .container {
-            max-width: 460px;
-            margin: 0 auto;
-            background: #1a3c34;
-            padding: 30px 25px;
-            border: 2px solid #00ff00;
-            box-shadow: 0 0 20px #00ff00;
-        }
-        h1 {
-            margin: 0 0 20px;
-            text-shadow: 0 0 10px #00ff00;
-        }
-        p {
-            line-height: 1.5;
-            color: #00ff00;
-        }
-        label {
-            display: block;
-            margin: 15px 0 5px;
-            font-weight: bold;
-            color: #00ff88;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            background: #000;
-            color: #00ff00;
-            border: 2px solid #00ff00;
-            font-family: inherit;
-            font-size: 1em;
-            box-sizing: border-box;
-        }
-        button {
-            margin-top: 20px;
-            padding: 14px 32px;
-            background: #00ff00;
-            color: #000;
-            border: none;
-            font-weight: bold;
-            font-size: 1.2em;
-            cursor: pointer;
-            box-shadow: 0 0 12px #00ff00;
-        }
-        button:hover {
-            background: #00cc00;
-        }
-        .return-btn {
-            background: #00ff88;
-            color: #000;
-            padding: 14px 32px;
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-top: 25px;
-        }
-        #success, #error, #warningBlock {
-            margin-top: 25px;
-            padding: 20px;
-            border: 2px solid;
-            border-radius: 4px;
-        }
-        #success {
-            background: rgba(0,255,0,0.15);
-            border-color: #00ff00;
-        }
-        #error {
-            background: rgba(255,0,0,0.15);
-            border-color: #ff4444;
-            color: #ff8888;
-        }
-        #warningBlock {
-            background: rgba(255,204,0,0.15);
-            border-color: #ffcc00;
-            color: #ffcc00;
-        }
-        #submitLoadingOverlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.9);
-            z-index: 9999;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            color: #00ff00;
-            font-size: 1.4em;
-            text-shadow: 0 0 10px #00ff00;
-        }
-        #submitLoadingOverlay.show {
-            display: flex;
-        }
-        .spinner {
-            width: 60px;
-            height: 60px;
-            border: 6px solid #00ff00;
-            border-top: 6px solid transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        body { font-family: 'Courier New', monospace; background: #000000; color: #00ff00; padding: 20px; text-align: center; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .container { max-width: 460px; margin: 0 auto; background: #1a3c34; padding: 30px 25px; border: 2px solid #00ff00; box-shadow: 0 0 20px #00ff00; }
+        h1 { margin: 0 0 20px; text-shadow: 0 0 10px #00ff00; }
+        p { line-height: 1.5; color: #00ff00; }
+        label { display: block; margin: 15px 0 5px; font-weight: bold; color: #00ff88; }
+        input { width: 100%; padding: 10px; background: #000; color: #00ff00; border: 2px solid #00ff00; font-family: inherit; font-size: 1em; box-sizing: border-box; }
+        button { margin-top: 20px; padding: 14px 32px; background: #00ff00; color: #000; border: none; font-weight: bold; font-size: 1.2em; cursor: pointer; box-shadow: 0 0 12px #00ff00; }
+        button:hover { background: #00cc00; }
+        .return-btn { background: #00ff88; color: #000; padding: 14px 32px; font-size: 1.2em; font-weight: bold; margin-top: 25px; }
+        #success, #error, #warningBlock { margin-top: 25px; padding: 20px; border: 2px solid; border-radius: 4px; }
+        #success { background: rgba(0,255,0,0.15); border-color: #00ff00; }
+        #error { background: rgba(255,0,0,0.15); border-color: #ff4444; color: #ff8888; }
+        #warningBlock { background: rgba(255,204,0,0.15); border-color: #ffcc00; color: #ffcc00; }
+        #submitLoadingOverlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; align-items: center; justify-content: center; flex-direction: column; color: #00ff00; font-size: 1.4em; text-shadow: 0 0 10px #00ff00; }
+        #submitLoadingOverlay.show { display: flex; }
+        .spinner { width: 60px; height: 60px; border: 6px solid #00ff00; border-top: 6px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Submit Marker to Community Map</h1>
-        <p>Share your discovery with the wasteland!<br>A Moderator will review and merge it soon.</p>
+        <p>Share your discovery with the wasteland!<br>An Administrator will review and merge it soon.</p>
 
-        <!-- Submit Form -->
         <form id="submitForm">
             <label>Pre-filled from your marker:</label>
             <p><strong>Location:</strong> <span id="latLng"></span></p>
@@ -140,14 +41,12 @@
             <button type="submit" id="submitBtn">SUBMIT MARKER</button>
         </form>
 
-        <!-- Success Screen -->
         <div id="success" style="display:none;">
             <h2 style="color:#00ff88;">Thank you!</h2>
-            <p>Your marker has been submitted successfully.<br>A Moderator will review and merge it soon.</p>
+            <p>Your marker has been submitted successfully.<br>An Administrator will review and merge it soon.</p>
             <button onclick="closeAndReturn()" class="return-btn">Close Tab & Return to Map</button>
         </div>
 
-        <!-- Error Screen -->
         <div id="error" style="display:none;">
             <h2 style="color:#ff8888;">Submission failed</h2>
             <p id="errorMsg"></p>
@@ -155,7 +54,6 @@
             <button onclick="closeAndReturn()" class="return-btn" style="margin-left:10px;">Close Tab & Return to Map</button>
         </div>
 
-        <!-- Warning / Duplicate Block -->
         <div id="warningBlock" style="display:none;">
             <h2 id="warningTitle"></h2>
             <p id="warningText"></p>
@@ -163,7 +61,6 @@
         </div>
     </div>
 
-    <!-- Loading Overlay -->
     <div id="submitLoadingOverlay">
         <div class="spinner"></div>
         <div>Submitting marker to community map...</div>
@@ -205,22 +102,18 @@
             warningTitle.textContent = 'Duplicate Marker';
             warningText.textContent = 'A marker with this exact location, category, and description has already been submitted.\n\nIf it does not appear in Pending Submissions, it may have been merged or removed.';
             form.style.display = 'none';
-        } 
-        else if (wasCommunityKept) {
+        } else if (wasCommunityKept) {
             warningBlock.style.display = 'block';
             warningTitle.textContent = 'Already Part of Community Map';
             warningText.textContent = 'This marker is now part of the official community map.\nNo resubmission needed.';
             form.style.display = 'none';
-        } 
-        else {
+        } else {
             form.style.display = 'block';
         }
 
         function closeAndReturn() {
-            window.close();                     // Try to close this tab
-            setTimeout(() => {
-                window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
-            }, 300);
+            window.close();
+            setTimeout(() => { window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/'); }, 300);
         }
 
         form.addEventListener('submit', async (e) => {
@@ -249,7 +142,13 @@
                     body: JSON.stringify({ type: 'submit', marker, name })
                 });
 
-                if (response.ok) {
+                const data = await response.json();
+
+                loadingOverlay.classList.remove('show');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'SUBMIT MARKER';
+
+                if (data.success) {
                     if (cid) {
                         let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
                         if (!submitted.includes(cid)) {
@@ -258,17 +157,27 @@
                         }
                     }
                     form.style.display = 'none';
-                    loadingOverlay.classList.remove('show');
                     successDiv.style.display = 'block';
+                } else if (data.error === "duplicate") {
+                    form.style.display = 'none';
+                    warningBlock.style.display = 'block';
+                    warningTitle.textContent = 'Already Submitted';
+                    warningText.textContent = data.message || 'This marker was already submitted and is under review!';
+                } else if (data.error === "cooldown") {
+                    form.style.display = 'none';
+                    warningBlock.style.display = 'block';
+                    warningTitle.textContent = '⏱️ COOLDOWN ACTIVE';
+                    warningText.textContent = data.message || 'Please wait before submitting another marker.';
                 } else {
-                    throw new Error('Server rejected submission');
+                    errorDiv.style.display = 'block';
+                    document.getElementById('errorMsg').textContent = data.message || 'Submission failed. Please try again.';
                 }
             } catch (err) {
                 loadingOverlay.classList.remove('show');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'SUBMIT MARKER';
                 errorDiv.style.display = 'block';
-                document.getElementById('errorMsg').textContent = 'Network error - please try again later.';
+                document.getElementById('errorMsg').textContent = 'Network error — please try again later.';
             }
         });
     </script>
