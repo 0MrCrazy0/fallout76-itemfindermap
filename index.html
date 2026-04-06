@@ -5707,7 +5707,7 @@ exportOneBtn.onclick = () => {
     closeModal(itemModal);
 };
 
-// ── SUBMIT TO COMMUNITY – FIX FOR IOS DEVICES ──
+// ── SUBMIT TO COMMUNITY MAP (CLEAN — no conflicting duplicate check) ──
 document.getElementById('submitCommunityBtn').onclick = () => {
     window.exitFullscreenThenDo(() => {
         const loc = locations[currentIndex];
@@ -5716,19 +5716,10 @@ document.getElementById('submitCommunityBtn').onclick = () => {
             playSound('error');
             return;
         }
-        if (hasBeenSubmitted(loc.id)) {
-            showTempMessage('This marker has already been submitted — pending review.', 5000);
-            return;
-        }
         const playerName = document.getElementById('playerNameInput')?.value.trim() || 'Anonymous Wastelander';
         const finalDesc = loc.desc.includes('Submitted By') ? loc.desc : `${loc.desc}\nSubmitted By ${playerName}`;
         const iconToSend = categoryIcons[loc.category] || '📝';
         const cid = loc.cid || generateCid(loc);
-        markAsSubmitted(loc.id);
-
-        const overlay = document.getElementById('submitLoadingOverlay');
-        if (overlay) overlay.classList.add('show');
-       
         const params = new URLSearchParams({
             lat: loc.lat,
             lng: loc.lng,
@@ -5740,20 +5731,15 @@ document.getElementById('submitCommunityBtn').onclick = () => {
             wasCommunityKept: loc.wasCommunityKept ? 'true' : 'false'
         });
         const url = `https://0mrcrazy0.github.io/fallout76-itemfindermap/submit.html?v=${Date.now()}&${params.toString()}`;
-       
-        setTimeout(() => {
-            const a = document.createElement('a');
-            a.href = url;
-            a.target = '_blank';
-            a.rel = 'noopener noreferrer';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            if (overlay) overlay.classList.remove('show');
-            closeModal(itemModal);
-            forceReload();
-            showTempMessage('MARKER SUBMITTED FOR REVIEW — THANK YOU!', 4000);
-        }, 120); // increased delay for reliable iOS fullscreen exit
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        closeModal(itemModal);
+        forceReload();
     });
 };
     map.on('dragstart', () => { isDraggingAny = true; });
