@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fallout 76 Item Finder Map</title>
 	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
-	<link rel="manifest" href="manifest.json?v=76.75.4">
+	<link rel="manifest" href="manifest.json?v=76.75.5">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1673,7 +1673,7 @@ select#itemCategory:hover {
         </div>
     </div>
 <script>
-const CURRENT_APP_VERSION = '76.75.4';
+const CURRENT_APP_VERSION = '76.75.5';
 
 // ── All version numbers now use this single line (change it here only) ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -2093,46 +2093,82 @@ fullscreenControl.onAdd = function(map) {
     link.innerHTML = '🔭';
     link.style.cssText = `display:block;width:34px;height:34px;line-height:34px;text-align:center;font-size:20px;background:#1a3c34;color:#00ff00;border:none;box-shadow:0 0 8px #00ff00;cursor:pointer;`;
 
+    // State tracking for iOS PWA only
+    let isIOSMaximized = false;
+
     L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
               .on(link, 'click', L.DomEvent.preventDefault)
               .on(link, 'click', () => {
                   const mapEl = document.getElementById('map');
+                  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                  
+                  // Accurate iOS PWA (standalone) detection
+                  const isStandalonePWA = 
+                      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+                      (window.navigator && window.navigator.standalone === true);
+                  const isIOSPWA = isIOS && isStandalonePWA;
 
-                  // Detect both iOS Safari and installed PWA
-                  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-                  const isPWA = window.navigator.standalone || 
-                                window.matchMedia('(display-mode: standalone)').matches;
+                  if (isIOSPWA) {
+                      // iOS PWA: CSS-based toggle (your original styles + proper exit)
+                      isIOSMaximized = !isIOSMaximized;
 
-                  if (isIOS || isPWA) {
-                      // Strong maximisation for iOS PWA
-                      mapEl.style.position = 'fixed';
-                      mapEl.style.top = '0';
-                      mapEl.style.left = '0';
-                      mapEl.style.width = '100vw';
-                      mapEl.style.height = '100dvh';
-                      mapEl.style.paddingTop = 'env(safe-area-inset-top)';
-                      mapEl.style.paddingBottom = 'env(safe-area-inset-bottom)';
-                      mapEl.style.zIndex = '999999';
-                      mapEl.style.border = 'none';
-                      map.invalidateSize({ animate: false });
-                      setTimeout(() => map.invalidateSize({ animate: false }), 80);
-                      setTimeout(() => map.invalidateSize({ animate: false }), 300);
-                      showTempMessage('MAXIMIZED VIEW (PWA)', 1800);
-                  } else {
-                      // Normal fullscreen for desktop / non-iOS browsers
-                      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                          mapEl.requestFullscreen ? mapEl.requestFullscreen() : mapEl.webkitRequestFullscreen();
+                      if (isIOSMaximized) {
+                          // Enter maximised view
+                          mapEl.style.position = 'fixed';
+                          mapEl.style.top = '0';
+                          mapEl.style.left = '0';
+                          mapEl.style.width = '100vw';
+                          mapEl.style.height = '100dvh';
+                          mapEl.style.paddingTop = 'env(safe-area-inset-top)';
+                          mapEl.style.paddingBottom = 'env(safe-area-inset-bottom)';
+                          mapEl.style.zIndex = '999999';
+                          mapEl.style.border = 'none';
+                          link.innerHTML = '✖';
+                          link.title = 'Exit fullscreen';
+                          map.invalidateSize({ animate: false });
+                          setTimeout(() => map.invalidateSize({ animate: false }), 80);
+                          setTimeout(() => map.invalidateSize({ animate: false }), 300);
+                          showTempMessage('MAXIMIZED VIEW (iOS)', 1800);
                       } else {
-                          document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen();
+                          // Exit maximised view
+                          mapEl.style.position = '';
+                          mapEl.style.top = '';
+                          mapEl.style.left = '';
+                          mapEl.style.width = '';
+                          mapEl.style.height = '';
+                          mapEl.style.paddingTop = '';
+                          mapEl.style.paddingBottom = '';
+                          mapEl.style.zIndex = '';
+                          mapEl.style.border = '';
+                          link.innerHTML = '🔭';
+                          link.title = 'Toggle fullscreen';
+                          map.invalidateSize({ animate: false });
+                      }
+                  } else {
+                      // PC, Android PWA, iOS Safari (non-PWA) — native Fullscreen API (unchanged)
+                      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                          if (mapEl.requestFullscreen) {
+                              mapEl.requestFullscreen();
+                          } else if (mapEl.webkitRequestFullscreen) {
+                              mapEl.webkitRequestFullscreen();
+                          }
+                      } else {
+                          if (document.exitFullscreen) {
+                              document.exitFullscreen();
+                          } else if (document.webkitExitFullscreen) {
+                              document.webkitExitFullscreen();
+                          }
                       }
                   }
               });
 
+    // Icon updater (native fullscreen only — CSS mode handled manually above)
     const updateIcon = () => {
-        const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
-        link.innerHTML = isFullscreen ? '✖' : '🔭';
-        link.title = isFullscreen ? 'Exit fullscreen' : 'Toggle fullscreen';
+        const isNativeFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+        if (!isIOSMaximized) {
+            link.innerHTML = isNativeFullscreen ? '✖' : '🔭';
+            link.title = isNativeFullscreen ? 'Exit fullscreen' : 'Toggle fullscreen';
+        }
     };
 
     document.addEventListener('fullscreenchange', updateIcon);
@@ -2141,6 +2177,7 @@ fullscreenControl.onAdd = function(map) {
 
     return container;
 };
+
 fullscreenControl.addTo(map);
 
 // ── Screenshot Button (📸) — only visible in fullscreen ──
@@ -7026,7 +7063,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = 76.75.4 • 6-04-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = 76.75.5 • 6-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
