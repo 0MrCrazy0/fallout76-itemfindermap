@@ -12,22 +12,25 @@
             padding: 20px;
             text-align: center;
             margin: 0;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
         }
         .container {
-            max-width: 420px;
+            max-width: 460px;
             margin: 0 auto;
             background: #1a3c34;
-            padding: 25px;
+            padding: 30px 25px;
             border: 2px solid #00ff00;
-            box-shadow: 0 0 15px #00ff00;
+            box-shadow: 0 0 20px #00ff00;
         }
         h1 {
             margin: 0 0 20px;
             text-shadow: 0 0 10px #00ff00;
+        }
+        p {
+            line-height: 1.5;
         }
         label {
             display: block;
@@ -44,13 +47,9 @@
             font-size: 1em;
             box-sizing: border-box;
         }
-        input::placeholder {
-            color: #00aa00;
-            opacity: 0.8;
-        }
         button {
-            margin-top: 25px;
-            padding: 12px 30px;
+            margin-top: 20px;
+            padding: 14px 32px;
             background: #00ff00;
             color: #000;
             border: none;
@@ -62,22 +61,11 @@
         button:hover {
             background: #00cc00;
         }
-        button:disabled {
-            background: #444;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-        #status {
-            margin-top: 20px;
-            font-size: 1.1em;
-            min-height: 1.5em;
-        }
         #success, #error, #warningBlock {
-            display: none;
-            padding: 15px;
-            margin-top: 20px;
+            margin-top: 25px;
+            padding: 20px;
             border: 2px solid;
-            border-radius: 0;
+            border-radius: 4px;
         }
         #success {
             background: rgba(0,255,0,0.15);
@@ -93,84 +81,50 @@
             border-color: #ffcc00;
             color: #ffcc00;
         }
-        #submitLoadingOverlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.9);
-            z-index: 9999;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            color: #00ff00;
-            font-size: 1.4em;
-            text-shadow: 0 0 10px #00ff00;
-        }
-        #submitLoadingOverlay.show {
-            display: flex;
-        }
-        .spinner {
-            width: 60px;
-            height: 60px;
-            border: 6px solid #00ff00;
-            border-top: 6px solid transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Submit Marker to Community Map</h1>
         <p>Share your discovery with the wasteland!<br>A Moderator will review and merge it soon.</p>
-        <p>Want to see markers waiting for review and approval. Check the pending submissions<br>In the How to Use button menu.</p>
 
-        <!-- Unified warning block -->
-        <div id="warningBlock">
+        <!-- Warning / Duplicate Block -->
+        <div id="warningBlock" style="display:none;">
             <h2 id="warningTitle"></h2>
-            <p id="warningText1"></p>
-            <p id="warningText2"></p>
-            <button onclick="window.close()" style="margin-top:20px; background:#00ff00; color:#000; padding:10px 30px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">Close Window</button>
+            <p id="warningText"></p>
+            <button onclick="returnToMap()" class="return-btn">Return to Map</button>
         </div>
 
+        <!-- Submit Form -->
         <form id="submitForm">
             <label>Pre-filled from your marker:</label>
             <p><strong>Location:</strong> <span id="latLng"></span></p>
             <p><strong>Category:</strong> <span id="category"></span></p>
             <p><strong>Description:</strong> <span id="desc"></span></p>
+            
             <label for="playerName">Your In-Game Name (optional)</label>
             <input type="text" id="playerName" placeholder="e.g., VaultDweller42">
+
             <button type="submit" id="submitBtn">SUBMIT MARKER</button>
         </form>
 
-        <div id="status"></div>
+        <!-- Success Screen -->
         <div id="success" style="display:none;">
-            <h2 style="color:#00ff88;">Your marker has been submitted!</h2>
-            <p>MrCrazy will review and merge it soon.</p>
-            <p id="submittedDetails"></p>
-            <button onclick="window.close()">Close Window</button>
+            <h2 style="color:#00ff88;">Thank you!</h2>
+            <p>Your marker has been submitted successfully.<br>A Moderator will review and merge it soon.</p>
+            <button onclick="returnToMap()" class="return-btn">Return to Map</button>
         </div>
+
+        <!-- Error Screen -->
         <div id="error" style="display:none;">
             <h2 style="color:#ff8888;">Submission failed</h2>
             <p id="errorMsg"></p>
             <button onclick="location.reload()">Try Again</button>
+            <button onclick="returnToMap()" class="return-btn" style="margin-left:10px;">Return to Map</button>
         </div>
     </div>
 
-    <!-- Loading Overlay -->
-    <div id="submitLoadingOverlay">
-        <div class="spinner"></div>
-        <div>Submitting marker to community map...</div>
-        <div style="font-size:0.8em; margin-top:15px; opacity:0.8;">Please wait a moment</div>
-    </div>
-
     <script>
-        // Parse URL params
         const params = new URLSearchParams(window.location.search);
         const lat = params.get('lat');
         const lng = params.get('lng');
@@ -181,20 +135,17 @@
         const cid = params.get('cid');
         const wasCommunityKept = params.get('wasCommunityKept') === 'true';
 
-        // Populate fields
         document.getElementById('latLng').textContent = lat && lng ? `${lat}, ${lng}` : '(location missing)';
         document.getElementById('category').textContent = icon && category ? `${icon} ${category}` : '(category missing)';
         document.getElementById('desc').textContent = desc || '(no description)';
 
         const form = document.getElementById('submitForm');
         const submitBtn = document.getElementById('submitBtn');
-        const loadingOverlay = document.getElementById('submitLoadingOverlay');
-        const warningBlock = document.getElementById('warningBlock');
-        const warningTitle = document.getElementById('warningTitle');
-        const warningText1 = document.getElementById('warningText1');
-        const warningText2 = document.getElementById('warningText2');
         const successDiv = document.getElementById('success');
         const errorDiv = document.getElementById('error');
+        const warningBlock = document.getElementById('warningBlock');
+        const warningTitle = document.getElementById('warningTitle');
+        const warningText = document.getElementById('warningText');
 
         function hasBeenSubmitted(cid) {
             if (!cid) return false;
@@ -202,39 +153,29 @@
             return submitted.includes(cid);
         }
 
-        // Priority logic for warning / form display
         if (cid && hasBeenSubmitted(cid)) {
             warningBlock.style.display = 'block';
             warningTitle.textContent = 'Duplicate Marker';
-            warningText1.textContent = 'A marker with this exact location, category, and description has already been submitted.';
-            warningText2.textContent = 'If it does not appear in Pending Submissions, it may have been merged or removed.\n\nIf you\'re not sure, delete this marker and create a new one to resubmit.\n\nSubmissions can take 2-3 days to be reviewed and merged.';
+            warningText.textContent = 'A marker with this exact location, category, and description has already been submitted.\n\nIf it does not appear in Pending Submissions, it may have been merged or removed.';
             form.style.display = 'none';
         } 
         else if (wasCommunityKept) {
             warningBlock.style.display = 'block';
             warningTitle.textContent = 'Already Part of Community Map';
-            warningText1.textContent = 'This marker is now part of the official community map.';
-            warningText2.textContent = 'No resubmission needed.';
+            warningText.textContent = 'This marker is now part of the official community map.\nNo resubmission needed.';
             form.style.display = 'none';
         } 
         else {
             form.style.display = 'block';
-            warningBlock.style.display = 'none';
+        }
+
+        function returnToMap() {
+            window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
         }
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            if (cid && hasBeenSubmitted(cid)) {
-                warningBlock.style.display = 'block';
-                warningTitle.textContent = 'Duplicate Marker';
-                warningText1.textContent = 'A marker with this exact location, category, and description has already been submitted.';
-                warningText2.textContent = 'If it does not appear in Pending Submissions, it may have been merged or removed.\n\nIf you\'re not sure, delete this marker and create a new one to resubmit.\n\nSubmissions can take 2-3 days to be reviewed and merged.';
-                form.style.display = 'none';
-                return;
-            }
-
-            loadingOverlay.classList.add('show');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
 
@@ -257,25 +198,24 @@
                     body: JSON.stringify({ type: 'submit', marker, name })
                 });
 
-                const text = await response.text();
-                loadingOverlay.classList.remove('show');
-
                 if (response.ok) {
-                    let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
-                    if (!submitted.includes(cid)) {
-                        submitted.push(cid);
-                        localStorage.setItem('submitted_cids', JSON.stringify(submitted));
+                    if (cid) {
+                        let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
+                        if (!submitted.includes(cid)) {
+                            submitted.push(cid);
+                            localStorage.setItem('submitted_cids', JSON.stringify(submitted));
+                        }
                     }
-                    document.body.innerHTML = text;
+                    form.style.display = 'none';
+                    successDiv.style.display = 'block';
                 } else {
                     throw new Error('Server rejected submission');
                 }
             } catch (err) {
-                loadingOverlay.classList.remove('show');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'SUBMIT MARKER';
                 errorDiv.style.display = 'block';
-                document.getElementById('errorMsg').textContent = err.message || 'Network error - please try again';
+                document.getElementById('errorMsg').textContent = 'Network error - please try again later.';
             }
         });
     </script>
