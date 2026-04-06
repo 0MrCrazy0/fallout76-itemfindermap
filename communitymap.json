@@ -4320,6 +4320,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-3e0f3070-9f44-4fe6-b324-8add332d692f",
+      "cid": "plans_test_marker_this_can_delete_grid_a2_x_336_y_610_610.36956_335.88170",
+      "category": "plans",
+      "desc": "Test marker this can delete.\nGrid A2 (X: 336, Y: 610)\nSubmitted By MrCrazy",
+      "lat": 610.3695568317535,
+      "lng": 335.8817036500869,
+      "icon": "📜",
+      "addedTime": 1775465875089,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
