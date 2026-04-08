@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Fallout 76 Item Finder Map</title>
 	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
-	<link rel="manifest" href="manifest.json?v=76.Vault-9">
+	<link rel="manifest" href="manifest.json?v=76.Vault-10">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1685,7 +1685,7 @@ select#itemCategory:hover {
         </div>
     </div>
 <script>
-const CURRENT_APP_VERSION = '76.Vault-9';
+const CURRENT_APP_VERSION = '76.Vault-10';
 
 // ── All version numbers now use this single line (change it here only) ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -2110,75 +2110,77 @@ fullscreenControl.onAdd = function(map) {
     link.title = 'Toggle fullscreen';
     link.innerHTML = '🔭';
     link.style.cssText = `display:block;width:34px;height:34px;line-height:34px;text-align:center;font-size:20px;background:#1a3c34;color:#00ff00;border:none;box-shadow:0 0 8px #00ff00;cursor:pointer;`;
-    // State tracking for iOS PWA only
+
     let isIOSMaximized = false;
+
     L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
               .on(link, 'click', L.DomEvent.preventDefault)
               .on(link, 'click', () => {
-  playSound('click');
-                  const mapEl = document.getElementById('map');
-                  // Enhanced iOS detection (only line changed)
-                  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-                
-                  // Accurate iOS PWA (standalone) detection
-                  const isStandalonePWA =
-                      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-                      (window.navigator && window.navigator.standalone === true);
-                  const isIOSPWA = isIOS && isStandalonePWA;
-                  if (isIOSPWA) {
-                      // iOS PWA: CSS-based toggle (your original styles + proper exit)
-                      isIOSMaximized = !isIOSMaximized;
-                      if (isIOSMaximized) {
-                          // Enter maximised view
-                          mapEl.style.position = 'fixed';
-                          mapEl.style.top = '0';
-                          mapEl.style.left = '0';
-                          mapEl.style.width = '100vw';
-                          mapEl.style.height = '100dvh';
-                          mapEl.style.paddingTop = 'env(safe-area-inset-top)';
-                          mapEl.style.paddingBottom = 'env(safe-area-inset-bottom)';
-                          mapEl.style.zIndex = '999999';
-                          mapEl.style.border = 'none';
-                          link.innerHTML = '✖';
-                          link.title = 'Exit fullscreen';
-                          map.invalidateSize({ animate: false });
-                          setTimeout(() => map.invalidateSize({ animate: false }), 80);
-                          setTimeout(() => map.invalidateSize({ animate: false }), 300);
-                          showTempMessage('💯 MAXIMIZED VIEW', 1800);
-                      } else {
-                          // Exit maximised view
-                          mapEl.style.position = '';
-                          mapEl.style.top = '';
-                          mapEl.style.left = '';
-                          mapEl.style.width = '';
-                          mapEl.style.height = '';
-                          mapEl.style.paddingTop = '';
-                          mapEl.style.paddingBottom = '';
-                          mapEl.style.zIndex = '';
-                          mapEl.style.border = '';
-                          link.innerHTML = '🔭';
-                          link.title = 'Toggle fullscreen';
-                          map.invalidateSize({ animate: false });
-                      }
-                  } else {
-                      // PC, Android PWA, iOS Safari (non-PWA) — native Fullscreen API (unchanged)
-                      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                          if (mapEl.requestFullscreen) {
-                              mapEl.requestFullscreen();
-                          } else if (mapEl.webkitRequestFullscreen) {
-                              mapEl.webkitRequestFullscreen();
-                          }
-                      } else {
-                          if (document.exitFullscreen) {
-                              document.exitFullscreen();
-                          } else if (document.webkitExitFullscreen) {
-                              document.webkitExitFullscreen();
-                          }
-                      }
-                  }
-              });
-    // Icon updater (native fullscreen only — CSS mode handled manually above)
+        playSound('click');
+        const mapEl = document.getElementById('map');
+
+        // iOS detection (declared only once)
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        const isStandalonePWA = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+                                (window.navigator && window.navigator.standalone === true);
+        const isIOSPWA = isIOS && isStandalonePWA;
+
+        if (isIOSPWA) {
+            const forceFullMapRender = () => {
+                map.invalidateSize({ animate: false });
+                setTimeout(() => map.invalidateSize({ animate: false }), 80);
+                setTimeout(() => map.invalidateSize({ animate: false }), 300);
+                setTimeout(() => map.invalidateSize({ animate: false }), 600);
+            };
+            window.addEventListener('load', forceFullMapRender);
+            setTimeout(forceFullMapRender, 400);
+        }
+
+        if (isIOSPWA) {
+            isIOSMaximized = !isIOSMaximized;
+            if (isIOSMaximized) {
+                mapEl.style.position = 'fixed';
+                mapEl.style.top = '0';
+                mapEl.style.left = '0';
+                mapEl.style.width = '100vw';
+                mapEl.style.height = '100dvh';
+                mapEl.style.paddingTop = 'env(safe-area-inset-top)';
+                mapEl.style.paddingBottom = 'env(safe-area-inset-bottom)';
+                mapEl.style.zIndex = '999999';
+                mapEl.style.border = 'none';
+                link.innerHTML = '✖';
+                link.title = 'Exit fullscreen';
+                map.invalidateSize({ animate: false });
+                setTimeout(() => map.invalidateSize({ animate: false }), 80);
+                setTimeout(() => map.invalidateSize({ animate: false }), 300);
+                showTempMessage('💯 MAXIMIZED VIEW', 1800);
+            } else {
+                mapEl.style.position = '';
+                mapEl.style.top = '';
+                mapEl.style.left = '';
+                mapEl.style.width = '';
+                mapEl.style.height = '';
+                mapEl.style.paddingTop = '';
+                mapEl.style.paddingBottom = '';
+                mapEl.style.zIndex = '';
+                mapEl.style.border = '';
+                link.innerHTML = '🔭';
+                link.title = 'Toggle fullscreen';
+                map.invalidateSize({ animate: false });
+            }
+        } else {
+            // Non-iOS devices — native Fullscreen API
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (mapEl.requestFullscreen) mapEl.requestFullscreen();
+                else if (mapEl.webkitRequestFullscreen) mapEl.webkitRequestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            }
+        }
+    });
+
     const updateIcon = () => {
         const isNativeFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
         if (!isIOSMaximized) {
@@ -2189,6 +2191,7 @@ fullscreenControl.onAdd = function(map) {
     document.addEventListener('fullscreenchange', updateIcon);
     document.addEventListener('webkitfullscreenchange', updateIcon);
     setTimeout(updateIcon, 50);
+
     return container;
 };
 fullscreenControl.addTo(map);
@@ -2291,30 +2294,47 @@ function captureHighResScreenshot() {
 let wasInFullscreenBeforeModal = false;
 let restoreFullscreenBtn = null;
 let exitedForContextMenu = false;
-
 function exitFullscreenIfActive() {
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
+    const mapEl = document.getElementById('map');
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isStandalonePWA = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+                            (window.navigator && window.navigator.standalone === true);
+    const isIOSPWA = isIOS && isStandalonePWA;
+
+    if (isIOSPWA && mapEl.style.height === '100dvh') {
+        // Exit CSS maximised state used by iOS PWA
+        wasInFullscreenBeforeModal = true;
+        mapEl.style.position = '';
+        mapEl.style.top = '';
+        mapEl.style.left = '';
+        mapEl.style.width = '';
+        mapEl.style.height = '';
+        mapEl.style.paddingTop = '';
+        mapEl.style.paddingBottom = '';
+        mapEl.style.zIndex = '';
+        mapEl.style.border = '';
+        map.invalidateSize({ animate: false });
+    } 
+    else if (document.fullscreenElement || document.webkitFullscreenElement) {
         wasInFullscreenBeforeModal = true;
         if (document.exitFullscreen) document.exitFullscreen();
         else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
     } else {
     }
 }
-
 function autoExitFullscreenForModal() {
     if (document.fullscreenElement || document.webkitFullscreenElement) {
         exitFullscreenIfActive();
     } else {
     }
 }
-
 function showRestoreFullscreenButton() {
     if (restoreFullscreenBtn) return;
-
     restoreFullscreenBtn = document.createElement('div');
     restoreFullscreenBtn.style.cssText = `
         position:fixed;
-        top:100px; 
+        top:100px;
         left:50%;
         transform:translateX(-50%);
         background:#001a00;
@@ -2336,10 +2356,8 @@ function showRestoreFullscreenButton() {
     `;
     restoreFullscreenBtn.innerHTML = `🔭 Return to Fullscreen`;
     document.body.appendChild(restoreFullscreenBtn);
-
     // Fade in
     setTimeout(() => { restoreFullscreenBtn.style.opacity = '1'; }, 10);
-
     // Auto-hide after 8 seconds
     const autoHide = setTimeout(() => {
         if (restoreFullscreenBtn) {
@@ -2352,14 +2370,13 @@ function showRestoreFullscreenButton() {
             }, 600);
         }
     }, 8000);
-
     // Click handler
     restoreFullscreenBtn.onclick = () => {
         clearTimeout(autoHide);
         const mapEl = document.getElementById('map');
         if (mapEl.requestFullscreen) mapEl.requestFullscreen();
         else if (mapEl.webkitRequestFullscreen) mapEl.webkitRequestFullscreen();
-        
+       
         restoreFullscreenBtn.style.opacity = '0';
         setTimeout(() => {
             if (restoreFullscreenBtn && restoreFullscreenBtn.parentNode) {
@@ -2371,10 +2388,10 @@ function showRestoreFullscreenButton() {
 }
 // ── HELPER: Exit fullscreen BEFORE running popup actions (Keep / Edit / Report) ──
 window.exitFullscreenThenDo = function(callback) {
-    
+   
     // Exit fullscreen and set the restore flag
     exitFullscreenIfActive();
-    
+   
     // Run the actual action (keep, edit, report, etc.) after a tiny delay
     // so the fullscreen exit has time to complete
     setTimeout(() => {
@@ -7107,7 +7124,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = 76.Vault-9 • 8-04-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = 76.Vault-10 • 9-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
