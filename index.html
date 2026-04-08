@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Fallout 76 Item Finder Map</title>
 	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
-	<link rel="manifest" href="manifest.json?v=76.Vault-4">
+	<link rel="manifest" href="manifest.json?v=76.Vault-5">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1675,7 +1675,7 @@ select#itemCategory:hover {
         </div>
     </div>
 <script>
-const CURRENT_APP_VERSION = '76.Vault-4';
+const CURRENT_APP_VERSION = '76.Vault-5';
 
 // ── All version numbers now use this single line (change it here only) ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -1687,7 +1687,7 @@ if (currentVer === CURRENT_APP_VERSION) {
     localStorage.setItem('fo76_map_version', '1.0');
 }
 
-// ── STRONGER PWA UPDATE SYSTEM (checks on every launch + instant banner) ──
+// ── PWA UPDATE SYSTEM (checks on every launch + instant banner) ──
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/fallout76-itemfindermap/service-worker.js', { updateViaCache: 'none' })
         .then(reg => {
@@ -2135,7 +2135,7 @@ fullscreenControl.onAdd = function(map) {
                           map.invalidateSize({ animate: false });
                           setTimeout(() => map.invalidateSize({ animate: false }), 80);
                           setTimeout(() => map.invalidateSize({ animate: false }), 300);
-                          showTempMessage('MAXIMIZED VIEW (iOS)', 1800);
+                          showTempMessage('💯 MAXIMIZED VIEW', 1800);
                       } else {
                           // Exit maximised view
                           mapEl.style.position = '';
@@ -3256,7 +3256,7 @@ startPostcardTicker();
             if (!isNaN(lat) && !isNaN(lng)) {
                 setTimeout(() => {
                     safeFlyTo(lat, lng, 4);
-                    showTempMessage('SHARED VIEW LOADED', 3000);
+                    showTempMessage('👀 SHARED VIEW LOADED', 3000);
                     playSound('click');
                 }, 1200);
             }
@@ -4282,7 +4282,7 @@ function restorePendingUndo() {
                     forceReload();
                     undoBtn.style.display = 'none';
                     localStorage.removeItem(key);
-                    showTempMessage('IMPORT UNDONE', 4000);
+                    showTempMessage('✅ IMPORT UNDONE', 4000);
                     playSound('undo');
                 };
             }
@@ -5025,7 +5025,7 @@ importBtn.onclick = () => {
                                 forceReload();
                                 undoBtn.style.display = 'none';
                                 localStorage.removeItem('fo76_pendingUndo_import');
-                                showTempMessage('IMPORT UNDONE', 4000);
+                                showTempMessage('✅ IMPORT UNDONE', 4000);
                                 playSound('undo');
                             };
                         }
@@ -5050,7 +5050,7 @@ importBtn.onclick = () => {
 
             } catch (err) {
                 console.error("Import failed:", err);
-                showTempMessage('INVALID FILE OR CORRUPTED BACKUP', 5000);
+                showTempMessage('❌ INVALID FILE OR CORRUPTED BACKUP', 5000);
                 playSound('error');
             }
         };
@@ -5102,7 +5102,7 @@ This will fetch the latest verified community markers.<br><br>
                         existing.userEdited = false;
                         existing.wasCommunityKept = false;
                         approvedCount++;
-                        showTempMessage(`Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED!`, 10000);
+                        showTempMessage(`🤩 Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED! ✅`, 10000);
                         playSound('levelUp');
                     }
                     if (existing && (existing.userEdited || existing.wasCommunityKept)) {
@@ -5295,7 +5295,7 @@ if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
                 downloadCommunityBtn.classList.remove('update-available');
             } catch (err) {
                 console.error('Fetch error:', err);
-                showTempMessage('COMMUNITY UPDATE FAILED — CHECK CONNECTION', 6000);
+                showTempMessage('❌ COMMUNITY UPDATE FAILED — CHECK CONNECTION', 6000);
                 playSound('error');
             } finally {
                 downloadCommunityBtn.disabled = false;
@@ -5488,7 +5488,7 @@ document.getElementById('shareOneBtn').onclick = () => {
             const name = document.getElementById('newCategoryName').value.trim();
             const emoji = document.getElementById('newCategoryEmoji').value.trim();
             if (!name || !emoji || !isValidEmoji(emoji) || defaultCategoryIcons[name]) {
-                showTempMessage('INVALID NAME OR EMOJI!', 4000);
+                showTempMessage('❌ INVALID NAME OR EMOJI!', 4000);
                 return;
             }
             customCategories[name] = emoji;
@@ -5500,7 +5500,7 @@ document.getElementById('shareOneBtn').onclick = () => {
             updateCategoryDropdowns();
             renderCategoryToggles();
             closeModal(document.getElementById('createCategoryModal'));
-            showTempMessage('CATEGORY CREATED!', 3000);
+            showTempMessage('✅ CATEGORY CREATED!', 3000);
             playSound('saving');
         };
         document.getElementById('confirmDeleteCategoryBtn').onclick = () => {
@@ -5526,7 +5526,7 @@ document.getElementById('shareOneBtn').onclick = () => {
     saveLocations();
     forceReload();
     closeModal(document.getElementById('deleteCategoryModal'));
-    showTempMessage(`CATEGORY "${name}" DELETED → MARKERS REASSIGNED TO MISC!`, 5000);
+    showTempMessage(`🚨 CATEGORY "${name}" DELETED → MARKERS REASSIGNED TO MISC! 📝`, 5000);
     playSound('delete');
 }
     );
@@ -5541,14 +5541,14 @@ saveItemBtn.onclick = () => {
             lat = tempLatLng.lat;
             lng = tempLatLng.lng;
         } else {
-            showTempMessage('NO LOCATION SELECTED! RIGHT-CLICK OR LONG-PRESS MAP FIRST', 4000);
+            showTempMessage('🚨 NO LOCATION SELECTED! RIGHT-CLICK OR LONG-PRESS MAP FIRST', 4000);
             playSound('error');
             return;
         }
     } else {
         const loc = locations[currentIndex];
         if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number') {
-            showTempMessage('INVALID LOCATION DATA!', 4000);
+            showTempMessage('❌ INVALID LOCATION DATA!', 4000);
             playSound('error');
             return;
         }
@@ -5617,7 +5617,7 @@ deleteBtn.onclick = () => {
     if (currentIndex < 0) return;
     const loc = locations[currentIndex];
     if (loc.locked) {
-        showTempMessage('UNLOCK FIRST!', 4000);
+        showTempMessage('🔓 UNLOCK FIRST!', 4000);
         playSound('error');
         return;
     }
@@ -5679,7 +5679,7 @@ function showUndoDeleteButton() {
             recalculateXP();
             saveLocations();
             forceReload();
-            showTempMessage('MARKER RESTORED', 3000);
+            showTempMessage('✅ MARKER RESTORED', 3000);
             playSound('undo');
             lastDeleted = null;
         }
@@ -5719,7 +5719,7 @@ document.getElementById('submitCommunityBtn').onclick = () => {
     window.exitFullscreenThenDo(() => {
         const loc = locations[currentIndex];
         if (!loc?.locked) {
-            showTempMessage('LOCK THE MARKER FIRST', 5000);
+            showTempMessage('🔒 LOCK THE MARKER FIRST', 5000);
             playSound('error');
             return;
         }
@@ -5949,13 +5949,13 @@ if (SpeechRecognition && voiceSearchBtn) {
     }
 
     voiceSearchBtn.textContent = 'Voice Search';
-    showTempMessage(`Heard: "${transcript}"`, 4000);
+    showTempMessage(`🔊 Heard: "${transcript}"`, 4000);
     playSound('click');
 };
 
     recognition.onerror = () => {
         voiceSearchBtn.textContent = 'Voice Search';
-        showTempMessage('VOICE RECOGNITION FAILED — TRY TYPING', 3000);
+        showTempMessage('❌ VOICE RECOGNITION FAILED — TRY TYPING', 3000);
         playSound('error');
     };
 
@@ -5967,7 +5967,7 @@ if (SpeechRecognition && voiceSearchBtn) {
     voiceSearchBtn.title = 'Voice Search requires Chrome or Edge';
     voiceSearchBtn.disabled = true;
     voiceSearchBtn.onclick = () => {
-        showTempMessage('VOICE SEARCH ONLY WORKS IN CHROME OR EDGE.', 4000);
+        showTempMessage('🚨 VOICE SEARCH ONLY WORKS IN CHROME OR EDGE.', 4000);
         playSound('error');
     };
 }
@@ -6259,7 +6259,7 @@ if (urlParams.has('permshare')) {
         raw = atob(decoded + '=='.substring(0, (4 - decoded.length % 4) % 4));
         raw = decodeURIComponent(escape(raw));
     } catch (e) {
-        showTempMessage('INVALID SHARE LINK!', 5000);
+        showTempMessage('❌ INVALID SHARE LINK!', 5000);
         history.replaceState(null, null, location.pathname);
         return;
     }
@@ -6323,7 +6323,7 @@ if (urlParams.has('permshare')) {
                             saveLocations();
                             forceReload();
                             undoBtn.style.display = 'none';
-                            showTempMessage('IMPORT UNDONE', 4000);
+                            showTempMessage('✅ IMPORT UNDONE', 4000);
                             playSound('undo');
                         };
                     }
@@ -6332,7 +6332,7 @@ if (urlParams.has('permshare')) {
 
             history.replaceState(null, null, location.pathname);
         } catch (e) {
-            showTempMessage('SHARED MARKER IMPORTED — NOW YOURS TO EDIT', 5000);
+            showTempMessage('✅ SHARED MARKER IMPORTED — NOW YOURS TO EDIT', 5000);
             console.error('Permshare import error:', e);
         }
     }
@@ -6363,7 +6363,7 @@ if (urlParams.has('permshare')) {
     a.href = URL.createObjectURL(blob);
     a.download = `FO76_FULL_BACKUP_${new Date().toISOString().slice(0,10)}.json`;
     a.click();
-    showTempMessage('FULL BACKUP DOWNLOADED!', 6000);
+    showTempMessage('✅ FULL BACKUP DOWNLOADED!', 6000);
     playSound('saving');
 });
 
@@ -6451,11 +6451,11 @@ if (urlParams.has('permshare')) {
                         }
                     );
                 } else {
-                    showTempMessage('ERROR: NOT A VALID FULL BACKUP FILE!', 5000);
+                    showTempMessage('❌ ERROR: NOT A VALID FULL BACKUP FILE!', 5000);
                     playSound('error');
                 }
             } catch (err) {
-                showTempMessage('ERROR: INVALID OR CORRUPTED BACKUP FILE!', 5000);
+                showTempMessage('❌ ERROR: INVALID OR CORRUPTED BACKUP FILE!', 5000);
                 playSound('error');
                 console.error(err);
             }
@@ -6471,7 +6471,7 @@ let reportTimer = null;
 window.startReport = function(markerId) {
     const marker = locations.find(l => l.id === markerId);
     if (!marker) {
-        showTempMessage('ERROR: MARKER NOT FOUND!', 5000);
+        showTempMessage('❌ ERROR: MARKER NOT FOUND!', 5000);
         return;
     }
 
@@ -6557,10 +6557,10 @@ window.startReport = function(markerId) {
             })
         })
         .then(r => r.ok ? r.text() : Promise.reject('Server rejected'))
-        .then(() => showTempMessage('REPORT SENT — THANK YOU IT WILL BE REVIEWED.', 6000))
+        .then(() => showTempMessage('🚩 REPORT SENT — THANK YOU IT WILL BE REVIEWED.', 6000))
         .catch(err => {
             console.error("Report failed:", err);
-            showTempMessage('REPORT SENT FAILED — GITHUB OFFLINE.', 6000);
+            showTempMessage('❌ REPORT SENT FAILED — GITHUB OFFLINE.', 6000);
         });
 
         closeModal(modal);   // ← Global closeModal — triggers Return to Fullscreen ONLY if you were in fullscreen before
@@ -6621,7 +6621,7 @@ playSound('click');
 window.revertToCommunityMarker = function(markerId) {
     const marker = locations.find(l => l.id === markerId);
     if (!marker || !marker.wasCommunityKept) {
-        showTempMessage('This is not a kept community marker.', 4000);
+        showTempMessage('❌ THIS IS NOT A KEPT COMMUNITY MARKER.', 4000);
         return;
     }
 playSound('click');
@@ -7077,7 +7077,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = 76.Vault-4 • 8-04-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = 76.Vault-5 • 8-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
