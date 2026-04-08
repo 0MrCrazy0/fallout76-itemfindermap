@@ -122,32 +122,36 @@
         }
 
         function closeAndReturn() {
-            if (isStandalone) {
-                // PWA mode (Android or iOS): navigate back safely
+        if (isStandalone) {
+            // Preferred PWA behaviour: return via history (prevents duplicate instances)
+            if (window.history.length > 1) {
+                window.history.back();
+                return;
+            }
+            // Fallback for PWA standalone mode
+            window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
+        } else {
+            // Normal desktop browser behaviour
+            if (window.opener) {
+                window.opener.focus();
+            }
+            window.close();
+            // Fallback in case the browser blocks window.close()
+            setTimeout(() => {
                 window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
-            } else {
-                // Normal desktop browser behaviour
-                if (window.opener) {
-                    window.opener.focus();
-                }
-                window.close();
-
-                // Fallback in case the browser blocks window.close()
-                setTimeout(() => {
-                    window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
-                }, 80);
-            }
+            }, 150);
         }
+    }
 
-        // CANCEL removes the CID from localStorage so you can try again
-        function cancelSubmit() {
-            if (cid) {
-                let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
-                submitted = submitted.filter(c => c !== cid);
-                localStorage.setItem('submitted_cids', JSON.stringify(submitted));
-            }
-            closeAndReturn();
+    // CANCEL removes the CID from localStorage so you can try again
+    function cancelSubmit() {
+        if (cid) {
+            let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
+            submitted = submitted.filter(c => c !== cid);
+            localStorage.setItem('submitted_cids', JSON.stringify(submitted));
         }
+        closeAndReturn();
+    }
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
