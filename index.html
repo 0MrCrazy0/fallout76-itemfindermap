@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Fallout 76 Item Finder Map</title>
 	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
-	<link rel="manifest" href="manifest.json?v=76.Vault-3">
+	<link rel="manifest" href="manifest.json?v=76.Vault-4">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1675,7 +1675,7 @@ select#itemCategory:hover {
         </div>
     </div>
 <script>
-const CURRENT_APP_VERSION = '76.Vault-3';
+const CURRENT_APP_VERSION = '76.Vault-4';
 
 // ── All version numbers now use this single line (change it here only) ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -1802,60 +1802,66 @@ document.addEventListener('DOMContentLoaded', () => {
     const CURRENT_UPDATE_VERSION = 'CURRENT_UPDATE_VERSION';
     const APP_VERSION = "APP_VERSION";
 let soundsEnabled = localStorage.getItem('soundsEnabled') !== 'false';
+
 const baseSounds = {
-    click: new Audio("https://rpg.hamsterrepublic.com/wiki-images/8/84/Select8-Bit.ogg"),
-    type: new Audio("https://rpg.hamsterrepublic.com/wiki-images/3/3a/Thip.ogg"),
-    error: new Audio("https://rpg.hamsterrepublic.com/wiki-images/1/12/Ping-da-ding-ding-ding.ogg"),
-    duplicate: new Audio("https://rpg.hamsterrepublic.com/wiki-images/0/0b/Robot_2.ogg"),
-    saving: new Audio("https://rpg.hamsterrepublic.com/wiki-images/9/9c/Robot_1.ogg"),
-    undo: new Audio("https://rpg.hamsterrepublic.com/wiki-images/d/d7/Oddbounce.ogg"),
-    delete: new Audio("https://rpg.hamsterrepublic.com/wiki-images/0/04/TextboxBloop8-Bit.ogg"),
-    levelUp: new Audio("https://rpg.hamsterrepublic.com/wiki-images/d/d5/Menu8-Bit.ogg"),
-    modalClose: new Audio("https://rpg.hamsterrepublic.com/wiki-images/8/8e/Confirm8-Bit.ogg"),
-    selectcategory: new Audio("https://rpg.hamsterrepublic.com/wiki-images/a/a8/Rolling_Switch.ogg"),
-    postcard: new Audio("https://rpg.hamsterrepublic.com/wiki-images/0/0b/Robot_2.ogg"),
-    dust: new Audio("https://rpg.hamsterrepublic.com/wiki-images/0/04/TextboxBloop8-Bit.ogg")
+    click:      new Audio("./sounds/click.ogg"),
+    type:       new Audio("./sounds/type.ogg"),
+    error:      new Audio("./sounds/error.ogg"),
+    duplicate:  new Audio("./sounds/duplicate.ogg"),
+    saving:     new Audio("./sounds/saving.ogg"),
+    undo:       new Audio("./sounds/undo.ogg"),
+    delete:     new Audio("./sounds/delete.ogg"),
+    levelUp:    new Audio("./sounds/levelup.ogg"),
+    modalClose: new Audio("./sounds/modalclose.ogg"),
+    selectcategory: new Audio("./sounds/selectcategory.ogg"),
+    postcard:   new Audio("./sounds/postcard.ogg"),
+    dust:       new Audio("./sounds/dust.ogg")
 };
+
 Object.values(baseSounds).forEach(s => { s.volume = 0.30; });
+
 let appFullyReady = false;
 let lastSoundTime = 0;
-// play function with quick-tap protection
+
 function playSound(type) {
     if (!soundsEnabled || !baseSounds[type] || !appFullyReady) return;
     const now = Date.now();
-    if (now - lastSoundTime < 80) return; // prevents overlap on fast taps
+    if (now - lastSoundTime < 80) return;
     lastSoundTime = now;
-    baseSounds[type].currentTime = 0;
-    baseSounds[type].play().catch(() => {});
+    const sound = baseSounds[type];
+    sound.currentTime = 0;
+    sound.play().catch(() => {});
 }
-// ── PWA AUDIO UNLOCK (handles external audio files) ──
+
+// Silent one-time unlock
 let audioUnlocked = false;
-let soundBurstGuard = false; // Prevents multiple unlock calls on first tap
 function unlockAudio() {
-    if (audioUnlocked || soundBurstGuard) return;
+    if (audioUnlocked) return;
     audioUnlocked = true;
     appFullyReady = true;
-    soundBurstGuard = true; // Block any immediate follow-up plays
-    console.log('🔊 Audio fully unlocked for iOS / PWA');
-    // SILENT unlock only — no sounds played
-    setTimeout(() => {
-        soundBurstGuard = false;
-    }, 300);
+    console.log('🔊 Self-hosted audio unlocked cleanly');
 }
+
+// Attach one-time unlock listeners
 function attachAudioUnlockListeners() {
-    const events = ['touchstart', 'click']; // Reduced to the two most reliable events
-    const targets = [document.documentElement];
-    const mapEl = document.getElementById('map');
-    if (mapEl) targets.push(mapEl);
-    targets.forEach(target => {
+    const events = ['touchstart', 'click', 'pointerdown'];
+    const handler = () => {
+        unlockAudio();
         events.forEach(ev => {
-            target.addEventListener(ev, unlockAudio, {
-                once: true,
-                passive: true
-            });
+            document.documentElement.removeEventListener(ev, handler, { passive: true });
+            const mapEl = document.getElementById('map');
+            if (mapEl) mapEl.removeEventListener(ev, handler, { passive: true });
         });
+    };
+
+    events.forEach(ev => {
+        document.documentElement.addEventListener(ev, handler, { once: true, passive: true });
+        const mapEl = document.getElementById('map');
+        if (mapEl) mapEl.addEventListener(ev, handler, { once: true, passive: true });
     });
 }
+
+// Initialize
 attachAudioUnlockListeners();
 
         // ── FETCH WITH TIMEOUT HELPER
@@ -1916,7 +1922,7 @@ if (!localStorage.getItem('nanCleanupDone_v76')) {
     if (removed > 0) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(locations)); // save cleaned data immediately
         if (typeof showTempMessage === 'function') {
-            showTempMessage(`Cleaned up ${removed} invalid marker${removed === 1 ? '' : 's'} from your saved data.`, 8000);
+            showTempMessage(`🧼 CLEANED UP ${removed} INVALID MARKER${removed === 1 ? '' : 'S'}`, 8000);
         }
     } else {
     }
@@ -2099,6 +2105,7 @@ fullscreenControl.onAdd = function(map) {
     L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
               .on(link, 'click', L.DomEvent.preventDefault)
               .on(link, 'click', () => {
+			  playSound('click');
                   const mapEl = document.getElementById('map');
                   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
                   
@@ -2779,7 +2786,11 @@ playSound('selectcategory');
         return terms.every(term => text.includes(term));
     });
     if (found && val) {
-        showTempMessage('ITEM LOCATED — CHECK DROP-DOWN SUGGESTIONS', 3000);
+        console.log('🎵 ITEM LOCATED condition met — playing sound (delayed)');
+        setTimeout(() => {
+            playSound('selectcategory');
+        }, 120);
+        showTempMessage('🔎 ITEM LOCATED — CHECK DROP-DOWN SUGGESTIONS', 3000);
         combinedSearch.style.boxShadow = '0 0 8px #0f0';
         setTimeout(() => combinedSearch.style.boxShadow = '', 1500);
     }
@@ -2789,7 +2800,7 @@ playSound('selectcategory');
 });
         categoryFilter.onchange = () => {
             loadData(combinedSearch.value, categoryFilter.value);
-            playSound('click');
+            playSound('selectcategory');
         };
         function updateLockAllBtn() {
             const hasUnlocked = locations.some(l => !l.locked && !l.isPostcard);
@@ -2837,7 +2848,7 @@ playSound('selectcategory');
                 `?lat=${lat}&lng=${lng}`;
 
     navigator.clipboard.writeText(url).then(() => {
-        showTempMessage('MAP VIEW LINK COPIED', 3000);
+        showTempMessage('🔗 MAP VIEW LINK COPIED — SEND TO A FRIEND', 3000);
         playSound('click');
     });
 };
@@ -2877,7 +2888,7 @@ playSound('selectcategory');
     if (currentIndex < 0) return;
     const loc = locations[currentIndex];
     if (loc.locked) {
-        showTempMessage('UNLOCK FIRST!', 4000);
+        showTempMessage('🔓 UNLOCK MARKER FIRST', 4000);
         playSound('error');
         return;
     }
@@ -2899,9 +2910,12 @@ playSound('selectcategory');
     saveLocations();
     forceReload();
     closeModal(itemModal);
-    safeFlyTo(newLat, newLng, map.getZoom() + 1); 
-    showTempMessage('MARKER DUPLICATED — ORIGINAL RE-LOCKED', 4000);
-    playSound('duplicate');
+    safeFlyTo(newLat, newLng, map.getZoom() + 1);
+    showTempMessage('✅ MARKER DUPLICATED — ORIGINAL RE-LOCKED', 4000);
+    console.log('🎵 Attempting to play duplicate sound');
+    setTimeout(() => {
+        playSound('duplicate');
+    }, 150);
 };
 
 if (!map.getPane('gridPane')) {
@@ -3147,7 +3161,7 @@ document.head.appendChild(postcardStyle);
 document.getElementById('createPostcardBtn').onclick = () => {
     const textarea = document.getElementById('postcardMessage');
     let msg = textarea ? textarea.value.trim() : 'Postcard Found!';
-   
+  
     if (msg.length > 280) msg = msg.substring(0, 280);
     if (!currentPostcardLatLng) return;
 
@@ -3155,30 +3169,27 @@ document.getElementById('createPostcardBtn').onclick = () => {
     locations.push(loc);
     saveLocations();
 
-    // Priority flag + reset any competing flags
     window.justCreatedPostcardId = loc.id;
     currentIndex = -1;
     justClosedEditModal = false;
-
     forceReload();
-
     closeModal(postcardModal);
     postcardModal.style.display = 'none';
 
     const encodedMsg = encodeURIComponent(msg);
     const url = `${window.location.href.split('?')[0].split('#')[0]}?postcard=${loc.id}&lat=${Math.round(loc.lat)}&lng=${Math.round(loc.lng)}&msg=${encodedMsg}`;
 
-    navigator.clipboard.writeText(url).then(() => {
-        showTempMessage('POSTCARD LINK COPIED TO CLIPBOARD SEND TO A FRIEND', 4000);
-        playSound('postcard');
-    });
+navigator.clipboard.writeText(url).then(() => {
+    showTempMessage('📬 POSTCARD LINK COPIED — 🔗 SEND TO A FRIEND', 4000);
+    setTimeout(() => playSound('postcard'), 180);
+}).catch(() => {
+    showTempMessage('❌ CLIPBOARD COPY FAILED — POSTCARD CREATED', 5000);
+    prompt('Copy this postcard link manually (works everywhere):', url);
+    setTimeout(() => playSound('postcard'), 180);
+});
 
-    // Longer delay + guaranteed priority
-    setTimeout(() => {
-        showPostcardMarker(loc);
-    }, 850);
-
-    startPostcardTicker();
+setTimeout(() => showPostcardMarker(loc), 850);
+startPostcardTicker();
 };
         const urlParams = new URLSearchParams(window.location.search);
         let pendingPostcard = null;
@@ -3213,7 +3224,7 @@ document.getElementById('createPostcardBtn').onclick = () => {
                     locations.push(loc);
                     saveLocations();
                     created = true;
-                    showTempMessage('POSTCARD RECEIVED', 5000);
+                    showTempMessage('📬 POSTCARD RECEIVED FROM FRIEND', 5000);
                     playSound('postcard');
                 }
                 setTimeout(() => {
@@ -3332,42 +3343,50 @@ function showPostcardMarker(loc) {
         saveLocations();
         recalculateXP();
         forceReload();
-        showTempMessage('POSTCARD KEPT!', 4000);
-        playSound('saving');
+        showTempMessage('✅ POSTCARD KEPT SUCCESSFULLY', 4000);
+        console.log('🎵 Attempting to play saving sound for postcard keep');
+        setTimeout(() => {
+            playSound('saving');
+        }, 150);
     };
 }
-        function dustPostcard(id) {
-            const loc = locations.find(l => l.id === id);
-            if (!loc) return;
-            const marker = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === id);
-            if (marker) {
-                const icon = marker._icon;
-                if (icon) {
-                    icon.style.transition = 'all 1.5s ease-out';
-                    icon.style.opacity = '0';
-                    icon.style.transform = 'scale(0.3) rotate(720deg)';
-                }
-                setTimeout(() => {
-                    const index = locations.indexOf(loc);
-                    if (index !== -1) locations.splice(index, 1);
-                    saveLocations();
-                    forceReload();
-                    showTempMessage('POSTCARD! EXPIRED — TURNED TO DUST!', 4000);
-                    playSound('dust');
-                    if (!locations.some(l => l.isPostcard)) stopPostcardTicker();
-                }, 1500);
-            } else {
-                const index = locations.indexOf(loc);
-                if (index !== -1) {
-                    locations.splice(index, 1);
-                    saveLocations();
-                    forceReload();
-                    showTempMessage('POSTCARD EXPIRED! — TURNED TO DUST!', 4000);
-                    playSound('dust');
-                    if (!locations.some(l => l.isPostcard)) stopPostcardTicker();
-                }
-            }
-        }
+function dustPostcard(id) {
+    const loc = locations.find(l => l.id === id);
+    if (!loc) return;
+
+    // Guard prevents duplicate calls from the live ticker
+    if (loc.dusting) return;
+    loc.dusting = true;
+
+    const marker = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === id);
+
+    // Animate marker if it exists
+    if (marker && marker._icon) {
+        const icon = marker._icon;
+        icon.style.transition = 'all 1.5s ease-out';
+        icon.style.opacity = '0';
+        icon.style.transform = 'scale(0.3) rotate(720deg)';
+    }
+
+    setTimeout(() => {
+        const index = locations.indexOf(loc);
+        if (index !== -1) locations.splice(index, 1);
+
+        saveLocations();
+        forceReload();
+
+        // Short delay allows speech-bubble close sound to finish first
+        setTimeout(() => {
+            showTempMessage('💨 POSTCARD EXPIRED — TURNED TO DUST', 4000);
+            playSound('dust');
+
+            if (!locations.some(l => l.isPostcard)) stopPostcardTicker();
+
+            // Clean up guard flag
+            delete loc.dusting;
+        }, 80);
+    }, 1500);
+}
         function isGlowing(loc) {
             if (loc.isPostcard) return true;
             return loc.addedTime && (Date.now() - loc.addedTime) < 120000;
@@ -3563,8 +3582,11 @@ function showConfirmModal(title, content, onConfirm, restoreFullscreenOnClose = 
             loc.locked = true;
             lastMovedMarker = marker;
             saveLocations();
-            playSound('saving');
-            showTempMessage(`MARKER MOVED — SAVED & LOCKED ${loc.icon}`, 4000);
+            showTempMessage(`📍 MARKER MOVED — SAVED & RE-LOCKED ${loc.icon}`, 4000);
+            console.log('🎵 Attempting to play saving sound after drag');
+            setTimeout(() => {
+                playSound('saving');
+            }, 150);
             safeFlyTo(lat, lng);
             forceReload();
         };
@@ -4133,7 +4155,7 @@ function recalculateXP() {
     if (level > oldLevel) {
         playSound('levelUp');
         triggerConfetti();
-        showTempMessage(`LEVEL UP 🎉 — NOW LEVEL ${level}`, 5000);
+        showTempMessage(`☢️ LEVEL UP! — NOW EXPLORER LEVEL ${level} 🎉`, 10000);
 
         const bar = document.getElementById('xpProgress');
         bar.classList.add('level-up');
@@ -5327,9 +5349,12 @@ function createPermanentShare(markersToShare) {
     const base = window.location.href.split('?')[0].split('#')[0];
     const shareUrl = base + '?permshare=' + encoded;
 
-    navigator.clipboard.writeText(shareUrl).then(() => {
-        showTempMessage('PERMANENT LINK COPIED', 6000);
-        playSound('postcard');
+navigator.clipboard.writeText(shareUrl).then(() => {
+        showTempMessage('🔗 MARKER LINK COPIED — SEND TO A FRIEND', 6000);
+        console.log('🎵 Attempting to play postcard sound for permanent share');
+        setTimeout(() => {
+            playSound('postcard');
+        }, 150);
     }).catch(() => {
         prompt('Copy this link (works everywhere):', shareUrl);
     });
@@ -5504,13 +5529,12 @@ saveItemBtn.onclick = () => {
     let desc = itemDescInput.value.trim();
     const isNew = currentIndex < 0;
     let lat, lng;
-
     if (isNew) {
         if (tempLatLng && typeof tempLatLng.lat === 'number' && typeof tempLatLng.lng === 'number') {
             lat = tempLatLng.lat;
             lng = tempLatLng.lng;
         } else {
-            showTempMessage('NO LOCATION SELECTED! DOUBLE-CLICK MAP FIRST.', 4000);
+            showTempMessage('NO LOCATION SELECTED! RIGHT-CLICK OR LONG-PRESS MAP FIRST', 4000);
             playSound('error');
             return;
         }
@@ -5524,7 +5548,6 @@ saveItemBtn.onclick = () => {
         lat = loc.lat;
         lng = loc.lng;
     }
-
     if (!desc) {
         const grid = getGridFromLatLng(lat, lng);
         const x = Math.round(lng);
@@ -5534,7 +5557,6 @@ saveItemBtn.onclick = () => {
     } else {
         desc = updateDescWithGrid(desc, lat, lng);
     }
-
     if (currentIndex >= 0) {
         const loc = locations[currentIndex];
         if (loc.locked) {
@@ -5554,18 +5576,16 @@ saveItemBtn.onclick = () => {
         newLoc.locked = true;
         locations.push(newLoc);
         recalculateXP();
-
-        // ── AUTO-OPEN POPUP FOR NEWLY CREATED NORMAL MARKER ──
         window.justCreatedMarkerId = newLoc.id;
     }
-
     closeModal(itemModal);
     saveLocations();
-    playSound('saving');
+    // Delayed sound to bypass the 80 ms debounce from modalClose
+    setTimeout(() => {
+        playSound('saving');
+    }, 120);
     showTempMessage('MARKER SAVED & LOCKED', 4000);
     forceReload();
-
-    // ── Auto-open the speech bubble on the marker you just created ──
     if (window.justCreatedMarkerId) {
         setTimeout(() => {
             const marker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
@@ -5576,7 +5596,6 @@ saveItemBtn.onclick = () => {
             }
         }, 750);
     }
-
     const submitBtn = document.getElementById('submitCommunityBtn');
     if (submitBtn) {
         submitBtn.style.display =
@@ -5595,6 +5614,8 @@ deleteBtn.onclick = () => {
         playSound('error');
         return;
     }
+    
+    playSound('click');
     showConfirmModal(
         '☢ CONFIRM DELETION ☢',
         `Are you sure you want to permanently delete this marker?<br><br>
@@ -5606,6 +5627,7 @@ deleteBtn.onclick = () => {
             lastDeleted = { ...loc };
             locations.splice(currentIndex, 1);
             recalculateXP();
+			setTimeout(() => playSound('delete'), 180);
             closeModal(itemModal);
             saveLocations();
             forceReload();
@@ -5617,8 +5639,7 @@ deleteBtn.onclick = () => {
                 savePendingUndo('delete', JSON.stringify(locations), { lastDeleted: { ...loc } });
                 showUndoDeleteButton();
             }
-            showTempMessage('MARKER DELETED — UNDO READY (2 min)', 5000);
-            playSound('delete');
+            showTempMessage('🧼️ MARKER DELETED — UNDO AVAILABLE (2 MINUTES)', 5000);
         },
         'Yes — Delete It',
         'Cancel'
@@ -6144,7 +6165,7 @@ unique.forEach(item => {
                 }
             }, 650); // Increased timeout for reliable clustering/spiderfy
         });
-        playSound('click');
+        playSound('selectcategory');
     };
     suggestionsBox.appendChild(div);
 });
@@ -6280,7 +6301,7 @@ if (urlParams.has('permshare')) {
             saveLocations();
             forceReload();
 
-            showTempMessage(`SHARED MARKER${added > 1 ? 'S' : ''} IMPORTED — NOW YOURS TO EDIT`, 6000);
+            showTempMessage(`📥 SHARED MARKER${added > 1 ? 'S' : ''} IMPORTED — NOW YOURS TO EDIT`, 6000);
             playSound('saving');
 
             // Undo support
@@ -6548,7 +6569,7 @@ window.cancelReport = function() {
 window.keepCommunityMarker = function(markerId) {
     const marker = locations.find(l => l.id === markerId);
     if (!marker || !marker.isCommunity) return;
-
+playSound('click');
     showConfirmModal(
         '👍Keep This Community Marker?💾',
         '<strong>This marker will become yours permanently:</strong><br><br>' +
@@ -6571,8 +6592,8 @@ window.keepCommunityMarker = function(markerId) {
             saveLocations();
             recalculateXP();
             forceReload();
+			setTimeout(() => playSound('saving'), 150);
             showTempMessage(`MARKER KEPT — +100 XP (LEVEL ${level})`, 5000);
-            playSound('saving');
         // ── Auto-open speech bubble on the marker you just kept ──
             setTimeout(() => {
                 const keptMarker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
@@ -6596,7 +6617,7 @@ window.revertToCommunityMarker = function(markerId) {
         showTempMessage('This is not a kept community marker.', 4000);
         return;
     }
-
+playSound('click');
     showConfirmModal(
         'REVERT TO COMMUNITY MARKER',
         'This will turn the marker back into a normal community marker.<br><br>' +
@@ -6614,8 +6635,8 @@ window.revertToCommunityMarker = function(markerId) {
             saveLocations();
             recalculateXP();
             forceReload();
+			setTimeout(() => playSound('saving'), 150);
             showTempMessage('MARKER REVERTED TO COMMUNITY STATUS', 4000);
-            playSound('saving');
         },
         'Yes — Revert',
         'Cancel'
@@ -6966,6 +6987,7 @@ function attachContextButtons() {
 
     if (createMarkerBtn) {
         createMarkerBtn.onclick = () => {
+		playSound('click');
             contextMenu.style.display = 'none';
             document.body.classList.remove('modal-open');
             if (window.lastContextLatLng) {
@@ -6977,6 +6999,7 @@ function attachContextButtons() {
 
     if (createPostcardBtn) {
         createPostcardBtn.onclick = () => {
+		playSound('click');
             contextMenu.style.display = 'none';
             document.body.classList.remove('modal-open');
             if (window.lastContextLatLng) {
@@ -6984,19 +7007,14 @@ function attachContextButtons() {
                 postcardModal.style.display = 'block';
                 document.getElementById('postcardMessage')?.focus();
 
-                // ── Attach smart close handlers to Postcard modal (X button + Copy Link) ──
-                // This ensures the Return to Fullscreen button appears after closure
                 const postcardCloseBtn = postcardModal.querySelector('.close');
                 if (postcardCloseBtn) {
                     postcardCloseBtn.onclick = () => closeModal(postcardModal);
                 }
 
-                // If your Copy Link button has a different selector, update the line below accordingly
                 const copyLinkBtn = postcardModal.querySelector('#copyLinkBtn'); // ← change selector if needed
                 if (copyLinkBtn) {
                     copyLinkBtn.onclick = () => {
-                        // Your existing copy-to-clipboard logic goes here (if any)
-                        // Then close the modal via the smart function
                         closeModal(postcardModal);
                     };
                 }
@@ -7052,7 +7070,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = 76.Vault-3 • 8-04-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = 76.Vault-4 • 8-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
