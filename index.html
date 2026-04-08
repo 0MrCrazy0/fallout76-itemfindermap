@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Fallout 76 Item Finder Map</title>
 	<!-- DEV NOTE: Also change when updating: Search CURRENT_APP_VERSION = '76.??'; -->
-	<link rel="manifest" href="manifest.json?v=76.Vault-6">
+	<link rel="manifest" href="manifest.json?v=76.Vault-7">
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -1399,14 +1399,24 @@ select#categoryFilter:hover,
 select#itemCategory:hover {
     cursor: pointer !important;
 }
+#map, .leaflet-container {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translate3d(0,0,0);
+    will-change: transform;
+}
+.leaflet-tile-container {
+    will-change: transform;
+}
 </style>
 </head>
 <body>
+<br><br>
     <!-- DEV NOTE: TITLE TOGGLE BUTTON — FIXED -->
-    <div id="titleToggleContainer">
+    <h1 id="mainTitle">The Fallout 76 Item Finder Map! Quickly log items while exploring Appalachia.</h1>
+	<div id="titleToggleContainer">
         <button id="toggleTitleBtn">-</button>
     </div>
-    <h1 id="mainTitle">The Fallout 76 Item Finder Map! Quickly log items while exploring Appalachia.</h1>
 	<!-- PLAYER NAME INPUT — PERSISTENT -->
 <div style="text-align:center; margin:10px auto 20px; max-width:420px;">
   <input type="text" id="playerNameInput" placeholder="Your In-Game Name (optional)" 
@@ -1675,7 +1685,7 @@ select#itemCategory:hover {
         </div>
     </div>
 <script>
-const CURRENT_APP_VERSION = '76.Vault-6';
+const CURRENT_APP_VERSION = '76.Vault-7';
 
 // ── All version numbers now use this single line (change it here only) ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -2066,21 +2076,24 @@ Object.keys(customCategories).forEach(cat => {
         categoryColors[cat] = '#002F00';
     }
 });
-        const map = L.map('map', {
-            crs: L.CRS.Simple,
-            minZoom: -3,
-            maxZoom: 6,
-            zoomControl: false,
-            zoomAnimation: true,
-            fadeAnimation: true,
-            markerZoomAnimation: true,
-			preferCanvas: true,           // Already added — keep it
-			updateWhenIdle: true,         // ← ADD
-			updateWhenZooming: false,     // ← ADD (prevents excessive updates during pinch-zoom)
-			inertia: false                // ← ADD (reduces "rubber band" lag on mobile)
+const map = L.map('map', {
+    crs: L.CRS.Simple,
+    minZoom: -3,
+    maxZoom: 6,
+    zoomControl: false,
+    zoomAnimation: true,
+    fadeAnimation: false, 
+    markerZoomAnimation: false,
+    preferCanvas: true,
+    updateWhenIdle: true,
+    updateWhenZooming: false,
+    inertia: false,
+    keepBuffer: 2,
+    renderer: L.canvas({ padding: 0.3 })
 });
-        const imageBounds = [[0, 0], [4096, 4096]];
-        const mapUrls = {
+
+const imageBounds = [[0, 0], [4096, 4096]];
+const mapUrls = {
     named: 'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
     noName: 'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
 };
@@ -2090,8 +2103,7 @@ Object.keys(customCategories).forEach(cat => {
         L.control.zoom({ position: 'topleft' }).addTo(map);
 // ── FULLSCREEN TOGGLE (🔭 button) FOR iPHONE SAFARI / PWA ──
 const fullscreenControl = L.control({ position: 'topright' });
-/* STRONGER iOS FULLSCREEN (replaces existing fullscreenControl.onAdd) */
-// ── STRONGER iOS PWA FULLSCREEN (Standalone Mode) ──
+
 fullscreenControl.onAdd = function(map) {
     const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
     const link = L.DomUtil.create('a', '', container);
@@ -2099,71 +2111,73 @@ fullscreenControl.onAdd = function(map) {
     link.title = 'Toggle fullscreen';
     link.innerHTML = '🔭';
     link.style.cssText = `display:block;width:34px;height:34px;line-height:34px;text-align:center;font-size:20px;background:#1a3c34;color:#00ff00;border:none;box-shadow:0 0 8px #00ff00;cursor:pointer;`;
-
+    // State tracking for iOS PWA only
     let isIOSMaximized = false;
-
     L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
               .on(link, 'click', L.DomEvent.preventDefault)
               .on(link, 'click', () => {
-                  playSound('click');
+  playSound('click');
                   const mapEl = document.getElementById('map');
-                  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-                  const isStandalonePWA = window.matchMedia('(display-mode: standalone)').matches || 
-                                          window.navigator.standalone === true;
+                  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                 
+                  // Accurate iOS PWA (standalone) detection
+                  const isStandalonePWA =
+                      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+                      (window.navigator && window.navigator.standalone === true);
                   const isIOSPWA = isIOS && isStandalonePWA;
-
                   if (isIOSPWA) {
+                      // iOS PWA: CSS-based toggle (your original styles + proper exit)
                       isIOSMaximized = !isIOSMaximized;
                       if (isIOSMaximized) {
-                          // Enter maximized view (robust iOS PWA coverage)
+                          // Enter maximised view
                           mapEl.style.position = 'fixed';
                           mapEl.style.top = '0';
                           mapEl.style.left = '0';
                           mapEl.style.width = '100vw';
                           mapEl.style.height = '100dvh';
-                          mapEl.style.minHeight = '100svh';        // safe-area fallback
                           mapEl.style.paddingTop = 'env(safe-area-inset-top)';
                           mapEl.style.paddingBottom = 'env(safe-area-inset-bottom)';
                           mapEl.style.zIndex = '999999';
                           mapEl.style.border = 'none';
-                          mapEl.style.boxShadow = 'none';
                           link.innerHTML = '✖';
                           link.title = 'Exit fullscreen';
+                          map.invalidateSize({ animate: false });
+                          setTimeout(() => map.invalidateSize({ animate: false }), 80);
+                          setTimeout(() => map.invalidateSize({ animate: false }), 300);
+                          showTempMessage('💯 MAXIMIZED VIEW', 1800);
                       } else {
-                          // Exit maximized view
+                          // Exit maximised view
                           mapEl.style.position = '';
                           mapEl.style.top = '';
                           mapEl.style.left = '';
                           mapEl.style.width = '';
                           mapEl.style.height = '';
-                          mapEl.style.minHeight = '';
                           mapEl.style.paddingTop = '';
                           mapEl.style.paddingBottom = '';
                           mapEl.style.zIndex = '';
                           mapEl.style.border = '';
-                          mapEl.style.boxShadow = '';
                           link.innerHTML = '🔭';
                           link.title = 'Toggle fullscreen';
+                          map.invalidateSize({ animate: false });
                       }
-                      // Force Leaflet to redraw
-                      map.invalidateSize({ animate: false });
-                      setTimeout(() => map.invalidateSize({ animate: false }), 80);
-                      setTimeout(() => map.invalidateSize({ animate: false }), 300);
-                      showTempMessage('💯 MAXIMIZED VIEW', 1800);
                   } else {
-                      // PC, Android PWA, iOS Safari (non-PWA) — native Fullscreen API
+                      // PC, Android PWA, iOS Safari (non-PWA) — native Fullscreen API (unchanged)
                       if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                          if (mapEl.requestFullscreen) mapEl.requestFullscreen();
-                          else if (mapEl.webkitRequestFullscreen) mapEl.webkitRequestFullscreen();
+                          if (mapEl.requestFullscreen) {
+                              mapEl.requestFullscreen();
+                          } else if (mapEl.webkitRequestFullscreen) {
+                              mapEl.webkitRequestFullscreen();
+                          }
                       } else {
-                          if (document.exitFullscreen) document.exitFullscreen();
-                          else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                          if (document.exitFullscreen) {
+                              document.exitFullscreen();
+                          } else if (document.webkitExitFullscreen) {
+                              document.webkitExitFullscreen();
+                          }
                       }
                   }
               });
-
-    // Icon updater for native fullscreen only
+    // Icon updater (native fullscreen only — CSS mode handled manually above)
     const updateIcon = () => {
         const isNativeFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
         if (!isIOSMaximized) {
@@ -2174,7 +2188,6 @@ fullscreenControl.onAdd = function(map) {
     document.addEventListener('fullscreenchange', updateIcon);
     document.addEventListener('webkitfullscreenchange', updateIcon);
     setTimeout(updateIcon, 50);
-
     return container;
 };
 fullscreenControl.addTo(map);
@@ -2205,19 +2218,16 @@ screenshotControl.onAdd = function(map) {
     L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
               .on(link, 'click', L.DomEvent.preventDefault)
               .on(link, 'click', captureHighResScreenshot);
-
-    container.style.display = 'none';   // start hidden
+    container.style.display = 'none'; // start hidden
     return container;
 };
 screenshotControl.addTo(map);
-
 // Initially hidden
 screenshotControl.getContainer().style.display = 'none';
 // Show screenshot button only when in fullscreen
 const updateScreenshotVisibility = () => {
     const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
     screenshotControl.getContainer().style.display = isFullscreen ? 'block' : 'none';
-
     if (isFullscreen && /iPad|iPhone|iPod/.test(navigator.userAgent)) {
         setTimeout(() => {
             if (typeof map !== 'undefined' && map) map.invalidateSize({ animate: false });
@@ -2227,6 +2237,7 @@ const updateScreenshotVisibility = () => {
 document.addEventListener('fullscreenchange', updateScreenshotVisibility);
 document.addEventListener('webkitfullscreenchange', updateScreenshotVisibility);
 setTimeout(updateScreenshotVisibility, 100);
+
 // ── True Fullscreen Capture ──
 function captureHighResScreenshot() {
     playSound('saving');
@@ -2250,22 +2261,31 @@ function captureHighResScreenshot() {
             a.download = `fo76_map_max_${new Date().toISOString().slice(0,10)}.jpg`;
             a.href = canvas.toDataURL('image/jpeg', 0.92);
             a.click();
-            
+
             // Restore original size
             mapEl.style.height = originalHeight;
             mapEl.style.maxWidth = originalMaxWidth || '95%';
             map.invalidateSize();
-            
+
             showTempMessage('📸 FULLSCREEN MAP CAPTURE SAVED TO DOWNLOADS! ✅', 4000);
-            
-            // Safely exit fullscreen after a short delay (mobile reliability)
+
+            // Safely exit fullscreen
             setTimeout(exitFullscreenIfActive, 400);
+
+            // ← NEW: Show the floating "🔭 Return to Fullscreen" button
+            setTimeout(() => {
+                if (wasInFullscreenBeforeModal) {
+                    showRestoreFullscreenButton();
+                }
+            }, 600);
+
         }).catch(() => {
             showTempMessage('❌ CAPTURE FAILED — TRY AGAIN', 4000);
             playSound('error');
         });
     }, 300);
 }
+
 // ── FULLSCREEN RESTORE LOGIC ──
 let wasInFullscreenBeforeModal = false;
 let restoreFullscreenBtn = null;
@@ -7086,7 +7106,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = 76.Vault-6 • 8-04-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = 76.Vault-7 • 8-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
