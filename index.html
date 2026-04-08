@@ -2822,7 +2822,7 @@ playSound('selectcategory');
                 locations.forEach(l => { if (!l.isPostcard) l.locked = hasUnlocked; });
                 saveLocations();
                 forceReload();
-                showTempMessage(hasUnlocked ? 'ALL MARKERS LOCKED!' : 'ALL MARKERS UNLOCKED!', 4000);
+                showTempMessage(hasUnlocked ? 'ALL MARKERS LOCKED! 🔒' : 'ALL MARKERS UNLOCKED! 🔓', 4000);
                 playSound('click');
             };
         }
@@ -4312,7 +4312,7 @@ function restorePendingUndo() {
                     forceReload();
                     undoBtn.style.display = 'none';
                     localStorage.removeItem(key);
-                    showTempMessage('MARKER RESTORED', 3000);
+                    showTempMessage('✅ MARKER RESTORED', 3000);
                     playSound('undo');
                 };
             }
@@ -5567,7 +5567,7 @@ saveItemBtn.onclick = () => {
     if (currentIndex >= 0) {
         const loc = locations[currentIndex];
         if (loc.locked) {
-            showTempMessage('UNLOCK FIRST!', 4000);
+            showTempMessage('🔓 UNLOCK FIRST!', 4000);
             playSound('error');
             return;
         }
@@ -5591,7 +5591,7 @@ saveItemBtn.onclick = () => {
     setTimeout(() => {
         playSound('saving');
     }, 120);
-    showTempMessage('MARKER SAVED & LOCKED', 4000);
+    showTempMessage('✅ MARKER SAVED & LOCKED 🔒', 4000);
     forceReload();
     if (window.justCreatedMarkerId) {
         setTimeout(() => {
@@ -6483,7 +6483,7 @@ window.startReport = function(markerId) {
     const reportKey = "reported_cid_" + marker.cid;
 
     if (localStorage.getItem(reportKey) === "true") {
-        showTempMessage('ALREADY REPORTED — THANK YOU!', 6000);
+        showTempMessage('❌ ALREADY REPORTED — THANK YOU!', 6000);
         return;
     }
 
