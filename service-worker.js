@@ -1,12 +1,10 @@
 // ——— SERVICE WORKER ———
 // Cache busting: Update this line on EVERY deployment that changes HTML, JS, or CSS.
 // Format: "fo76-ifm-v{VERSION}-{DDMMYYYY}" or "fo76-ifm-v{VERSION}-{DDMMYYYY}-buildN"
-const CACHE_NAME = "fo76-ifm-v76.Vault-8-8-04-2026";
-
+const CACHE_NAME = "fo76-ifm-v76.Vault-9-8-04-2026";
 self.addEventListener("install", e => {
   e.waitUntil(self.skipWaiting());
 });
-
 self.addEventListener("activate", e => {
   e.waitUntil(
     caches.keys().then(keys => {
@@ -21,14 +19,18 @@ self.addEventListener("activate", e => {
     }).then(() => self.clients.claim())
   );
 });
-
 self.addEventListener("fetch", e => {
   const url = e.request.url;
-
   // Always get fresh pending.html and community data
-  if (url.includes('pending.html') || 
-      url.includes('communitymap.json') || 
+  if (url.includes('pending.html') ||
+      url.includes('communitymap.json') ||
       url.includes('githubusercontent.com')) {
+    e.respondWith(fetch(e.request));
+    return;
+  }
+
+  // iOS PWA update fix – force fresh index.html on every load
+  if (url.includes('index.html') || e.request.mode === 'navigate') {
     e.respondWith(fetch(e.request));
     return;
   }
