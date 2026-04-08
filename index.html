@@ -2264,12 +2264,12 @@ function captureHighResScreenshot() {
             mapEl.style.maxWidth = originalMaxWidth || '95%';
             map.invalidateSize();
             
-            showTempMessage('MAXIMIZED MAP CAPTURE SAVED', 4000);
+            showTempMessage('📸 FULLSCREEN MAP CAPTURE SAVED TO DOWNLOADS! ✅', 4000);
             
             // Safely exit fullscreen after a short delay (mobile reliability)
             setTimeout(exitFullscreenIfActive, 400);
         }).catch(() => {
-            showTempMessage('CAPTURE FAILED — TRY AGAIN', 4000);
+            showTempMessage('❌ CAPTURE FAILED — TRY AGAIN', 4000);
             playSound('error');
         });
     }, 300);
@@ -5382,7 +5382,7 @@ document.getElementById('shareOneBtn').onclick = () => {
                 a.href = canvas.toDataURL('image/jpeg', 0.9);
                 a.download = `fo76_map_${new Date().toISOString().slice(0,10)}.jpg`;
                 a.click();
-                showTempMessage('MAP SAVED TO DOWNLOADS!', 4000);
+                showTempMessage('📸 MAP SAVED TO DOWNLOADS! ✅', 4000);
             });
         };
         prevPageBtn.onclick = () => {
