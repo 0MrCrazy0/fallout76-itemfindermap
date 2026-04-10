@@ -4320,6 +4320,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-cb57922f-5835-4291-9fbb-865806e2ec03",
+      "cid": "plans_this_is_a_test_submitted_marker_test_report_it_then_keep_it_delete_it_this_marker_will_be_removed_at_some_point_for_all_grid_a1_x_7_y_10_10.23957_7.20985",
+      "category": "plans",
+      "desc": "This is a test submitted marker. test report it! then keep it & delete it. this marker will be removed at some point for all!.\nGrid A1 (X: 7, Y: 10)\nSubmitted By Anonymous Wastelander",
+      "lat": 10.239569401847465,
+      "lng": 7.20985007296475,
+      "icon": "📜",
+      "addedTime": 1775798919894,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
