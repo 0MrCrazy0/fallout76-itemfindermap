@@ -1190,7 +1190,7 @@ playSound('selectcategory');
     playSound('click');
 };
 
-        duplicateBtn.onclick = () => {
+duplicateBtn.onclick = () => {
     if (currentIndex < 0) return;
     const loc = locations[currentIndex];
     if (loc.locked) {
@@ -1198,30 +1198,39 @@ playSound('selectcategory');
         playSound('error');
         return;
     }
+
     const sameCidMarkers = locations.filter(l => l.cid === loc.cid);
     const reference = sameCidMarkers.length > 0 ? sameCidMarkers[sameCidMarkers.length - 1] : loc;
-    const baseO = clusteringEnabled ? 160 : 60; 
+
+    const baseO = clusteringEnabled ? 160 : 60;
     const o = baseO / Math.pow(2, map.getZoom());
-    const a = sameCidMarkers.length * (55 * Math.PI / 180); 
+    const a = sameCidMarkers.length * (55 * Math.PI / 180);
+
     const newLat = reference.lat + o * Math.sin(a);
     const newLng = reference.lng + o * Math.cos(a);
+
     const newDesc = updateDescWithGrid(loc.desc, newLat, newLng);
+
     const dup = createNewLocation(newLat, newLng, loc.category, newDesc);
+    
+    // === Regenerate a brand new CID so it is not blocked as duplicate ===
+    dup.cid = generateCid(dup);
+
     dup.userEdited = true;
-    dup.locked = false; 
-    loc.locked = true; 
-    loc.addedTime = Date.now(); 
+    dup.locked = false;
+    loc.locked = true;
+    loc.addedTime = Date.now();
+
     locations.push(dup);
     recalculateXP();
     saveLocations();
     forceReload();
+
     closeModal(itemModal);
     safeFlyTo(newLat, newLng, map.getZoom() + 1);
+
     showTempMessage('✅ MARKER DUPLICATED — ORIGINAL RE-LOCKED', 4000);
-    console.log('🎵 Attempting to play duplicate sound');
-    setTimeout(() => {
-        playSound('duplicate');
-    }, 150);
+    setTimeout(() => playSound('duplicate'), 150);
 };
 
 if (!map.getPane('gridPane')) {
@@ -1344,16 +1353,21 @@ function showGridNotification(grid) {
             return emojiRegex.test(str.trim());
         }
         function updateDescWithGrid(desc, lat, lng) {
-            const grid = getGridFromLatLng(lat, lng);
-            const x = Math.round(lng);
-            const y = Math.round(lat);
-            const newCoords = grid ? `Grid ${grid} (X: ${x}, Y: ${y})` : `X: ${x}, Y: ${y}`;
-            const regex = /(Grid [A-J]\d+ \(X: \d+, Y: \d+\))|(X: \d+, Y: \d+)/;
-            if (regex.test(desc)) {
-                return desc.replace(regex, newCoords);
-            }
-            return desc + '\n' + newCoords;
-        }
+    const grid = getGridFromLatLng(lat, lng);
+    
+    // scaling for Fallout 76 map (0-4096 coordinate system)
+    const x = Math.round(lng * 10) / 10;   // 1 decimal place for readability
+    const y = Math.round(lat * 10) / 10;
+
+    const newCoords = grid ? `Grid ${grid} (X: ${x}, Y: ${y})` : `X: ${x}, Y: ${y}`;
+
+    const regex = /(Grid [A-J]\d+ \(X: [\d.]+, Y: [\d.]+\))|(X: [\d.]+, Y: [\d.]+)/;
+    
+    if (regex.test(desc)) {
+        return desc.replace(regex, newCoords);
+    }
+    return desc + '\n' + newCoords;
+}
         function createNewLocation(lat, lng, category, desc, isTemp = false) {
             const now = Date.now();
             return {
