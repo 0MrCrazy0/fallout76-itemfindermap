@@ -127,15 +127,24 @@
     }
 
     function closeAndReturn() {
+        // Prevent any unintended map interaction on the parent window
+        if (window.opener && typeof window.opener.postMessage === 'function') {
+            window.opener.postMessage({ type: 'SUBMIT_WINDOW_CLOSED' }, '*');
+        }
         if (window.opener) window.opener.focus();
-        try { window.close(); } catch(e) {}
+        
+        try { 
+            window.close(); 
+        } catch(e) {}
+        
+        // Fallback navigation with a short delay to avoid triggering map events
         if (isStandalone && window.history.length > 1) {
             window.history.back();
             return;
         }
         setTimeout(() => {
             window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
-        }, 120);
+        }, 150);
     }
 
     function cancelSubmit() {
