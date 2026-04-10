@@ -1,0 +1,1506 @@
+/* ── FALLOUT 76 ITEM FINDER MAP — GLOBAL STYLES & PIP-BOY AESTHETIC ── */
+/* This file defines the entire visual identity of the app. All styles emulate the classic Fallout Pip-Boy terminal interface while ensuring excellent performance and mobile responsiveness. */
+
+ /* ── MOBILE GRID + NO-CLUSTER FLICKER (Low-Zoom Focused) ── */
+ /* Optimised grid visibility and performance specifically for touch devices at low zoom levels */
+@media (hover: none) and (pointer: coarse) {
+    .grid-line {
+        opacity: 0.06 !important;
+        stroke-width: 0.6px !important;
+    }
+
+    /* Extra low-zoom stability — reduces repaint thrashing at full zoom-out */
+    .leaflet-zoom--3 .grid-line,
+    .leaflet-zoom--2 .grid-line,
+    .leaflet-zoom--1 .grid-line,
+    .leaflet-zoom-0 .grid-line {
+        opacity: 0.04 !important;
+    }
+   
+    .grid-label {
+        font-size: 11px !important;
+        opacity: 0.30 !important;
+        transition: opacity 0.4s ease-out !important;
+    }
+
+    .leaflet-container {
+        transform: translate3d(0,0,0) !important;
+        backface-visibility: hidden !important;
+        -webkit-backface-visibility: hidden !important;
+    }
+}
+
+/* ── GLOBAL BODY STYLES ── */
+/* Core terminal/Pip-Boy aesthetic with restricted horizontal scrolling */
+body { 
+    font-family: 'Courier New', monospace; 
+    margin: 20px; 
+    background-color: #0a2a2a; 
+    color: #00ff00; 
+    overflow-x: hidden; 
+}
+
+/* ── MAIN TITLE ── */
+/* Strong glowing title to match Fallout branding */
+h1 {
+    color: #00ff00;
+    text-align: center;
+    text-shadow: 0 0 10px #00ff00;
+    font-size: 2.2em;
+    margin-bottom: 12px;
+}
+
+/* ── MAP CONTAINER ── */
+/* Primary map element with strong border glow and dark background */
+#map {
+    height: 750px;
+    max-width: 95%;
+    margin: 0 auto 20px;
+    border: 2px solid #00ff00;
+    box-shadow: 0 0 15px #00ff00;
+    background-color: #000000;
+    position: relative;
+}
+
+/* ── TITLE TOGGLE ── */
+/* Button to collapse/expand the main title bar */
+#titleToggleContainer {
+    text-align: center;
+    margin-bottom: 8px;
+}
+#toggleTitleBtn {
+    padding: 2px 6px;
+    font-size: 0.9em;
+    max-width: 40px;
+    margin: 0 auto;
+    background: #1a3c34;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    border-radius: 0;
+    cursor: pointer;
+}
+#toggleTitleBtn:hover {
+    background: #00ff00;
+    color: #000;
+}
+
+/* ── SEARCH BAR ── */
+/* Responsive search and filter controls */
+#searchBar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 10px auto;
+    padding: 10px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid #0f0;
+    border-radius: 8px;
+    max-width: 90%;
+}
+
+/* ── TOOLS TOGGLE ── */
+#toolsToggleRow {
+    text-align: center;
+    margin: 10px 0;
+}
+#toggleButtonGroup {
+    padding: 8px 16px;
+    max-width: 200px;
+    background: #1a3c34;
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    border-radius: 0;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
+#toggleButtonGroup:hover {
+    background: #00ff00;
+    color: #000;
+}
+
+/* ── MAIN BUTTON GROUP ── */
+/* Grid of primary action buttons */
+#buttonGroup {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    justify-items: stretch;
+    align-items: center;
+    margin: 15px auto;
+    padding: 16px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid #0f0;
+    border-radius: 8px;
+    max-width: 420px;
+    width: calc(100% - 32px);
+    box-sizing: border-box;
+    place-self: center;
+}
+#buttonGroup button {
+    width: 100% !important;
+    height: 48px !important;
+    padding: 8px 12px !important;
+    margin: 0 !important;
+    font-size: 14px !important;
+    font-weight: bold;
+    text-align: center !important;
+    line-height: 1.4;
+    white-space: normal;
+    word-wrap: break-word;
+    box-sizing: border-box !important;
+    font-family: 'Courier New', monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#voiceSearchBtn {
+    grid-column: 1 / -1;
+    width: 100% !important;
+    max-width: none !important;
+    font-size: 16px !important;
+}
+#buttonGroup.hidden {
+    display: none !important;
+}
+
+/* ── GENERAL CONTROLS ── */
+.controls {
+    margin-bottom: 20px;
+    text-align: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+input[type="text"], select, textarea {
+    padding: 8px;
+    width: 100%;
+    max-width: 200px;
+    box-sizing: border-box;
+    border: 2px solid #00ff00;
+    border-radius: 0;
+    background-color: #000;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+}
+textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* ── LEAFLET MARKERS & CLUSTERS ── */
+.leaflet-marker-icon,
+.leaflet-marker-cluster {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: none !important;
+}
+.leaflet-marker-icon {
+    transform: scale(1.1);
+    margin-left: -16.5px !important;
+    margin-top: -16.5px !important;
+}
+
+/* ── COMBINED SEARCH HIGHLIGHT ── */
+#combinedSearch {
+    max-width: 250px;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+#combinedSearch.grid-highlight, #combinedSearch.item-highlight {
+    background-color: #0a3a0a !important;
+    box-shadow: 0 0 15px #00ff00, inset 0 0 10px rgba(0, 255, 0, 0.3);
+    animation: pulseSearch 1.5s ease-out;
+}
+@keyframes pulseSearch {
+    0%, 100% { box-shadow: 0 0 15px #00ff00, inset 0 0 10px rgba(0, 255, 0, 0.3); }
+    50% { box-shadow: 0 0 25px #00ff00, inset 0 0 15px rgba(0, 255, 0, 0.5); }
+}
+
+/* ── BUTTON STYLES ── */
+button {
+    padding: 8px 16px;
+    width: 100%;
+    max-width: 200px;
+    box-sizing: border-box;
+    background-color: #1a3c34;
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    border-radius: 0;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    transition: background-color 0.3s;
+    margin: 5px;
+    font-weight: bold;
+}
+button.reset-btn {
+    background-color: #F7615E !important;
+    color: #000 !important;
+    font-weight: 700;
+}
+
+/* ── LOCK TOGGLE ── */
+#modalLockToggle, .popup-lock-toggle {
+    color: #ffa500;
+    cursor: pointer;
+}
+#modalLockToggle:hover, .popup-lock-toggle:hover {
+    color: #00ff00;
+}
+
+/* ── TABLE CONTAINER ── */
+#tableContainer {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    contain: paint;
+    padding: 10px;
+    background: rgba(0,0,0,0.7);
+    border: 1px solid #0f0;
+    border-radius: 8px;
+    display: block !important;
+}
+.text-marker {
+    transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+    will-change: transform;
+}
+
+/* ── DELETE CATEGORY BUTTON HOVER GLOW ── */
+#confirmDeleteCategoryBtn,
+#confirmDeleteCategoryBtn:hover,
+#confirmDeleteCategoryBtn:focus-visible {
+    transition: all 0.25s ease !important;
+}
+#confirmDeleteCategoryBtn:hover,
+#confirmDeleteCategoryBtn:focus-visible {
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+    box-shadow:
+        0 0 12px #ffffff,
+        0 0 24px #00ff88,
+        0 0 36px #00ff00 !important;
+    transform: scale(1.06) !important;
+    filter: brightness(1.15) !important;
+}
+body.dark-mode #confirmDeleteCategoryBtn:hover,
+body.dark-mode #confirmDeleteCategoryBtn:focus-visible {
+    box-shadow:
+        0 0 16px #ffffff,
+        0 0 32px #00ff88,
+        0 0 48px #00ff00 !important;
+    transform: scale(1.06) !important;
+}
+
+/* ── LEAFLET MARKER PERFORMANCE ── */
+.leaflet-marker-icon {
+    will-change: transform;
+}
+
+/* ── PAGINATION & COUNTER ── */
+.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 15px 0;
+    width: 100%;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+.counter {
+    width: 200px !important;
+    margin: 10px auto !important;
+    text-align: center !important;
+    font-weight: bold !important;
+}
+
+/* ── CUSTOM TABLE HEADER ── */
+#customTableHeader {
+    display: table !important;
+    width: 100% !important;
+    table-layout: fixed !important;
+    border-spacing: 0 12px !important;
+    margin-bottom: -12px !important;
+}
+#customTableHeader > div {
+    display: table-row !important;
+    background: rgba(0, 255, 0, 0.2) !important;
+    border: 1px solid #0f0 !important;
+    border-radius: 8px !important;
+}
+#customTableHeader > div > div {
+    display: table-cell !important;
+    padding: 10px !important;
+    text-align: center !important;
+    color: #0f0 !important;
+    font-weight: bold !important;
+}
+
+/* ── LOCATIONS TABLE ── */
+#locationsTable {
+    width: 100% !important;
+    border-collapse: separate !important;
+    border-spacing: 0 12px !important;
+    table-layout: fixed !important;
+    margin: 0 !important;
+}
+#locationsTable thead { display: none !important; }
+#locationsTable tbody { display: block !important; width: 100% !important; }
+#locationsTable tbody tr {
+    display: flex !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid #0f0 !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+#locationsTable tbody tr:hover {
+    background: rgba(0, 255, 0, 0.08) !important;
+    box-shadow: 0 0 8px #0f0 !important;
+}
+#locationsTable tbody tr.glowing {
+    background: rgba(0, 255, 0, 0.15) !important;
+    box-shadow: 0 0 12px #0f0, 0 0 20px #0f0 !important;
+    animation: tablePulse 1.5s infinite ease-in-out !important;
+    border: 2px solid #00ff88 !important;
+}
+@keyframes tablePulse {
+    0%, 100% { box-shadow: 0 0 12px #0f0, 0 0 20px #0f0; }
+    50% { box-shadow: 0 0 18px #0f0, 0 0 30px #0f0; }
+}
+#locationsTable tbody td {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px !important;
+    word-wrap: break-word !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+}
+#locationsTable tbody td:nth-child(1) { flex: 0.6; } /* Lock */
+#locationsTable tbody td:nth-child(2) { flex: 0.9; } /* Icon */
+#locationsTable tbody td:nth-child(3) { flex: 1.5; } /* Category */
+#locationsTable tbody td:nth-child(4) {
+    flex: 3;
+    justify-content: flex-start !important;
+    padding-left: 15px !important;
+}
+.icon-circle {
+    width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 16px; font-weight: bold; color: #000;
+}
+.text-location {
+    background: #000; color: #fff; padding: 2px 6px; border: 1px solid #0f0; border-radius: 3px; font-size: 11px; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; margin: 0 auto;
+}
+.lock-toggle { font-size: 18px; cursor: pointer; display: block; margin: 0 auto; }
+
+/* ── MODALS ── */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background-color: rgba(0, 42, 42, 0.8);
+}
+.modal-content {
+    background-color: #1a3c34;
+    margin: 8% auto;
+    padding: 16px;
+    border: 2px solid #00ff00;
+    width: 100%;
+    max-width: 360px;
+    box-sizing: border-box;
+    border-radius: 0;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    overflow-y: auto;
+    max-height: 80vh;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ── SUBMIT LOADING OVERLAY ── */
+#submitLoadingOverlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 999999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 1.4em;
+    text-shadow: 0 0 10px #00ff00;
+}
+#submitLoadingOverlay.show {
+    display: flex;
+}
+#submitLoadingOverlay .spinner {
+    width: 60px;
+    height: 60px;
+    border: 6px solid #00ff00;
+    border-top: 6px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.close {
+    color: #00ff00;
+    float: right;
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+}
+.close:hover { color: #0a2a2a; }
+
+/* ── MODAL BUTTON LAYOUT ── */
+#itemModal .modal-content > div:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 12px;
+}
+#exportOneBtn, #shareOneBtn {
+    flex: 1;
+    min-width: 120px;
+}
+
+/* ── MARKER CLUSTER ── */
+.marker-cluster div {
+    width: 30px; height: 30px; margin-left: 5px; margin-top: 5px; text-align: center; border-radius: 15px;
+    font: bold 12px/30px "Helvetica Neue", Arial, Helvetica, sans-serif;
+    background-color: #ffff00; color: #000000;
+}
+
+/* ── GRID OVERLAY ── */
+.grid-line {
+    pointer-events: none;
+    stroke: rgba(0, 255, 0, 0.35);
+    stroke-width: 1;
+    stroke-dasharray: 4, 4;
+}
+.grid-label {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: bold;
+    fill: #00ff00;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    pointer-events: none;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+
+/* ── GRID NOTIFICATION ── */
+#gridNotification {
+    position: fixed;
+    bottom: 120px !important;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 40, 0, 0.95);
+    color: #00ff00;
+    padding: 16px 28px;
+    border: 3px solid #00ff00;
+    border-radius: 0;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    font-size: 18px;
+    box-shadow: 0 0 30px #00ff00, inset 0 0 20px rgba(0, 255, 0, 0.4);
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+    backdrop-filter: blur(4px);
+    text-shadow: 0 0 10px #00ff00;
+}
+#gridNotification.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-10px);
+    animation: gridPulse 1.5s ease-out;
+}
+@keyframes gridPulse {
+    0% { box-shadow: 0 0 30px #00ff00; }
+    50% { box-shadow: 0 0 50px #00ff88; }
+    100% { box-shadow: 0 0 30px #00ff00; }
+}
+
+/* ── DARK MODE BASE ── */
+body.dark-mode {
+    background-color: #000000 !important;
+}
+body.dark-mode #searchBar,
+body.dark-mode #buttonGroup,
+body.dark-mode #tableContainer,
+body.dark-mode .modal-content,
+body.dark-mode #xpStatus,
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode .counter {
+    background-color: #000000 !important;
+    border-color: #00ff00 !important;
+}
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea,
+body.dark-mode button,
+body.dark-mode .counter,
+body.dark-mode h1,
+body.dark-mode h2 {
+    color: #00ff00 !important;
+}
+
+/* ── BUTTON HOVER EFFECTS ── */
+body.dark-mode button,
+body.dark-mode #toggleButtonGroup,
+body.dark-mode #buttonGroup button {
+    box-shadow: none !important;
+    transition: background-color 0.2s ease;
+}
+body.dark-mode button:hover,
+body.dark-mode #toggleButtonGroup:hover,
+body.dark-mode #buttonGroup button:hover {
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+    box-shadow: none !important; /* removed the bright glow */
+}
+
+/* ── CONSISTENT HOVER GLOW FOR REMAINING BUTTONS ── */
+#toggleCategoryModalBtn,
+#prevPageBtn,
+#nextPageBtn,
+#toggleCategoryModalBtn:hover,
+#prevPageBtn:hover,
+#nextPageBtn:hover,
+#toggleCategoryModalBtn:focus-visible,
+#prevPageBtn:focus-visible,
+#nextPageBtn:focus-visible {
+    transition: all 0.25s ease !important;
+}
+#toggleCategoryModalBtn:hover,
+#prevPageBtn:hover,
+#nextPageBtn:hover,
+#toggleCategoryModalBtn:focus-visible,
+#prevPageBtn:focus-visible,
+#nextPageBtn:focus-visible {
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+    box-shadow:
+        0 0 12px #00ff88,
+        0 0 20px #00ff00 !important;
+    transform: scale(1.04) !important;
+    filter: brightness(1.1) !important;
+}
+body.dark-mode #toggleCategoryModalBtn:hover,
+body.dark-mode #prevPageBtn:hover,
+body.dark-mode #nextPageBtn:hover,
+body.dark-mode #toggleCategoryModalBtn:focus-visible,
+body.dark-mode #prevPageBtn:focus-visible,
+body.dark-mode #nextPageBtn:focus-visible {
+    box-shadow:
+        0 0 16px #00ff88,
+        0 0 28px #00ff00 !important;
+    transform: scale(1.05) !important;
+}
+
+/* ── CATEGORY & POSTCARD BUTTONS ── */
+#selectAllBtn,
+#deselectAllBtn,
+#createCategoryBtn,
+#deleteCategoryBtn,
+#closeCategoryToggleBtn,
+#saveCategoryBtn,
+#createPostcardBtn {
+    background-color: #1a3c34 !important;
+    color: #00ff00 !important;
+    border: 2px solid #00ff00 !important;
+    min-width: 140px;
+    padding: 10px 20px;
+    font-weight: bold;
+    transition: all 0.25s ease;
+}
+#selectAllBtn:hover,
+#deselectAllBtn:hover,
+#createCategoryBtn:hover,
+#deleteCategoryBtn:hover,
+#closeCategoryToggleBtn:hover,
+#saveCategoryBtn:hover,
+#createPostcardBtn:hover,
+#selectAllBtn:focus-visible,
+#deselectAllBtn:focus-visible,
+#createCategoryBtn:focus-visible,
+#deleteCategoryBtn:focus-visible,
+#closeCategoryToggleBtn:focus-visible,
+#saveCategoryBtn:focus-visible,
+#createPostcardBtn:focus-visible {
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+    box-shadow:
+        0 0 12px #ffffff,
+        0 0 24px #00ff88,
+        0 0 36px #00ff00 !important;
+    transform: scale(1.06) !important;
+    filter: brightness(1.15) !important;
+}
+body.dark-mode #selectAllBtn:hover,
+body.dark-mode #deselectAllBtn:hover,
+body.dark-mode #createCategoryBtn:hover,
+body.dark-mode #deleteCategoryBtn:hover,
+body.dark-mode #closeCategoryToggleBtn:hover,
+body.dark-mode #saveCategoryBtn:hover,
+body.dark-mode #createPostcardBtn:hover,
+body.dark-mode #selectAllBtn:focus-visible,
+body.dark-mode #deselectAllBtn:focus-visible,
+body.dark-mode #createCategoryBtn:focus-visible,
+body.dark-mode #deleteCategoryBtn:focus-visible,
+body.dark-mode #closeCategoryToggleBtn:focus-visible,
+body.dark-mode #saveCategoryBtn:focus-visible,
+body.dark-mode #createPostcardBtn:focus-visible {
+    box-shadow:
+        0 0 16px #ffffff,
+        0 0 32px #00ff88,
+        0 0 48px #00ff00 !important;
+}
+
+/* ── LEAFLET POPUPS ── */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+    background-color: #1a3c34 !important;
+    color: #00ff00 !important;
+    font-family: 'Courier New', monospace !important;
+    border: 2px solid #00ff00 !important;
+}
+body.dark-mode .leaflet-popup-content-wrapper,
+body.dark-mode .leaflet-popup-tip {
+    background-color: #1a3c34 !important;
+    color: #00ff00 !important;
+}
+
+/* ── ZOOM CONTROL ── */
+.leaflet-control-zoom {
+    top: -60px !important;
+    left: 60px !important;
+    margin: 0 !important;
+    margin-top: 70px !important;
+    left: 10px !important;
+}
+.leaflet-control-zoom a {
+    background-color: #000000 !important;
+    color: #00ff00 !important;
+    border: 2px solid #00ff00 !important;
+    font-family: 'Courier New', monospace !important;
+    font-weight: bold !important;
+    text-shadow: 0 0 5px #00ff00 !important;
+    box-shadow: 0 0 8px #00ff00 !important;
+    border-radius: 0 !important;
+    width: 30px !important;
+    height: 30px !important;
+    line-height: 26px !important;
+    font-size: 18px !important;
+    text-align: center !important;
+}
+.leaflet-control-zoom a:hover {
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+    box-shadow: 0 0 15px #00ff00, inset 0 0 10px #00ff00 !important;
+}
+
+/* ── POPUP BUTTONS ── */
+.leaflet-popup button {
+    background: #00ff00 !important;
+    color: #000 !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 4px 10px !important;
+    font-weight: bold !important;
+    font-size: 12px !important;
+    cursor: pointer !important;
+    font-family: 'Courier New', monospace !important;
+    min-width: 50px !important;
+    text-align: center !important;
+}
+.leaflet-popup button:hover {
+    background: #00cc00 !important;
+}
+
+/* ── ITEM MODAL BUTTONS ── */
+#itemModal button {
+    transition: all 0.3s ease !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+#itemModal button:hover,
+#itemModal button:focus-visible {
+    background-color: inherit !important;
+    box-shadow:
+        0 0 12px #ffffff,
+        0 0 24px #00ff88,
+        0 0 36px #00ff00 !important;
+    transform: scale(1.08) !important;
+    filter: brightness(1.2) !important;
+    opacity: 0.92 !important;
+}
+body.dark-mode #itemModal button:hover,
+body.dark-mode #itemModal button:focus-visible {
+    box-shadow:
+        0 0 16px #ffffff,
+        0 0 32px #00ff88,
+        0 0 48px #00ff00 !important;
+    transform: scale(1.08) !important;
+}
+
+/* ── GLOWING MARKERS ── */
+.custom-icon.glowing {
+    box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00 !important;
+    animation: glowPulse 1.5s infinite ease-in-out;
+}
+@keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00; }
+    50% { box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff00; }
+}
+
+/* ── MARKER BACKGROUND ── */
+.custom-icon,
+.custom-icon.glowing,
+.custom-icon.glowing .marker-background {
+    box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
+}
+.custom-icon.glowing {
+    filter: drop-shadow(0 0 2px #00ff00) drop-shadow(0 0 2px #00ff00) brightness(1.0) !important;
+    animation: glowPulse 1.5s infinite ease-in-out;
+}
+.marker-background {
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    opacity: 0.90 !important;
+    border: 1.5px solid #000 !important;
+    box-sizing: border-box !important;
+}
+
+/* ── CATEGORY CHECKBOXES ── */
+#categoryCheckboxes label {
+    display: block !important;
+    margin: 8px 0 !important;
+    padding: 6px !important;
+    background: rgba(0,0,0,0.3);
+    border-radius: 4px;
+}
+
+/* ── SMALL LINKS ── */
+.small a {
+    color: #00ff00 !important;
+    text-decoration: underline;
+    font-weight: bold;
+}
+.small a:hover {
+    color: #00ff88 !important;
+    text-shadow: 0 0 8px #00ff00;
+}
+
+/* ── MOBILE MEDIA QUERIES ── */
+@media (max-width: 768px) {
+    #map { height: 600px; max-width: 100%; }
+    .controls { flex-direction: column; align-items: center; }
+    input[type="text"], select, textarea, button {
+        width: 100%; max-width: 100%; margin: 5px 0;
+        font-size: clamp(14px, 4vw, 16px);
+        padding: clamp(10px, 2vw, 12px);
+    }
+    #combinedSearch { max-width: 100%; }
+    .modal-content { max-width: 90%; padding: 12px; font-size: clamp(14px, 3.5vw, 16px); max-height: 80vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .close { font-size: clamp(20px, 5vw, 22px); }
+    #gridNotification { bottom: 10px; right: 10px; font-size: 13px; padding: 10px 16px; box-shadow: 0 0 15px #00ff00; }
+    #tableContainer { padding: 8px; }
+    #customTableHeader > div > div,
+    #locationsTable tbody td {
+        font-size: 11px !important;
+        padding: 6px 4px !important;
+    }
+    #locationsTable tbody td:nth-child(4) {
+        font-size: 10px !important;
+        white-space: normal !important;
+        line-height: 1.3 !important;
+        word-break: break-word !important;
+    }
+    .icon-circle { width: 24px !important; height: 24px !important; font-size: 13px !important; }
+    .text-location { font-size: 9px !important; max-width: 80px !important; }
+}
+
+/* ── NUKE EMOJI BUTTON ── */
+.nuke-emoji-wrapper { text-align: center; margin: 12px 0; }
+.nuke-emoji-btn {
+    display: inline-block;
+    padding: 14px 18px;
+    background: #001100;
+    color: #00ff00 !important;
+    font-size: 3.2em;
+    text-decoration: none;
+    border: 3px solid #00ff00;
+    border-radius: 50%;
+    box-shadow: 0 0 14px #00ff00;
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+.nuke-emoji-btn:hover {
+    background: #002200;
+    transform: scale(1.12) rotate(8deg);
+    box-shadow: 0 0 22px #00ff00, 0 0 34px #00ff00;
+}
+.nuke-emoji-btn:active { transform: scale(0.96); }
+
+/* ── VOICE SEARCH DISABLED STATE ── */
+#voiceSearchBtn[disabled], #voiceSearchBtn[style*="opacity: 0.6"] {
+    pointer-events: auto !important;
+}
+
+/* ── MAP READY FADE-IN ── */
+#searchBar, #buttonGroup, #toolsToggleRow, #topBar {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+.map-ready #searchBar, .map-ready #buttonGroup,
+.map-ready #toolsToggleRow, .map-ready #topBar {
+    visibility: visible; opacity: 1;
+}
+
+/* ── HIDDEN STATES ── */
+.top-bar.hidden { display: none; }
+.tools-toggle-row { display: flex; justify-content: center; margin: 10px 0; }
+.button-group.hidden { display: none !important; }
+#lockAllBtn { display: none; margin: 5px; }
+#toggleTableBtn { display: none !important; }
+
+/* ── POPUP & MARKER TWEAKS ── */
+.leaflet-popup {
+    margin-bottom: 25px !important;
+}
+.leaflet-popup-tip {
+    margin-top: -6px !important;
+}
+
+/* ── POPUP BUTTON STYLING ── */
+.leaflet-popup-content button,
+.leaflet-popup-content-wrapper button {
+    all: unset !important;
+    display: inline-block !important;
+    background: #00ff00 !important;
+    color: #000 !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 4px 10px !important;
+    font-family: 'Courier New', monospace !important;
+    font-weight: bold !important;
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+    text-align: center !important;
+    min-width: 50px !important;
+    cursor: pointer !important;
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5) !important;
+    margin: 6px auto !important;
+}
+.leaflet-popup-content button:hover,
+.leaflet-popup-content-wrapper button:hover {
+    background: #00cc00 !important;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8) !important;
+}
+body.dark-mode .leaflet-popup-content button,
+body.dark-mode .leaflet-popup-content-wrapper button {
+    color: #000 !important;
+    background: #00ff00 !important;
+}
+body.dark-mode .leaflet-popup-content button:hover,
+body.dark-mode .leaflet-popup-content-wrapper button:hover {
+    background: #00cc00 !important;
+}
+
+/* ── ITEM DESCRIPTION TEXTAREA ── */
+#itemDesc, #itemModal textarea {
+    height: 160px !important;
+    width: 100% !important;
+    max-width: none !important;
+    resize: none !important;
+    overflow-y: auto !important;
+    scrollbar-width: thin;
+    scrollbar-color: #00ff00 #000;
+}
+
+/* ── MARKER HOVER ── */
+.marker-hover {
+    animation: pulseGreen 1.5s infinite ease-in-out;
+}
+@keyframes pulseGreen {
+    0%, 100% { filter: brightness(0.5); }
+    50% { filter: brightness(0.6); }
+}
+
+/* ── SHARE SPOT ANIMATION ── */
+.share-spot {
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #000;
+    color: #0f0;
+    padding: 20px 30px;
+    border: 3px solid #0f0;
+    box-shadow: 0 0 30px #0f0;
+    font: bold 18px monospace;
+    z-index: 99999;
+    border-radius: 10px;
+    text-align: center;
+    animation: pop 0.5s;
+    display: none;
+}
+@keyframes pop {
+    from { transform: translate(-50%, -20%); opacity: 0; }
+    to { transform: translateX(-50%); opacity: 1; }
+}
+
+/* ── GENERAL PULSE ANIMATION ── */
+@keyframes pulse {
+    0%,100% { transform:scale(1); }
+    50% { transform:scale(1.15); }
+}
+
+/* ── LEAFLET ATTRIBUTION HIDE ── */
+.leaflet-control-attribution.leaflet-control {
+    display: none;
+}
+
+/* ── RESET BUTTON ── */
+#resetAppBtn {
+    color: #000 !important;
+}
+
+/* ── CONFIRM & UPDATE BUTTONS ── */
+#confirmModalBtn,
+#updateGotIt {
+    color: #000 !important;
+    background: #00ff00 !important;
+}
+
+/* ── NUKE ANIMATION KEYFRAMES ── */
+@keyframes nukeFlash {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    100% { opacity: 0; }
+}
+@keyframes mushroomCloud {
+    0% { font-size: 0; opacity: 0; }
+    50% { font-size: 400px; opacity: 1; }
+    100% { font-size: 600px; opacity: 0; }
+}
+@keyframes textAppear {
+    to { opacity: 1; }
+}
+@keyframes quickFlash {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    100% { opacity: 0; }
+}
+.nuke-symbol {
+    font-size: clamp(80px, 28vw, 300px);
+    color: #0f0;
+    animation: symbolDrop 1.2s ease-out forwards;
+    text-shadow: 0 0 60px #0f0;
+}
+.nuke-title {
+    font-size: clamp(32px, 8vw, 80px);
+    color: #0f0;
+    margin: 0;
+    animation: textFadeIn 1.2s forwards;
+    text-shadow: 0 0 35px #0f0;
+    letter-spacing: 6px;
+}
+.nuke-subtitle {
+    font-size: clamp(24px, 6vw, 60px);
+    color: #0f0;
+    margin: 0;
+    font-weight: bold;
+    animation: textFadeIn 1.2s 0.3s forwards;
+    text-shadow: 0 0 30px #0f0;
+}
+@keyframes symbolDrop {
+    0% { opacity: 0; transform: translateY(-60px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes textFadeIn {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ── POPUP GLOW ── */
+.popup-glow {
+    filter: drop-shadow(0 0 12px #00ff00) brightness(0.6) !important;
+    z-index: 10000 !important;
+    animation: pulse-glow 2s infinite alternate;
+}
+.table-row-popup-glow {
+    background: rgba(0, 255, 0, 0.15) !important;
+    box-shadow: 0 0 12px #00ff00 !important;
+    animation: pulse-glow 2s infinite alternate;
+}
+@keyframes pulse-glow {
+    from { filter: drop-shadow(0 0 12px #00ff00) brightness(0.6); }
+    to { filter: drop-shadow(0 0 18px #00ff80) brightness(1.2); }
+}
+
+/* ── EXPORT & BACKUP BUTTONS ── */
+#exportAllBtn,
+#exportMineBtn,
+#installYes,
+#confirmModalBtn,
+#saveItemBtn,
+#shareItemBtn,
+#exportOneBtn,
+#sendReportNow,
+#submitCommunityBtn {
+    color: #000000 !important;
+    font-weight: bold !important;
+}
+.modal-content button#exportAllBtn,
+.modal-content button#exportMineBtn {
+    color: #000000 !important;
+}
+
+/* ── SEARCH SUGGESTIONS DROPDOWN ── */
+#searchSuggestions {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    max-height: 300px !important;
+    overflow-y: auto !important;
+    background: #0a2a2a !important;
+    border: 2px solid #00ff00 !important;
+    z-index: 999999 !important;
+    display: none;
+    box-shadow: 0 0 15px #00ff00 !important;
+    pointer-events: auto !important;
+}
+#searchBar {
+    position: relative !important;
+    z-index: 10 !important;
+}
+#searchSuggestions div {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #00ff22;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+}
+#searchSuggestions div:hover {
+    background: #00ff00;
+    color: #000;
+}
+#searchSuggestions .category-match { font-weight: bold; color: #aaffaa; }
+#searchSuggestions .desc-match { opacity: 0.9; }
+
+/* ── POPUP TIP POSITION ── */
+.leaflet-popup-tip-container {
+    left: 56% !important;
+    transform: translateX(-50%);
+}
+
+/* ── XP PROGRESS BAR ANIMATION ── */
+#xpProgress.level-up {
+    animation: barGlow 2.5s ease-out forwards;
+    box-shadow: 0 0 25px #00ff88 !important;
+}
+@keyframes barGlow {
+    0% { box-shadow: 0 0 25px #00ff88; }
+    50% { box-shadow: 0 0 50px #00ff88; }
+    100% { box-shadow: 0 0 0px transparent; }
+}
+
+/* ── GRID LABEL MARKER FIX ── */
+.leaflet-marker-icon:has(.grid-label) {
+    pointer-events: none !important;
+}
+.leaflet-marker-icon:has(.grid-label)::before,
+.leaflet-marker-icon:has(.grid-label):hover::before {
+    display: none !important;
+    opacity: 0 !important;
+    content: none !important;
+}
+
+/* ── MARKER HOVER RING ── */
+.leaflet-marker-icon:not(:has(.grid-label))::before {
+    content: '';
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border: 2px solid rgba(0, 255, 0, 0.3);
+    border-radius: 50%;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.leaflet-marker-icon:not(:has(.grid-label)):hover::before {
+    opacity: 1;
+}
+
+/* ── POPUP INTERACTION FIX ── */
+.leaflet-popup {
+    pointer-events: auto !important;
+}
+.leaflet-popup-content-wrapper {
+    pointer-events: auto;
+}
+.leaflet-interactive {
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+}
+
+/* ── MARKER CLUSTER ── */
+.marker-cluster {
+    background-clip: padding-box;
+    border-radius: 20px;
+    touch-action: manipulation;
+}
+
+/* ── POPUP CLOSE BUTTON ── */
+.leaflet-popup-close-button {
+    pointer-events: auto !important;
+    z-index: 1000;
+}
+
+/* ── LEAFLET ANIMATION PERFORMANCE ── */
+.leaflet-zoom-animated {
+    will-change: transform;
+    transform: translate3d(0,0,0);
+}
+.leaflet-container {
+    image-rendering: crisp-edges;
+}
+
+/* ── WIPE MODAL BUTTONS ── */
+#proceedWipeBtn:hover {
+    box-shadow: 0 0 25px 5px rgba(255, 68, 68, 0.8) !important;
+    filter: brightness(1.2);
+    transition: all 0.2s ease;
+}
+#cancelSafetyBtn:hover {
+    box-shadow: 0 0 25px 5px rgba(0, 255, 0, 0.6) !important;
+    filter: brightness(1.2);
+    transition: all 0.2s ease;
+}
+
+/* ── COMMUNITY UPDATE BUTTON GLOW ── */
+#downloadCommunityBtn.available {
+    box-shadow: 0 0 12px #00ff88,
+                0 0 25px #00ff88,
+                inset 0 0 8px rgba(0, 255, 136, 0.4);
+    animation: softPulse 2s ease-in-out infinite;
+    color: #00ff88;
+    font-weight: bold;
+}
+/* Dark-mode glow fix for Update Community Map button when (Available!) */
+body.dark-mode #downloadCommunityBtn.available,
+html.dark #downloadCommunityBtn.available {
+    box-shadow:
+        0 0 14px #00ff88,
+        0 0 28px #00ff88,
+        0 0 40px #00ff88,
+        inset 0 0 12px rgba(0, 255, 136, 0.5) !important;
+    animation: softPulse 2s ease-in-out infinite !important;
+    color: #00ff88 !important;
+    font-weight: bold !important;
+}
+@keyframes softPulse {
+    0%, 100% { box-shadow: 0 0 12px #00ff88, 0 0 25px #00ff88, inset 0 0 8px rgba(0, 255, 136, 0.4); }
+    50% { box-shadow: 0 0 18px #00ff88, 0 0 35px #00ff88, inset 0 0 12px rgba(0, 255, 136, 0.6); }
+}
+
+/* ── BUTTON DEFAULT STATE ── */
+button:not(:hover):not(:active):not(:focus),
+#toggleButtonGroup:not(:hover):not(:active):not(:focus),
+#buttonGroup button:not(:hover):not(:active):not(:focus) {
+    background-color: #1a3c34;
+    box-shadow: none;
+}
+
+/* ── GLOBAL FALLOUT 76 PIP-BOY GREEN SCROLLBARS ── */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #000;
+    border-left: 1px solid #00ff00;
+    border-right: 1px solid #00ff00;
+    box-shadow: inset 0 0 6px rgba(0, 255, 0, 0.2);
+}
+::-webkit-scrollbar-thumb {
+    background: #00ff00;
+    border: 2px solid #000;
+    border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #00ff88;
+    box-shadow: 0 0 8px #00ff88;
+}
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #00ff00 #000;
+}
+#itemDesc,
+#itemModal textarea,
+#postcardMessage,
+.leaflet-popup-content-wrapper > div,
+.modal-content > div {
+    scrollbar-width: thin !important;
+    scrollbar-color: #00ff00 #000 !important;
+}
+.close,
+.modal-content .close {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+/* ── LONG PRESS MARKER VISUAL ── */
+.leaflet-marker-icon.long-press-hold {
+    filter: brightness(1.3);
+    box-shadow: 0 0 12px #00ff88;
+    transform: scale(1.15);
+    transition: all 0.2s;
+}
+
+/* ── MOBILE TABLE REFINEMENTS ── */
+@media (max-width: 768px) {
+    #buttonGroup button {
+        white-space: normal !important;
+        line-height: 1.3 !important;
+        padding: 8px 10px !important;
+        height: auto !important;
+        min-height: 54px;
+    }
+    #downloadCommunityBtn {
+        font-size: 13px !important;
+    }
+    #locationsTable tbody tr {
+        min-height: 52px !important;
+        padding: 4px 0 !important;
+        gap: 8px !important;
+        align-items: center !important;
+    }
+    #locationsTable tbody td {
+        padding: 8px 6px !important;
+        font-size: 13px !important;
+        line-height: 1.35 !important;
+    }
+    #locationsTable tbody td:nth-child(1) {
+        flex: 0 0 52px !important;
+        width: 52px !important;
+        max-width: 52px !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    .lock-toggle {
+        font-size: 24px !important;
+        line-height: 1 !important;
+        padding: 10px 6px !important;
+        margin: 0 auto !important;
+        display: block !important;
+        text-align: center !important;
+    }
+    #locationsTable tbody td:nth-child(4) {
+        flex: 4 !important;
+        padding-left: 12px !important;
+        padding-right: 8px !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+    }
+    #locationsTable tbody td:nth-child(2),
+    #locationsTable tbody td:nth-child(3) {
+        flex: 0.8 !important;
+        min-width: 44px !important;
+    }
+}
+
+/* ── MOBILE TABLE TEXT WRAPPING ── */
+@media (max-width: 768px) {
+    #locationsTable tbody td:nth-child(4) {
+        flex: 5 !important;
+        padding: 8px 10px 8px 14px !important;
+        justify-content: flex-start !important;
+        align-items: flex-start !important;
+        font-size: 13px !important;
+        line-height: 1.45 !important;
+        hyphens: auto !important;
+        -webkit-hyphens: auto !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        white-space: normal !important;
+        max-height: 120px !important;
+        overflow-y: hidden !important;
+    }
+    #locationsTable tbody td:nth-child(4)::after {
+        content: "…";
+        position: absolute;
+        right: 8px;
+        bottom: 6px;
+        color: #00cc66;
+        font-size: 12px;
+        opacity: 0.7;
+        pointer-events: none;
+    }
+    #locationsTable tbody td:nth-child(4):not(.overflowing)::after {
+        display: none;
+    }
+}
+
+/* ── MOBILE TABLE ACTIVE STATE ── */
+@media (max-width: 768px) {
+    #locationsTable tbody tr:active {
+        background: rgba(0, 255, 0, 0.12) !important;
+        box-shadow: 0 0 12px rgba(0, 255, 0, 0.4) !important;
+        transition: all 0.12s ease;
+    }
+}
+
+/* ── BACKUP MODAL BUTTONS ── */
+#backupPersonalOnly, #backupWithKept,
+#backupPersonalOnly small, #backupWithKept small {
+    color: #000000 !important;
+}
+#cancelSafetyBtn,
+#proceedWipeBtn {
+    color: #000000 !important;
+}
+#cancelSafetyBtn small,
+#proceedWipeBtn small {
+    color: #000000 !important;
+}
+
+/* ── GLOBAL CURSOR POINTER FIX ── */
+button,
+a,
+label,
+select,
+#categoryFilter,
+#itemCategory,
+#toggleCategoryModalBtn,
+#locationsTable tbody tr,
+#buttonGroup button,
+#contextCreateMarkerBtn,
+#contextCreatePostcardBtn,
+.leaflet-control a,
+.leaflet-popup button,
+#itemModal button,
+#prevPageBtn,
+#nextPageBtn,
+#selectAllBtn,
+#deselectAllBtn,
+#createCategoryBtn,
+#deleteCategoryBtn,
+#closeCategoryToggleBtn,
+#saveCategoryBtn,
+#createPostcardBtn,
+#confirmDeleteCategoryBtn,
+#confirmModalBtn,
+#exportOneBtn,
+#shareOneBtn,
+#duplicateItemBtn,
+#deleteItemBtn,
+#submitCommunityBtn,
+#saveItemBtn,
+#shareItemBtn,
+#exportJsonBtn,
+#importBtn,
+#downloadCommunityBtn,
+#saveMapJpegBtn,
+#resetAppBtn,
+#voiceSearchBtn,
+#lockAllBtn,
+#toggleClusterBtn,
+#toggleMapBtn,
+#toggleGridBtn,
+#toggleSoundsBtn,
+#toggleDarkModeBtn,
+#toggleMyMarkersBtn,
+#howToUseBtn,
+#nukeCodesBtn,
+#undoImportBtn,
+#undoDeleteBtn {
+    cursor: pointer !important;
+}
+
+/* ── CONTEXT MENU BUTTONS ── */
+#contextCreateMarkerBtn,
+#contextCreatePostcardBtn,
+#contextCreateMarkerBtn:hover,
+#contextCreatePostcardBtn:hover,
+#contextCreateMarkerBtn:focus-visible,
+#contextCreatePostcardBtn:focus-visible {
+    color: #000000 !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    filter: none !important;
+    animation: none !important;
+}
+#contextCreateMarkerBtn:hover,
+#contextCreatePostcardBtn:hover {
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+}
+
+/* ── SELECT CURSOR ── */
+#categoryFilter,
+#itemCategory,
+select#categoryFilter,
+select#itemCategory,
+#searchBar select,
+#searchBar select#categoryFilter {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+#categoryFilter:hover,
+#itemCategory:hover,
+select#categoryFilter:hover,
+select#itemCategory:hover {
+    cursor: pointer !important;
+}
+
+/* ── LEAFLET PERFORMANCE TWEAKS ── */
+#map, .leaflet-container {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translate3d(0,0,0);
+    will-change: transform;
+}
+.leaflet-tile-container {
+    will-change: transform;
+}
