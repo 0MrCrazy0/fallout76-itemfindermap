@@ -1,4 +1,4 @@
-const CURRENT_APP_VERSION = '76.Vault-12';
+const CURRENT_APP_VERSION = '76.Vault-13';
 
 // ── Core version identifier — change this single value to bump the entire app version ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -5408,7 +5408,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = 76.Vault-12 • 10-04-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = 76.Vault-13 • 10-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
