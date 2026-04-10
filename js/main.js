@@ -4039,18 +4039,24 @@ document.getElementById('submitCommunityBtn').onclick = () => {
         const playerName = document.getElementById('playerNameInput')?.value.trim() || 'Anonymous Wastelander';
         const finalDesc = loc.desc.includes('Submitted By') ? loc.desc : `${loc.desc}\nSubmitted By ${playerName}`;
         const iconToSend = categoryIcons[loc.category] || '📝';
-        const cid = loc.cid || generateCid(loc);
-        const params = new URLSearchParams({
-            lat: loc.lat,
-            lng: loc.lng,
-            category: loc.category,
-            desc: finalDesc,
-            icon: iconToSend,
-            id: loc.id,
-            cid: cid,
-			grid: grid,
-            wasCommunityKept: loc.wasCommunityKept ? 'true' : 'false'
-        });
+const cid = loc.cid || generateCid(loc);
+
+// ── Calculate grid (this line was missing and caused the error) ──
+const grid = typeof getGridFromLatLng === 'function'
+    ? getGridFromLatLng(loc.lat, loc.lng) || ''
+    : '';
+
+const params = new URLSearchParams({
+    lat: loc.lat,
+    lng: loc.lng,
+    category: loc.category,
+    desc: finalDesc,
+    icon: iconToSend,
+    id: loc.id,
+    cid: cid,
+    grid: grid,
+    wasCommunityKept: loc.wasCommunityKept ? 'true' : 'false'
+});
         const url = `https://0mrcrazy0.github.io/fallout76-itemfindermap/submit.html?v=${Date.now()}&${params.toString()}`;
         const a = document.createElement('a');
         a.href = url;
