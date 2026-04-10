@@ -86,11 +86,9 @@
     let locationText = '(location missing)';
     if (!isNaN(lat) && !isNaN(lng)) {
         if (grid) {
-            // Show nice grid + coordinates
-            locationText = `Grid ${grid} (X: ${lng.toFixed(1)}, Y: ${lat.toFixed(1)})`;
+            locationText = `Grid ${grid} (X: ${lng.toFixed(2)}, Y: ${lat.toFixed(2)})`;
         } else {
-            // Fallback if grid is missing
-            locationText = `X: ${lng.toFixed(1)}, Y: ${lat.toFixed(1)}`;
+            locationText = `X: ${lng.toFixed(2)}, Y: ${lat.toFixed(2)}`;
         }
     }
 
