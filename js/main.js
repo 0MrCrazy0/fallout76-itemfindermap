@@ -4048,6 +4048,7 @@ document.getElementById('submitCommunityBtn').onclick = () => {
             icon: iconToSend,
             id: loc.id,
             cid: cid,
+			grid: grid,
             wasCommunityKept: loc.wasCommunityKept ? 'true' : 'false'
         });
         const url = `https://0mrcrazy0.github.io/fallout76-itemfindermap/submit.html?v=${Date.now()}&${params.toString()}`;
