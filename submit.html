@@ -68,137 +68,150 @@
     </div>
 
 <script>
-        const params = new URLSearchParams(window.location.search);
-        const lat = params.get('lat');
-        const lng = params.get('lng');
-        const category = params.get('category');
-        const desc = params.get('desc');
-        const icon = params.get('icon');
-        const id = params.get('id');
-        const cid = params.get('cid');
-        const wasCommunityKept = params.get('wasCommunityKept') === 'true';
+    const params = new URLSearchParams(window.location.search);
+    const lat = parseFloat(params.get('lat'));
+    const lng = parseFloat(params.get('lng'));
+    const category = params.get('category');
+    const desc = params.get('desc');
+    const icon = params.get('icon');
+    const id = params.get('id');
+    const cid = params.get('cid');
+    const wasCommunityKept = params.get('wasCommunityKept') === 'true';
+    const grid = params.get('grid');   // ← NEW: we now receive the grid
 
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                             window.navigator.standalone === true;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                         window.navigator.standalone === true;
 
-        document.getElementById('latLng').textContent = lat && lng ? `${lat}, ${lng}` : '(location missing)';
-        document.getElementById('category').textContent = icon && category ? `${icon} ${category}` : '(category missing)';
-        document.getElementById('desc').textContent = desc || '(no description)';
-
-        const form = document.getElementById('submitForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const loadingOverlay = document.getElementById('submitLoadingOverlay');
-        const successDiv = document.getElementById('success');
-        const errorDiv = document.getElementById('error');
-        const warningBlock = document.getElementById('warningBlock');
-        const warningTitle = document.getElementById('warningTitle');
-        const warningText = document.getElementById('warningText');
-
-        function hasBeenSubmitted(cid) {
-            if (!cid) return false;
-            const submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
-            return submitted.includes(cid);
-        }
-
-        if (cid && hasBeenSubmitted(cid)) {
-            warningBlock.style.display = 'block';
-            warningTitle.textContent = 'Duplicate Marker';
-            warningText.textContent = 'A marker with this exact location, category, and description has already been submitted.\n\nIf it does not appear in Pending Submissions, it may have been merged or removed.';
-            form.style.display = 'none';
-        } else if (wasCommunityKept) {
-            warningBlock.style.display = 'block';
-            warningTitle.textContent = 'Already Part of Community Map';
-            warningText.textContent = 'This marker is now part of the official community map.\nNo resubmission needed.';
-            form.style.display = 'none';
+    // ── UPDATED LOCATION DISPLAY ──
+    let locationText = '(location missing)';
+    if (!isNaN(lat) && !isNaN(lng)) {
+        if (grid) {
+            // Show nice grid + coordinates
+            locationText = `Grid ${grid} (X: ${lng.toFixed(1)}, Y: ${lat.toFixed(1)})`;
         } else {
-            form.style.display = 'block';
+            // Fallback if grid is missing
+            locationText = `X: ${lng.toFixed(1)}, Y: ${lat.toFixed(1)}`;
         }
+    }
 
-        function closeAndReturn() {
-            if (window.opener) window.opener.focus();
-            try { window.close(); } catch(e) {}
-            if (isStandalone && window.history.length > 1) {
-                window.history.back();
-                return;
-            }
-            setTimeout(() => {
-                window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
-            }, 120);
+    document.getElementById('latLng').textContent = locationText;
+    document.getElementById('category').textContent = icon && category ? `${icon} ${category}` : '(category missing)';
+    document.getElementById('desc').textContent = desc || '(no description)';
+
+    // Rest of your script (unchanged)
+    const form = document.getElementById('submitForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const loadingOverlay = document.getElementById('submitLoadingOverlay');
+    const successDiv = document.getElementById('success');
+    const errorDiv = document.getElementById('error');
+    const warningBlock = document.getElementById('warningBlock');
+    const warningTitle = document.getElementById('warningTitle');
+    const warningText = document.getElementById('warningText');
+
+    function hasBeenSubmitted(cid) {
+        if (!cid) return false;
+        const submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
+        return submitted.includes(cid);
+    }
+
+    if (cid && hasBeenSubmitted(cid)) {
+        warningBlock.style.display = 'block';
+        warningTitle.textContent = 'Duplicate Marker';
+        warningText.textContent = 'A marker with this exact location, category, and description has already been submitted.\n\nIf it does not appear in Pending Submissions, it may have been merged or removed.';
+        form.style.display = 'none';
+    } else if (wasCommunityKept) {
+        warningBlock.style.display = 'block';
+        warningTitle.textContent = 'Already Part of Community Map';
+        warningText.textContent = 'This marker is now part of the official community map.\nNo resubmission needed.';
+        form.style.display = 'none';
+    } else {
+        form.style.display = 'block';
+    }
+
+    function closeAndReturn() {
+        if (window.opener) window.opener.focus();
+        try { window.close(); } catch(e) {}
+        if (isStandalone && window.history.length > 1) {
+            window.history.back();
+            return;
         }
+        setTimeout(() => {
+            window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
+        }, 120);
+    }
 
-        function cancelSubmit() {
-            if (cid) {
-                let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
-                submitted = submitted.filter(c => c !== cid);
-                localStorage.setItem('submitted_cids', JSON.stringify(submitted));
-            }
-            closeAndReturn();
+    function cancelSubmit() {
+        if (cid) {
+            let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
+            submitted = submitted.filter(c => c !== cid);
+            localStorage.setItem('submitted_cids', JSON.stringify(submitted));
         }
+        closeAndReturn();
+    }
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            loadingOverlay.classList.add('show');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        loadingOverlay.classList.add('show');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
 
-            // Always use the name saved on the main page (or Anonymous)
-            const name = localStorage.getItem('fo76_playerName')?.trim() || 'Anonymous Wastelander';
+        const name = localStorage.getItem('fo76_playerName')?.trim() || 'Anonymous Wastelander';
 
-            const marker = {
-                lat: parseFloat(lat),
-                lng: parseFloat(lng),
-                category,
-                desc,
-                icon: icon || '📝',
-                id,
-                cid
-            };
+        const marker = {
+            lat: lat,
+            lng: lng,
+            category,
+            desc,
+            icon: icon || '📝',
+            id,
+            cid
+        };
 
-            try {
-                const response = await fetch('https://itemfinder-submit.crzymn05.workers.dev/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: 'submit', marker, name })
-                });
+        try {
+            const response = await fetch('https://itemfinder-submit.crzymn05.workers.dev/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'submit', marker, name })
+            });
 
-                const data = await response.json();
+            const data = await response.json();
 
-                loadingOverlay.classList.remove('show');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'SUBMIT MARKER';
+            loadingOverlay.classList.remove('show');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'SUBMIT MARKER';
 
-                if (data.success) {
-                    if (cid) {
-                        let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
-                        if (!submitted.includes(cid)) {
-                            submitted.push(cid);
-                            localStorage.setItem('submitted_cids', JSON.stringify(submitted));
-                        }
+            if (data.success) {
+                if (cid) {
+                    let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
+                    if (!submitted.includes(cid)) {
+                        submitted.push(cid);
+                        localStorage.setItem('submitted_cids', JSON.stringify(submitted));
                     }
-                    form.style.display = 'none';
-                    successDiv.style.display = 'block';
-                } else if (data.error === "duplicate") {
-                    form.style.display = 'none';
-                    warningBlock.style.display = 'block';
-                    warningTitle.textContent = 'Already Submitted';
-                    warningText.textContent = data.message || 'This marker was already submitted and is under review!';
-                } else if (data.error === "cooldown") {
-                    form.style.display = 'none';
-                    warningBlock.style.display = 'block';
-                    warningTitle.textContent = '⏱️ COOLDOWN ACTIVE';
-                    warningText.textContent = data.message || 'Please wait before submitting another marker.';
-                } else {
-                    errorDiv.style.display = 'block';
-                    document.getElementById('errorMsg').textContent = data.message || 'Submission failed. Please try again.';
                 }
-            } catch (err) {
-                loadingOverlay.classList.remove('show');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'SUBMIT MARKER';
+                form.style.display = 'none';
+                successDiv.style.display = 'block';
+            } else if (data.error === "duplicate") {
+                form.style.display = 'none';
+                warningBlock.style.display = 'block';
+                warningTitle.textContent = 'Already Submitted';
+                warningText.textContent = data.message || 'This marker was already submitted and is under review!';
+            } else if (data.error === "cooldown") {
+                form.style.display = 'none';
+                warningBlock.style.display = 'block';
+                warningTitle.textContent = '⏱️ COOLDOWN ACTIVE';
+                warningText.textContent = data.message || 'Please wait before submitting another marker.';
+            } else {
                 errorDiv.style.display = 'block';
-                document.getElementById('errorMsg').textContent = 'Network error — please try again later.';
+                document.getElementById('errorMsg').textContent = data.message || 'Submission failed. Please try again.';
             }
-        });
-    </script>
+        } catch (err) {
+            loadingOverlay.classList.remove('show');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'SUBMIT MARKER';
+            errorDiv.style.display = 'block';
+            document.getElementById('errorMsg').textContent = 'Network error — please try again later.';
+        }
+    });
+</script>
 </body>
 </html>
