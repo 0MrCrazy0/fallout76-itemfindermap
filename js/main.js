@@ -1352,21 +1352,21 @@ function showGridNotification(grid) {
             const emojiRegex = /^[\p{Emoji}]+$/u;
             return emojiRegex.test(str.trim());
         }
-        function updateDescWithGrid(desc, lat, lng) {
+function updateDescWithGrid(desc, lat, lng) {
     const grid = getGridFromLatLng(lat, lng);
     
-    // scaling for Fallout 76 map (0-4096 coordinate system)
-    const x = Math.round(lng * 10) / 10;   // 1 decimal place for readability
+    // Full Fallout 76 map coordinates (0–4096 system) — rounded to 1 decimal place
+    const x = Math.round(lng * 10) / 10;
     const y = Math.round(lat * 10) / 10;
 
     const newCoords = grid ? `Grid ${grid} (X: ${x}, Y: ${y})` : `X: ${x}, Y: ${y}`;
 
-    const regex = /(Grid [A-J]\d+ \(X: [\d.]+, Y: [\d.]+\))|(X: [\d.]+, Y: [\d.]+)/;
+    const regex = /(Grid [A-J]\d+ \(X: [\d.]+, Y: [\d.]+\))|(X: [\d.]+, Y: [\d.]+)/i;
     
     if (regex.test(desc)) {
         return desc.replace(regex, newCoords);
     }
-    return desc + '\n' + newCoords;
+    return (desc ? desc + '\n' : '') + newCoords;
 }
         function createNewLocation(lat, lng, category, desc, isTemp = false) {
             const now = Date.now();
