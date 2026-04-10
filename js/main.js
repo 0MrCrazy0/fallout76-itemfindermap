@@ -5378,6 +5378,14 @@ mapContainer.addEventListener('touchcancel', () => clearTimeout(longPressTimer))
 // Attach the button handlers
 attachContextButtons();
 
+// ── Prevent unwanted jump-to-last-marker after Submit window closes ──
+window.addEventListener('message', function (event) {
+    if (event.data && event.data.type === 'SUBMIT_WINDOW_CLOSED') {
+        // Explicitly suppress any auto-center or popup logic
+        return;
+    }
+});
+
         console.log(
     '%c╔═════════════════════════════════════════════════════════════╗\n' +
     '║           FALLOUT 76 ITEM FINDER MAP                        ║\n' +
