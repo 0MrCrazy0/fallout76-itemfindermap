@@ -1123,8 +1123,11 @@ body.dark-mode .leaflet-popup-content-wrapper button:hover {
 
 /* ── POPUP TIP POSITION ── */
 .leaflet-popup-tip-container {
-    left: 56% !important;
-    transform: translateX(-50%);
+    left: 50% !important;
+}
+
+.leaflet-popup-tip {
+    margin-right: 25% !important;
 }
 
 /* ── XP PROGRESS BAR ANIMATION ── */
