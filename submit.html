@@ -31,48 +31,41 @@
     <div class="container">
         <h1>Submit Marker to Community Map</h1>
         <p>Share your discovery with the wasteland!<br>An Administrator will review and merge it soon.</p>
-
         <form id="submitForm">
             <label>Pre-filled from your marker:</label>
             <p><strong>Location:</strong> <span id="latLng"></span></p>
             <p><strong>Category:</strong> <span id="category"></span></p>
             <p><strong>Description:</strong> <span id="desc"></span></p>
-            
+           
             <label for="playerName">Your In-Game Name (optional)</label>
             <input type="text" id="playerName" placeholder="e.g., VaultDweller42">
-
             <div class="button-row">
                 <button type="submit" id="submitBtn">SUBMIT MARKER</button>
                 <button type="button" onclick="cancelSubmit()" class="cancel-btn">CANCEL</button>
             </div>
         </form>
-
         <div id="success" style="display:none;">
             <h2 style="color:#00ff88;">Thank you!</h2>
             <p>Your marker has been submitted successfully.<br>An Administrator will review and merge it soon.</p>
             <button onclick="closeAndReturn()" class="return-btn">Close Tab & Return to Map</button>
         </div>
-
         <div id="error" style="display:none;">
             <h2 style="color:#ff8888;">Submission failed</h2>
             <p id="errorMsg"></p>
             <button onclick="location.reload()">Try Again</button>
             <button onclick="closeAndReturn()" class="return-btn" style="margin-left:10px;">Close Tab & Return to Map</button>
         </div>
-
         <div id="warningBlock" style="display:none;">
             <h2 id="warningTitle"></h2>
             <p id="warningText"></p>
             <button onclick="closeAndReturn()" class="return-btn">Close Tab & Return to Map</button>
         </div>
     </div>
-
     <div id="submitLoadingOverlay">
         <div class="spinner"></div>
         <div>Submitting marker to community map...</div>
         <div style="font-size:0.8em; margin-top:15px; opacity:0.8;">Please wait a moment</div>
     </div>
-
 <script>
         const params = new URLSearchParams(window.location.search);
         const lat = params.get('lat');
@@ -83,15 +76,12 @@
         const id = params.get('id');
         const cid = params.get('cid');
         const wasCommunityKept = params.get('wasCommunityKept') === 'true';
-
         // PWA detection (works on both Android and iOS)
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
                              window.navigator.standalone === true;
-
         document.getElementById('latLng').textContent = lat && lng ? `${lat}, ${lng}` : '(location missing)';
         document.getElementById('category').textContent = icon && category ? `${icon} ${category}` : '(category missing)';
         document.getElementById('desc').textContent = desc || '(no description)';
-
         const form = document.getElementById('submitForm');
         const submitBtn = document.getElementById('submitBtn');
         const loadingOverlay = document.getElementById('submitLoadingOverlay');
@@ -100,13 +90,11 @@
         const warningBlock = document.getElementById('warningBlock');
         const warningTitle = document.getElementById('warningTitle');
         const warningText = document.getElementById('warningText');
-
         function hasBeenSubmitted(cid) {
             if (!cid) return false;
             const submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
             return submitted.includes(cid);
         }
-
         if (cid && hasBeenSubmitted(cid)) {
             warningBlock.style.display = 'block';
             warningTitle.textContent = 'Duplicate Marker';
@@ -120,7 +108,6 @@
         } else {
             form.style.display = 'block';
         }
-
         function closeAndReturn() {
         if (isStandalone) {
             // Preferred PWA behaviour: return via history (prevents duplicate instances)
@@ -142,7 +129,6 @@
             }, 150);
         }
     }
-
     // CANCEL removes the CID from localStorage so you can try again
     function cancelSubmit() {
         if (cid) {
@@ -152,16 +138,12 @@
         }
         closeAndReturn();
     }
-
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-
             loadingOverlay.classList.add('show');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
-
             const name = document.getElementById('playerName').value.trim() || 'Anonymous Wastelander';
-
             const marker = {
                 lat: parseFloat(lat),
                 lng: parseFloat(lng),
@@ -172,19 +154,22 @@
                 cid
             };
 
+            // === Append name to description before sending ===
+            let finalDesc = (marker.desc || '').trim();
+            if (finalDesc) finalDesc += '\n';
+            finalDesc += `Submitted By: ${name}`;
+            marker.desc = finalDesc;
+
             try {
                 const response = await fetch('https://itemfinder-submit.crzymn05.workers.dev/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ type: 'submit', marker, name })
                 });
-
                 const data = await response.json();
-
                 loadingOverlay.classList.remove('show');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'SUBMIT MARKER';
-
                 if (data.success) {
                     if (cid) {
                         let submitted = JSON.parse(localStorage.getItem('submitted_cids') || '[]');
