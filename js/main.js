@@ -2418,21 +2418,24 @@ function closeModal(m) {
     // Return to Fullscreen button appears ONLY after closing
     // Log Item modal or Send Postcard modal (not during creation)
     if (exitedForContextMenu) {
-        exitedForContextMenu = false;           // reset flag
+        exitedForContextMenu = false; // reset flag
         wasInFullscreenBeforeModal = false;
         setTimeout(() => {
             showRestoreFullscreenButton();
-        }, 180);   // small delay ensures modal is fully gone
-    } 
+        }, 180); // small delay ensures modal is fully gone
+    }
     else if (wasInFullscreenBeforeModal) {
         // Normal behaviour for all other modals
         wasInFullscreenBeforeModal = false;
         showRestoreFullscreenButton();
     }
 
-    justClosedEditModal = true;
-    setTimeout(() => { justClosedEditModal = false; }, 2000);
-    reopenPopupAfterModalClose();
+    // ── Only reopen popup for the actual Edit/Log Item modal ──
+    if (m && m.id === 'itemModal') {
+        justClosedEditModal = true;
+        setTimeout(() => { justClosedEditModal = false; }, 2000);
+        reopenPopupAfterModalClose();
+    }
 }
 		
 		// ── Re-open popup when Edit modal is closed (STRONG VERSION — guarded) ──
@@ -3898,7 +3901,7 @@ saveItemBtn.onclick = () => {
         recalculateXP();
         window.justCreatedMarkerId = newLoc.id;
     }
-    closeModal(itemModal);
+    closeModal(itemModal, true);
     saveLocations();
     // Delayed sound to bypass the 80 ms debounce from modalClose
     setTimeout(() => {
@@ -3948,7 +3951,7 @@ deleteBtn.onclick = () => {
             locations.splice(currentIndex, 1);
             recalculateXP();
 			setTimeout(() => playSound('delete'), 180);
-            closeModal(itemModal);
+            closeModal(itemModal, true);
             saveLocations();
             forceReload();
             
