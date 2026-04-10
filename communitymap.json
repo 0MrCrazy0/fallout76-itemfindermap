@@ -4320,6 +4320,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-80ad33d8-e7d4-44d8-96a4-bfdef5bb24a3",
+      "cid": "plans_this_is_a_test_marker_with_no_name_grid_a1_x_25_y_24_2.38277_2.50907",
+      "category": "plans",
+      "desc": "this is a test marker with no name!\nGrid A1 (X: 1.3, Y: 1.2)\nSubmitted By Anonymous Wastelander",
+      "lat": 1.2051398506458693,
+      "lng": 1.2974894402208634,
+      "icon": "📜",
+      "addedTime": 1775805362198,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
