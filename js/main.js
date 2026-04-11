@@ -1,4 +1,4 @@
-const CURRENT_APP_VERSION = '76.Vault-17';
+const CURRENT_APP_VERSION = '76.Vault-18';
 
 // ── Core version identifier — change this single value to bump the entire app version ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -383,55 +383,72 @@ attachAudioUnlockListeners();
         });
 
         // ── Leaflet map initialization with optimized settings for performance ──
-        const map = L.map('map', {
-            crs: L.CRS.Simple,
-            minZoom: -3,
-            maxZoom: 6,
-            zoomControl: false,
-            zoomAnimation: true,
-            fadeAnimation: true,
-            markerZoomAnimation: true,
-            preferCanvas: true,
-            updateWhenIdle: true,
-            updateWhenZooming: false,
-            inertia: false,
-            keepBuffer: 2,
-            renderer: L.canvas({ padding: 0.3 })
-        });
+const map = L.map('map', {
+    crs: L.CRS.Simple,
+    minZoom: -3,
+    maxZoom: 6,
+    zoomControl: false,
+    zoomAnimation: true,
+    fadeAnimation: true,
+    markerZoomAnimation: true,
+    preferCanvas: true,
+    updateWhenIdle: true,
+    updateWhenZooming: false,
+    inertia: false,
+    keepBuffer: 2,
+    renderer: L.canvas({ padding: 0.3 })
+});
 
-        const imageBounds = [[0, 0], [4096, 4096]];
-        const mapUrls = {
-            named: 'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
-            noName: 'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
-        };
+const imageBounds = [[0, 0], [4096, 4096]];
+const mapUrls = {
+    named: 'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
+    noName: 'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
+};
 
-        let currentMap = localStorage.getItem('currentMap') || 'named';
-        let imageOverlay = L.imageOverlay(mapUrls[currentMap], imageBounds).addTo(map);
-        map.fitBounds(imageBounds);
-        L.control.zoom({ position: 'topleft' }).addTo(map);
-// ── iOS Safari map tile render safeguard (fixes partial load + requires no zoom/button tap) ──
-setTimeout(() => {
-    if (map && typeof map.invalidateSize === 'function') {
-        map.invalidateSize({ animate: false });
-    }
-}, 80);
+let currentMap = localStorage.getItem('currentMap') || 'named';
+let imageOverlay = L.imageOverlay(mapUrls[currentMap], imageBounds).addTo(map);
 
-setTimeout(() => {
-    if (map && typeof map.invalidateSize === 'function') {
-        map.invalidateSize({ animate: false });
-    }
-}, 350);
+map.fitBounds(imageBounds);
+L.control.zoom({ position: 'topleft' }).addTo(map);
 
-// Extra visibility change handler for Safari background/tab behaviour
+// Force container size calculation early for iOS
+const mapEl = document.getElementById('map');
+if (mapEl) {
+    mapEl.style.height = '100dvh';   // use dynamic viewport height
+    setTimeout(() => { mapEl.style.height = ''; }, 100);
+}
+
+// ── Aggressive iOS Safari render safeguard (fixes partial/half-loaded map) ──
+function forceMapRender() {
+    if (!map || typeof map.invalidateSize !== 'function') return;
+    
+    map.invalidateSize({ animate: false });
+    
+    // Multiple staggered calls — critical for iOS Safari + PWA + large ImageOverlay
+    setTimeout(() => map.invalidateSize({ animate: false }), 50);
+    setTimeout(() => map.invalidateSize({ animate: false }), 180);
+    setTimeout(() => map.invalidateSize({ animate: false }), 420);
+    setTimeout(() => map.invalidateSize({ animate: false }), 800);
+    setTimeout(() => map.invalidateSize({ animate: false }), 1200);
+}
+
+// Initial render attempts
+forceMapRender();
+
+// Extra attempts after load and visibility change (helps when launching from Home Screen)
+setTimeout(forceMapRender, 300);
+setTimeout(forceMapRender, 650);
+
 document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && map) {
-        setTimeout(() => {
-            if (map && typeof map.invalidateSize === 'function') {
-                map.invalidateSize({ animate: false });
-            }
-        }, 120);
+    if (document.visibilityState === 'visible') {
+        setTimeout(forceMapRender, 120);
     }
 });
+
+// Also trigger on fullscreen / maximized mode changes
+const originalFullscreenControl = fullscreenControl; // if needed for reference
+document.addEventListener('fullscreenchange', forceMapRender);
+document.addEventListener('webkitfullscreenchange', forceMapRender);
 // ── FULLSCREEN TOGGLE (🔭 button) FOR PC / Android / iPHONE SAFARI / All-PWA Installed full crossplatform ──
 const fullscreenControl = L.control({ position: 'topright' });
 fullscreenControl.onAdd = function(map) {
@@ -725,7 +742,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-vault-17-11-04-2026-build-17"; // must match service-worker.js
+    const CACHE_NAME = "76-vault-18-11-04-2026-build-18"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -5513,28 +5530,37 @@ function isClickOnMarkerOrCluster(e) {
 }
 
 function showMapContextMenu(latlng) {
-    // ── iOS + Fullscreen exit logic (same as other modals) ──
-    if (document.fullscreenElement || document.webkitFullscreenElement || window.isIOSMaximized) {
+    // ── iOS Maximized Fullscreen Exit Logic (same as other modals) ──
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isStandalonePWA = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+                            (window.navigator && window.navigator.standalone === true);
+    const isIOSPWA = isIOS && isStandalonePWA;
+
+    if (isIOSPWA && window.isIOSMaximized) {
         wasInFullscreenBeforeModal = true;
         exitedForContextMenu = true;
 
+        // Exit custom maximized mode
+        const mapEl = document.getElementById('map');
+        mapEl.style.position = '';
+        mapEl.style.top = '';
+        mapEl.style.left = '';
+        mapEl.style.width = '';
+        mapEl.style.height = '';
+        mapEl.style.paddingTop = '';
+        mapEl.style.paddingBottom = '';
+        mapEl.style.zIndex = '';
+        window.isIOSMaximized = false;
+
+        map.invalidateSize({ animate: false });
+    }
+
+    // Also handle native fullscreen if somehow active
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+        wasInFullscreenBeforeModal = true;
         if (document.exitFullscreen) document.exitFullscreen();
         else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-
-        // Custom iOS maximized mode
-        if (window.isIOSMaximized) {
-            const mapEl = document.getElementById('map');
-            mapEl.style.position = '';
-            mapEl.style.top = '';
-            mapEl.style.left = '';
-            mapEl.style.width = '';
-            mapEl.style.height = '';
-            mapEl.style.paddingTop = '';
-            mapEl.style.paddingBottom = '';
-            mapEl.style.zIndex = '';
-            window.isIOSMaximized = false;
-            map.invalidateSize({ animate: false });
-        }
     }
 
     // Open context menu
@@ -5643,7 +5669,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = 76.Vault-17 • 11-04-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = 76.Vault-18 • 11-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
