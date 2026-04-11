@@ -25,7 +25,7 @@
 
     <!-- ── PWA MANIFEST, ICONS & THEME COLOR ── -->
     <!-- Progressive Web App configuration with correct icon paths and theme color -->
-    <link rel="manifest" href="manifest.json?v=76.Vault-14">
+    <link rel="manifest" href="manifest.json?v=76.Vault-15">
     <link rel="icon" href="icon-192-v2.png" sizes="192x192">
     <link rel="icon" href="icon-512-v2.png" sizes="512x512">
     <link rel="apple-touch-icon" href="icon-192-v2.png">
@@ -59,24 +59,8 @@
     </div>
 
     <!-- ── MAIN MAP CONTAINER ── -->
+	<!-- It contains the map-image -->
     <div id="map">
-        <!-- ── MAP LOADING OVERLAY ── -->
-        <!-- Shown during initial map image load with countdown and helpful tips -->
-        <div id="mapLoadingOverlay" style="position:absolute;top:0;left:0;right:0;bottom:0;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;pointer-events:none;opacity:0;transition:opacity 0.6s;">
-          <div style="background:transparent;padding:40px 80px;border:5px solid #00ff00;border-radius:16px;text-align:center;box-shadow:0 0 60px #00ff00,inset 0 0 30px #00ff00;">
-            <h2 style="margin:0 0 30px 0;color:#00ff00;font-size:2.8em;text-shadow:0 0 25px #00ff00;letter-spacing:2px;">MAP LOADING…</h2>
-            <div style="font-size:2.4em;margin:25px 0;color:#00ff88;">
-              <span id="loadTimer">12</span><span style="opacity:0.7;font-size:0.8em;"> sec</span>
-            </div>
-            <div style="font-size:1.4em;line-height:1.7;opacity:0.95;">
-              • loading Appalachia map ~3–4 MB • <br>
-  • first load can be slow give it time • <br>
-  • click Show No-Name Map button to render •<br>
-  • ☢ click the update community map button ☢ •
-            </div>
-          </div>
-        </div>
-        <!-- ← END OF OVERLAY -->
     </div>
 
     <!-- ── CONTEXT MENU (RIGHT-CLICK / LONG-PRESS) ── -->
