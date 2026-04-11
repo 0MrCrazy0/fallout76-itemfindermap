@@ -1,4 +1,4 @@
-const CURRENT_APP_VERSION = '76.Vault-20';
+const CURRENT_APP_VERSION = '76.Vault-21';
 
 // ── Core version identifier — change this single value to bump the entire app version ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -745,7 +745,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-vault-20-11-04-2026-build-20"; // must match service-worker.js
+    const CACHE_NAME = "76-vault-21-12-04-2026-build-21"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -5536,14 +5536,12 @@ function showMapContextMenu(latlng) {
     // ── Platform detection ──
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
     const isStandalonePWA = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
                             (window.navigator && window.navigator.standalone === true);
-
     const isIOSPWA = isIOS && isStandalonePWA;
 
-    // ── Exit maximized mode ONLY on regular iOS Safari (NOT on installed PWA) ──
-    if (isIOS && !isIOSPWA && window.isIOSMaximized) {
+    // ── Exit maximized mode for BOTH regular iOS Safari AND installed PWA ──
+    if (isIOSPWA && window.isIOSMaximized) {
         wasInFullscreenBeforeModal = true;
         exitedForContextMenu = true;
 
@@ -5656,6 +5654,65 @@ window.addEventListener('message', function (event) {
     }
 });
 
+// ── Comprehensive Ultra-wide & Responsive Scaling (all screens) ──
+function forceUltraWideScaling() {
+    const isUltraWide = window.innerWidth >= 2500;
+
+    // Handle ALL modals (Edit Item, context menu, etc.)
+    document.querySelectorAll('.modal-content, #contextMenu, #itemModal .modal-content').forEach(el => {
+        if (!el) return;
+
+        if (isUltraWide) {
+            el.style.setProperty('position', 'fixed', 'important');
+            el.style.setProperty('top', '5vh', 'important');        // balanced height on ultra-wide
+            el.style.setProperty('left', '50%', 'important');
+            el.style.setProperty('transform', 'translateX(-50%)', 'important');
+            el.style.setProperty('margin', '0', 'important');
+        } else {
+            // Restore normal behaviour on smaller screens
+            el.style.position = '';
+            el.style.top = '';
+            el.style.transform = '';
+            el.style.margin = '';
+        }
+    });
+}
+
+const modalObserver = new MutationObserver(forceUltraWideScaling);
+modalObserver.observe(document.body, { childList: true, subtree: true });
+
+// ── General UI Resize Fix ──
+let resizeTimer;
+function resizeUI() {
+    if (map) map.invalidateSize({ animate: false });
+
+    const uiElements = document.querySelectorAll(`
+        #contextMenu, .modal, .modal-content,
+        #buttonGroup, #searchBar, #tableContainer,
+        #searchSuggestions, #locationsTable
+    `);
+    uiElements.forEach(el => {
+        if (el) {
+            const originalDisplay = el.style.display || '';
+            el.style.display = 'none';
+            void el.offsetWidth;
+            el.style.display = originalDisplay;
+        }
+    });
+}
+
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(resizeUI, 120);
+});
+
+window.addEventListener('load', () => {
+    setTimeout(resizeUI, 400);
+});
+
+// Initial run
+setTimeout(forceUltraWideScaling, 300);
+
         console.log(
     '%c╔═════════════════════════════════════════════════════════════╗\n' +
     '║           FALLOUT 76 ITEM FINDER MAP                        ║\n' +
@@ -5675,7 +5732,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = 76.Vault-20 • 11-04-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = 76.Vault-21 • 12-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
