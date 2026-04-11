@@ -1,4 +1,4 @@
-const CURRENT_APP_VERSION = '76.Vault-16';
+const CURRENT_APP_VERSION = '76.Vault-17';
 
 // ── Core version identifier — change this single value to bump the entire app version ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -75,11 +75,13 @@ function showUpdateNotice() {
 
 // ── DOM Ready — main entry point for the entire application ──
 document.addEventListener('DOMContentLoaded', () => {
-    const storedVersion = localStorage.getItem('fo76_map_version') || '0';
-if (storedVersion !== CURRENT_APP_VERSION) {
+    const APP_VERSION_KEY = 'fo76_app_version';   // ← New dedicated key for app updates
+const storedAppVersion = localStorage.getItem(APP_VERSION_KEY) || '0';
+
+if (storedAppVersion !== CURRENT_APP_VERSION) {
     showUpdateNotice();
-    // ── Critical: store the new version so banner does NOT reappear on every refresh
-    localStorage.setItem('fo76_map_version', CURRENT_APP_VERSION);
+    // ── Store app version separately so we do NOT overwrite the Community Map version
+    localStorage.setItem(APP_VERSION_KEY, CURRENT_APP_VERSION);
 }
 
     if (sessionStorage.getItem('returnFromPending') === 'true') {
@@ -723,7 +725,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-vault-16-11-04-2026-build-16"; // must match service-worker.js
+    const CACHE_NAME = "76-vault-17-11-04-2026-build-17"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -5641,7 +5643,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = 76.Vault-16 • 11-04-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = 76.Vault-17 • 11-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
