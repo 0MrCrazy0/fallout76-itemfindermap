@@ -1,4 +1,4 @@
-const CURRENT_APP_VERSION = '76.Vault-14';
+const CURRENT_APP_VERSION = '76.Vault-15';
 
 // ── Core version identifier — change this single value to bump the entire app version ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -107,63 +107,95 @@ document.addEventListener('DOMContentLoaded', () => {
         let soundsEnabled = localStorage.getItem('soundsEnabled') !== 'false';
 
         // ── Self-hosted audio system with volume control and unlock mechanism ──
-        const baseSounds = {
-            click:      new Audio("./sounds/click.ogg"),
-            type:       new Audio("./sounds/type.ogg"),
-            error:      new Audio("./sounds/error.ogg"),
-            duplicate:  new Audio("./sounds/duplicate.ogg"),
-            saving:     new Audio("./sounds/saving.ogg"),
-            undo:       new Audio("./sounds/undo.ogg"),
-            delete:     new Audio("./sounds/delete.ogg"),
-            levelUp:    new Audio("./sounds/levelup.ogg"),
-            modalClose: new Audio("./sounds/modalclose.ogg"),
-            selectcategory: new Audio("./sounds/selectcategory.ogg"),
-            postcard:   new Audio("./sounds/postcard.ogg"),
-            dust:       new Audio("./sounds/dust.ogg")
-        };
+let audioContext = null;
+let audioUnlocked = false;
 
-        Object.values(baseSounds).forEach(s => { s.volume = 0.30; });
+const baseSounds = {
+    click:      new Audio("./sounds/click.ogg"),
+    type:       new Audio("./sounds/type.ogg"),
+    error:      new Audio("./sounds/error.ogg"),
+    duplicate:  new Audio("./sounds/duplicate.ogg"),
+    saving:     new Audio("./sounds/saving.ogg"),
+    undo:       new Audio("./sounds/undo.ogg"),
+    delete:     new Audio("./sounds/delete.ogg"),
+    levelUp:    new Audio("./sounds/levelup.ogg"),
+    modalClose: new Audio("./sounds/modalclose.ogg"),
+    selectcategory: new Audio("./sounds/selectcategory.ogg"),
+    postcard:   new Audio("./sounds/postcard.ogg"),
+    dust:       new Audio("./sounds/dust.ogg")
+};
 
-        let appFullyReady = false;
-        let lastSoundTime = 0;
+// Tuned volumes for consistent perceived loudness
+const soundVolumes = {
+    click:      0.45,
+    type:       0.35,
+    error:      0.48,
+    duplicate:  0.40,
+    saving:     0.55,
+    undo:       0.35,
+    delete:     0.48,
+    levelUp:    0.65,   // celebration sound
+    modalClose: 0.32,
+    selectcategory: 0.42,
+    postcard:   0.58,
+    dust:       0.45
+};
 
-        function playSound(type) {
-            if (!soundsEnabled || !baseSounds[type] || !appFullyReady) return;
-            const now = Date.now();
-            if (now - lastSoundTime < 80) return;
-            lastSoundTime = now;
-            const sound = baseSounds[type];
-            sound.currentTime = 0;
-            sound.play().catch(() => {});
-        }
+Object.keys(baseSounds).forEach(key => {
+    const sound = baseSounds[key];
+    sound.volume = soundVolumes[key] || 0.40;
+    sound.preload = 'auto';
+});
 
-        // ── One-time audio unlock for iOS / Safari (user gesture required) ──
-        let audioUnlocked = false;
-        function unlockAudio() {
-            if (audioUnlocked) return;
-            audioUnlocked = true;
-            appFullyReady = true;
-            console.log('🔊 Audio system unlocked cleanly');
-        }
+function unlockAudio() {
+    if (audioUnlocked) return;
 
-        function attachAudioUnlockListeners() {
-            const events = ['touchstart', 'click', 'pointerdown'];
-            const handler = () => {
-                unlockAudio();
-                events.forEach(ev => {
-                    document.documentElement.removeEventListener(ev, handler, { passive: true });
-                    const mapEl = document.getElementById('map');
-                    if (mapEl) mapEl.removeEventListener(ev, handler, { passive: true });
-                });
-            };
-            events.forEach(ev => {
-                document.documentElement.addEventListener(ev, handler, { once: true, passive: true });
-                const mapEl = document.getElementById('map');
-                if (mapEl) mapEl.addEventListener(ev, handler, { once: true, passive: true });
-            });
-        }
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioContext.state === 'suspended') {
+        audioContext.resume().catch(() => {});
+    }
 
-        attachAudioUnlockListeners();
+    audioUnlocked = true;
+    console.log('🔊 Audio unlocked successfully (iOS + Web Audio API)');
+}
+
+function playSound(type) {
+    if (!audioUnlocked || !baseSounds[type]) return;
+
+    // ── Extra iOS/Safari safeguard ──
+    // Forces the AudioContext to wake up on every play attempt
+    if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume().catch(() => {});
+    }
+
+    const sound = baseSounds[type];
+    sound.currentTime = 0;
+    sound.play().catch(err => {
+        console.warn(`Play failed for ${type}:`, err);
+        if (!audioUnlocked) unlockAudio();
+    });
+}
+
+function attachAudioUnlockListeners() {
+    const events = ['touchstart', 'click', 'pointerdown', 'keydown'];
+    const handler = () => {
+        unlockAudio();
+        events.forEach(ev => {
+            document.documentElement.removeEventListener(ev, handler, { passive: true });
+            const mapEl = document.getElementById('map');
+            if (mapEl) mapEl.removeEventListener(ev, handler, { passive: true });
+        });
+    };
+    events.forEach(ev => {
+        document.documentElement.addEventListener(ev, handler, { once: true, passive: true });
+        const mapEl = document.getElementById('map');
+        if (mapEl) mapEl.addEventListener(ev, handler, { once: true, passive: true });
+    });
+}
+
+attachAudioUnlockListeners();
 
         // ── Utility: Fetch with built-in timeout to prevent hanging requests ──
         async function fetchWithTimeout(url, timeout = 12000) {
@@ -656,51 +688,84 @@ window.exitFullscreenThenDo = function(callback) {
 // ── MAP RENDER
 (function() {
     const mapContainer = document.getElementById('map');
-    const overlay = document.getElementById('mapLoadingOverlay');
-    const timer = document.getElementById('loadTimer');
-    if (!overlay || !timer || !mapContainer) return;
+    if (!mapContainer) return;
 
-    overlay.style.position = 'absolute';
-    overlay.style.top = '0';
-    overlay.style.left = '0';
-    overlay.style.width = '100%';
-    overlay.style.height = '100%';
-    overlay.style.borderRadius = mapContainer.style.borderRadius || '0';
+    const CACHE_NAME = "76-vault-15-11-04-2026-build-15"; // must match service-worker.js
+    const MAP_IMAGES = [
+        'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
+        'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
+    ];
 
-    let seconds = 12;
-    overlay.style.opacity = '1';
-    timer.textContent = seconds;
+    // Check if both map images are already in cache
+    async function areImagesCached() {
+        try {
+            const cache = await caches.open(CACHE_NAME);
+            const results = await Promise.all(
+                MAP_IMAGES.map(url => cache.match(url))
+            );
+            return results.every(response => response !== undefined);
+        } catch (err) {
+            return false; // if cache check fails, show banner as safety
+        }
+    }
 
-    const countdown = setInterval(() => {
-        seconds--;
-        timer.textContent = Math.max(0, seconds);
-    }, 1000);
+    // Create banner only if needed
+    let loadingBanner = document.getElementById('mapLoadingBanner');
 
-    const hideOverlay = () => {
-        clearInterval(countdown);
-        overlay.style.opacity = '0';
-        setTimeout(() => { overlay.style.display = 'none'; }, 800);
+    const createAndShowBanner = () => {
+        if (!loadingBanner) {
+            loadingBanner = document.createElement('div');
+            loadingBanner.id = 'mapLoadingBanner';
+            loadingBanner.style.cssText = `
+                position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+                background: rgba(0, 26, 0, 0.92); color: #00ff88; padding: 10px 24px;
+                border: 2px solid #00ff00; border-radius: 6px; font: bold 15px 'Courier New', monospace;
+                box-shadow: 0 0 15px #00ff00; z-index: 1000; white-space: nowrap;
+                display: flex; align-items: center; gap: 12px; opacity: 0; transition: opacity 0.6s;
+            `;
+            loadingBanner.innerHTML = `
+                <span style="font-size:18px;">📡</span>
+                <span>Downloading map images for instant future loads…</span>
+                <span class="spinner" style="display:inline-block;width:18px;height:18px;border:3px solid #00ff88;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></span>
+            `;
+            mapContainer.appendChild(loadingBanner);
+
+            const style = document.createElement('style');
+            style.textContent = `@keyframes spin { to { transform: rotate(360deg); } }`;
+            document.head.appendChild(style);
+        }
+        loadingBanner.style.opacity = '1';
     };
 
-    // ── FINAL iOS / SAFARI / PWA FULL RENDER FIX (Automatic Toggle Cycle) ──
+    const hideBanner = () => {
+        if (loadingBanner) {
+            loadingBanner.style.opacity = '0';
+            setTimeout(() => {
+                if (loadingBanner && loadingBanner.parentNode) {
+                    loadingBanner.parentNode.removeChild(loadingBanner);
+                }
+            }, 800);
+        }
+    };
+
+    // Only show banner if images are NOT already cached
+    areImagesCached().then(cached => {
+        if (!cached) {
+            createAndShowBanner();
+        }
+        // If already cached → banner is never shown (instant load)
+    });
+
+    // Hide banner when image finishes loading (or safety timeout)
+    const hideOverlay = () => { hideBanner(); };
+
+    imageOverlay.on('load', hideOverlay);
+    imageOverlay.on('error', hideOverlay);
+    setTimeout(hideOverlay, 12000);
+
+    // Keep existing iOS force-render logic (unchanged)
     const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) ||
                        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-    const forceFullMapRenderOnIOS = () => {
-        if (!isIOS()) return;
-
-        const toggleBtn = document.getElementById('toggleMapBtn');
-        if (!toggleBtn) return;
-
-        setTimeout(() => {
-            // Invisible toggle cycle (forces complete image decode & GPU recomposite)
-            toggleBtn.click();
-            requestAnimationFrame(() => {
-                toggleBtn.click(); // switch back
-                console.log('%c[iOS] Full map render forced via toggle cycle', 'color:#0a0;font-size:10px');
-            });
-        }, 650); // delay after image load
-    };
 
     const forceFullRender = () => {
         map.invalidateSize({ animate: false });
@@ -714,47 +779,33 @@ window.exitFullscreenThenDo = function(callback) {
         setTimeout(() => map.invalidateSize({ animate: false }), 820);
     };
 
-    imageOverlay.on('load', hideOverlay);
-    imageOverlay.on('error', hideOverlay);
-    setTimeout(hideOverlay, 14000);
-
     imageOverlay.on('load', () => {
         setTimeout(forceFullRender, 180);
         if (isIOS()) {
             setTimeout(forceFullRender, 650);
             setTimeout(forceFullRender, 1100);
-            setTimeout(forceFullMapRenderOnIOS, 900);   // ← NEW: automatic iOS toggle
         }
     });
-
-    imageOverlay.on('error', () => {
-        console.warn('Map image failed to load – forcing fallback render');
-        setTimeout(forceFullRender, 300);
-    });
-
-    // Final safety net
-    setTimeout(() => {
-        if (!map.getBounds().isValid() || map.getZoom() < 0) {
-            forceFullRender();
-        }
-    }, 9000);
 })();
 
 let isTransitioning = false;
 
+// ── IMPROVED CLUSTERING — better than industry standard + smooth zoom-in restored ──
 const clusteredMarkers = L.markerClusterGroup({
-    maxClusterRadius: 32,
-    disableClusteringAtZoom: 4,
-    spiderfyOnMaxZoom: false,
+    maxClusterRadius: 40,                    // cleaner grouping, no false single-marker clusters
+    disableClusteringAtZoom: 5,              // clusters disappear at a more usable zoom level
+    spiderfyOnMaxZoom: true,                 // click small cluster → nicely spreads markers
     showCoverageOnHover: false,
-    zoomToBoundsOnClick: false,
-    removeOutsideVisibleBounds: false,
+    zoomToBoundsOnClick: false,              // ← MUST BE FALSE so custom smooth animation works
+    removeOutsideVisibleBounds: true,
     animate: true,
+    chunkedLoading: true,
     iconCreateFunction: function(cluster) {
+        const count = cluster.getChildCount();
         return L.divIcon({
-            html: `<div><span>${cluster.getChildCount()}</span></div>`,
+            html: `<div><span>${count}</span></div>`,
             className: 'marker-cluster',
-            iconSize: L.point(40, 40)
+            iconSize: L.point(42, 42)
         });
     }
 });
@@ -1190,47 +1241,75 @@ playSound('selectcategory');
     playSound('click');
 };
 
+// ── DUPLICATE MARKER ──
 duplicateBtn.onclick = () => {
     if (currentIndex < 0) return;
-    const loc = locations[currentIndex];
-    if (loc.locked) {
+    const original = locations[currentIndex];
+    if (original.locked) {
         showTempMessage('🔓 UNLOCK MARKER FIRST', 4000);
         playSound('error');
         return;
     }
 
-    const sameCidMarkers = locations.filter(l => l.cid === loc.cid);
-    const reference = sameCidMarkers.length > 0 ? sameCidMarkers[sameCidMarkers.length - 1] : loc;
+    // Close Edit modal first
+    closeModal(itemModal);
 
-    const baseO = clusteringEnabled ? 160 : 60;
-    const o = baseO / Math.pow(2, map.getZoom());
-    const a = sameCidMarkers.length * (55 * Math.PI / 180);
+    // Stay in the SAME grid cell but move visibly inside it
+    let newLat = original.lat;
+    let newLng = original.lng;
 
-    const newLat = reference.lat + o * Math.sin(a);
-    const newLng = reference.lng + o * Math.cos(a);
+    const grid = getGridFromLatLng(original.lat, original.lng);
+    if (grid) {
+        const letters = 'ABCDEFGHIJ';
+        const col = letters.indexOf(grid[0]);
+        const row = parseInt(grid.slice(1)) - 1;
+        const cellSize = 4096 / 10;
 
-    const newDesc = updateDescWithGrid(loc.desc, newLat, newLng);
+        const centerLat = (row * cellSize) + (cellSize / 2);
+        const centerLng = (col * cellSize) + (cellSize / 2);
 
-    const dup = createNewLocation(newLat, newLng, loc.category, newDesc);
-    
-    // === Regenerate a brand new CID so it is not blocked as duplicate ===
-    dup.cid = generateCid(dup);
+        // Visible offset inside the same grid cell
+        newLat = centerLat + (Math.random() * 260 - 130);
+        newLng = centerLng + (Math.random() * 300 - 150);
+    } else {
+        newLat = original.lat + 0.00045 + (Math.random() * 0.00025);
+        newLng = original.lng + 0.00055 + (Math.random() * 0.0003);
+    }
 
-    dup.userEdited = true;
-    dup.locked = false;
-    loc.locked = true;
-    loc.addedTime = Date.now();
+    const newMarker = JSON.parse(JSON.stringify(original));
+    newMarker.id = generateUniqueId();
+    newMarker.cid = generateCid(newMarker);        // ← Guaranteed unique CID
+    newMarker.lat = newLat;
+    newMarker.lng = newLng;
+    newMarker.addedTime = Date.now();
+    newMarker.isTemp = false;
+    newMarker.isPostcard = false;
+    newMarker.locked = false;
+    newMarker.userEdited = true;
 
-    locations.push(dup);
+    locations.push(newMarker);
+
+    // Re-lock the original marker
+    original.locked = true;
+    original.addedTime = Date.now();
+
     recalculateXP();
     saveLocations();
     forceReload();
 
-    closeModal(itemModal);
-    safeFlyTo(newLat, newLng, map.getZoom() + 1);
+    // Fly to new marker + open its popup
+    setTimeout(() => {
+        const newLeafletMarker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
+            .find(m => m.options && m.options.id === newMarker.id);
 
-    showTempMessage('✅ MARKER DUPLICATED — ORIGINAL RE-LOCKED', 4000);
-    setTimeout(() => playSound('duplicate'), 150);
+        if (newLeafletMarker) {
+            map.flyTo([newMarker.lat, newMarker.lng], Math.max(map.getZoom(), 4), { duration: 1.1 });
+            newLeafletMarker.openPopup();
+        }
+    }, 850);
+
+    showTempMessage('✅ DUPLICATE CREATED IN SAME GRID (original re-locked)', 4500);
+    setTimeout(() => playSound('duplicate'), 180);
 };
 
 if (!map.getPane('gridPane')) {
@@ -2045,6 +2124,14 @@ function addMarkerToMap(loc) {
         return;
     }
 
+    // ── ULTRA-STRONG DEDUPLICATION (prevents the runtime duplicate layers that cause single-marker clusters) ──
+    clusteredMarkers.eachLayer(function(m) {
+        if (m.options && m.options.id === loc.id) m.remove();
+    });
+    nonClusteredMarkers.eachLayer(function(m) {
+        if (m.options && m.options.id === loc.id) m.remove();
+    });
+
     // ── Prevent random popup jumping on freshly created postcards ──
     if (window.justCreatedPostcardId && window.justCreatedPostcardId === loc.id) {
         // we will open it manually in the setTimeout above
@@ -2063,7 +2150,12 @@ function addMarkerToMap(loc) {
     attachDragHandler(marker, loc);
 
     const textOnly = ['named locations', 'regions'].includes(loc.category);
-    (clusteringEnabled && !textOnly ? clusteredMarkers : nonClusteredMarkers).addLayer(marker);
+    
+    // ── NEW RULE: Postcards are ALWAYS non-clustered (they expire) ──
+    const targetGroup = loc.isPostcard || textOnly ? nonClusteredMarkers : 
+                        (clusteringEnabled ? clusteredMarkers : nonClusteredMarkers);
+
+    targetGroup.addLayer(marker);
 
     if (textOnly) {
         marker.setZIndexOffset(20000);
@@ -2110,6 +2202,11 @@ function addMarkerToMap(loc) {
         L.DomEvent.on(marker._icon, 'touchend touchmove touchcancel', function() {
             clearTimeout(longPressTimer);
         });
+    }
+
+    // ── Force immediate cluster resynchronisation after every addition ──
+    if (clusteringEnabled && !textOnly && !loc.isPostcard) {
+        clusteredMarkers.refreshClusters();
     }
 }
 
@@ -2868,21 +2965,36 @@ overlay.innerHTML = `
     if (currentLocations.some(l => l.isPostcard)) startPostcardTicker();
 	updateCounterDisplay();
 }
-        function forceReload() {
+function forceReload() {
     const modalOpen = itemModal.style.display === 'block';
     const currentModalCategory = modalOpen ? (locations[currentIndex]?.category || itemCategorySelect.value) : null;
 
+    // ── Full reliable refresh for locking, export, share, permshare, duplicate, etc. ──
+    clusteredMarkers.clearLayers();
+    nonClusteredMarkers.clearLayers();
     saveAppState();
+
+    // Only ONE call to loadData — it already re-renders every marker correctly
     loadData('', categoryFilter?.value || '');
+
     renderCategoryToggles();
     updateCategoryDropdowns();
+    updateCounterDisplay();
+    updateLockAllBtn();
+    drawGrid();
 
+    // Restore modal category if edit modal was open
     if (modalOpen && currentModalCategory) {
         setTimeout(() => {
             itemCategorySelect.value = currentModalCategory;
         }, 50);
     }
-	            updatePostcardTimers();   // ← Keeps table timers updated after reload
+
+    updatePostcardTimers(); // Keeps table timers updated
+    map.invalidateSize({ animate: false }); // Ensures correct rendering on all devices
+
+    // Final safety refresh for perfect cluster counts after dynamic updates
+    if (clusteringEnabled) clusteredMarkers.refreshClusters();
 }
 
         function saveAppState() {
@@ -3685,6 +3797,13 @@ navigator.clipboard.writeText(shareUrl).then(() => {
 document.getElementById('shareOneBtn').onclick = () => {
     if (currentIndex < 0) return;
     const loc = locations[currentIndex];
+
+    // Force re-lock before sharing
+    loc.locked = true;
+    loc.addedTime = Date.now();
+    saveLocations();
+	forceReload();
+
     createPermanentShare([loc]);
     closeModal(itemModal);
 };
@@ -4007,12 +4126,18 @@ exportOneBtn.onclick = () => {
     const loc = locations[currentIndex];
     if (!loc) return;
 
+    // Force re-lock before export
+    loc.locked = true;
+    loc.addedTime = Date.now();
+    saveLocations();
+	forceReload();
+
     const cleanLoc = {
         ...loc,
         userEdited: true,
         wasCommunityKept: false,
         isCommunity: false,
-        locked: loc.locked || false
+        locked: true
     };
 
     const blob = new Blob([JSON.stringify([cleanLoc], null, 2)], { type: 'application/json' });
@@ -4594,10 +4719,8 @@ if (urlParams.has('permshare')) {
             const undoState = JSON.stringify(locations);
 
             incoming.forEach(imp => {
-                // Force as user-created marker (this is the fix)
                 const existing = locations.find(l => l.id === imp.id);
 
-                // Merge custom category if needed
                 if (imp.category && imp.icon && !defaultCategoryIcons[imp.category]) {
                     customCategories[imp.category] = imp.icon;
                     categoryIcons[imp.category] = imp.icon;
@@ -4610,6 +4733,7 @@ if (urlParams.has('permshare')) {
                     existing.userEdited = true;
                     existing.isCommunity = false;
                     existing.wasCommunityKept = false;
+                    existing.locked = true;
                 } else {
                     locations.push({
                         ...imp,
@@ -4633,6 +4757,55 @@ if (urlParams.has('permshare')) {
 
             showTempMessage(`📥 SHARED MARKER${added > 1 ? 'S' : ''} IMPORTED — NOW YOURS TO EDIT`, 6000);
             playSound('saving');
+
+            // Stronger postcard-style fly-to + popup
+            if (incoming.length > 0) {
+    const first = incoming[0];
+    setTimeout(() => {
+        // Moderate zoom (4.5) that matches postcard feel – prevents over-zooming
+        map.flyTo([first.lat, first.lng], 4.5, { 
+            duration: 1.8,
+            easeLinearity: 0.25 
+        });
+
+        // Extended delay ensures markers are fully re-rendered after forceReload
+        setTimeout(() => {
+            let target = null;
+            const allMarkers = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()];
+
+            // More reliable lookup using getLatLng() + wider tolerance
+            target = allMarkers.find(m => {
+                if (!m || typeof m.getLatLng !== 'function') return false;
+                const latlng = m.getLatLng();
+                return latlng && 
+                       Math.abs(latlng.lat - first.lat) < 0.01 && 
+                       Math.abs(latlng.lng - first.lng) < 0.01;
+            });
+
+            if (target) {
+                target.openPopup();
+            } else {
+                // Fallback: open a clean popup at exact coordinates (guaranteed to appear)
+                const fallbackPopup = L.popup({
+                    closeButton: true,
+                    className: 'custom-popup',
+                    offset: [0, -15]
+                })
+                .setLatLng([first.lat, first.lng])
+                .setContent(`
+                    <div style="text-align:center; min-width:220px;">
+                        <b>${first.title || 'Imported Marker'}</b><br>
+                        ${first.description || ''}
+                        <div style="font-size:11px; margin-top:6px; color:#888;">
+                            Locked • Imported via share link
+                        </div>
+                    </div>
+                `);
+                map.openPopup(fallbackPopup);
+            }
+        }, 3200);
+    }, 1200);
+}
 
             // Undo support
             if (added > 0) {
@@ -5252,7 +5425,7 @@ if (playerNameInput) {
         localStorage.setItem('fo76_playerName', playerNameInput.value.trim());
     });
 }
-// ── SAFE SHARED-LINK REDRAW AFTER WELCOME MODAL (no tip, no onclick change) ──
+// ── IMPROVED SHARED LINK / POSTCARD AUTO FLYTO + POPUP ──
 const sharedLinkObserver = new MutationObserver(() => {
     if (!document.getElementById('welcomeModal')) {
         sharedLinkObserver.disconnect();
@@ -5265,16 +5438,26 @@ const sharedLinkObserver = new MutationObserver(() => {
                 updateCategoryDropdowns();
                 forceReload();
                 map.invalidateSize({ animate: false });
-                
-                // Final guaranteed zoom
+
                 if (urlParams.has('lat') && urlParams.has('lng')) {
                     const lat = parseFloat(urlParams.get('lat'));
                     const lng = parseFloat(urlParams.get('lng'));
                     if (!isNaN(lat) && !isNaN(lng)) {
-                        map.flyTo([lat, lng], 5, { duration: 1.2 });
+                        setTimeout(() => {
+                            map.flyTo([lat, lng], 5, { duration: 1.6, easeLinearity: 0.25 });
+
+                            // Stronger popup search for shared markers
+                            setTimeout(() => {
+                                const target = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
+                                    .find(m => m.options && 
+                                        Math.abs(m.options.lat - lat) < 0.002 && 
+                                        Math.abs(m.options.lng - lng) < 0.002);
+                                if (target) target.openPopup();
+                            }, 2000);   // longer delay for full map render
+                        }, 900);
                     }
                 }
-            }, 900); // slightly longer delay for complete map readiness
+            }, 800);
         }
     }
 });
@@ -5295,11 +5478,28 @@ function isClickOnMarkerOrCluster(e) {
 }
 
 function showMapContextMenu(latlng) {
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
+    // ── iOS + Fullscreen exit logic (same as other modals) ──
+    if (document.fullscreenElement || document.webkitFullscreenElement || window.isIOSMaximized) {
         wasInFullscreenBeforeModal = true;
         exitedForContextMenu = true;
+
         if (document.exitFullscreen) document.exitFullscreen();
         else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+
+        // Custom iOS maximized mode
+        if (window.isIOSMaximized) {
+            const mapEl = document.getElementById('map');
+            mapEl.style.position = '';
+            mapEl.style.top = '';
+            mapEl.style.left = '';
+            mapEl.style.width = '';
+            mapEl.style.height = '';
+            mapEl.style.paddingTop = '';
+            mapEl.style.paddingBottom = '';
+            mapEl.style.zIndex = '';
+            window.isIOSMaximized = false;
+            map.invalidateSize({ animate: false });
+        }
     }
 
     // Open context menu
@@ -5408,7 +5608,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = 76.Vault-14 • 10-04-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = 76.Vault-15 • 11-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
