@@ -411,41 +411,44 @@ let imageOverlay = L.imageOverlay(mapUrls[currentMap], imageBounds).addTo(map);
 map.fitBounds(imageBounds);
 L.control.zoom({ position: 'topleft' }).addTo(map);
 
-// Force container size calculation early for iOS
+// Force container size calculation early for iOS (Safari + PWA)
 const mapEl = document.getElementById('map');
 if (mapEl) {
     mapEl.style.height = '100dvh';   // use dynamic viewport height
-    setTimeout(() => { mapEl.style.height = ''; }, 100);
+    setTimeout(() => { mapEl.style.height = ''; }, 80);
 }
 
-// ── Aggressive iOS Safari render safeguard (fixes partial/half-loaded map) ──
+// ── Stronger iOS Render Safeguard (Safari browser + installed PWA) ──
 function forceMapRender() {
     if (!map || typeof map.invalidateSize !== 'function') return;
     
     map.invalidateSize({ animate: false });
     
-    // Multiple staggered calls — critical for iOS Safari + PWA + large ImageOverlay
+    // Multiple staggered calls — critical for large ImageOverlay on iOS
     setTimeout(() => map.invalidateSize({ animate: false }), 50);
     setTimeout(() => map.invalidateSize({ animate: false }), 180);
     setTimeout(() => map.invalidateSize({ animate: false }), 420);
     setTimeout(() => map.invalidateSize({ animate: false }), 800);
     setTimeout(() => map.invalidateSize({ animate: false }), 1200);
+    setTimeout(() => map.invalidateSize({ animate: false }), 1800);   // extra safety for stubborn loads
 }
 
 // Initial render attempts
 forceMapRender();
 
-// Extra attempts after load and visibility change (helps when launching from Home Screen)
+// Extra attempts after load, visibility change, and fullscreen events
 setTimeout(forceMapRender, 300);
 setTimeout(forceMapRender, 650);
+setTimeout(forceMapRender, 1100);
 
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
         setTimeout(forceMapRender, 120);
+        setTimeout(forceMapRender, 450);   // extra for PWA resume from background
     }
 });
 
-// Also trigger on fullscreen / maximized mode changes
+// Trigger on fullscreen / maximized mode changes (Safari + PWA)
 document.addEventListener('fullscreenchange', forceMapRender);
 document.addEventListener('webkitfullscreenchange', forceMapRender);
 
@@ -5530,40 +5533,43 @@ function isClickOnMarkerOrCluster(e) {
 }
 
 function showMapContextMenu(latlng) {
-    // ── iOS Maximized Fullscreen Exit Logic (same as other modals) ──
+    // ── Platform detection ──
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
     const isStandalonePWA = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
                             (window.navigator && window.navigator.standalone === true);
+
     const isIOSPWA = isIOS && isStandalonePWA;
 
-    if (isIOSPWA && window.isIOSMaximized) {
+    // ── Exit maximized mode ONLY on regular iOS Safari (NOT on installed PWA) ──
+    if (isIOS && !isIOSPWA && window.isIOSMaximized) {
         wasInFullscreenBeforeModal = true;
         exitedForContextMenu = true;
 
-        // Exit custom maximized mode
         const mapEl = document.getElementById('map');
-        mapEl.style.position = '';
-        mapEl.style.top = '';
-        mapEl.style.left = '';
-        mapEl.style.width = '';
-        mapEl.style.height = '';
-        mapEl.style.paddingTop = '';
-        mapEl.style.paddingBottom = '';
-        mapEl.style.zIndex = '';
-        window.isIOSMaximized = false;
-
-        map.invalidateSize({ animate: false });
+        if (mapEl) {
+            mapEl.style.position = '';
+            mapEl.style.top = '';
+            mapEl.style.left = '';
+            mapEl.style.width = '';
+            mapEl.style.height = '';
+            mapEl.style.paddingTop = '';
+            mapEl.style.paddingBottom = '';
+            mapEl.style.zIndex = '';
+            window.isIOSMaximized = false;
+            map.invalidateSize({ animate: false });
+        }
     }
 
-    // Also handle native fullscreen if somehow active
+    // ── Safety: exit native fullscreen if active (applies to all platforms) ──
     if (document.fullscreenElement || document.webkitFullscreenElement) {
         wasInFullscreenBeforeModal = true;
         if (document.exitFullscreen) document.exitFullscreen();
         else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
     }
 
-    // Open context menu
+    // ── Open the context menu (common code for all platforms) ──
     contextMenu.style.display = 'block';
     document.body.classList.add('modal-open');
     window.lastContextLatLng = latlng;
