@@ -4320,6 +4320,24 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-ad0a8145-a1f2-48e5-ae87-f2550c15af08",
+      "cid": "plans_delete_this_grid_a1_x_1839_y_1739_173.87980_183.87660",
+      "category": "plans",
+      "desc": "Delete this\nGrid A1 (X: 183.9, Y: 173.9)\nSubmitted By MrCrazy",
+      "lat": 173.87979639984678,
+      "lng": 183.87660477040845,
+      "icon": "📜",
+      "addedTime": 1775887053255,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ]
 }
