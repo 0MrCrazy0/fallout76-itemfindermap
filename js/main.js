@@ -1,4 +1,4 @@
-const CURRENT_APP_VERSION = '76.Vault-15';
+const CURRENT_APP_VERSION = '76.Vault-16';
 
 // ── Core version identifier — change this single value to bump the entire app version ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -76,7 +76,11 @@ function showUpdateNotice() {
 // ── DOM Ready — main entry point for the entire application ──
 document.addEventListener('DOMContentLoaded', () => {
     const storedVersion = localStorage.getItem('fo76_map_version') || '0';
-    if (storedVersion !== CURRENT_APP_VERSION) showUpdateNotice();
+if (storedVersion !== CURRENT_APP_VERSION) {
+    showUpdateNotice();
+    // ── Critical: store the new version so banner does NOT reappear on every refresh
+    localStorage.setItem('fo76_map_version', CURRENT_APP_VERSION);
+}
 
     if (sessionStorage.getItem('returnFromPending') === 'true') {
         sessionStorage.removeItem('returnFromPending');
@@ -125,20 +129,10 @@ const baseSounds = {
     dust:       new Audio("./sounds/dust.ogg")
 };
 
-// Tuned volumes for consistent perceived loudness
 const soundVolumes = {
-    click:      0.45,
-    type:       0.35,
-    error:      0.48,
-    duplicate:  0.40,
-    saving:     0.55,
-    undo:       0.35,
-    delete:     0.48,
-    levelUp:    0.65,   // celebration sound
-    modalClose: 0.32,
-    selectcategory: 0.42,
-    postcard:   0.58,
-    dust:       0.45
+    click:      0.45, type: 0.35, error: 0.48, duplicate: 0.40,
+    saving:     0.55, undo: 0.35, delete: 0.48, levelUp: 0.65,
+    modalClose: 0.32, selectcategory: 0.42, postcard: 0.58, dust: 0.45
 };
 
 Object.keys(baseSounds).forEach(key => {
@@ -153,33 +147,49 @@ function unlockAudio() {
     if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
+
+    // Stronger iOS resume
     if (audioContext.state === 'suspended') {
         audioContext.resume().catch(() => {});
     }
 
+    // Force a silent oscillator to fully unlock Safari
+    try {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        gainNode.gain.value = 0.001;
+        oscillator.connect(gainNode).connect(audioContext.destination);
+        oscillator.start(0);
+        oscillator.stop(audioContext.currentTime + 0.001);
+    } catch (e) {}
+
     audioUnlocked = true;
-    console.log('🔊 Audio unlocked successfully (iOS + Web Audio API)');
+    console.log('🔊 Audio fully unlocked for iOS Safari');
 }
 
 function playSound(type) {
     if (!audioUnlocked || !baseSounds[type]) return;
 
-    // ── Extra iOS/Safari safeguard ──
-    // Forces the AudioContext to wake up on every play attempt
+    // Force resume on every play attempt (critical for stubborn iOS cases)
     if (audioContext && audioContext.state === 'suspended') {
         audioContext.resume().catch(() => {});
     }
 
     const sound = baseSounds[type];
     sound.currentTime = 0;
-    sound.play().catch(err => {
-        console.warn(`Play failed for ${type}:`, err);
-        if (!audioUnlocked) unlockAudio();
-    });
+    const playPromise = sound.play();
+
+    if (playPromise) {
+        playPromise.catch(err => {
+            console.warn(`Play failed for ${type}:`, err);
+            // One final unlock attempt
+            if (!audioUnlocked) unlockAudio();
+        });
+    }
 }
 
 function attachAudioUnlockListeners() {
-    const events = ['touchstart', 'click', 'pointerdown', 'keydown'];
+    const events = ['touchstart', 'click', 'pointerdown', 'keydown', 'mousedown'];
     const handler = () => {
         unlockAudio();
         events.forEach(ev => {
@@ -397,6 +407,29 @@ attachAudioUnlockListeners();
         let imageOverlay = L.imageOverlay(mapUrls[currentMap], imageBounds).addTo(map);
         map.fitBounds(imageBounds);
         L.control.zoom({ position: 'topleft' }).addTo(map);
+// ── iOS Safari map tile render safeguard (fixes partial load + requires no zoom/button tap) ──
+setTimeout(() => {
+    if (map && typeof map.invalidateSize === 'function') {
+        map.invalidateSize({ animate: false });
+    }
+}, 80);
+
+setTimeout(() => {
+    if (map && typeof map.invalidateSize === 'function') {
+        map.invalidateSize({ animate: false });
+    }
+}, 350);
+
+// Extra visibility change handler for Safari background/tab behaviour
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && map) {
+        setTimeout(() => {
+            if (map && typeof map.invalidateSize === 'function') {
+                map.invalidateSize({ animate: false });
+            }
+        }, 120);
+    }
+});
 // ── FULLSCREEN TOGGLE (🔭 button) FOR PC / Android / iPHONE SAFARI / All-PWA Installed full crossplatform ──
 const fullscreenControl = L.control({ position: 'topright' });
 fullscreenControl.onAdd = function(map) {
@@ -690,7 +723,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-vault-15-11-04-2026-build-15"; // must match service-worker.js
+    const CACHE_NAME = "76-vault-16-11-04-2026-build-16"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -5608,7 +5641,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = 76.Vault-15 • 11-04-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = 76.Vault-16 • 11-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
