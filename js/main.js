@@ -170,6 +170,9 @@ function unlockAudio() {
 }
 
 function playSound(type) {
+    // ── UNIVERSAL SOUNDS GATE (respects toggle on PC / Android / iOS) ──
+    if (!soundsEnabled) return;
+
     if (!audioUnlocked || !baseSounds[type]) return;
 
     // Force resume on every play attempt (critical for stubborn iOS cases)
