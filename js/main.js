@@ -756,12 +756,12 @@ function showRestoreFullscreenButton() {
     };
 }
 
-// ── iOS Post-Capture Full Exit (forces clean exit on Safari + PWA) ──
+// ── iOS Post-Capture Full Exit + Safari Button Recovery ──
 function forceResetFullscreenLayout() {
     const mapEl = document.getElementById('map');
     if (!mapEl) return;
 
-    // ── Aggressively REMOVE all fullscreen CSS styles ──
+    // ── Aggressively clear ALL fullscreen CSS ──
     mapEl.style.position = '';
     mapEl.style.inset = '';
     mapEl.style.width = '';
@@ -779,14 +779,13 @@ function forceResetFullscreenLayout() {
     mapEl.style.webkitTouchCallout = '';
     mapEl.style.overscrollBehavior = '';
 
-    // Also reset body/document styles that were changed for PWA fullscreen
     document.documentElement.style.overscrollBehavior = '';
     document.body.style.overflow = '';
     document.body.style.position = '';
     document.body.style.width = '';
     document.body.style.height = '';
 
-    // Force layout recalculation
+    // ── Strong Safari recovery sequence ──
     window.dispatchEvent(new Event('resize'));
     map.invalidateSize({ animate: false });
 
@@ -799,15 +798,29 @@ function forceResetFullscreenLayout() {
         map.invalidateSize({ animate: false });
     }, 220);
 
-    // ── Force exit state on ALL iOS environments ──
+    // ── Force clean exit state ──
     isIOSMaximized = false;
     updateFullscreenControls();
 
-    // Guarantee the "Return to Fullscreen" button appears
+    // ── Extra Safari button re-activation (prevents “dead button” state) ──
     wasInFullscreenBeforeModal = true;
     setTimeout(() => {
         showRestoreFullscreenButton();
-    }, 150);
+        
+        // Re-render fullscreen control container to restore clickability
+        const fsContainer = fullscreenControl.getContainer();
+        if (fsContainer) {
+            const link = fsContainer.querySelector('a');
+            if (link) {
+                const oldHTML = link.innerHTML;
+                link.innerHTML = '';           // force DOM refresh
+                link.innerHTML = oldHTML;
+            }
+        }
+        
+        // Final safety resize pass
+        map.invalidateSize({ animate: false });
+    }, 180);
 }
 // ── MAP RENDER
 (function() {
