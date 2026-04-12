@@ -756,7 +756,7 @@ function showRestoreFullscreenButton() {
     };
 }
 
-// ── iOS Post-Capture Full Exit + Safari Button Recovery ──
+// ── iOS Post-Capture Full Exit + Strong Safari Button Recovery ──
 function forceResetFullscreenLayout() {
     const mapEl = document.getElementById('map');
     if (!mapEl) return;
@@ -785,7 +785,7 @@ function forceResetFullscreenLayout() {
     document.body.style.width = '';
     document.body.style.height = '';
 
-    // ── Strong Safari recovery sequence ──
+    // ── Force layout recalculation ──
     window.dispatchEvent(new Event('resize'));
     map.invalidateSize({ animate: false });
 
@@ -802,25 +802,47 @@ function forceResetFullscreenLayout() {
     isIOSMaximized = false;
     updateFullscreenControls();
 
-    // ── Extra Safari button re-activation (prevents “dead button” state) ──
+    // ── Guarantee "Return to Fullscreen" button appears ──
     wasInFullscreenBeforeModal = true;
     setTimeout(() => {
         showRestoreFullscreenButton();
-        
-        // Re-render fullscreen control container to restore clickability
-        const fsContainer = fullscreenControl.getContainer();
-        if (fsContainer) {
-            const link = fsContainer.querySelector('a');
-            if (link) {
-                const oldHTML = link.innerHTML;
-                link.innerHTML = '';           // force DOM refresh
-                link.innerHTML = oldHTML;
+    }, 150);
+
+    // ── STRONG SAFARI-ONLY RECOVERY (fixes dead button after download preview) ──
+    if (isIOSDevice() && !isIOSPWA()) {
+        setTimeout(() => {
+            const fsContainer = fullscreenControl.getContainer();
+            if (fsContainer) {
+                const link = fsContainer.querySelector('a');
+                if (link) {
+                    // Force complete DOM refresh of the button
+                    const oldHTML = link.innerHTML;
+                    const oldTitle = link.title;
+                    link.innerHTML = '';
+                    void link.offsetWidth; // force reflow
+                    link.innerHTML = oldHTML;
+                    link.title = oldTitle;
+                    
+                    // Re-attach click handler to ensure responsiveness
+                    L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
+                              .on(link, 'click', L.DomEvent.preventDefault)
+                              .on(link, 'click', () => {
+                                  playSound('click');
+                                  if (!isFullscreenActive()) {
+                                      enterFullscreen();
+                                  } else {
+                                      exitFullscreen();
+                                  }
+                              });
+                }
+                // Final safety re-render
+                fsContainer.style.display = 'none';
+                void fsContainer.offsetWidth;
+                fsContainer.style.display = 'block';
             }
-        }
-        
-        // Final safety resize pass
-        map.invalidateSize({ animate: false });
-    }, 180);
+            map.invalidateSize({ animate: false });
+        }, 420);
+    }
 }
 // ── MAP RENDER
 (function() {
