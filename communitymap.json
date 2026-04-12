@@ -1,6 +1,7 @@
 {
-  "communityVersion": 3.4,
-  "lastUpdated": "2026-04-12T13:17:46.821232Z",
+  "version": 1,
+  "communityVersion": "3.4",
+  "customCategories": {},
   "locations": [
     {
       "id": "id-2f1d334f-63cc-49e9-ad7c-4626a18ac206",
