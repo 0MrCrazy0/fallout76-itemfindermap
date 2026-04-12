@@ -756,26 +756,37 @@ function showRestoreFullscreenButton() {
     };
 }
 
-// ── iOS PWA Post-Save Fullscreen Recovery (prevents permanent shrink) ──
+// ── iOS Post-Capture Full Exit (forces clean exit on Safari + PWA) ──
 function forceResetFullscreenLayout() {
     const mapEl = document.getElementById('map');
     if (!mapEl) return;
 
-    const width = window.visualViewport ? window.visualViewport.width : window.innerWidth;
-    const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    // ── Aggressively REMOVE all fullscreen CSS styles ──
+    mapEl.style.position = '';
+    mapEl.style.inset = '';
+    mapEl.style.width = '';
+    mapEl.style.height = '';
+    mapEl.style.left = '';
+    mapEl.style.top = '';
+    mapEl.style.maxWidth = '';
+    mapEl.style.transform = '';
+    mapEl.style.zIndex = '';
+    mapEl.style.paddingTop = '';
+    mapEl.style.paddingBottom = '';
+    mapEl.style.border = '';
+    mapEl.style.touchAction = '';
+    mapEl.style.userSelect = '';
+    mapEl.style.webkitTouchCallout = '';
+    mapEl.style.overscrollBehavior = '';
 
-    // Force exact full-screen dimensions and reset any Safari drift
-    mapEl.style.position = 'fixed';
-    mapEl.style.inset = '0';
-    mapEl.style.width = `${width}px`;
-    mapEl.style.height = `${height}px`;
-    mapEl.style.left = '0';
-    mapEl.style.top = '0';
-    mapEl.style.maxWidth = 'none';
-    mapEl.style.transform = 'none';
-    mapEl.style.zIndex = '999999';
+    // Also reset body/document styles that were changed for PWA fullscreen
+    document.documentElement.style.overscrollBehavior = '';
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.height = '';
 
-    // Trigger multiple layout passes (Safari requirement)
+    // Force layout recalculation
     window.dispatchEvent(new Event('resize'));
     map.invalidateSize({ animate: false });
 
@@ -788,20 +799,16 @@ function forceResetFullscreenLayout() {
         map.invalidateSize({ animate: false });
     }, 220);
 
-    // ── Force exit fullscreen on ALL iOS environments (Safari + PWA) ──
+    // ── Force exit state on ALL iOS environments ──
     isIOSMaximized = false;
     updateFullscreenControls();
-}
 
-// ── HELPER: Exit fullscreen BEFORE running popup actions (Keep / Edit / Report) ──
-window.exitFullscreenThenDo = function(callback) {
-    exitFullscreenIfActive();
+    // Guarantee the "Return to Fullscreen" button appears
+    wasInFullscreenBeforeModal = true;
     setTimeout(() => {
-        if (typeof callback === 'function') {
-            callback();
-        }
-    }, 50);
-};
+        showRestoreFullscreenButton();
+    }, 150);
+}
 // ── MAP RENDER
 (function() {
     const mapContainer = document.getElementById('map');
