@@ -519,15 +519,12 @@ screenshotControl.onAdd = function(map) {
 screenshotControl.addTo(map);
 screenshotControl.getContainer().style.display = 'none';
 
+// ── FINAL iOS PWA Fix — Screenshot + X button visibility ──
 const updateScreenshotVisibility = () => {
-    const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
-    screenshotControl.getContainer().style.display = isFullscreen ? 'block' : 'none';
-    if (isFullscreen && /iPad|iPhone|iPod/.test(navigator.userAgent)) {
-        setTimeout(() => {
-            if (typeof map !== 'undefined' && map) map.invalidateSize({ animate: false });
-        }, 50);
-    }
+    if (typeof updateFullscreenControls !== 'function') return;
+    updateFullscreenControls();
 };
+
 document.addEventListener('fullscreenchange', updateScreenshotVisibility);
 document.addEventListener('webkitfullscreenchange', updateScreenshotVisibility);
 setTimeout(updateScreenshotVisibility, 100);
@@ -587,7 +584,6 @@ function enterFullscreen() {
     if (!mapEl) return;
 
     if (isIOSPWA()) {
-        // iOS PWA: CSS simulation with full gesture lock
         isIOSMaximized = true;
         mapEl.style.position = 'fixed';
         mapEl.style.top = '0';
@@ -609,12 +605,12 @@ function enterFullscreen() {
         document.body.style.width = '100%';
         document.body.style.height = '100%';
     } else {
-        // PC, Android, iOS Safari (non-PWA) — native Fullscreen API
         if (mapEl.requestFullscreen) mapEl.requestFullscreen();
         else if (mapEl.webkitRequestFullscreen) mapEl.webkitRequestFullscreen();
     }
 
     map.invalidateSize({ animate: false });
+    updateFullscreenControls();   // ← ensures X + Capture appear instantly
 }
 
 function exitFullscreen() {
@@ -648,11 +644,38 @@ function exitFullscreen() {
     }
 
     map.invalidateSize({ animate: false });
+    updateFullscreenControls();   // ← ensures 🔭 returns and Capture hides
 }
 
 function isFullscreenActive() {
     if (isIOSPWA()) return isIOSMaximized;
     return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+
+// ── TARGETED iOS PWA FIX: Unified button updater ──
+function updateFullscreenControls() {
+    const isMax = isFullscreenActive();
+
+    // Update main toggle button (X vs 🔭)
+    const fsContainer = fullscreenControl.getContainer();
+    if (fsContainer) {
+        const link = fsContainer.querySelector('a');
+        if (link) {
+            link.innerHTML = isMax ? '✖' : '🔭';
+            link.title = isMax ? 'Exit fullscreen' : 'Toggle fullscreen';
+        }
+    }
+
+    // Show Capture button only when maximized (on iOS PWA too)
+    const ssContainer = screenshotControl.getContainer();
+    if (ssContainer) {
+        ssContainer.style.display = isMax ? 'block' : 'none';
+    }
+
+    // Force layout refresh on iOS PWA
+    if (isIOSPWA() && typeof map !== 'undefined' && map) {
+        setTimeout(() => map.invalidateSize({ animate: false }), 80);
+    }
 }
 let restoreFullscreenBtn = null;
 let exitedForContextMenu = false;
