@@ -529,7 +529,7 @@ document.addEventListener('fullscreenchange', updateScreenshotVisibility);
 document.addEventListener('webkitfullscreenchange', updateScreenshotVisibility);
 setTimeout(updateScreenshotVisibility, 100);
 
-// ── True Fullscreen Capture ──
+// ── True Fullscreen Capture – Safari browser + iOS PWA compatible ──
 function captureHighResScreenshot() {
     playSound('saving');
     const mapEl = document.getElementById('map');
@@ -547,16 +547,18 @@ function captureHighResScreenshot() {
             logging: false,
             backgroundColor: '#000000'
         }).then(canvas => {
-            // Use Blob + object URL (Safari-friendly)
             canvas.toBlob((blob) => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.download = `fo76_map_max_${new Date().toISOString().slice(0,10)}.jpg`;
                 a.href = url;
-                a.click();
 
-                // Clean up
-                setTimeout(() => URL.revokeObjectURL(url), 100);
+                // ── Safari browser fix: temporarily append to DOM ──
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                URL.revokeObjectURL(url);
 
                 // Restore original styles
                 mapEl.style.height = originalHeight;
@@ -565,7 +567,7 @@ function captureHighResScreenshot() {
 
                 showTempMessage('📸 FULLSCREEN MAP CAPTURE SAVED TO DOWNLOADS! ✅', 4000);
 
-                // Keep the existing iOS PWA recovery
+                // Keep existing iOS PWA recovery (does nothing on regular Safari)
                 if (isIOSPWA()) {
                     setTimeout(() => {
                         forceResetFullscreenLayout();
