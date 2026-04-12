@@ -1,0 +1,18 @@
+{
+  "id": "id-a6699c2d-5469-44dc-96d6-767cf8042f3b",
+  "cid": "plans_test_marker_grid_c2_x_9819_y_6216_621.60639_981.86508",
+  "category": "plans",
+  "desc": "Test marker\nGrid C2 (X: 981.9, Y: 621.6)\nSubmitted By Anonymous Wastelander",
+  "lat": 621.6063934268927,
+  "lng": 981.8650828291236,
+  "icon": "📜",
+  "addedTime": 1776006082756,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+}
