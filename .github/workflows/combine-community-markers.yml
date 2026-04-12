@@ -8,16 +8,17 @@ jobs:
   combine:
     if: github.event.pull_request.merged == true
 
-    # ← This line is required for git push to work
+    # Required for the Action to push changes back to main
     permissions:
       contents: write
 
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout latest main branch
         uses: actions/checkout@v4
         with:
+          ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
