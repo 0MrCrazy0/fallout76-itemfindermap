@@ -1,4 +1,4 @@
-const CURRENT_APP_VERSION = '76.Vault-21';
+const CURRENT_APP_VERSION = '76.Vault-22';
 
 // ── Core version identifier — change this single value to bump the entire app version ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -452,7 +452,7 @@ document.addEventListener('visibilitychange', () => {
 document.addEventListener('fullscreenchange', forceMapRender);
 document.addEventListener('webkitfullscreenchange', forceMapRender);
 
-// ── FULLSCREEN TOGGLE (🔭 button) FOR PC / Android / iPHONE SAFARI / All-PWA Installed full crossplatform ──
+// ── FULLSCREEN TOGGLE (🔭 button) — now uses unified manager
 const fullscreenControl = L.control({ position: 'topright' });
 fullscreenControl.onAdd = function(map) {
     const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
@@ -461,82 +461,25 @@ fullscreenControl.onAdd = function(map) {
     link.title = 'Toggle fullscreen';
     link.innerHTML = '🔭';
     link.style.cssText = `display:block;width:34px;height:34px;line-height:34px;text-align:center;font-size:20px;background:#1a3c34;color:#00ff00;border:none;box-shadow:0 0 8px #00ff00;cursor:pointer;`;
-    let isIOSMaximized = false;
 
     L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
               .on(link, 'click', L.DomEvent.preventDefault)
               .on(link, 'click', () => {
         playSound('click');
-        const mapEl = document.getElementById('map');
-
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-        const isStandalonePWA = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-                                (window.navigator && window.navigator.standalone === true);
-        const isIOSPWA = isIOS && isStandalonePWA;
-
-        if (isIOSPWA) {
-            const forceFullMapRender = () => {
-                map.invalidateSize({ animate: false });
-                setTimeout(() => map.invalidateSize({ animate: false }), 80);
-                setTimeout(() => map.invalidateSize({ animate: false }), 300);
-                setTimeout(() => map.invalidateSize({ animate: false }), 600);
-            };
-            window.addEventListener('load', forceFullMapRender);
-            setTimeout(forceFullMapRender, 400);
-        }
-
-        if (isIOSPWA) {
-            isIOSMaximized = !isIOSMaximized;
-            if (isIOSMaximized) {
-                mapEl.style.position = 'fixed';
-                mapEl.style.top = '0';
-                mapEl.style.left = '0';
-                mapEl.style.width = '100vw';
-                mapEl.style.height = '100dvh';
-                mapEl.style.paddingTop = 'env(safe-area-inset-top)';
-                mapEl.style.paddingBottom = 'env(safe-area-inset-bottom)';
-                mapEl.style.zIndex = '999999';
-                mapEl.style.border = 'none';
-                link.innerHTML = '✖';
-                link.title = 'Exit fullscreen';
-                map.invalidateSize({ animate: false });
-                setTimeout(() => map.invalidateSize({ animate: false }), 80);
-                setTimeout(() => map.invalidateSize({ animate: false }), 300);
-                showTempMessage('💯 MAXIMIZED VIEW', 1800);
-            } else {
-                mapEl.style.position = '';
-                mapEl.style.top = '';
-                mapEl.style.left = '';
-                mapEl.style.width = '';
-                mapEl.style.height = '';
-                mapEl.style.paddingTop = '';
-                mapEl.style.paddingBottom = '';
-                mapEl.style.zIndex = '';
-                mapEl.style.border = '';
-                link.innerHTML = '🔭';
-                link.title = 'Toggle fullscreen';
-                map.invalidateSize({ animate: false });
-            }
+        if (!isFullscreenActive()) {
+            enterFullscreen();
+            wasInFullscreenBeforeModal = false;
         } else {
-            // Non-iOS devices — native Fullscreen API (untouched)
-            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                if (mapEl.requestFullscreen) mapEl.requestFullscreen();
-                else if (mapEl.webkitRequestFullscreen) mapEl.webkitRequestFullscreen();
-            } else {
-                if (document.exitFullscreen) document.exitFullscreen();
-                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-            }
+            exitFullscreen();
         }
     });
 
     const updateIcon = () => {
         const isNativeFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
-        if (!isIOSMaximized) {
-            link.innerHTML = isNativeFullscreen ? '✖' : '🔭';
-            link.title = isNativeFullscreen ? 'Exit fullscreen' : 'Toggle fullscreen';
-        }
+        link.innerHTML = (isFullscreenActive() || isNativeFullscreen) ? '✖' : '🔭';
+        link.title = (isFullscreenActive() || isNativeFullscreen) ? 'Exit fullscreen' : 'Toggle fullscreen';
     };
+
     document.addEventListener('fullscreenchange', updateIcon);
     document.addEventListener('webkitfullscreenchange', updateIcon);
     setTimeout(updateIcon, 50);
@@ -628,19 +571,58 @@ function captureHighResScreenshot() {
 
 // ── FULLSCREEN RESTORE LOGIC (iOS-safe) ──
 let wasInFullscreenBeforeModal = false;
-let restoreFullscreenBtn = null;
-let exitedForContextMenu = false;
+// ── UNIFIED FULLSCREEN MANAGER (PC/Android native + iOS PWA CSS simulation) ──
+let isIOSMaximized = false;
 
-function exitFullscreenIfActive() {
+const isIOSDevice = () => /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+const isStandalonePWA = () => (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+                          (window.navigator && window.navigator.standalone === true);
+
+const isIOSPWA = () => isIOSDevice() && isStandalonePWA();
+
+function enterFullscreen() {
     const mapEl = document.getElementById('map');
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    const isStandalonePWA = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-                            (window.navigator && window.navigator.standalone === true);
-    const isIOSPWA = isIOS && isStandalonePWA;
+    if (!mapEl) return;
 
-    if (isIOSPWA && mapEl.style.height === '100dvh') {
-        wasInFullscreenBeforeModal = true;
+    if (isIOSPWA()) {
+        // iOS PWA: CSS simulation with full gesture lock
+        isIOSMaximized = true;
+        mapEl.style.position = 'fixed';
+        mapEl.style.top = '0';
+        mapEl.style.left = '0';
+        mapEl.style.width = '100vw';
+        mapEl.style.height = '100dvh';
+        mapEl.style.paddingTop = 'env(safe-area-inset-top)';
+        mapEl.style.paddingBottom = 'env(safe-area-inset-bottom)';
+        mapEl.style.zIndex = '999999';
+        mapEl.style.border = 'none';
+        mapEl.style.touchAction = 'pan-x pan-y pinch-zoom';
+        mapEl.style.userSelect = 'none';
+        mapEl.style.webkitTouchCallout = 'none';
+        mapEl.style.overscrollBehavior = 'none';
+
+        document.documentElement.style.overscrollBehavior = 'none';
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+        document.body.style.height = '100%';
+    } else {
+        // PC, Android, iOS Safari (non-PWA) — native Fullscreen API
+        if (mapEl.requestFullscreen) mapEl.requestFullscreen();
+        else if (mapEl.webkitRequestFullscreen) mapEl.webkitRequestFullscreen();
+    }
+
+    map.invalidateSize({ animate: false });
+}
+
+function exitFullscreen() {
+    const mapEl = document.getElementById('map');
+    if (!mapEl) return;
+
+    if (isIOSPWA() && isIOSMaximized) {
+        isIOSMaximized = false;
         mapEl.style.position = '';
         mapEl.style.top = '';
         mapEl.style.left = '';
@@ -650,11 +632,35 @@ function exitFullscreenIfActive() {
         mapEl.style.paddingBottom = '';
         mapEl.style.zIndex = '';
         mapEl.style.border = '';
-        map.invalidateSize({ animate: false });
+        mapEl.style.touchAction = '';
+        mapEl.style.userSelect = '';
+        mapEl.style.webkitTouchCallout = '';
+        mapEl.style.overscrollBehavior = '';
+
+        document.documentElement.style.overscrollBehavior = '';
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+        document.body.style.height = '';
     } else if (document.fullscreenElement || document.webkitFullscreenElement) {
-        wasInFullscreenBeforeModal = true;
         if (document.exitFullscreen) document.exitFullscreen();
         else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
+
+    map.invalidateSize({ animate: false });
+}
+
+function isFullscreenActive() {
+    if (isIOSPWA()) return isIOSMaximized;
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+let restoreFullscreenBtn = null;
+let exitedForContextMenu = false;
+
+function exitFullscreenIfActive() {
+    if (isFullscreenActive()) {
+        wasInFullscreenBeforeModal = true;
+        exitFullscreen();
     }
 }
 
@@ -695,32 +701,7 @@ function showRestoreFullscreenButton() {
 
     restoreFullscreenBtn.onclick = () => {
         clearTimeout(autoHide);
-        const mapEl = document.getElementById('map');
-
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-        const isStandalonePWA = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-                                (window.navigator && window.navigator.standalone === true);
-        const isIOSPWA = isIOS && isStandalonePWA;
-
-        if (isIOSPWA) {
-            // iOS PWA — restore CSS fullscreen
-            mapEl.style.position = 'fixed';
-            mapEl.style.top = '0';
-            mapEl.style.left = '0';
-            mapEl.style.width = '100vw';
-            mapEl.style.height = '100dvh';
-            mapEl.style.paddingTop = 'env(safe-area-inset-top)';
-            mapEl.style.paddingBottom = 'env(safe-area-inset-bottom)';
-            mapEl.style.zIndex = '999999';
-            mapEl.style.border = 'none';
-            map.invalidateSize({ animate: false });
-        } else {
-            // PC / Android — native Fullscreen API (untouched)
-            if (mapEl.requestFullscreen) mapEl.requestFullscreen();
-            else if (mapEl.webkitRequestFullscreen) mapEl.webkitRequestFullscreen();
-        }
-
+        enterFullscreen();                    // ← now uses the unified function
         restoreFullscreenBtn.style.opacity = '0';
         setTimeout(() => {
             if (restoreFullscreenBtn && restoreFullscreenBtn.parentNode) {
@@ -745,7 +726,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-vault-21-12-04-2026-build-21"; // must match service-worker.js
+    const CACHE_NAME = "76-vault-22-12-04-2026-build-22"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -5533,41 +5514,13 @@ function isClickOnMarkerOrCluster(e) {
 }
 
 function showMapContextMenu(latlng) {
-    // ── Platform detection ──
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    const isStandalonePWA = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-                            (window.navigator && window.navigator.standalone === true);
-    const isIOSPWA = isIOS && isStandalonePWA;
-
-    // ── Exit maximized mode for BOTH regular iOS Safari AND installed PWA ──
-    if (isIOSPWA && window.isIOSMaximized) {
+    // ALWAYS exit fullscreen first — matches PC/Android behaviour exactly
+    if (isFullscreenActive()) {
         wasInFullscreenBeforeModal = true;
         exitedForContextMenu = true;
-
-        const mapEl = document.getElementById('map');
-        if (mapEl) {
-            mapEl.style.position = '';
-            mapEl.style.top = '';
-            mapEl.style.left = '';
-            mapEl.style.width = '';
-            mapEl.style.height = '';
-            mapEl.style.paddingTop = '';
-            mapEl.style.paddingBottom = '';
-            mapEl.style.zIndex = '';
-            window.isIOSMaximized = false;
-            map.invalidateSize({ animate: false });
-        }
+        exitFullscreen();
     }
 
-    // ── Safety: exit native fullscreen if active (applies to all platforms) ──
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
-        wasInFullscreenBeforeModal = true;
-        if (document.exitFullscreen) document.exitFullscreen();
-        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-    }
-
-    // ── Open the context menu (common code for all platforms) ──
     contextMenu.style.display = 'block';
     document.body.classList.add('modal-open');
     window.lastContextLatLng = latlng;
@@ -5732,7 +5685,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • app_version = 76.Vault-21 • 12-04-2026 • Made with ❤️\n' +
+    'Last updated: • app_version = 76.Vault-22 • 12-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
