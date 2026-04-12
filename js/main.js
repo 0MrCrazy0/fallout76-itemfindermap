@@ -549,10 +549,20 @@ function captureHighResScreenshot() {
             a.download = `fo76_map_max_${new Date().toISOString().slice(0,10)}.jpg`;
             a.href = canvas.toDataURL('image/jpeg', 0.92);
             a.click();
+
             mapEl.style.height = originalHeight;
             mapEl.style.maxWidth = originalMaxWidth || '95%';
             map.invalidateSize();
+
             showTempMessage('📸 FULLSCREEN MAP CAPTURE SAVED TO DOWNLOADS! ✅', 4000);
+
+            // ── iOS PWA Fix: Recover fullscreen size after save sheet closes ──
+            if (isIOSPWA()) {
+                setTimeout(() => {
+                    forceResetFullscreenLayout();
+                }, 250);
+            }
+
             setTimeout(exitFullscreenIfActive, 400);
             setTimeout(() => {
                 if (wasInFullscreenBeforeModal) {
@@ -735,6 +745,39 @@ function showRestoreFullscreenButton() {
     };
 }
 
+// ── iOS PWA Post-Save Fullscreen Recovery (prevents permanent shrink) ──
+function forceResetFullscreenLayout() {
+    const mapEl = document.getElementById('map');
+    if (!mapEl) return;
+
+    const width = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+    const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+
+    // Force exact full-screen dimensions and reset any Safari drift
+    mapEl.style.position = 'fixed';
+    mapEl.style.inset = '0';
+    mapEl.style.width = `${width}px`;
+    mapEl.style.height = `${height}px`;
+    mapEl.style.left = '0';
+    mapEl.style.top = '0';
+    mapEl.style.maxWidth = 'none';
+    mapEl.style.transform = 'none';
+    mapEl.style.zIndex = '999999';
+
+    // Trigger multiple layout passes (Safari requirement)
+    window.dispatchEvent(new Event('resize'));
+    map.invalidateSize({ animate: false });
+
+    setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+        map.invalidateSize({ animate: false });
+    }, 80);
+
+    setTimeout(() => {
+        map.invalidateSize({ animate: false });
+    }, 220);
+}
+
 // ── HELPER: Exit fullscreen BEFORE running popup actions (Keep / Edit / Report) ──
 window.exitFullscreenThenDo = function(callback) {
     exitFullscreenIfActive();
@@ -784,7 +827,7 @@ window.exitFullscreenThenDo = function(callback) {
             `;
             loadingBanner.innerHTML = `
                 <span style="font-size:18px;">📡</span>
-                <span>Downloading map images for instant future loads…</span>
+                <span>Downloading Map Image…</span>
                 <span class="spinner" style="display:inline-block;width:18px;height:18px;border:3px solid #00ff88;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></span>
             `;
             mapContainer.appendChild(loadingBanner);
