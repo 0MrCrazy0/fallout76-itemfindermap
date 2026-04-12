@@ -1,0 +1,18 @@
+{
+  "id": "id-e888337c-6518-4feb-a8cd-5f9bd746948b",
+  "cid": "creatures_yaoguai_found_in_the_carpark_behind_the_building_3266_2341",
+  "category": "creatures",
+  "desc": "Yao guai located in the car park behind the building.\nGrid F8 (X: 2341, Y: 3266)",
+  "lat": 3265.9179072927905,
+  "lng": 2341.0267020144074,
+  "icon": "🐺",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

@@ -1,0 +1,18 @@
+{
+  "id": "id-e2c034e9-344c-41be-b41f-642641386168",
+  "cid": "junk_teapot_2_at_this_location_1_in_teapot_1_in_shop_1829_1121",
+  "category": "junk",
+  "desc": "Second teapot located at this position inside teapot 1 in the shop.\nGrid C5 (X: 1121, Y: 1829)",
+  "lat": 1828.7519532044164,
+  "lng": 1120.9995996706577,
+  "icon": "🗑️",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

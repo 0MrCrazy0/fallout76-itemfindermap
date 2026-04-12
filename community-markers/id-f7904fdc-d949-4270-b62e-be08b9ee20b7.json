@@ -1,0 +1,18 @@
+{
+  "id": "id-f7904fdc-d949-4270-b62e-be08b9ee20b7",
+  "cid": "food_drink_corn_farm_around_this_area_2018_930",
+  "category": "food/drink",
+  "desc": "Corn farm located around this area.\nGrid C5 (X: 930, Y: 2018)",
+  "lat": 2017.7443970684888,
+  "lng": 930.0075278751111,
+  "icon": "🍽️",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

@@ -1,0 +1,20 @@
+{
+  "id": "id-f6b0ade7-7f95-4667-98f9-65f314e132a7",
+  "lat": 2778.5644681217514,
+  "lng": 2343.681104387946,
+  "category": "creatures",
+  "desc": "Yao guai located here.\nGrid F7 (X: 2344, Y: 2779)",
+  "icon": "🐺",
+  "addedTime": 1764610903999,
+  "userEdited": false,
+  "locked": true,
+  "cid": "creatures_yaoguai_found_outside_the_building_grid_h7_x_3163_y_2695_2695_3163",
+  "isTemp": false,
+  "isPostcard": false,
+  "postcardExpire": null,
+  "startTime": null,
+  "popupTimer": null,
+  "keepBtnBound": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+}
