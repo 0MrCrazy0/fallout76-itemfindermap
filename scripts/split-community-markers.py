@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
-Combine Community Markers
-Runs after a community-submission PR is merged.
-Preserves full original structure (version, customCategories, etc.)
+Combine Community Markers - FINAL VERSION
+Preserves full original structure on every merge.
 """
 
 import json
@@ -11,7 +10,6 @@ from datetime import datetime
 
 COMMUNITY_MARKERS_DIR = Path("community-markers")
 OUTPUT_FILE = Path("communitymap.json")
-SENTINEL_ID = "id-sentinel-do-not-remove"
 
 def load_json_file(file_path):
     try:
@@ -37,16 +35,12 @@ def main():
             continue
 
         cid = data.get("cid")
-        if cid:
-            if cid in existing_cids:
-                print(f"⚠️  Skipping duplicate cid: {cid} ({json_file.name})")
-                json_file.unlink()
-                continue
-            existing_cids.add(cid)
-
-        if data.get("id") == SENTINEL_ID:
-            print(f"Found sentinel: {json_file.name} (skipped)")
+        if cid and cid in existing_cids:
+            print(f"⚠️  Skipping duplicate cid: {cid} ({json_file.name})")
+            json_file.unlink()
             continue
+        if cid:
+            existing_cids.add(cid)
 
         all_markers.append(data)
 
@@ -59,12 +53,11 @@ def main():
         except:
             pass
 
-    # Update only the fields we control
     current_version = float(base_data.get("communityVersion", 3.1))
     new_version = round(current_version + 0.1, 1)
 
     output_data = {
-        **base_data,                    # ← keeps "version", "customCategories", etc.
+        **base_data,                    # Keeps "version", "customCategories", etc.
         "communityVersion": new_version,
         "lastUpdated": datetime.utcnow().isoformat() + "Z",
         "locations": all_markers
@@ -74,7 +67,7 @@ def main():
         with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
             json.dump(output_data, f, indent=2, ensure_ascii=False)
 
-        # Clean up marker files
+        # Clean up all marker files
         for json_file in COMMUNITY_MARKERS_DIR.glob("*.json"):
             json_file.unlink()
 
