@@ -815,6 +815,19 @@ function forceResetFullscreenLayout() {
         showRestoreFullscreenButton();
     }, 150);
 }
+// ── FULLSCREEN-SAFE POPUP BUTTON WRAPPER (Keep / Report / Edit / Revert) ──
+window.exitFullscreenThenDo = function(callback) {
+    if (isFullscreenActive()) {
+        wasInFullscreenBeforeModal = true;
+        exitFullscreen();
+        // Small delay ensures fullscreen exit completes cleanly on iOS
+        setTimeout(() => {
+            if (typeof callback === 'function') callback();
+        }, 380);
+    } else {
+        if (typeof callback === 'function') callback();
+    }
+};
 // ── MAP RENDER
 (function() {
     const mapContainer = document.getElementById('map');
