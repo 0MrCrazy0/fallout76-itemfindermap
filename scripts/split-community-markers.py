@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Combine Community Markers - FINAL VERSION
-- New markers are added at the BOTTOM of the locations array
+- New markers are ALWAYS added at the BOTTOM
 - Sentinel is completely skipped
 - Full original structure is preserved
 """
@@ -37,7 +37,6 @@ def main():
         if not data or not isinstance(data, dict):
             continue
 
-        # Skip sentinel
         if data.get("id") == SENTINEL_ID:
             print(f"Found sentinel: {json_file.name} → skipped")
             continue
@@ -52,7 +51,7 @@ def main():
 
         new_markers.append(data)
 
-    # Load existing file to preserve full structure
+    # Load existing file
     base_data = {}
     if OUTPUT_FILE.exists():
         try:
@@ -61,31 +60,29 @@ def main():
         except:
             pass
 
-    # Get current locations and append NEW markers at the bottom
     current_locations = base_data.get("locations", [])
-    updated_locations = current_locations + new_markers   # ← New markers go to the bottom
+    updated_locations = current_locations + new_markers   # ← Forces new markers to bottom
 
     current_version = float(base_data.get("communityVersion", 3.1))
     new_version = round(current_version + 0.1, 1)
 
     output_data = {
-        **base_data,                                   # Keeps version, customCategories, etc.
+        **base_data,
         "communityVersion": new_version,
         "lastUpdated": datetime.utcnow().isoformat() + "Z",
-        "locations": updated_locations                 # New markers at the bottom
+        "locations": updated_locations
     }
 
     try:
         with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
             json.dump(output_data, f, indent=2, ensure_ascii=False)
 
-        # Clean up all marker files
         for json_file in COMMUNITY_MARKERS_DIR.glob("*.json"):
             json_file.unlink()
 
         print(f"\nSuccess! Updated {OUTPUT_FILE}")
         print(f"New communityVersion: {new_version}")
-        print(f"Added {len(new_markers)} new marker(s) at the bottom")
+        print(f"Added {len(new_markers)} new marker(s) at the BOTTOM")
         print(f"Total markers: {len(updated_locations)}")
 
     except Exception as e:
