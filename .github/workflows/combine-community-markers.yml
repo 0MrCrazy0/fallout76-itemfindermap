@@ -1,0 +1,31 @@
+name: Combine Community Markers
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  combine:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run combiner
+        run: python scripts/split-community-markers.py
+
+      - name: Commit updated communitymap.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add communitymap.json
+          git commit -m "Auto-update: communitymap.json (version bumped)" || echo "No changes"
+          git push
