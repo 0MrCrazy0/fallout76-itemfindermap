@@ -530,7 +530,6 @@ document.addEventListener('webkitfullscreenchange', updateScreenshotVisibility);
 setTimeout(updateScreenshotVisibility, 100);
 
 // ── True Fullscreen Capture – Safari browser + iOS PWA compatible ──
-// ── True Fullscreen Capture – Safari browser + iOS PWA compatible ──
 function captureHighResScreenshot() {
     playSound('saving');
     const mapEl = document.getElementById('map');
@@ -788,6 +787,10 @@ function forceResetFullscreenLayout() {
     setTimeout(() => {
         map.invalidateSize({ animate: false });
     }, 220);
+
+    // ── Force exit fullscreen on ALL iOS environments (Safari + PWA) ──
+    isIOSMaximized = false;
+    updateFullscreenControls();
 }
 
 // ── HELPER: Exit fullscreen BEFORE running popup actions (Keep / Edit / Report) ──
