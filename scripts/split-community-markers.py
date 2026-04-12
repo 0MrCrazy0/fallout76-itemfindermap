@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """
 Combine Community Markers - FINAL VERSION
-Preserves full original structure on every merge.
+- New markers are added at the BOTTOM of the locations array
+- Sentinel is completely skipped
+- Full original structure is preserved
 """
 
 import json
@@ -10,6 +12,7 @@ from datetime import datetime
 
 COMMUNITY_MARKERS_DIR = Path("community-markers")
 OUTPUT_FILE = Path("communitymap.json")
+SENTINEL_ID = "id-sentinel-do-not-remove"
 
 def load_json_file(file_path):
     try:
@@ -26,7 +29,7 @@ def main():
         print(f"Error: Folder '{COMMUNITY_MARKERS_DIR}' not found!")
         return
 
-    all_markers = []
+    new_markers = []
     existing_cids = set()
 
     for json_file in COMMUNITY_MARKERS_DIR.glob("*.json"):
@@ -34,15 +37,20 @@ def main():
         if not data or not isinstance(data, dict):
             continue
 
-        cid = data.get("cid")
-        if cid and cid in existing_cids:
-            print(f"⚠️  Skipping duplicate cid: {cid} ({json_file.name})")
-            json_file.unlink()
+        # Skip sentinel
+        if data.get("id") == SENTINEL_ID:
+            print(f"Found sentinel: {json_file.name} → skipped")
             continue
+
+        cid = data.get("cid")
         if cid:
+            if cid in existing_cids:
+                print(f"⚠️  Skipping duplicate cid: {cid} ({json_file.name})")
+                json_file.unlink()
+                continue
             existing_cids.add(cid)
 
-        all_markers.append(data)
+        new_markers.append(data)
 
     # Load existing file to preserve full structure
     base_data = {}
@@ -53,14 +61,18 @@ def main():
         except:
             pass
 
+    # Get current locations and append NEW markers at the bottom
+    current_locations = base_data.get("locations", [])
+    updated_locations = current_locations + new_markers   # ← New markers go to the bottom
+
     current_version = float(base_data.get("communityVersion", 3.1))
     new_version = round(current_version + 0.1, 1)
 
     output_data = {
-        **base_data,                    # Keeps "version", "customCategories", etc.
+        **base_data,                                   # Keeps version, customCategories, etc.
         "communityVersion": new_version,
         "lastUpdated": datetime.utcnow().isoformat() + "Z",
-        "locations": all_markers
+        "locations": updated_locations                 # New markers at the bottom
     }
 
     try:
@@ -73,7 +85,8 @@ def main():
 
         print(f"\nSuccess! Updated {OUTPUT_FILE}")
         print(f"New communityVersion: {new_version}")
-        print(f"Total markers: {len(all_markers)}")
+        print(f"Added {len(new_markers)} new marker(s) at the bottom")
+        print(f"Total markers: {len(updated_locations)}")
 
     except Exception as e:
         print(f"Error writing {OUTPUT_FILE}: {e}")
