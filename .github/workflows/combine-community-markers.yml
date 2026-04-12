@@ -6,20 +6,24 @@ on:
 
 jobs:
   combine:
+    # Only run when a PR is successfully merged
     if: github.event.pull_request.merged == true
+
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0   # Ensures we have full history for clean commits
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Run combiner
+      - name: Run community markers combiner
         run: python scripts/split-community-markers.py
 
       - name: Commit updated communitymap.json
@@ -27,5 +31,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add communitymap.json
-          git commit -m "Auto-update: communitymap.json (version bumped)" || echo "No changes"
+          git commit -m "Auto-update: communitymap.json (version bumped)" || echo "No changes to commit"
           git push
