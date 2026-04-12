@@ -530,6 +530,7 @@ document.addEventListener('webkitfullscreenchange', updateScreenshotVisibility);
 setTimeout(updateScreenshotVisibility, 100);
 
 // ── True Fullscreen Capture – Safari browser + iOS PWA compatible ──
+// ── True Fullscreen Capture – Safari browser + iOS PWA compatible ──
 function captureHighResScreenshot() {
     playSound('saving');
     const mapEl = document.getElementById('map');
@@ -553,7 +554,6 @@ function captureHighResScreenshot() {
                 a.download = `fo76_map_max_${new Date().toISOString().slice(0,10)}.jpg`;
                 a.href = url;
 
-                // ── Safari browser fix: temporarily append to DOM ──
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -567,11 +567,11 @@ function captureHighResScreenshot() {
 
                 showTempMessage('📸 FULLSCREEN MAP CAPTURE SAVED TO DOWNLOADS! ✅', 4000);
 
-                // Keep existing iOS PWA recovery (does nothing on regular Safari)
-                if (isIOSPWA()) {
+                // ── Recovery ONLY on iOS (PWA + Safari browser) ──
+                if (isIOSDevice()) {
                     setTimeout(() => {
                         forceResetFullscreenLayout();
-                    }, 250);
+                    }, 300);
                 }
 
                 setTimeout(exitFullscreenIfActive, 400);
