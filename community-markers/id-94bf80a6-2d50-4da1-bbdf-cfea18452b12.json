@@ -1,0 +1,18 @@
+{
+  "id": "id-94bf80a6-2d50-4da1-bbdf-cfea18452b12",
+  "cid": "vendors_vendors_buy_or_sell_1692_2057",
+  "category": "vendors",
+  "desc": "Vendors available to buy or sell items.\nGrid F5 (X: 2057, Y: 1692)",
+  "lat": 1692.0591659383833,
+  "lng": 2057.248698929638,
+  "icon": "💰",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

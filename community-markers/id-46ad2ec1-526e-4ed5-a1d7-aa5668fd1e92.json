@@ -1,0 +1,18 @@
+{
+  "id": "id-46ad2ec1-526e-4ed5-a1d7-aa5668fd1e92",
+  "cid": "apparel_police_uniform_inside_small_shack_next_to_farm_1626_3317",
+  "category": "apparel",
+  "desc": "Police uniform located inside the small shack next to the farm.\nGrid I4 (X: 3317, Y: 1626)",
+  "lat": 1626.0400311655603,
+  "lng": 3317.2571035991173,
+  "icon": "👕",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

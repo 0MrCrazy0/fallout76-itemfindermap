@@ -1,0 +1,18 @@
+{
+  "id": "id-666ebb36-0c9a-4833-abb4-01c3309c4374",
+  "cid": "eggs_deathclaw_eggs_can_be_found_here_2223_3355",
+  "category": "eggs",
+  "desc": "Deathclaw eggs can be found here.\nGrid I6 (X: 3355, Y: 2223)",
+  "lat": 2223.2467116568473,
+  "lng": 3354.509270992957,
+  "icon": "🥚",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

@@ -1,0 +1,20 @@
+{
+  "id": "id-7edfd12d-6072-4546-840f-11790a387636",
+  "lat": 1123.205424143252,
+  "lng": 2796.7014621813664,
+  "category": "creatures",
+  "desc": "Bugs located inside.\nGrid G3 (X: 2797, Y: 1123)",
+  "icon": "🐺",
+  "addedTime": 1764610903999,
+  "userEdited": false,
+  "locked": true,
+  "cid": "creatures_bugs_found_inside_grid_g3_x_2797_y_1123_1123_2797",
+  "isTemp": false,
+  "isPostcard": false,
+  "postcardExpire": null,
+  "startTime": null,
+  "popupTimer": null,
+  "keepBtnBound": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

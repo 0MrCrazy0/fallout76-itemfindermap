@@ -1,0 +1,18 @@
+{
+  "id": "id-5e78867a-e93d-4dd8-bfc5-444085657d82",
+  "cid": "plants_brain_fungus_found_in_the_area_3344_3412",
+  "category": "plants",
+  "desc": "Brain fungus located in the area.\nGrid I9 (X: 3412, Y: 3344)",
+  "lat": 3344.382468298021,
+  "lng": 3411.6247497941613,
+  "icon": "🌿",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

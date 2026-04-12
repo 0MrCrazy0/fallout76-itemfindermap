@@ -1,0 +1,18 @@
+{
+  "id": "id-55d98a50-ec1a-48b2-bd25-41f48181526a",
+  "cid": "weapons_weapon_inside_small_house_1135_2791",
+  "category": "weapons",
+  "desc": "Weapon located inside the small house.\nGrid G3 (X: 2791, Y: 1135)",
+  "lat": 1134.9399890140514,
+  "lng": 2790.562087587255,
+  "icon": "🔫",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

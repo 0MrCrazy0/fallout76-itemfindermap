@@ -1,0 +1,18 @@
+{
+  "id": "id-959ceaf5-f8db-4228-9c43-2f28396cc88e",
+  "cid": "ammunition_ammunition_in_an_ammo_box_at_the_national_isolated_radio_array_1776_2670",
+  "category": "ammunition",
+  "desc": "Ammunition located in an ammo box at the National Isolated Radio Array.\nGrid G5 (X: 2670, Y: 1776)",
+  "lat": 1775.7473365394321,
+  "lng": 2669.750447520999,
+  "icon": "💥",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

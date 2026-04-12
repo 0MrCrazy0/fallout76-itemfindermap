@@ -1,0 +1,18 @@
+{
+  "id": "id-5e58ab4e-fd7e-4af7-af8d-651316c336ea",
+  "cid": "creatures_mirlurk_king_queen_mirlurk_spawns_here_as_well_3371_3432",
+  "category": "creatures",
+  "desc": "Mirelurk king, queen, and additional mirelurks spawn here.\nGrid I9 (X: 3432, Y: 3371)",
+  "lat": 3370.9971327070098,
+  "lng": 3432.250400329342,
+  "icon": "🐺",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

@@ -1,0 +1,18 @@
+{
+  "id": "id-04b16d35-48bf-4265-88f4-34410a1bb639",
+  "cid": "resource_deposits_copper_deposit_copper_at_the_workshop_1952_854",
+  "category": "resource deposits",
+  "desc": "Copper deposit located at the workshop.\nGrid C5 (X: 854, Y: 1952)",
+  "lat": 1951.7619529205572,
+  "lng": 853.6030746417728,
+  "icon": "⛏️",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

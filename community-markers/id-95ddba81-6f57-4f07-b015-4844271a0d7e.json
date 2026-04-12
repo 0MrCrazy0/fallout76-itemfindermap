@@ -1,0 +1,18 @@
+{
+  "id": "id-95ddba81-6f57-4f07-b015-4844271a0d7e",
+  "cid": "food_drink_bubblegum_found_inside_jacks_house_2976_2930",
+  "category": "food/drink",
+  "desc": "Bubblegum located inside Jack’s house.\nGrid H8 (X: 2930, Y: 2976)",
+  "lat": 2975.7514669871116,
+  "lng": 2930.499149300148,
+  "icon": "🍽️",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

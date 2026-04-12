@@ -1,0 +1,18 @@
+{
+  "id": "id-74c25c46-04dc-4a81-a2b6-0d3f365e211a",
+  "cid": "junk_teapot_inside_the_refuge_bar_area_1668_2092",
+  "category": "junk",
+  "desc": "Teapot located inside the refuge bar area.\nGrid F5 (X: 2092, Y: 1668)",
+  "lat": 1667.6902005899096,
+  "lng": 2091.6244245265707,
+  "icon": "🗑️",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

@@ -1,0 +1,20 @@
+{
+  "id": "id-8db6aa54-f22e-422b-bfa4-9b865740fae5",
+  "lat": 2755.1213516092535,
+  "lng": 2540.75,
+  "category": "event locations",
+  "desc": "Test Your Metal event: gather data on the Rust Eagles’ battle bots with a Brotherhood field team led by Initiate Pappas at the Metal Dome and endure wave after wave of mechanized combat.\nGrid G7 (X: 2541, Y: 2755)",
+  "icon": "🎉",
+  "addedTime": 1764610903999,
+  "userEdited": false,
+  "locked": true,
+  "cid": "event locations_test_your_metal_event_in_order_to_gather_data_on_the_rust_eagles_battle_bots_a_brotherhood_field_team_led_by_initiate_pappas_must_face_them_in_combat_join_them_at_the_metal_dome_and_bring_honor_to_the_brotherhood_of_steel_by_enduring_wave_after_wave_of_mechanized_mayhem_in_gladiatorial_combat_grid_g7_x_2541_y_2755_2755_2541",
+  "isTemp": false,
+  "isPostcard": false,
+  "postcardExpire": null,
+  "startTime": null,
+  "popupTimer": null,
+  "keepBtnBound": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

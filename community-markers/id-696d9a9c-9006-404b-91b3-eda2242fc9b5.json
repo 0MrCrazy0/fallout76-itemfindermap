@@ -1,0 +1,18 @@
+{
+  "id": "id-696d9a9c-9006-404b-91b3-eda2242fc9b5",
+  "cid": "creatures_rad_toad_rad_toad_here_2334_2587",
+  "category": "creatures",
+  "desc": "Rad toad located here.\nGrid G6 (X: 2587, Y: 2334)",
+  "lat": 2333.8691320515545,
+  "lng": 2587.122623044531,
+  "icon": "🐺",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}
