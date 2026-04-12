@@ -1507,3 +1507,6 @@ select#itemCategory:hover {
 .leaflet-tile-container {
     will-change: transform;
 }
+#map {
+    overscroll-behavior: none;
+}
