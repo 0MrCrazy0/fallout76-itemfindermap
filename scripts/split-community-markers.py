@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""
+Combine Community Markers
+Runs after a community-submission PR is merged.
+"""
+
 import json
 from pathlib import Path
 from datetime import datetime
@@ -24,11 +29,20 @@ def main():
 
     all_markers = []
     sentinel_marker = None
+    existing_cids = set()
 
     for json_file in COMMUNITY_MARKERS_DIR.glob("*.json"):
         data = load_json_file(json_file)
         if not data or not isinstance(data, dict):
             continue
+
+        cid = data.get("cid")
+        if cid:
+            if cid in existing_cids:
+                print(f"⚠️  Skipping duplicate cid: {cid} ({json_file.name})")
+                json_file.unlink()  # clean up
+                continue
+            existing_cids.add(cid)
 
         if data.get("id") == SENTINEL_ID:
             sentinel_marker = data
@@ -47,9 +61,9 @@ def main():
             "lng": 0,
             "icon": "📍",
             "addedTime": 0,
-            "locked": true,
-            "isPostcard": false,
-            "isTemp": false,
+            "locked": True,
+            "isPostcard": False,
+            "isTemp": False,
             "startTime": None,
             "keepBtnBound": False,
             "userEdited": False,
@@ -59,7 +73,7 @@ def main():
 
     final_locations = all_markers + [sentinel_marker]
 
-    # Load current version or start at 3.1
+    # Load or initialise version
     current_version = 3.1
     if OUTPUT_FILE.exists():
         try:
@@ -81,11 +95,17 @@ def main():
     try:
         with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
             json.dump(output_data, f, indent=2, ensure_ascii=False)
-        
-        print(f"\nSuccess! Created {OUTPUT_FILE}")
+
+        # Clean up all non-sentinel marker files
+        for json_file in COMMUNITY_MARKERS_DIR.glob("*.json"):
+            if json_file.name != "sentinel.json":  # safety
+                json_file.unlink()
+
+        print(f"\nSuccess! Updated {OUTPUT_FILE}")
         print(f"New communityVersion: {new_version}")
         print(f"Total markers: {len(final_locations)} (including sentinel)")
-        
+        print(f"Processed and removed {len(all_markers)} community marker file(s).")
+
     except Exception as e:
         print(f"Error writing {OUTPUT_FILE}: {e}")
 
