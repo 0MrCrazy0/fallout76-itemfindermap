@@ -28,7 +28,6 @@ def main():
         return
 
     all_markers = []
-    sentinel_marker = None
     existing_cids = set()
 
     for json_file in COMMUNITY_MARKERS_DIR.glob("*.json"):
@@ -40,38 +39,16 @@ def main():
         if cid:
             if cid in existing_cids:
                 print(f"⚠️  Skipping duplicate cid: {cid} ({json_file.name})")
-                json_file.unlink()  # clean up
+                json_file.unlink()
                 continue
             existing_cids.add(cid)
 
+        # Skip the sentinel — it is never added to the final map
         if data.get("id") == SENTINEL_ID:
-            sentinel_marker = data
-            print(f"Found sentinel: {json_file.name}")
-        else:
-            all_markers.append(data)
+            print(f"Found sentinel: {json_file.name} (skipped in final output)")
+            continue
 
-    if not sentinel_marker:
-        print("Warning: Sentinel not found. Using default.")
-        sentinel_marker = {
-            "id": SENTINEL_ID,
-            "cid": "sentinel-do-not-remove",
-            "category": "misc",
-            "desc": "=== SENTINEL - DO NOT REMOVE OR EDIT ===\nAll new markers must be added ABOVE this object",
-            "lat": 0,
-            "lng": 0,
-            "icon": "📍",
-            "addedTime": 0,
-            "locked": True,
-            "isPostcard": False,
-            "isTemp": False,
-            "startTime": None,
-            "keepBtnBound": False,
-            "userEdited": False,
-            "wasCommunityKept": False,
-            "isCommunity": True
-        }
-
-    final_locations = all_markers + [sentinel_marker]
+        all_markers.append(data)
 
     # Load or initialise version
     current_version = 3.1
@@ -89,22 +66,20 @@ def main():
     output_data = {
         "communityVersion": new_version,
         "lastUpdated": last_updated,
-        "locations": final_locations
+        "locations": all_markers   # ← Sentinel is now completely excluded
     }
 
     try:
         with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
             json.dump(output_data, f, indent=2, ensure_ascii=False)
 
-        # Clean up all non-sentinel marker files
+        # Clean up all marker files
         for json_file in COMMUNITY_MARKERS_DIR.glob("*.json"):
-            if json_file.name != "sentinel.json":  # safety
-                json_file.unlink()
+            json_file.unlink()
 
         print(f"\nSuccess! Updated {OUTPUT_FILE}")
         print(f"New communityVersion: {new_version}")
-        print(f"Total markers: {len(final_locations)} (including sentinel)")
-        print(f"Processed and removed {len(all_markers)} community marker file(s).")
+        print(f"Total markers: {len(all_markers)}")
 
     except Exception as e:
         print(f"Error writing {OUTPUT_FILE}: {e}")
