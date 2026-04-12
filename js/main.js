@@ -535,9 +535,11 @@ function captureHighResScreenshot() {
     const mapEl = document.getElementById('map');
     const originalHeight = mapEl.style.height;
     const originalMaxWidth = mapEl.style.maxWidth;
+
     mapEl.style.height = `${window.innerHeight}px`;
     mapEl.style.maxWidth = 'none';
     map.invalidateSize();
+
     setTimeout(() => {
         html2canvas(mapEl, {
             useCORS: true,
@@ -545,30 +547,38 @@ function captureHighResScreenshot() {
             logging: false,
             backgroundColor: '#000000'
         }).then(canvas => {
-            const a = document.createElement('a');
-            a.download = `fo76_map_max_${new Date().toISOString().slice(0,10)}.jpg`;
-            a.href = canvas.toDataURL('image/jpeg', 0.92);
-            a.click();
+            // Use Blob + object URL (Safari-friendly)
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.download = `fo76_map_max_${new Date().toISOString().slice(0,10)}.jpg`;
+                a.href = url;
+                a.click();
 
-            mapEl.style.height = originalHeight;
-            mapEl.style.maxWidth = originalMaxWidth || '95%';
-            map.invalidateSize();
+                // Clean up
+                setTimeout(() => URL.revokeObjectURL(url), 100);
 
-            showTempMessage('📸 FULLSCREEN MAP CAPTURE SAVED TO DOWNLOADS! ✅', 4000);
+                // Restore original styles
+                mapEl.style.height = originalHeight;
+                mapEl.style.maxWidth = originalMaxWidth || '95%';
+                map.invalidateSize();
 
-            // ── iOS PWA Fix: Recover fullscreen size after save sheet closes ──
-            if (isIOSPWA()) {
-                setTimeout(() => {
-                    forceResetFullscreenLayout();
-                }, 250);
-            }
+                showTempMessage('📸 FULLSCREEN MAP CAPTURE SAVED TO DOWNLOADS! ✅', 4000);
 
-            setTimeout(exitFullscreenIfActive, 400);
-            setTimeout(() => {
-                if (wasInFullscreenBeforeModal) {
-                    showRestoreFullscreenButton();
+                // Keep the existing iOS PWA recovery
+                if (isIOSPWA()) {
+                    setTimeout(() => {
+                        forceResetFullscreenLayout();
+                    }, 250);
                 }
-            }, 600);
+
+                setTimeout(exitFullscreenIfActive, 400);
+                setTimeout(() => {
+                    if (wasInFullscreenBeforeModal) {
+                        showRestoreFullscreenButton();
+                    }
+                }, 600);
+            }, 'image/jpeg', 0.92);
         }).catch(() => {
             showTempMessage('❌ CAPTURE FAILED — TRY AGAIN', 4000);
             playSound('error');
