@@ -529,13 +529,12 @@ document.addEventListener('fullscreenchange', updateScreenshotVisibility);
 document.addEventListener('webkitfullscreenchange', updateScreenshotVisibility);
 setTimeout(updateScreenshotVisibility, 100);
 
-// ── True Fullscreen Capture – Safari browser + iOS PWA compatible ──
+// ── True Fullscreen Capture – Safari browser + iOS PWA compatible (multi-test safe) ──
 function captureHighResScreenshot() {
     playSound('saving');
     const mapEl = document.getElementById('map');
     const originalHeight = mapEl.style.height;
     const originalMaxWidth = mapEl.style.maxWidth;
-
     mapEl.style.height = `${window.innerHeight}px`;
     mapEl.style.maxWidth = 'none';
     map.invalidateSize();
@@ -552,12 +551,14 @@ function captureHighResScreenshot() {
                 const a = document.createElement('a');
                 a.download = `fo76_map_max_${new Date().toISOString().slice(0,10)}.jpg`;
                 a.href = url;
-
                 document.body.appendChild(a);
                 a.click();
-                document.body.removeChild(a);
 
-                URL.revokeObjectURL(url);
+                // ── Safari-safe cleanup (prevents webkitblobresource error 1) ──
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 1200);   // longer delay gives Safari time to finish download
 
                 // Restore original styles
                 mapEl.style.height = originalHeight;
@@ -566,21 +567,23 @@ function captureHighResScreenshot() {
 
                 showTempMessage('📸 FULLSCREEN MAP CAPTURE SAVED TO DOWNLOADS! ✅', 4000);
 
-                // ── Recovery ONLY on iOS (PWA + Safari browser) ──
+                // ── Recovery for ALL iOS environments ──
                 if (isIOSDevice()) {
                     setTimeout(() => {
                         forceResetFullscreenLayout();
-                    }, 300);
+                    }, 450);
                 }
 
-                setTimeout(exitFullscreenIfActive, 400);
+                setTimeout(exitFullscreenIfActive, 600);
+
                 setTimeout(() => {
                     if (wasInFullscreenBeforeModal) {
                         showRestoreFullscreenButton();
                     }
-                }, 600);
+                }, 800);
             }, 'image/jpeg', 0.92);
-        }).catch(() => {
+        }).catch(err => {
+            console.error('Capture failed:', err);
             showTempMessage('❌ CAPTURE FAILED — TRY AGAIN', 4000);
             playSound('error');
         });
@@ -756,12 +759,12 @@ function showRestoreFullscreenButton() {
     };
 }
 
-// ── iOS Post-Capture Full Exit + Strong Safari Button Recovery ──
+// ── iOS Post-Capture Full Exit (forces clean exit on Safari + PWA) ──
 function forceResetFullscreenLayout() {
     const mapEl = document.getElementById('map');
     if (!mapEl) return;
 
-    // ── Aggressively clear ALL fullscreen CSS ──
+    // ── Aggressively REMOVE all fullscreen CSS styles ──
     mapEl.style.position = '';
     mapEl.style.inset = '';
     mapEl.style.width = '';
@@ -779,13 +782,14 @@ function forceResetFullscreenLayout() {
     mapEl.style.webkitTouchCallout = '';
     mapEl.style.overscrollBehavior = '';
 
+    // Also reset body/document styles that were changed for PWA fullscreen
     document.documentElement.style.overscrollBehavior = '';
     document.body.style.overflow = '';
     document.body.style.position = '';
     document.body.style.width = '';
     document.body.style.height = '';
 
-    // ── Force layout recalculation ──
+    // Force layout recalculation
     window.dispatchEvent(new Event('resize'));
     map.invalidateSize({ animate: false });
 
@@ -798,51 +802,15 @@ function forceResetFullscreenLayout() {
         map.invalidateSize({ animate: false });
     }, 220);
 
-    // ── Force clean exit state ──
+    // ── Force exit state on ALL iOS environments ──
     isIOSMaximized = false;
     updateFullscreenControls();
 
-    // ── Guarantee "Return to Fullscreen" button appears ──
+    // Guarantee the "Return to Fullscreen" button appears
     wasInFullscreenBeforeModal = true;
     setTimeout(() => {
         showRestoreFullscreenButton();
     }, 150);
-
-    // ── STRONG SAFARI-ONLY RECOVERY (fixes dead button after download preview) ──
-    if (isIOSDevice() && !isIOSPWA()) {
-        setTimeout(() => {
-            const fsContainer = fullscreenControl.getContainer();
-            if (fsContainer) {
-                const link = fsContainer.querySelector('a');
-                if (link) {
-                    // Force complete DOM refresh of the button
-                    const oldHTML = link.innerHTML;
-                    const oldTitle = link.title;
-                    link.innerHTML = '';
-                    void link.offsetWidth; // force reflow
-                    link.innerHTML = oldHTML;
-                    link.title = oldTitle;
-                    
-                    // Re-attach click handler to ensure responsiveness
-                    L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
-                              .on(link, 'click', L.DomEvent.preventDefault)
-                              .on(link, 'click', () => {
-                                  playSound('click');
-                                  if (!isFullscreenActive()) {
-                                      enterFullscreen();
-                                  } else {
-                                      exitFullscreen();
-                                  }
-                              });
-                }
-                // Final safety re-render
-                fsContainer.style.display = 'none';
-                void fsContainer.offsetWidth;
-                fsContainer.style.display = 'block';
-            }
-            map.invalidateSize({ animate: false });
-        }, 420);
-    }
 }
 // ── MAP RENDER
 (function() {
