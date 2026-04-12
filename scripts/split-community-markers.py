@@ -2,6 +2,7 @@
 """
 Combine Community Markers
 Runs after a community-submission PR is merged.
+Preserves full original structure (version, customCategories, etc.)
 """
 
 import json
@@ -43,37 +44,37 @@ def main():
                 continue
             existing_cids.add(cid)
 
-        # Skip the sentinel — it is never added to the final map
         if data.get("id") == SENTINEL_ID:
-            print(f"Found sentinel: {json_file.name} (skipped in final output)")
+            print(f"Found sentinel: {json_file.name} (skipped)")
             continue
 
         all_markers.append(data)
 
-    # Load or initialise version
-    current_version = 3.1
+    # Load existing file to preserve full structure
+    base_data = {}
     if OUTPUT_FILE.exists():
         try:
             with open(OUTPUT_FILE, 'r', encoding='utf-8') as f:
-                old_data = json.load(f)
-                current_version = float(old_data.get("communityVersion", 3.1))
+                base_data = json.load(f)
         except:
             pass
 
+    # Update only the fields we control
+    current_version = float(base_data.get("communityVersion", 3.1))
     new_version = round(current_version + 0.1, 1)
-    last_updated = datetime.utcnow().isoformat() + "Z"
 
     output_data = {
+        **base_data,                    # ← keeps "version", "customCategories", etc.
         "communityVersion": new_version,
-        "lastUpdated": last_updated,
-        "locations": all_markers   # ← Sentinel is now completely excluded
+        "lastUpdated": datetime.utcnow().isoformat() + "Z",
+        "locations": all_markers
     }
 
     try:
         with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
             json.dump(output_data, f, indent=2, ensure_ascii=False)
 
-        # Clean up all marker files
+        # Clean up marker files
         for json_file in COMMUNITY_MARKERS_DIR.glob("*.json"):
             json_file.unlink()
 
