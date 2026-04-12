@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": 3.3,
+  "communityVersion": 3.4,
   "customCategories": {},
   "locations": [
     {
@@ -6788,24 +6788,6 @@
       "wasCommunityKept": false
     },
     {
-      "id": "id-dac7a471-e22f-4388-82a1-281983e6a182",
-      "cid": "power armor_test_marker_grid_c2_x_980_y_6944_694.42872_979.99458",
-      "category": "power armor",
-      "desc": "Test marker\nGrid C2 (X: 980.6, Y: 617)\nSubmitted By MrCrazy",
-      "lat": 617.0001660555987,
-      "lng": 980.6280938593502,
-      "icon": "👨‍🚀",
-      "addedTime": 1776007152404,
-      "locked": true,
-      "isPostcard": false,
-      "isTemp": false,
-      "startTime": null,
-      "keepBtnBound": false,
-      "userEdited": false,
-      "wasCommunityKept": false,
-      "isCommunity": true
-    },
-    {
       "id": "id-f96b151b-7a02-47a6-8744-2836537e953d",
       "cid": "misc_bobblehead_on_a_shelf_in_the_observation_deck_at_top_of_the_world_2195_2276",
       "category": "bobbleheads",
@@ -12684,24 +12666,6 @@
       "keepBtnBound": false,
       "isCommunity": true,
       "wasCommunityKept": false
-    },
-    {
-      "id": "id-c1981fa8-d3c1-44cb-8703-f5ee72630557",
-      "cid": "plans_test_marker_grid_c2_x_9819_y_6216_621.60639_981.86508",
-      "category": "plans",
-      "desc": "Test marker\nGrid C2 (X: 949.6, Y: 613.2)\nSubmitted By Anonymous Wastelander",
-      "lat": 613.2120738678467,
-      "lng": 949.6264578549626,
-      "icon": "📜",
-      "addedTime": 1776007165225,
-      "locked": true,
-      "isPostcard": false,
-      "isTemp": false,
-      "startTime": null,
-      "keepBtnBound": false,
-      "userEdited": false,
-      "wasCommunityKept": false,
-      "isCommunity": true
     },
     {
       "id": "id-c3b8e212-8b4f-4cd2-be1a-6620e1e02ae7",
