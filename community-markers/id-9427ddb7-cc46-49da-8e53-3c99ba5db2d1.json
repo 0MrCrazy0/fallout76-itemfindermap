@@ -1,0 +1,18 @@
+{
+  "id": "id-9427ddb7-cc46-49da-8e53-3c99ba5db2d1",
+  "cid": "creatures_scorch_beast_scorch_beast_863_3436",
+  "category": "creatures",
+  "desc": "Scorchbeast located here.\nGrid I3 (X: 3436, Y: 863)",
+  "lat": 862.7134174077444,
+  "lng": 3435.917810219028,
+  "icon": "🐺",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

@@ -1,0 +1,18 @@
+{
+  "id": "id-d340ce36-28a1-47ed-bd13-a682fafd6e88",
+  "cid": "food_drink_cram_on_a_picnic_table_at_the_red_rocket_mega_stop_3108_3007",
+  "category": "food/drink",
+  "desc": "Cram located on a picnic table at the Red Rocket Mega Stop.\nGrid H8 (X: 3007, Y: 3108)",
+  "lat": 3108.2377306532508,
+  "lng": 3006.998098435625,
+  "icon": "🍽️",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

@@ -1,0 +1,18 @@
+{
+  "id": "id-ca9d15a7-68d9-4400-a810-7b1c6c20402f",
+  "cid": "junk_garden_gnome_found_in_the_the_farm_outside_the_house_1621_3322",
+  "category": "junk",
+  "desc": "Garden gnome located in the farm outside the house; additional junk can be found inside the house.\nGrid I4 (X: 3322, Y: 1621)",
+  "lat": 1621.2504148356752,
+  "lng": 3321.62427617355,
+  "icon": "🗑️",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

@@ -1,0 +1,18 @@
+{
+  "id": "id-59741ca0-0ed4-47f0-94fd-194bf29a223e",
+  "cid": "creatures_snallygaster_snallygaster_found_around_the_trainyard_1043_3280",
+  "category": "creatures",
+  "desc": "Snallygaster located around the trainyard.\nGrid I3 (X: 3280, Y: 1043)",
+  "lat": 1042.6251382785583,
+  "lng": 3279.6251178322127,
+  "icon": "🐺",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

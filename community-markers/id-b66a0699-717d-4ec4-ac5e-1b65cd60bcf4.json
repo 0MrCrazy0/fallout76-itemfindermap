@@ -1,0 +1,18 @@
+{
+  "id": "id-b66a0699-717d-4ec4-ac5e-1b65cd60bcf4",
+  "cid": "event_locations_project_beanstalk_protect_the_pharmabot_2013_930",
+  "category": "event locations",
+  "desc": "Project Beanstalk event: protect the pharmabot.\nGrid C5 (X: 930, Y: 2013)",
+  "lat": 2012.9907862904038,
+  "lng": 929.5160009542719,
+  "icon": "🎉",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

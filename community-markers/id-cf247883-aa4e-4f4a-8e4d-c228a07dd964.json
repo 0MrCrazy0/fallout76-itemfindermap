@@ -1,0 +1,18 @@
+{
+  "id": "id-cf247883-aa4e-4f4a-8e4d-c228a07dd964",
+  "cid": "creatures_feral_ghouls_inside_the_golf_club_building_1672_1959",
+  "category": "creatures",
+  "desc": "Feral ghouls located inside the golf club building.\nGrid E5 (X: 1959, Y: 1672)",
+  "lat": 1672.24593808109,
+  "lng": 1958.7496961844126,
+  "icon": "🐺",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

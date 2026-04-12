@@ -1,0 +1,18 @@
+{
+  "id": "id-3370f863-2ab4-4e1d-a13a-c6c098e33ba5",
+  "cid": "misc_cap_stash_inside_toilet_1934_3537",
+  "category": "misc",
+  "desc": "Cap stash located inside the toilet.\nGrid I5 (X: 3537, Y: 1934)",
+  "lat": 1934.315369280087,
+  "lng": 3537.374814835094,
+  "icon": "📝",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}
