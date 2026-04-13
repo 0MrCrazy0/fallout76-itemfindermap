@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": 3.4,
+  "communityVersion": 3.5,
   "customCategories": {},
   "locations": [
     {
@@ -4338,7 +4338,25 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-016958bc-c97f-4116-b16c-bcbcdcbc5ed6",
+      "cid": "treasure maps_forest_treasure_map_9_dig_site_to_find_this_treasure_head_to_summersville_on_the_lake_in_the_south_of_the_area_in_the_south_of_the_city_you_will_find_a_bus_on_the_street_when_you_found_it_you_turn_towards_the_city_and_then_go_to_the_first_house_on_the_right_the_treasure_can_then_be_found_in_the_pile_of_leaves_in_front_of_the_broken_grid_under_the_porch_grid_e5_x_17576_y_1870_1869.95893_1757.60106",
+      "category": "treasure maps",
+      "desc": "Forest Treasure Map #9 dig site: To find this treasure, head to Summersville (on the lake in the south of the area). In the south of the city, you will find a bus on the street. When you found it, you turn towards the city and then go to the first house on the right. The treasure can then be found in the pile of leaves in front of the broken grid under the porch.\nGrid E5 (X: 1758.5, Y: 1869.9)\nSubmitted By MrCrazy",
+      "lat": 1869.8964285850525,
+      "lng": 1758.5405723547935,
+      "icon": "🗺️",
+      "addedTime": 1776067857079,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ],
-  "lastUpdated": "2026-04-13T08:13:05.994514Z"
+  "lastUpdated": "2026-04-13T08:13:17.329664Z"
 }
