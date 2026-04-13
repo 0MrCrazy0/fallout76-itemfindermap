@@ -1,5 +1,5 @@
 # Fallout 76 Item Finder Map
-## Last updated: • v76.Vault-13 • 10-04-2026
+## Last updated: • v76.Vault-25 • 13-04-2026
 
 Live version: [https://0mrcrazy0.github.io/fallout76-itemfindermap/](https://0mrcrazy0.github.io/fallout76-itemfindermap/)
 
