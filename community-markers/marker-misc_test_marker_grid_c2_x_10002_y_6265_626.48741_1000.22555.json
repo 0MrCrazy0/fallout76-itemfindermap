@@ -1,0 +1,18 @@
+{
+  "id": "id-7ec788f1-dfa9-4d89-a3fb-d6e310340954",
+  "cid": "misc_test_marker_grid_c2_x_10002_y_6265_626.48741_1000.22555",
+  "category": "misc",
+  "desc": "Test marker\nGrid C2 (X: 1000.2, Y: 626.5)\nSubmitted By Anonymous Wastelander",
+  "lat": 626.4874100476087,
+  "lng": 1000.2255495517741,
+  "icon": "📝",
+  "addedTime": 1776053354821,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+}
