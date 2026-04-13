@@ -501,7 +501,7 @@ screenshotControl.onAdd = function(map) {
     link.style.cssText = `
         display:block; width:34px; height:34px; line-height:34px; text-align:center;
         font-size:20px; background:#1a3c34; color:#00ff00; border:none;
-        box-shadow:0 0 8px #00ff00; cursor:pointer; margin-top:4px;
+        box-shadow:0 0 8px #00ff00; cursor:pointer;
     `;
     link.onmouseover = () => {
         link.style.background = '#00ff00';
