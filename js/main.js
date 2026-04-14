@@ -1372,10 +1372,6 @@ playSound('selectcategory');
         return terms.every(term => text.includes(term));
     });
     if (found && val) {
-        console.log('🎵 ITEM LOCATED condition met — playing sound (delayed)');
-        setTimeout(() => {
-            playSound('selectcategory');
-        }, 120);
         showTempMessage('🔎 ITEM LOCATED — CHECK DROP-DOWN SUGGESTIONS', 3000);
         combinedSearch.style.boxShadow = '0 0 8px #0f0';
         setTimeout(() => combinedSearch.style.boxShadow = '', 1500);
@@ -5897,8 +5893,8 @@ setTimeout(forceUltraWideScaling, 300);
             if (isLandscape && isSmallScreen) {
                 // Make map slightly less tall so UI elements are easier to reach
                 if (mapEl) {
-                    mapEl.style.height = '65vh';
-                    mapEl.style.maxHeight = '65vh';
+                    mapEl.style.height = '78vh';
+                    mapEl.style.maxHeight = '78vh';
                 }
 
                 // Make inventory table more compact and scrollable
