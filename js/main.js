@@ -256,51 +256,47 @@ function attachAudioUnlockListeners() {
 
 attachAudioUnlockListeners();
 
-// ── Comprehensive Android Type Sound Fix (covers ALL typing fields) ──
+// ── Comprehensive Android Type Sound Fix v2 (ALL fields + prevents stacking) ──
 baseSounds.type.playbackRate = 0.78;
 
 let lastTypeSoundTime = 0;
 const TYPE_THROTTLE_MS = 200;
 
 function addThrottledTypeSound(input) {
-    if (!input || input._typeHandlerAttached) return;
+    if (!input) return;
     
-    input._typeHandlerAttached = true;
+    // Remove any previous listener to prevent stacking/duplicates
+    if (input._typeHandler) {
+        input.removeEventListener('input', input._typeHandler);
+    }
     
     input._typeHandler = () => {
         const now = Date.now();
         if (now - lastTypeSoundTime < TYPE_THROTTLE_MS) return;
         lastTypeSoundTime = now;
-        playSound('type');   // uses the original local playSound
+        playSound('type');
     };
     
     input.addEventListener('input', input._typeHandler);
     
-    // Reset throttle on focus (critical for Android virtual keyboard)
+    // Reset throttle on focus (essential for Android virtual keyboard)
     input.addEventListener('focus', () => {
         lastTypeSoundTime = 0;
     });
 }
 
-function attachTypeSoundToAllFields() {
-    const fields = [
-        document.getElementById('playerNameInput'),
-        document.getElementById('itemDesc'),
-        document.getElementById('combinedSearch'),
-        document.getElementById('postcardMessage')
-    ];
-    
-    fields.forEach(field => {
-        if (field) addThrottledTypeSound(field);
-    });
+function attachTypeSoundsToAllFields() {
+    addThrottledTypeSound(document.getElementById('playerNameInput'));
+    addThrottledTypeSound(document.getElementById('itemDesc'));
+    addThrottledTypeSound(document.getElementById('combinedSearch'));
+    addThrottledTypeSound(document.getElementById('postcardMessage'));
+    addThrottledTypeSound(document.getElementById('newCategoryName'));   // Category Name field
 }
 
-// Watch for dynamically created fields (e.g. postcard modal)
-const observer = new MutationObserver(attachTypeSoundToAllFields);
-observer.observe(document.body, { childList: true, subtree: true });
-
-// Initial attachment for fields already present
-attachTypeSoundToAllFields();
+// Initial attachment + observer for dynamically created fields
+attachTypeSoundsToAllFields();
+const typeSoundObserver = new MutationObserver(attachTypeSoundsToAllFields);
+typeSoundObserver.observe(document.body, { childList: true, subtree: true });
 
         // ── Utility: Fetch with built-in timeout to prevent hanging requests ──
         async function fetchWithTimeout(url, timeout = 12000) {
