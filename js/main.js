@@ -187,22 +187,25 @@ Object.keys(baseSounds).forEach(key => {
     sound.preload = 'auto';
 });
 
-// ── Type sound with global throttle (fixes double sound on mobile) ──
+// ── Minimal mobile type sound fix — prevents double sound on iOS/Android ──
 baseSounds.type.playbackRate = 0.78;
 
-let lastTypeSoundTime = 0;
-const TYPE_THROTTLE_MS = 65;   // 65 ms works reliably on iOS and Android
+let lastTypeSoundTime = Date.now();
 
-// Global throttle on playSound (most reliable cross-platform method)
-const originalPlaySound = playSound;
-window.playSound = function(type) {
-    if (type === 'type') {
+function addThrottledTypeSound(input) {
+    if (!input) return;
+    input.addEventListener('input', () => {
         const now = Date.now();
-        if (now - lastTypeSoundTime < TYPE_THROTTLE_MS) return;
+        if (now - lastTypeSoundTime < 65) return;   // 65 ms throttle
         lastTypeSoundTime = now;
-    }
-    originalPlaySound(type);
-};
+        playSound('type');
+    });
+}
+
+// Apply only to the three fields that need typing sound
+addThrottledTypeSound(document.getElementById('playerNameInput'));
+addThrottledTypeSound(document.getElementById('itemDesc'));
+addThrottledTypeSound(document.getElementById('postcardMessage'));
 
 function unlockAudio() {
     if (audioUnlocked) return;
