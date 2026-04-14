@@ -187,22 +187,28 @@ Object.keys(baseSounds).forEach(key => {
     sound.preload = 'auto';
 });
 
-// ── Minimal mobile type sound fix — prevents double sound on iOS/Android ──
+// ── Final mobile type sound fix — eliminates double sound on iOS/Android ──
 baseSounds.type.playbackRate = 0.78;
 
-let lastTypeSoundTime = Date.now();
+let lastTypeSoundTime = 0;
+const TYPE_THROTTLE_MS = 90;   // 90 ms is the sweet spot for mobile keyboards
 
 function addThrottledTypeSound(input) {
     if (!input) return;
-    input.addEventListener('input', () => {
+    // Remove any old listeners first (prevents doubles)
+    if (input._typeHandler) input.removeEventListener('input', input._typeHandler);
+    
+    input._typeHandler = () => {
         const now = Date.now();
-        if (now - lastTypeSoundTime < 65) return;   // 65 ms throttle
+        if (now - lastTypeSoundTime < TYPE_THROTTLE_MS) return;
         lastTypeSoundTime = now;
         playSound('type');
-    });
+    };
+    
+    input.addEventListener('input', input._typeHandler);
 }
 
-// Apply only to the three fields that need typing sound
+// Apply ONLY to the three fields that need typing sound
 addThrottledTypeSound(document.getElementById('playerNameInput'));
 addThrottledTypeSound(document.getElementById('itemDesc'));
 addThrottledTypeSound(document.getElementById('postcardMessage'));
