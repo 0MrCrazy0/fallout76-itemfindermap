@@ -4580,16 +4580,46 @@ if (nukeCodesBtn) {
         playSound('click');
     };
 }
+// ── Toggle Categories Modal — FIXED Close Button (works on every device) ──
 if (toggleCategoryModalBtn) {
     toggleCategoryModalBtn.onclick = () => {
-        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
         const modal = document.getElementById('categoryToggleModal');
-        if (modal) {
-            modal.style.display = 'block';
-            document.body.classList.add('modal-open');
-            renderCategoryToggles();
-            playSound('click');
+        if (!modal) return;
+
+        // Close any other open modals first
+        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+
+        modal.style.display = 'block';
+        document.body.classList.add('modal-open');
+        renderCategoryToggles();
+
+        // ── Attach close handler to BOTH the big Close button AND the × ──
+        const closeBtn = document.getElementById('closeCategoryToggleBtn') ||
+                         modal.querySelector('.close');
+
+        if (closeBtn) {
+            // Remove any old listeners first (prevents stacking)
+            const newCloseBtn = closeBtn.cloneNode(true);
+            closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+
+            newCloseBtn.onclick = (e) => {
+                e.stopImmediatePropagation();
+                modal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+                playSound('modalClose');
+            };
         }
+
+        // Background click also closes the modal
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+                playSound('modalClose');
+            }
+        };
+
+        playSound('click');
     };
 }
 
@@ -5881,56 +5911,53 @@ setTimeout(forceUltraWideScaling, 300);
         // ── Mobile Landscape Optimisation (smaller screens only) ──
         // Reduces scrolling in landscape while keeping portrait mode 100% unchanged
         function optimiseMobileLandscape() {
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            const isLandscape = width > height;
-            const isSmallScreen = width < 900;   // typical phone in landscape
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const isLandscape = width > height;
+    const isSmallScreen = width < 900; // typical phone in landscape
 
-            const mapEl = document.getElementById('map');
-            const buttonGroup = document.getElementById('buttonGroup');
+    const mapEl       = document.getElementById('map');
+    const buttonGroup = document.getElementById('buttonGroup');
 
-            if (isLandscape && isSmallScreen) {
-                // Make map slightly less tall so UI elements are easier to reach
-                if (mapEl) {
-                    mapEl.style.height = '78vh';
-                    mapEl.style.maxHeight = '78vh';
-                }
-
-                // Slightly tighter tools panel
-                if (buttonGroup) {
-                    buttonGroup.style.padding = '6px 4px';
-                    buttonGroup.style.gap = '6px';
-                }
-            } else {
-                // Reset everything for portrait mode and larger screens
-                if (mapEl) {
-                    mapEl.style.height = '';
-                    mapEl.style.maxHeight = '';
-                }
-                if (tableContainer) {
-                    tableContainer.style.maxHeight = '';
-                    tableContainer.style.fontSize = '';
-                }
-                if (buttonGroup) {
-                    buttonGroup.style.padding = '';
-                    buttonGroup.style.gap = '';
-                }
-            }
-
-            // Force Leaflet to redraw correctly after layout change
-            if (typeof map !== 'undefined' && map) {
-                map.invalidateSize({ animate: false });
-            }
+    if (isLandscape && isSmallScreen) {
+        // Make map slightly less tall so UI elements are easier to reach
+        if (mapEl) {
+            mapEl.style.height = '90vh';
+            mapEl.style.maxHeight = '90vh';
         }
 
-        // Run automatically on orientation change and resize
-        window.addEventListener('resize', optimiseMobileLandscape);
-        window.addEventListener('orientationchange', () => {
-            setTimeout(optimiseMobileLandscape, 180);
-        });
+        // Slightly tighter tools panel
+        if (buttonGroup) {
+            buttonGroup.style.padding = '6px 4px';
+            buttonGroup.style.gap = '6px';
+        }
+    } else {
+        // Reset everything for portrait mode and larger screens
+        if (mapEl) {
+            mapEl.style.height = '';
+            mapEl.style.maxHeight = '';
+        }
+        if (buttonGroup) {
+            buttonGroup.style.padding = '';
+            buttonGroup.style.gap = '';
+        }
+    }
 
-        // Initial run after page loads
-        setTimeout(optimiseMobileLandscape, 800);
+    // Force Leaflet to redraw correctly – small delay helps speech bubbles stay open
+    if (typeof map !== 'undefined' && map) {
+        setTimeout(() => {
+            map.invalidateSize({ animate: false });
+        }, 120);
+    }
+}
+
+// Run automatically on orientation change and resize
+window.addEventListener('resize', optimiseMobileLandscape);
+window.addEventListener('orientationchange', () => {
+    setTimeout(optimiseMobileLandscape, 180);
+});
+// Initial run after page loads
+setTimeout(optimiseMobileLandscape, 800);
 
         console.log(
     '%c╔═════════════════════════════════════════════════════════════╗\n' +
