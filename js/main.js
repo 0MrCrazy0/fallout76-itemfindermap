@@ -48,10 +48,45 @@ if ('serviceWorker' in navigator && !sessionStorage.getItem('recoveryDone')) {
     }, 1200);
 }
 
-// ── Passive update banner — shows once when a new version is detected ──
+// ── Load latest Community Map version automatically from communitymap.json (GitHub workflow) ──
+let latestCommunityVersion = "1.0";   // fallback value
+
+async function loadLatestCommunityVersion() {
+    try {
+        // Use the EXACT same full URL that the Update button already uses (most reliable)
+        const response = await fetch(
+            'https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?' + Date.now()
+        );
+        
+        if (!response.ok) throw new Error('Network error');
+        
+        const data = await response.json();
+        latestCommunityVersion = String(data.communityVersion || data.version || "1.0");
+        
+        console.log('✅ Banner loaded latest Community Map version:', latestCommunityVersion);
+    } catch (e) {
+        console.warn("Could not load latest community map version – using fallback", e);
+    }
+}
+
+// ── Update banner — shows latest + user's current version when outdated ──
 function showUpdateNotice() {
     if (document.getElementById('updateBanner')) return;
+
     const communityVer = localStorage.getItem('fo76_map_version') || "1.0";
+
+    let communityLine = `Community Map: v${latestCommunityVersion}`;
+    
+    let extraLine = '';
+    let ctaLine = '';
+
+    // Only when the user is behind
+    if (parseFloat(communityVer) < parseFloat(latestCommunityVersion)) {
+        communityLine += ' <span style="color:#ffff00; font-weight:bold;">(Update Available!)</span>';
+        extraLine = `<br><span style="color:#88ccff; font-size:13px;">Your current Community Map: v${communityVer}</span>`;
+        ctaLine = `<span style="color:#88ff88; font-size:13px;">📡 Tap "Update Community Map" for latest markers</span>`;
+    }
+
     const banner = document.createElement('div');
     banner.id = 'updateBanner';
     banner.style.cssText = `
@@ -60,29 +95,39 @@ function showUpdateNotice() {
         font: bold 15px 'Courier New', monospace; z-index: 999999;
         box-shadow: 0 -4px 15px rgba(0, 255, 0, 0.4); border-top: 2px solid #00ff00;
         max-width: 96%; width: 96%; line-height: 1.5; text-shadow: 0 0 8px #00ff00;
+        opacity: 0; transition: opacity 0.6s ease-out;
     `;
     banner.innerHTML = `
         App updated to v${CURRENT_APP_VERSION}<br>
-        Community Map: v${communityVer}<br>
-        <span style="color:#88ff88; font-size:13px;">📡 Tap "Update Community Map" for latest markers</span>
+        ${communityLine}
+        ${extraLine}<br>
+        ${ctaLine}
     `;
-    document.body.appendChild(banner);
+
+    // Small delay to avoid flash during service worker reload
+    setTimeout(() => {
+        document.body.appendChild(banner);
+        banner.style.opacity = '1';
+    }, 300);
+
+    // Stay visible for 7 seconds then fade out cleanly
     setTimeout(() => {
         banner.style.opacity = '0';
-        setTimeout(() => banner.parentNode?.removeChild(banner), 1400);
-    }, 5000);
+        setTimeout(() => {
+            if (banner && banner.parentNode) banner.parentNode.removeChild(banner);
+        }, 1400);
+    }, 8000);
 }
 
 // ── DOM Ready — main entry point for the entire application ──
-document.addEventListener('DOMContentLoaded', () => {
-    const APP_VERSION_KEY = 'fo76_app_version';   // ← New dedicated key for app updates
-const storedAppVersion = localStorage.getItem(APP_VERSION_KEY) || '0';
+document.addEventListener('DOMContentLoaded', async () => {
+    const APP_VERSION_KEY = 'fo76_app_version';
+    const storedAppVersion = localStorage.getItem(APP_VERSION_KEY) || '0';
 
-if (storedAppVersion !== CURRENT_APP_VERSION) {
+    // ── Load latest Community Map version BEFORE showing the banner ──
+    await loadLatestCommunityVersion();
+
     showUpdateNotice();
-    // ── Store app version separately so we do NOT overwrite the Community Map version
-    localStorage.setItem(APP_VERSION_KEY, CURRENT_APP_VERSION);
-}
 
     if (sessionStorage.getItem('returnFromPending') === 'true') {
         sessionStorage.removeItem('returnFromPending');
@@ -4627,7 +4672,7 @@ if (SpeechRecognition && voiceSearchBtn) {
         showTempMessage('👋 WELCOME TO APPALACHIA, VAULT DWELLER', 20000);
     };
 }
-// ── APP UPDATED MODAL (shows ONLY when version actually changes) ──
+// ── APP UPDATED MODAL (returning users only — shows only once per app version) ──
 function checkForUpdate() {
     const lastSeen = localStorage.getItem('fo76_last_seen_version') || '0';
 
@@ -4644,16 +4689,20 @@ function checkForUpdate() {
                     </h1>
                 </div>
                 <div style="padding:30px; text-align:center; line-height:1.8;">
-                    <ul style="text-align:left; display:inline-block; margin:25px 0; padding-left:30px; font-size:1.2em;">
-                        <li>Welcome to Version ${CURRENT_APP_VERSION}</li>
-                        <li>Your map has been upgraded with the latest fixes and features.</li>
-                    </ul>
+                    <p style="font-size:1.35em; margin-bottom:20px;">
+                        Welcome to Version <strong>${CURRENT_APP_VERSION}</strong>
+                    </p>
+                    <p style="font-size:1.15em; color:#88ff88;">
+                        The Fallout 76 Item Finder Map has been upgraded with the latest fixes and features.
+                    </p>
+                    
                     <div style="margin:30px 0;">
                         <div id="updateGotItBtn" style="display:inline-block; padding:14px 50px; background:#000; border:3px solid #00ff00; color:#00ff00; font-size:1.6em; font-weight:bold; text-shadow:0 0 18px #00ff00; box-shadow:0 0 25px #00ff00; cursor:pointer;">
                             GOT IT — LET'S EXPLORE!
                         </div>
                     </div>
-                    <p style="margin-top:20px; font-size:0.9em; opacity:0.8;">
+                    
+                    <p style="margin-top:20px; font-size:0.95em; opacity:0.8;">
                         Thank you for using the Fallout 76 Item Finder Map ❤️
                     </p>
                 </div>
@@ -4665,7 +4714,7 @@ function checkForUpdate() {
         const btn = document.getElementById('updateGotItBtn');
         if (btn) {
             btn.onclick = () => {
-                localStorage.setItem('fo76_last_seen_version', CURRENT_APP_VERSION);  // only mark as seen AFTER click
+                localStorage.setItem('fo76_last_seen_version', CURRENT_APP_VERSION);
                 updateModal.remove();
                 document.body.classList.remove('modal-open');
                 playSound('levelUp');
@@ -5772,6 +5821,67 @@ window.addEventListener('load', () => {
 
 // Initial run
 setTimeout(forceUltraWideScaling, 300);
+
+        // ── Mobile Landscape Optimisation (smaller screens only) ──
+        // Reduces scrolling in landscape while keeping portrait mode 100% unchanged
+        function optimiseMobileLandscape() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const isLandscape = width > height;
+            const isSmallScreen = width < 900;   // typical phone in landscape
+
+            const mapEl = document.getElementById('map');
+            const tableContainer = document.getElementById('tableContainer');
+            const buttonGroup = document.getElementById('buttonGroup');
+
+            if (isLandscape && isSmallScreen) {
+                // Make map slightly less tall so UI elements are easier to reach
+                if (mapEl) {
+                    mapEl.style.height = '65vh';
+                    mapEl.style.maxHeight = '65vh';
+                }
+
+                // Make inventory table more compact and scrollable
+                if (tableContainer) {
+                    tableContainer.style.maxHeight = '30vh';
+                    tableContainer.style.fontSize = '14px';
+                }
+
+                // Slightly tighter tools panel
+                if (buttonGroup) {
+                    buttonGroup.style.padding = '6px 4px';
+                    buttonGroup.style.gap = '6px';
+                }
+            } else {
+                // Reset everything for portrait mode and larger screens
+                if (mapEl) {
+                    mapEl.style.height = '';
+                    mapEl.style.maxHeight = '';
+                }
+                if (tableContainer) {
+                    tableContainer.style.maxHeight = '';
+                    tableContainer.style.fontSize = '';
+                }
+                if (buttonGroup) {
+                    buttonGroup.style.padding = '';
+                    buttonGroup.style.gap = '';
+                }
+            }
+
+            // Force Leaflet to redraw correctly after layout change
+            if (typeof map !== 'undefined' && map) {
+                map.invalidateSize({ animate: false });
+            }
+        }
+
+        // Run automatically on orientation change and resize
+        window.addEventListener('resize', optimiseMobileLandscape);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(optimiseMobileLandscape, 180);
+        });
+
+        // Initial run after page loads
+        setTimeout(optimiseMobileLandscape, 800);
 
         console.log(
     '%c╔═════════════════════════════════════════════════════════════╗\n' +
