@@ -1285,7 +1285,7 @@ if (showOnlyMyMarkers === true) {
         document.getElementById('toggleMyMarkersBtn').textContent = 'My Markers: All';
     }
     clearBtn.style.display = val ? 'block' : 'none';
-    playSound('type');
+
     // === GRID SEARCH ===
     const gridMatch = val.toUpperCase().match(/^([A-J])\s*([1-9]|10)$/);
     if (gridMatch) {
@@ -1382,7 +1382,7 @@ playSound('selectcategory');
     }
     refreshTable(val, categoryFilter.value);
     loadData(combinedSearch.value, categoryFilter.value);
-    playSound('type');
+
 });
         categoryFilter.onchange = () => {
             loadData(combinedSearch.value, categoryFilter.value);
