@@ -1025,8 +1025,8 @@ let isTransitioning = false;
 
 // ── IMPROVED CLUSTERING — better than industry standard + smooth zoom-in restored ──
 const clusteredMarkers = L.markerClusterGroup({
-    maxClusterRadius: 40,                    // cleaner grouping, no false single-marker clusters
-    disableClusteringAtZoom: 5,              // clusters disappear at a more usable zoom level
+    disableClusteringAtZoom: 18,              // clusters disappear at a more usable zoom level
+	maxClusterRadius: 10,                    // cleaner grouping, no false single-marker clusters
     spiderfyOnMaxZoom: true,                 // click small cluster → nicely spreads markers
     showCoverageOnHover: false,
     zoomToBoundsOnClick: false,              // ← MUST BE FALSE so custom smooth animation works
