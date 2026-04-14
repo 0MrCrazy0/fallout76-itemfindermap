@@ -1383,6 +1383,12 @@ playSound('selectcategory');
     refreshTable(val, categoryFilter.value);
     loadData(combinedSearch.value, categoryFilter.value);
 
+    // ── LOCAL THROTTLE — fixes double sound on PC & Android for search bar only ──
+    const now = Date.now();
+    if (now - lastTypeSoundTime >= 200) {
+        lastTypeSoundTime = now;
+        playSound('type');
+    }
 });
         categoryFilter.onchange = () => {
             loadData(combinedSearch.value, categoryFilter.value);
@@ -1732,6 +1738,24 @@ postcardModal.innerHTML = `
     </div>
 `;
 document.body.appendChild(postcardModal);
+
+// ── Extra calls to force the central throttled system to attach reliably ──
+setTimeout(() => attachTypeSoundsToAllFields(), 200);
+setTimeout(() => attachTypeSoundsToAllFields(), 600);
+setTimeout(() => attachTypeSoundsToAllFields(), 1200);
+
+// ── Dedicated local throttle for postcard message only (prevents double sound) ──
+let lastPostcardTypeTime = 0;
+const postcardMsg = document.getElementById('postcardMessage');
+if (postcardMsg) {
+    postcardMsg.addEventListener('input', () => {
+        const now = Date.now();
+        if (now - lastPostcardTypeTime >= 200) {
+            lastPostcardTypeTime = now;
+            playSound('type');
+        }
+    });
+}
 
 // Live character counter + warning colors
 const messageInput = postcardModal.querySelector('#postcardMessage');
@@ -4648,12 +4672,7 @@ if (SpeechRecognition && voiceSearchBtn) {
         playSound('error');
     };
 }
-        resetAppBtn.style.color = '#000';
-        function addTypeSound(input) {
-            input.addEventListener('input', () => playSound('type'));
-        }
-        addTypeSound(itemDescInput);
-        document.getElementById('postcardMessage')?.addEventListener('input', () => playSound('type'));
+		
         const confettiScript = document.createElement('script');
         confettiScript.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
         confettiScript.onload = () => { window.confettiReady = true; };
