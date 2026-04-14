@@ -187,19 +187,21 @@ Object.keys(baseSounds).forEach(key => {
     sound.preload = 'auto';
 });
 
-// ── Type sound with throttle (fixes machine-gun effect + stops double playback) ──
-baseSounds.type.playbackRate = 0.78;   // natural typewriter feel
+// ── Type sound with global throttle (fixes double sound on mobile) ──
+baseSounds.type.playbackRate = 0.78;
 
 let lastTypeSoundTime = 0;
-const TYPE_THROTTLE_MS = 55;
+const TYPE_THROTTLE_MS = 65;   // 65 ms works reliably on iOS and Android
 
-// Override only the audio play method (most reliable, no double calls)
-const originalTypePlay = baseSounds.type.play;
-baseSounds.type.play = function() {
-    const now = Date.now();
-    if (now - lastTypeSoundTime < TYPE_THROTTLE_MS) return;
-    lastTypeSoundTime = now;
-    originalTypePlay.call(this);
+// Global throttle on playSound (most reliable cross-platform method)
+const originalPlaySound = playSound;
+window.playSound = function(type) {
+    if (type === 'type') {
+        const now = Date.now();
+        if (now - lastTypeSoundTime < TYPE_THROTTLE_MS) return;
+        lastTypeSoundTime = now;
+    }
+    originalPlaySound(type);
 };
 
 function unlockAudio() {
