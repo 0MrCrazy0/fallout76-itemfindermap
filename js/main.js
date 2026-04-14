@@ -187,32 +187,6 @@ Object.keys(baseSounds).forEach(key => {
     sound.preload = 'auto';
 });
 
-// ── Final mobile type sound fix — eliminates double sound on iOS/Android ──
-baseSounds.type.playbackRate = 0.78;
-
-let lastTypeSoundTime = 0;
-const TYPE_THROTTLE_MS = 90;   // 90 ms is the sweet spot for mobile keyboards
-
-function addThrottledTypeSound(input) {
-    if (!input) return;
-    // Remove any old listeners first (prevents doubles)
-    if (input._typeHandler) input.removeEventListener('input', input._typeHandler);
-    
-    input._typeHandler = () => {
-        const now = Date.now();
-        if (now - lastTypeSoundTime < TYPE_THROTTLE_MS) return;
-        lastTypeSoundTime = now;
-        playSound('type');
-    };
-    
-    input.addEventListener('input', input._typeHandler);
-}
-
-// Apply ONLY to the three fields that need typing sound
-addThrottledTypeSound(document.getElementById('playerNameInput'));
-addThrottledTypeSound(document.getElementById('itemDesc'));
-addThrottledTypeSound(document.getElementById('postcardMessage'));
-
 function unlockAudio() {
     if (audioUnlocked) return;
 
@@ -281,6 +255,35 @@ function attachAudioUnlockListeners() {
 }
 
 attachAudioUnlockListeners();
+
+// ── Stronger Android double-type-sound fix (160 ms throttle) ──
+baseSounds.type.playbackRate = 0.78;
+
+let lastTypeSoundTime = 0;
+const TYPE_THROTTLE_MS = 160;   // higher value specifically for Android virtual keyboards
+
+function addThrottledTypeSound(input) {
+    if (!input) return;
+    
+    // Remove any previous listener to prevent stacking
+    if (input._typeHandler) {
+        input.removeEventListener('input', input._typeHandler);
+    }
+    
+    input._typeHandler = () => {
+        const now = Date.now();
+        if (now - lastTypeSoundTime < TYPE_THROTTLE_MS) return;
+        lastTypeSoundTime = now;
+        playSound('type');
+    };
+    
+    input.addEventListener('input', input._typeHandler);
+}
+
+// Apply to the three fields that need typing sound
+addThrottledTypeSound(document.getElementById('playerNameInput'));
+addThrottledTypeSound(document.getElementById('itemDesc'));
+addThrottledTypeSound(document.getElementById('postcardMessage'));
 
         // ── Utility: Fetch with built-in timeout to prevent hanging requests ──
         async function fetchWithTimeout(url, timeout = 12000) {
