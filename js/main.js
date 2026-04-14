@@ -5887,7 +5887,6 @@ setTimeout(forceUltraWideScaling, 300);
             const isSmallScreen = width < 900;   // typical phone in landscape
 
             const mapEl = document.getElementById('map');
-            const tableContainer = document.getElementById('tableContainer');
             const buttonGroup = document.getElementById('buttonGroup');
 
             if (isLandscape && isSmallScreen) {
