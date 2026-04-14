@@ -256,39 +256,51 @@ function attachAudioUnlockListeners() {
 
 attachAudioUnlockListeners();
 
-// ── Final Android double-type-sound fix (220 ms throttle + focus reset) ──
+// ── Comprehensive Android Type Sound Fix (covers ALL typing fields) ──
 baseSounds.type.playbackRate = 0.78;
 
 let lastTypeSoundTime = 0;
-const TYPE_THROTTLE_MS = 220;   // tuned higher specifically for Android keyboards
+const TYPE_THROTTLE_MS = 200;
 
 function addThrottledTypeSound(input) {
-    if (!input) return;
+    if (!input || input._typeHandlerAttached) return;
     
-    // Remove any previous listener to prevent stacking
-    if (input._typeHandler) {
-        input.removeEventListener('input', input._typeHandler);
-    }
+    input._typeHandlerAttached = true;
     
     input._typeHandler = () => {
         const now = Date.now();
         if (now - lastTypeSoundTime < TYPE_THROTTLE_MS) return;
         lastTypeSoundTime = now;
-        playSound('type');
+        playSound('type');   // uses the original local playSound
     };
     
     input.addEventListener('input', input._typeHandler);
     
-    // Reset throttle when the field gets focus (helps Android keyboard behaviour)
+    // Reset throttle on focus (critical for Android virtual keyboard)
     input.addEventListener('focus', () => {
         lastTypeSoundTime = 0;
     });
 }
 
-// Apply to the three fields that need typing sound
-addThrottledTypeSound(document.getElementById('playerNameInput'));
-addThrottledTypeSound(document.getElementById('itemDesc'));
-addThrottledTypeSound(document.getElementById('postcardMessage'));
+function attachTypeSoundToAllFields() {
+    const fields = [
+        document.getElementById('playerNameInput'),
+        document.getElementById('itemDesc'),
+        document.getElementById('combinedSearch'),
+        document.getElementById('postcardMessage')
+    ];
+    
+    fields.forEach(field => {
+        if (field) addThrottledTypeSound(field);
+    });
+}
+
+// Watch for dynamically created fields (e.g. postcard modal)
+const observer = new MutationObserver(attachTypeSoundToAllFields);
+observer.observe(document.body, { childList: true, subtree: true });
+
+// Initial attachment for fields already present
+attachTypeSoundToAllFields();
 
         // ── Utility: Fetch with built-in timeout to prevent hanging requests ──
         async function fetchWithTimeout(url, timeout = 12000) {
