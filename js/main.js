@@ -256,11 +256,11 @@ function attachAudioUnlockListeners() {
 
 attachAudioUnlockListeners();
 
-// ── Stronger Android double-type-sound fix (160 ms throttle) ──
+// ── Final Android double-type-sound fix (220 ms throttle + focus reset) ──
 baseSounds.type.playbackRate = 0.78;
 
 let lastTypeSoundTime = 0;
-const TYPE_THROTTLE_MS = 160;   // higher value specifically for Android virtual keyboards
+const TYPE_THROTTLE_MS = 220;   // tuned higher specifically for Android keyboards
 
 function addThrottledTypeSound(input) {
     if (!input) return;
@@ -278,6 +278,11 @@ function addThrottledTypeSound(input) {
     };
     
     input.addEventListener('input', input._typeHandler);
+    
+    // Reset throttle when the field gets focus (helps Android keyboard behaviour)
+    input.addEventListener('focus', () => {
+        lastTypeSoundTime = 0;
+    });
 }
 
 // Apply to the three fields that need typing sound
