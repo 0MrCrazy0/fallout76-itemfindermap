@@ -1026,7 +1026,7 @@ const clusteredMarkers = L.markerClusterGroup({
     spiderfyOnMaxZoom: true,                 // click small cluster → nicely spreads markers
     showCoverageOnHover: false,
     zoomToBoundsOnClick: false,              // ← MUST BE FALSE so custom smooth animation works
-    removeOutsideVisibleBounds: true,
+    removeOutsideVisibleBounds: false,
     animate: true,
     chunkedLoading: true,
     iconCreateFunction: function(cluster) {
@@ -2359,11 +2359,9 @@ ${loc.userEdited && !loc.isPostcard && !loc.wasCommunityKept ? `
     </div>
 `, {
     maxWidth: 280,
-    minWidth: 220,
+	minWidth: 220,
     autoPan: false,
-    autoClose: false,
-    closeOnClick: false,   
-    offset: [0, -25],
+	offset: [0, -25],
     autoPanPadding: [20, 80]
 });
         }
