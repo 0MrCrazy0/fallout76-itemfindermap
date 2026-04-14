@@ -5897,12 +5897,6 @@ setTimeout(forceUltraWideScaling, 300);
                     mapEl.style.maxHeight = '78vh';
                 }
 
-                // Make inventory table more compact and scrollable
-                if (tableContainer) {
-                    tableContainer.style.maxHeight = '30vh';
-                    tableContainer.style.fontSize = '14px';
-                }
-
                 // Slightly tighter tools panel
                 if (buttonGroup) {
                     buttonGroup.style.padding = '6px 4px';
