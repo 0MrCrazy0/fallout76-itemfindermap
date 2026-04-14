@@ -187,6 +187,8 @@ Object.keys(baseSounds).forEach(key => {
     sound.volume = soundVolumes[key] || 0.40;
     sound.preload = 'auto';
 });
+// ── Slow down typing sound (was sounding like a machine gun) ──
+baseSounds.type.playbackRate = 0.95;
 
 function unlockAudio() {
     if (audioUnlocked) return;
