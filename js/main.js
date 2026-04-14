@@ -177,18 +177,32 @@ const baseSounds = {
 };
 
 const soundVolumes = {
-    click:      0.45, type: 0.35, error: 0.48, duplicate: 0.40,
-    saving:     0.55, undo: 0.35, delete: 0.48, levelUp: 0.65,
+    click: 0.45, type: 0.35, error: 0.48, duplicate: 0.40,
+    saving: 0.55, undo: 0.35, delete: 0.48, levelUp: 0.65,
     modalClose: 0.32, selectcategory: 0.42, postcard: 0.58, dust: 0.45
 };
-
 Object.keys(baseSounds).forEach(key => {
     const sound = baseSounds[key];
     sound.volume = soundVolumes[key] || 0.40;
     sound.preload = 'auto';
 });
-// ── Slow down typing sound (was sounding like a machine gun) ──
-baseSounds.type.playbackRate = 0.95;
+
+// ── Type sound with throttle (prevents machine-gun effect) ──
+baseSounds.type.playbackRate = 0.80;   // slower, more natural typewriter feel
+
+let lastTypeSoundTime = 0;
+const TYPE_THROTTLE_MS = 80;   // change to 50 for faster or 80 for slower
+
+// Override the type sound with throttling
+const originalPlaySound = playSound;
+window.playSound = function(type) {
+    if (type === 'type') {
+        const now = Date.now();
+        if (now - lastTypeSoundTime < TYPE_THROTTLE_MS) return;
+        lastTypeSoundTime = now;
+    }
+    originalPlaySound(type);
+};
 
 function unlockAudio() {
     if (audioUnlocked) return;
