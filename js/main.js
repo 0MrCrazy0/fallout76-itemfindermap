@@ -2359,9 +2359,11 @@ ${loc.userEdited && !loc.isPostcard && !loc.wasCommunityKept ? `
     </div>
 `, {
     maxWidth: 280,
-	minWidth: 220,
+    minWidth: 220,
     autoPan: false,
-	offset: [0, -25],
+    autoClose: false,
+    closeOnClick: false,   
+    offset: [0, -25],
     autoPanPadding: [20, 80]
 });
         }
