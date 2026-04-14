@@ -2360,7 +2360,7 @@ ${loc.userEdited && !loc.isPostcard && !loc.wasCommunityKept ? `
 `, {
     maxWidth: 280,
 	minWidth: 220,
-    autoPan: true,
+    autoPan: false,
 	offset: [0, -25],
     autoPanPadding: [20, 80]
 });
