@@ -187,21 +187,19 @@ Object.keys(baseSounds).forEach(key => {
     sound.preload = 'auto';
 });
 
-// ── Type sound with throttle (prevents machine-gun effect) ──
-baseSounds.type.playbackRate = 0.80;   // slower, more natural typewriter feel
+// ── Type sound with throttle (fixes machine-gun effect + stops double playback) ──
+baseSounds.type.playbackRate = 0.78;   // natural typewriter feel
 
 let lastTypeSoundTime = 0;
-const TYPE_THROTTLE_MS = 80;   // change to 50 for faster or 80 for slower
+const TYPE_THROTTLE_MS = 55;
 
-// Override the type sound with throttling
-const originalPlaySound = playSound;
-window.playSound = function(type) {
-    if (type === 'type') {
-        const now = Date.now();
-        if (now - lastTypeSoundTime < TYPE_THROTTLE_MS) return;
-        lastTypeSoundTime = now;
-    }
-    originalPlaySound(type);
+// Override only the audio play method (most reliable, no double calls)
+const originalTypePlay = baseSounds.type.play;
+baseSounds.type.play = function() {
+    const now = Date.now();
+    if (now - lastTypeSoundTime < TYPE_THROTTLE_MS) return;
+    lastTypeSoundTime = now;
+    originalTypePlay.call(this);
 };
 
 function unlockAudio() {
