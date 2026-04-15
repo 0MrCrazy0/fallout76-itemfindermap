@@ -28,44 +28,51 @@
     }
 }
 
-/* ── FINAL iOS PWA FULLSCREEN FIX (iPad + iPhone) ── */
-/* Only triggers when installed as PWA — Safari stays completely normal */
+/* ── FINAL iOS PWA FULLSCREEN FIX (iPad edge-to-edge) ── */
+/* Only activates in installed PWA — Safari remains untouched */
 @media (display-mode: standalone) and (-webkit-touch-callout: none) {
     html, body {
         margin: 0 !important;
         padding: 0 !important;
+        width: 100vw !important;
         height: 100dvh !important;
-        width: 100dvw !important;
         overflow: hidden !important;
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
         background-color: #0a2a2a !important;
+        touch-action: none !important;
     }
 
-    /* Force map to true edge-to-edge */
+    /* Force map container to true edge-to-edge */
     #map {
         position: fixed !important;
-        inset: 0 !important;           /* top:0 left:0 right:0 bottom:0 */
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
         height: 100dvh !important;
-        width: 100dvw !important;
         margin: 0 !important;
         padding: 0 !important;
         max-width: none !important;
+        max-height: none !important;
         border: none !important;
         border-radius: 0 !important;
         box-shadow: none !important;
+        overflow: hidden !important;
     }
 
-    /* Force Leaflet itself to fill the container */
+    /* Force Leaflet itself to fill every pixel */
     .leaflet-container {
-        height: 100% !important;
         width: 100% !important;
+        height: 100% !important;
         position: absolute !important;
-        inset: 0 !important;
+        top: 0 !important;
+        left: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
-    /* Keep top UI elements respecting the notch/status bar */
+    /* Top UI elements respect notch/status bar */
     h1,
     #titleToggleContainer,
     #searchBar,
@@ -76,6 +83,7 @@
         padding-left: env(safe-area-inset-left) !important;
         padding-right: env(safe-area-inset-right) !important;
         margin-top: 0 !important;
+        box-sizing: border-box !important;
     }
 }
 
@@ -103,7 +111,7 @@ h1 {
 #map {
     height: 750px;
 	margin: 0 auto 20px;
-    max-width: 95% !important;      /* Forces Leaflet to respect the wrapper */
+    max-width: 100% !important;      /* Forces Leaflet to respect the wrapper */
     width: 100% !important;
     border: 2px solid #00ff00;
     box-shadow: 0 0 10px #00ff00;
