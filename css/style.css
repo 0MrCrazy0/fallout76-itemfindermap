@@ -28,14 +28,14 @@
     }
 }
 
-/* ── FINAL iOS PWA FULLSCREEN FIX (iPad edge-to-edge) ── */
-/* Only activates in installed PWA — Safari remains untouched */
+/* ── FINAL iOS PWA FULLSCREEN FIX (portrait + rotation safe) ── */
 @media (display-mode: standalone) and (-webkit-touch-callout: none) {
     html, body {
         margin: 0 !important;
         padding: 0 !important;
         width: 100vw !important;
         height: 100dvh !important;
+        min-height: 100dvh !important;
         overflow: hidden !important;
         position: fixed !important;
         top: 0 !important;
@@ -44,13 +44,13 @@
         touch-action: none !important;
     }
 
-    /* Force map container to true edge-to-edge */
     #map {
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
         width: 100vw !important;
         height: 100dvh !important;
+        min-height: 100dvh !important;
         margin: 0 !important;
         padding: 0 !important;
         max-width: none !important;
@@ -61,7 +61,6 @@
         overflow: hidden !important;
     }
 
-    /* Force Leaflet itself to fill every pixel */
     .leaflet-container {
         width: 100% !important;
         height: 100% !important;
@@ -72,7 +71,6 @@
         padding: 0 !important;
     }
 
-    /* Top UI elements respect notch/status bar */
     h1,
     #titleToggleContainer,
     #searchBar,
