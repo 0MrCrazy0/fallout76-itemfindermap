@@ -315,5 +315,19 @@
             </div>
         </div>
     </div>
+	
+<script>
+    // iOS PWA rotation fix — forces Leaflet to resize correctly
+    function resizeMap() {
+        if (typeof map !== 'undefined' && map !== null) {
+            setTimeout(() => {
+                map.invalidateSize(true);
+            }, 350); // short delay required on iOS
+        }
+    }
+
+    window.addEventListener('resize', resizeMap);
+    window.addEventListener('orientationchange', resizeMap);
+</script>
 </body>
 </html>
