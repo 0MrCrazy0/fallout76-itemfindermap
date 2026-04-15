@@ -316,32 +316,15 @@
         </div>
     </div>
 	
-    <!-- iOS PWA rotation fix — improved for complete bottom-edge fill -->
+<!-- iOS PWA rotation fix -->
     <script>
         function resizeMap() {
             if (typeof map !== 'undefined' && map !== null) {
-                const mapContainer = document.getElementById('map');
-                
-                // Force exact pixel height to eliminate any remaining bottom gap
-                if (mapContainer) {
-                    mapContainer.style.height = `${window.innerHeight}px`;
-                }
-                
-                // Staggered invalidateSize calls (required for reliable iOS PWA behaviour)
                 setTimeout(() => {
                     map.invalidateSize(true);
-                }, 200);
-                
-                setTimeout(() => {
-                    map.invalidateSize(true);
-                }, 450);
-                
-                setTimeout(() => {
-                    map.invalidateSize(true);
-                }, 700);
+                }, 500);
             }
         }
-        
         window.addEventListener('resize', resizeMap);
         window.addEventListener('orientationchange', resizeMap);
     </script>
