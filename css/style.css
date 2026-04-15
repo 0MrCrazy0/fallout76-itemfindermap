@@ -28,6 +28,39 @@
     }
 }
 
+@supports (-webkit-touch-callout: none) {   /* iOS-only — completely ignored by PC and Android */
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 100dvh !important;
+        width: 100vw !important;
+        background-color: #0a2a2a !important;
+        overflow-x: hidden !important;
+    }
+
+    /* Force map to true edge-to-edge fullscreen on iOS PWAs */
+    #map {
+        height: 100dvh !important;
+        width: 100vw !important;
+        margin: 0 !important;
+        max-width: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    /* Ensure top UI elements respect the safe area (notch / Dynamic Island / status bar) */
+    h1,
+    #titleToggleContainer,
+    #searchBar,
+    #toolsToggleRow,
+    #playerNameInput,
+    #xpStatus {
+        padding-top: env(safe-area-inset-top) !important;
+        margin-top: 0 !important;
+    }
+}
+
 /* ── GLOBAL BODY STYLES ── */
 /* Core terminal/Pip-Boy aesthetic with restricted horizontal scrolling */
 body { 
