@@ -316,18 +316,34 @@
         </div>
     </div>
 	
-<script>
-    // iOS PWA rotation fix — forces Leaflet to resize correctly
-    function resizeMap() {
-        if (typeof map !== 'undefined' && map !== null) {
-            setTimeout(() => {
-                map.invalidateSize(true);
-            }, 350); // short delay required on iOS
+    <!-- iOS PWA rotation fix — improved for complete bottom-edge fill -->
+    <script>
+        function resizeMap() {
+            if (typeof map !== 'undefined' && map !== null) {
+                const mapContainer = document.getElementById('map');
+                
+                // Force exact pixel height to eliminate any remaining bottom gap
+                if (mapContainer) {
+                    mapContainer.style.height = `${window.innerHeight}px`;
+                }
+                
+                // Staggered invalidateSize calls (required for reliable iOS PWA behaviour)
+                setTimeout(() => {
+                    map.invalidateSize(true);
+                }, 200);
+                
+                setTimeout(() => {
+                    map.invalidateSize(true);
+                }, 450);
+                
+                setTimeout(() => {
+                    map.invalidateSize(true);
+                }, 700);
+            }
         }
-    }
-
-    window.addEventListener('resize', resizeMap);
-    window.addEventListener('orientationchange', resizeMap);
-</script>
+        
+        window.addEventListener('resize', resizeMap);
+        window.addEventListener('orientationchange', resizeMap);
+    </script>
 </body>
 </html>
