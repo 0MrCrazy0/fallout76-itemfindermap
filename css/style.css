@@ -28,28 +28,35 @@
     }
 }
 
-@supports (-webkit-touch-callout: none) {   /* iOS-only — completely ignored by PC and Android */
+/* ── iOS PWA FULLSCREEN FIX (only applies when installed as PWA) ── */
+/* This fixes the black right stripe WITHOUT affecting Safari */
+@media (display-mode: standalone) and (-webkit-touch-callout: none) {
     html, body {
         margin: 0 !important;
         padding: 0 !important;
         height: 100dvh !important;
         width: 100vw !important;
+        overflow: hidden !important;
         background-color: #0a2a2a !important;
-        overflow-x: hidden !important;
     }
 
-    /* Force map to true edge-to-edge fullscreen on iOS PWAs */
     #map {
         height: 100dvh !important;
         width: 100vw !important;
         margin: 0 !important;
+        padding: 0 !important;
         max-width: none !important;
         border: none !important;
         border-radius: 0 !important;
         box-shadow: none !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
     }
 
-    /* Ensure top UI elements respect the safe area (notch / Dynamic Island / status bar) */
+    /* Safe area for top UI elements (status bar / Dynamic Island) */
     h1,
     #titleToggleContainer,
     #searchBar,
@@ -57,6 +64,8 @@
     #playerNameInput,
     #xpStatus {
         padding-top: env(safe-area-inset-top) !important;
+        padding-left: env(safe-area-inset-left) !important;
+        padding-right: env(safe-area-inset-right) !important;
         margin-top: 0 !important;
     }
 }
