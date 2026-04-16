@@ -767,7 +767,7 @@ body.dark-mode .leaflet-popup-tip {
     top: -60px !important;
     left: 60px !important;
     margin: 0 !important;
-    margin-top: 70px !important;
+    margin-top: 120px !important;
     left: 10px !important;
 }
 .leaflet-control-zoom a {
@@ -1577,4 +1577,8 @@ select#itemCategory:hover {
 }
 #map {
     overscroll-behavior: none;
+}
+/* ── MOVE FULLSCREEN & CAPTURE BUTTONS DOWN TO MATCH ZOOM (100px) ── */
+.leaflet-top.leaflet-right {
+    top: 50px !important;           /* moves fullscreen toggle (🔭/✖) down */
 }
