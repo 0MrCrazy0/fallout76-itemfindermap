@@ -7,7 +7,7 @@
   "display_override": ["fullscreen", "standalone"],
   "background_color": "#0a2a2a",
   "theme_color": "#00ff00",
-  "version": "76.Vault-27",
+  "version": "76.Vault-28",
   "icons": [
     {
       "src": "/fallout76-itemfindermap/icon-192-v2.png",
