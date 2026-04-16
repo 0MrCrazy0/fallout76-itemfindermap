@@ -1583,7 +1583,7 @@ select#itemCategory:hover {
     top: 50px !important;           /* moves fullscreen toggle (🔭/✖) down */
 }
 /* ── CUSTOM IMMERSIVE MODE FOR iPHONE BROWSERS ONLY (Safari & Chrome) ── */
-/* Refined v2 — safe-area aware, smoother, screenshot button auto-visible */
+/* Refined v3 — fixes exit icon, hides pagination bar, safe-area aware */
 body.immersive-mode {
     margin: 0 !important;
     padding: 0 !important;
@@ -1624,13 +1624,15 @@ body.immersive-mode .leaflet-container {
     left: 0 !important;
 }
 
+/* Hide ALL top UI elements including the pagination bar */
 body.immersive-mode h1,
 body.immersive-mode #titleToggleContainer,
 body.immersive-mode #searchBar,
 body.immersive-mode #toolsToggleRow,
 body.immersive-mode #buttonGroup,
 body.immersive-mode #xpStatus,
-body.immersive-mode .controls {
+body.immersive-mode .controls,
+body.immersive-mode #tableContainer .pagination {
     display: none !important;
 }
 
