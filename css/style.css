@@ -1583,7 +1583,7 @@ select#itemCategory:hover {
     top: 50px !important;           /* moves fullscreen toggle (🔭/✖) down */
 }
 /* ── CUSTOM IMMERSIVE MODE FOR iPHONE BROWSERS ONLY (Safari & Chrome) ── */
-/* Final v5 — forces ✖ exit icon + shows capture button */
+/* Final v6 — forces ✖ exit icon + shows capture button */
 body.immersive-mode {
     margin: 0 !important;
     padding: 0 !important;
@@ -1630,20 +1630,16 @@ body.immersive-mode #tableContainer .pagination {
     display: none !important;
 }
 
-/* Force smooth transition */
+/* Smoother transition */
 body.immersive-mode,
 body.immersive-mode #map,
 body.immersive-mode .leaflet-container {
     transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* FORCE ✖ exit icon when immersive mode is active */
-.leaflet-control-fullscreen.immersive-active a {
-    content: "✖" !important;
-}
-.leaflet-control-fullscreen.immersive-active a::before {
-    content: "✖" !important;
-}
+/* FORCE ✖ exit icon (aggressive override) */
+.leaflet-control-fullscreen.immersive-active a,
+.leaflet-control-fullscreen.immersive-active a::before,
 .leaflet-control-fullscreen.immersive-active a::after {
     content: "✖" !important;
 }
