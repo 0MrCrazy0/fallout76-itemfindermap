@@ -5966,8 +5966,8 @@ window.addEventListener('orientationchange', () => {
 // Initial run after page loads
 setTimeout(optimiseMobileLandscape, 800);
 
-/* ── CUSTOM IMMERSIVE MODE FOR iPHONE BROWSERS ONLY (Refined v2) ── */
-/* Uses your existing helper functions — zero conflict with native fullscreen, PWA, or iPad */
+/* ── CUSTOM IMMERSIVE MODE FOR iPHONE BROWSERS ONLY (Refined v3) ── */
+/* Fixes exit icon + strengthens iPad sound unlock */
 const isIphoneBrowser = () => {
     return /iPhone/.test(navigator.userAgent) &&
            !isIOSPWA() && 
@@ -5993,7 +5993,7 @@ function toggleImmersiveMode() {
         }
     }, 50);
 
-    // Update fullscreen button icon and screenshot visibility
+    // Force correct icon on fullscreen button
     const fsContainer = fullscreenControl.getContainer();
     if (fsContainer) {
         const link = fsContainer.querySelector('a');
@@ -6014,7 +6014,6 @@ setTimeout(() => {
     const link = fsContainer.querySelector('a');
     if (!link) return;
 
-    // Remove old handler and attach refined immersive one
     L.DomEvent.off(link, 'click');
     L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
               .on(link, 'click', L.DomEvent.preventDefault)
@@ -6023,6 +6022,13 @@ setTimeout(() => {
                   toggleImmersiveMode();
               });
 }, 800);
+
+// ── Stronger iPad sound unlock (addresses the regression) ──
+if (/iPad/.test(navigator.userAgent)) {
+    setTimeout(() => {
+        unlockAudio();
+    }, 1200);
+}
 
         console.log(
     '%c╔═════════════════════════════════════════════════════════════╗\n' +
