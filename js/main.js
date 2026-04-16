@@ -5966,8 +5966,8 @@ window.addEventListener('orientationchange', () => {
 // Initial run after page loads
 setTimeout(optimiseMobileLandscape, 800);
 
-/* ── CUSTOM IMMERSIVE MODE FOR iPHONE BROWSERS ONLY (Final v6 + iPad Sound Fix) ── */
-/* Forces ✖ icon + shows capture button + restores stronger iPad sound unlock */
+/* ── CUSTOM IMMERSIVE MODE FOR iPHONE BROWSERS ONLY (Final v7 + iPad Sound Fix) ── */
+/* Forces ✖ exit icon + shows capture button + permanent iPad sound unlock */
 const isIphoneBrowser = () => {
     return /iPhone/.test(navigator.userAgent) &&
            !isIOSPWA() && 
@@ -6001,7 +6001,7 @@ function toggleImmersiveMode() {
         }
     }
 
-    // Force capture button to appear
+    // Force capture button visibility
     const ssContainer = screenshotControl.getContainer();
     if (ssContainer) {
         ssContainer.style.display = isImmersiveMode ? 'block' : 'none';
@@ -6026,9 +6026,9 @@ setTimeout(() => {
                   playSound('click');
                   toggleImmersiveMode();
               });
-}, 800);
+}, 1500);
 
-// ── Stronger iPad sound unlock (restored) ──
+// ── Permanent stronger iPad sound unlock (never removed again) ──
 if (/iPad/.test(navigator.userAgent)) {
     setTimeout(() => {
         unlockAudio();
