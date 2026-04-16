@@ -1583,7 +1583,7 @@ select#itemCategory:hover {
     top: 50px !important;           /* moves fullscreen toggle (🔭/✖) down */
 }
 /* ── CUSTOM IMMERSIVE MODE FOR iPHONE BROWSERS ONLY (Safari & Chrome) ── */
-/* Final v4 — completely hides pagination bar + forces ✖ exit icon */
+/* Final v5 — forces ✖ exit icon + shows capture button */
 body.immersive-mode {
     margin: 0 !important;
     padding: 0 !important;
@@ -1602,7 +1602,8 @@ body.immersive-mode {
     touch-action: none !important;
 }
 
-body.immersive-mode #map {
+body.immersive-mode #map,
+body.immersive-mode .leaflet-container {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
@@ -1614,19 +1615,9 @@ body.immersive-mode #map {
     border: none !important;
     border-radius: 0 !important;
     box-shadow: none !important;
-    z-index: 1 !important;
 }
 
-body.immersive-mode .leaflet-container {
-    width: 100% !important;
-    height: 100% !important;
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    z-index: 2 !important;
-}
-
-/* Hide EVERYTHING above the map + pagination bar */
+/* Hide everything above the map */
 body.immersive-mode h1,
 body.immersive-mode #titleToggleContainer,
 body.immersive-mode #searchBar,
@@ -1639,14 +1630,20 @@ body.immersive-mode #tableContainer .pagination {
     display: none !important;
 }
 
-/* Smoother transition */
+/* Force smooth transition */
 body.immersive-mode,
 body.immersive-mode #map,
 body.immersive-mode .leaflet-container {
     transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* Force exit icon to ✖ */
+/* FORCE ✖ exit icon when immersive mode is active */
+.leaflet-control-fullscreen.immersive-active a {
+    content: "✖" !important;
+}
 .leaflet-control-fullscreen.immersive-active a::before {
+    content: "✖" !important;
+}
+.leaflet-control-fullscreen.immersive-active a::after {
     content: "✖" !important;
 }
