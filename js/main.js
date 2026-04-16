@@ -5966,8 +5966,8 @@ window.addEventListener('orientationchange', () => {
 // Initial run after page loads
 setTimeout(optimiseMobileLandscape, 800);
 
-/* ── CUSTOM IMMERSIVE MODE FOR iPHONE BROWSERS ONLY (Refined v3) ── */
-/* Fixes exit icon + strengthens iPad sound unlock */
+/* ── CUSTOM IMMERSIVE MODE FOR iPHONE BROWSERS ONLY (Final v5) ── */
+/* Forces correct ✖ icon + shows capture button in immersive mode */
 const isIphoneBrowser = () => {
     return /iPhone/.test(navigator.userAgent) &&
            !isIOSPWA() && 
@@ -5986,14 +5986,12 @@ function toggleImmersiveMode() {
         body.classList.remove('immersive-mode');
     }
 
-    // Force clean map redraw
+    // Force map redraw
     setTimeout(() => {
-        if (typeof map !== 'undefined' && map) {
-            map.invalidateSize({ animate: false });
-        }
+        if (typeof map !== 'undefined' && map) map.invalidateSize({ animate: false });
     }, 50);
 
-    // Force correct icon on fullscreen button
+    // Force correct icon + show capture button
     const fsContainer = fullscreenControl.getContainer();
     if (fsContainer) {
         const link = fsContainer.querySelector('a');
@@ -6002,6 +6000,13 @@ function toggleImmersiveMode() {
             link.innerHTML = isImmersiveMode ? '✖' : '🔭';
         }
     }
+
+    // Show capture button in immersive mode
+    const ssContainer = screenshotControl.getContainer();
+    if (ssContainer) {
+        ssContainer.style.display = isImmersiveMode ? 'block' : 'none';
+    }
+
     updateFullscreenControls();
 }
 
@@ -6022,13 +6027,6 @@ setTimeout(() => {
                   toggleImmersiveMode();
               });
 }, 800);
-
-// ── Stronger iPad sound unlock (addresses the regression) ──
-if (/iPad/.test(navigator.userAgent)) {
-    setTimeout(() => {
-        unlockAudio();
-    }, 1200);
-}
 
         console.log(
     '%c╔═════════════════════════════════════════════════════════════╗\n' +
