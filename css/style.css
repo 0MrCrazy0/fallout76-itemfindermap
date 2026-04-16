@@ -1583,7 +1583,7 @@ select#itemCategory:hover {
     top: 50px !important;           /* moves fullscreen toggle (🔭/✖) down */
 }
 /* ── CUSTOM IMMERSIVE MODE FOR iPHONE BROWSERS ONLY (Safari & Chrome) ── */
-/* Refined v3 — fixes exit icon, hides pagination bar, safe-area aware */
+/* Final v4 — completely hides pagination bar + forces ✖ exit icon */
 body.immersive-mode {
     margin: 0 !important;
     padding: 0 !important;
@@ -1614,6 +1614,7 @@ body.immersive-mode #map {
     border: none !important;
     border-radius: 0 !important;
     box-shadow: none !important;
+    z-index: 1 !important;
 }
 
 body.immersive-mode .leaflet-container {
@@ -1622,9 +1623,10 @@ body.immersive-mode .leaflet-container {
     position: absolute !important;
     top: 0 !important;
     left: 0 !important;
+    z-index: 2 !important;
 }
 
-/* Hide ALL top UI elements including the pagination bar */
+/* Hide EVERYTHING above the map + pagination bar */
 body.immersive-mode h1,
 body.immersive-mode #titleToggleContainer,
 body.immersive-mode #searchBar,
@@ -1632,6 +1634,7 @@ body.immersive-mode #toolsToggleRow,
 body.immersive-mode #buttonGroup,
 body.immersive-mode #xpStatus,
 body.immersive-mode .controls,
+body.immersive-mode #tableContainer,
 body.immersive-mode #tableContainer .pagination {
     display: none !important;
 }
@@ -1643,7 +1646,7 @@ body.immersive-mode .leaflet-container {
     transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* Fullscreen button shows ✖ when immersive mode is active */
+/* Force exit icon to ✖ */
 .leaflet-control-fullscreen.immersive-active a::before {
     content: "✖" !important;
 }
