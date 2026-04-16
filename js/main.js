@@ -498,6 +498,7 @@ let currentMap = localStorage.getItem('currentMap') || 'named';
 let imageOverlay = L.imageOverlay(mapUrls[currentMap], imageBounds).addTo(map);
 
 map.fitBounds(imageBounds);
+
 L.control.zoom({ position: 'topleft' }).addTo(map);
 // Clean tap-to-close (fires only on genuine tap, NOT on drag/pan)
 map.on('click', function () {
@@ -5964,6 +5965,64 @@ window.addEventListener('orientationchange', () => {
 });
 // Initial run after page loads
 setTimeout(optimiseMobileLandscape, 800);
+
+/* ── CUSTOM IMMERSIVE MODE FOR iPHONE BROWSERS ONLY (Refined v2) ── */
+/* Uses your existing helper functions — zero conflict with native fullscreen, PWA, or iPad */
+const isIphoneBrowser = () => {
+    return /iPhone/.test(navigator.userAgent) &&
+           !isIOSPWA() && 
+           !/iPad/.test(navigator.userAgent);
+};
+
+let isImmersiveMode = false;
+
+function toggleImmersiveMode() {
+    isImmersiveMode = !isImmersiveMode;
+    const body = document.body;
+
+    if (isImmersiveMode) {
+        body.classList.add('immersive-mode');
+    } else {
+        body.classList.remove('immersive-mode');
+    }
+
+    // Force clean map redraw
+    setTimeout(() => {
+        if (typeof map !== 'undefined' && map) {
+            map.invalidateSize({ animate: false });
+        }
+    }, 50);
+
+    // Update fullscreen button icon and screenshot visibility
+    const fsContainer = fullscreenControl.getContainer();
+    if (fsContainer) {
+        const link = fsContainer.querySelector('a');
+        if (link) {
+            link.classList.toggle('immersive-active', isImmersiveMode);
+            link.innerHTML = isImmersiveMode ? '✖' : '🔭';
+        }
+    }
+    updateFullscreenControls();
+}
+
+// Extend the fullscreen button for iPhone browsers only
+setTimeout(() => {
+    if (!isIphoneBrowser()) return;
+
+    const fsContainer = fullscreenControl.getContainer();
+    if (!fsContainer) return;
+    const link = fsContainer.querySelector('a');
+    if (!link) return;
+
+    // Remove old handler and attach refined immersive one
+    L.DomEvent.off(link, 'click');
+    L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
+              .on(link, 'click', L.DomEvent.preventDefault)
+              .on(link, 'click', () => {
+                  playSound('click');
+                  toggleImmersiveMode();
+              });
+}, 800);
 
         console.log(
     '%c╔═════════════════════════════════════════════════════════════╗\n' +
