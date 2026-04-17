@@ -125,27 +125,24 @@
     }
 
     function closeAndReturn() {
-    // Keep your existing notification to the main map
     if (window.opener && typeof window.opener.postMessage === 'function') {
         window.opener.postMessage({ type: 'SUBMIT_WINDOW_CLOSED' }, '*');
     }
 
-    // Detect if we are running as a PWA
-    const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                  window.navigator.standalone === true;
+    const isStandalonePWA = window.matchMedia('(display-mode: standalone)').matches ||
+                            window.navigator.standalone === true;
 
-    if (isPWA) {
-        // On Android PWA or iOS PWA → return directly to the map (no background app)
-        window.location.href = 'index.html';
+    if (isStandalonePWA) {
+        // PWA path: navigate this window to the main map (avoids background minimisation)
+        window.location.replace('index.html');
     } else {
-        // On PC browser → try to close the tab first (your original clean behaviour)
-        try {
-            window.close();
+        // Desktop / normal browser path (restores your original working behaviour)
+        if (window.opener) window.opener.focus();
+        try { 
+            window.close(); 
         } catch(e) {}
-
-        // Fallback if the browser blocked the close
         setTimeout(() => {
-            window.location.href = 'index.html';
+            window.location.replace('index.html');
         }, 150);
     }
 }
