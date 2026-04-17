@@ -4411,7 +4411,7 @@ exportOneBtn.onclick = () => {
     closeModal(itemModal);
 };
 
-// ── SUBMIT TO COMMUNITY MAP (CLEAN — no conflicting duplicate check) ──
+// ── SUBMIT TO COMMUNITY MAP — forces normal browser tab even from installed PWA ──
 document.getElementById('submitCommunityBtn').onclick = () => {
     window.exitFullscreenThenDo(() => {
         const loc = locations[currentIndex];
@@ -4423,25 +4423,25 @@ document.getElementById('submitCommunityBtn').onclick = () => {
         const playerName = document.getElementById('playerNameInput')?.value.trim() || 'Anonymous Wastelander';
         const finalDesc = loc.desc.includes('Submitted By') ? loc.desc : `${loc.desc}\nSubmitted By ${playerName}`;
         const iconToSend = categoryIcons[loc.category] || '📝';
-const cid = loc.cid || generateCid(loc);
+        const cid = loc.cid || generateCid(loc);
 
-// ── Calculate grid (this line was missing and caused the error) ──
-const grid = typeof getGridFromLatLng === 'function'
-    ? getGridFromLatLng(loc.lat, loc.lng) || ''
-    : '';
+        const grid = typeof getGridFromLatLng === 'function'
+            ? getGridFromLatLng(loc.lat, loc.lng) || ''
+            : '';
 
-const params = new URLSearchParams({
-    lat: loc.lat,
-    lng: loc.lng,
-    category: loc.category,
-    desc: finalDesc,
-    icon: iconToSend,
-    id: loc.id,
-    cid: cid,
-    grid: grid,
-    wasCommunityKept: loc.wasCommunityKept ? 'true' : 'false'
-});
-        // Full external URL + window.open with strongest flags to force normal tab
+        const params = new URLSearchParams({
+            lat: loc.lat,
+            lng: loc.lng,
+            category: loc.category,
+            desc: finalDesc,
+            icon: iconToSend,
+            id: loc.id,
+            cid: cid,
+            grid: grid,
+            wasCommunityKept: loc.wasCommunityKept ? 'true' : 'false'
+        });
+
+        // This line forces normal tab behaviour even when launched from installed PWA
         const url = `https://0mrcrazy0.github.io/fallout76-itemfindermap/submit.html?v=${Date.now()}&${params.toString()}`;
         window.open(url, '_blank', 'noopener,noreferrer');
 
