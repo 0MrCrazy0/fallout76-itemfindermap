@@ -125,15 +125,15 @@
     }
 
     function closeAndReturn() {
-        if (window.opener && typeof window.opener.postMessage === 'function') {
-            window.opener.postMessage({ type: 'SUBMIT_WINDOW_CLOSED' }, '*');
-        }
-        if (window.opener) window.opener.focus();
-        try { window.close(); } catch(e) {}
-        setTimeout(() => {
-            window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
-        }, 150);
+    // Keep your existing notification to the main map
+    if (window.opener && typeof window.opener.postMessage === 'function') {
+        window.opener.postMessage({ type: 'SUBMIT_WINDOW_CLOSED' }, '*');
     }
+
+    // This is the fixed version — works on PC, Android, iOS, and all PWAs
+    // It returns directly to the main map without leaving the app in the background
+    window.location.href = 'index.html';
+}
 
     function cancelSubmit() {
         if (id) {
