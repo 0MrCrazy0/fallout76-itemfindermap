@@ -125,25 +125,16 @@
     }
 
     function closeAndReturn() {
-    if (window.opener && typeof window.opener.postMessage === 'function') {
-        window.opener.postMessage({ type: 'SUBMIT_WINDOW_CLOSED' }, '*');
-    }
-
-    const isStandalonePWA = window.matchMedia('(display-mode: standalone)').matches ||
-                            window.navigator.standalone === true;
-
-    if (isStandalonePWA) {
-        // Android PWA only: use relative navigation to reuse the existing app instance
-        window.location.replace('index.html');
-    } else {
-        // Exact original behaviour for PC, iOS, and Android Chrome browser
+        if (window.opener && typeof window.opener.postMessage === 'function') {
+            window.opener.postMessage({ type: 'SUBMIT_WINDOW_CLOSED' }, '*');
+        }
         if (window.opener) window.opener.focus();
         try { window.close(); } catch(e) {}
         setTimeout(() => {
             window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
         }, 150);
     }
-}
+    
     function cancelSubmit() {
         if (id) {
             let submitted = JSON.parse(localStorage.getItem('submitted_ids') || '[]');
