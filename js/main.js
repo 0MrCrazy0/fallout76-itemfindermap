@@ -4441,9 +4441,8 @@ const params = new URLSearchParams({
     grid: grid,
     wasCommunityKept: loc.wasCommunityKept ? 'true' : 'false'
 });
-
-        // Relative URL + window.open forces normal browser tab (fixes Android PWA issue)
-        const url = `submit.html?${params.toString()}`;
+        // Full external URL + window.open with strongest flags to force normal tab
+        const url = `https://0mrcrazy0.github.io/fallout76-itemfindermap/submit.html?v=${Date.now()}&${params.toString()}`;
         window.open(url, '_blank', 'noopener,noreferrer');
 
         closeModal(itemModal);
