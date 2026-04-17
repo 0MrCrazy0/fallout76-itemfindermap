@@ -130,9 +130,24 @@
         window.opener.postMessage({ type: 'SUBMIT_WINDOW_CLOSED' }, '*');
     }
 
-    // This is the fixed version — works on PC, Android, iOS, and all PWAs
-    // It returns directly to the main map without leaving the app in the background
-    window.location.href = 'index.html';
+    // Smart hybrid logic:
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                  window.navigator.standalone === true;
+
+    if (isPWA) {
+        // On Android / iOS PWA → replace the page (no background app left)
+        window.location.href = 'index.html';
+    } else {
+        // On PC browser → try to close the tab first (normal behaviour)
+        try {
+            window.close();
+        } catch(e) {}
+
+        // Fallback if close was blocked
+        setTimeout(() => {
+            window.location.replace('index.html');
+        }, 100);
+    }
 }
 
     function cancelSubmit() {
