@@ -125,9 +125,24 @@
     }
 
     function closeAndReturn() {
-    // Same clean behaviour as the "RETURN TO MAP" button in pending.html
-    sessionStorage.setItem('returnFromPending', 'true');
-    window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
+    if (window.opener && typeof window.opener.postMessage === 'function') {
+        window.opener.postMessage({ type: 'SUBMIT_WINDOW_CLOSED' }, '*');
+    }
+
+    const isStandalonePWA = window.matchMedia('(display-mode: standalone)').matches ||
+                            window.navigator.standalone === true;
+
+    if (isStandalonePWA) {
+        // Android & iOS PWA: simple navigation (same as pending.html)
+        window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
+    } else {
+        // PC, Android Chrome tab, iOS Safari: original close behaviour
+        if (window.opener) window.opener.focus();
+        try { window.close(); } catch(e) {}
+        setTimeout(() => {
+            window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
+        }, 150);
+    }
 }
 
     function cancelSubmit() {
