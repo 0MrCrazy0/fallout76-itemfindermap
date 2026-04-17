@@ -1,8 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Force normal browser tab behaviour (prevents PWA standalone mode) -->
+    <meta name="apple-mobile-web-app-capable" content="no">
+    <meta name="mobile-web-app-capable" content="no">
+
     <title>Submit to Community Map</title>
     <style>
         body { font-family: 'Courier New', monospace; background: #000000; color: #00ff00; padding: 20px; text-align: center; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
@@ -128,24 +131,11 @@
     if (window.opener && typeof window.opener.postMessage === 'function') {
         window.opener.postMessage({ type: 'SUBMIT_WINDOW_CLOSED' }, '*');
     }
-
-    // Android PWA only (strict detection – no iOS, no iPod, no Chrome tabs)
-    const isAndroid = /android/i.test(navigator.userAgent);
-    const isStandalonePWA = window.matchMedia('(display-mode: standalone)').matches ||
-                            window.navigator.standalone === true;
-
-    if (isAndroid && isStandalonePWA) {
-        // Android installed PWA: focus the main app + return inside the same instance
-        if (window.opener) window.opener.focus();
-        window.location.replace('index.html');
-    } else {
-        // Exact original behaviour for PC, Android Chrome tabs, iOS (browser or PWA), etc.
-        if (window.opener) window.opener.focus();
-        try { window.close(); } catch(e) {}
-        setTimeout(() => {
-            window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
-        }, 150);
-    }
+    if (window.opener) window.opener.focus();
+    try { window.close(); } catch(e) {}
+    setTimeout(() => {
+        window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
+    }, 150);
 }
 
     function cancelSubmit() {
