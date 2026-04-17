@@ -129,16 +129,22 @@
         window.opener.postMessage({ type: 'SUBMIT_WINDOW_CLOSED' }, '*');
     }
 
-    // PWA detection for Android and iOS only (as requested)
-    const ua = navigator.userAgent;
-    const isAndroidOrIOS = /Android/i.test(ua) || /iPhone|iPad|iPod/i.test(ua);
+    function closeAndReturn() {
+    if (window.opener && typeof window.opener.postMessage === 'function') {
+        window.opener.postMessage({ type: 'SUBMIT_WINDOW_CLOSED' }, '*');
+    }
+
+    // Strict detection: only true installed PWAs on mobile (Android or iOS)
+    const ua = navigator.userAgent.toLowerCase();
+    const isMobile = /android|iphone|ipad|ipod/i.test(ua);
     const isStandalonePWA = window.matchMedia('(display-mode: standalone)').matches ||
                             window.navigator.standalone === true;
 
-    const isPWA = isAndroidOrIOS && isStandalonePWA;
+    const isInstalledPWA = isMobile && isStandalonePWA;
 
-    if (isPWA) {
-        // All mobile PWAs (Android + iOS): use relative navigation
+    if (isInstalledPWA) {
+        // Installed PWA only: focus opener + relative navigation (prevents backgrounding & duplicates)
+        if (window.opener) window.opener.focus();
         window.location.replace('index.html');
     } else {
         // Normal browser tabs (PC, Android Chrome tab, iOS Safari tab, etc.)
@@ -147,7 +153,7 @@
         try { window.close(); } catch(e) {}
         setTimeout(() => {
             window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
-        }, 150);
+        }, 120);
     }
 }
     
