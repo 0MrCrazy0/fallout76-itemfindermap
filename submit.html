@@ -125,27 +125,15 @@
     }
 
     function closeAndReturn() {
-    if (window.opener && typeof window.opener.postMessage === 'function') {
-        window.opener.postMessage({ type: 'SUBMIT_WINDOW_CLOSED' }, '*');
-    }
-
-    const isStandalonePWA = window.matchMedia('(display-mode: standalone)').matches ||
-                            window.navigator.standalone === true;
-
-    if (isStandalonePWA) {
-        // PWA path: navigate this window to the main map (avoids background minimisation)
-        window.location.replace('index.html');
-    } else {
-        // Desktop / normal browser path (restores your original working behaviour)
+        if (window.opener && typeof window.opener.postMessage === 'function') {
+            window.opener.postMessage({ type: 'SUBMIT_WINDOW_CLOSED' }, '*');
+        }
         if (window.opener) window.opener.focus();
-        try { 
-            window.close(); 
-        } catch(e) {}
+        try { window.close(); } catch(e) {}
         setTimeout(() => {
-            window.location.replace('index.html');
-        }, 150);
+            window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
+        }, 200);
     }
-}
 
     function cancelSubmit() {
         if (id) {
