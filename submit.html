@@ -46,18 +46,18 @@
         <div id="success" style="display:none;">
             <h2 style="color:#00ff88;">Thank you!</h2>
             <p>Your marker has been submitted successfully.<br>An Administrator will review and merge it soon.</p>
-            <button onclick="closeAndReturn()" class="return-btn">Close Tab & Return to Map</button>
+            <button onclick="closeAndReturn()" class="return-btn">Close Window</button>
         </div>
         <div id="error" style="display:none;">
             <h2 style="color:#ff8888;">Submission failed</h2>
             <p id="errorMsg"></p>
             <button onclick="location.reload()">Try Again</button>
-            <button onclick="closeAndReturn()" class="return-btn" style="margin-left:10px;">Close Tab & Return to Map</button>
+            <button onclick="closeAndReturn()" class="return-btn" style="margin-left:10px;">Close Window</button>
         </div>
         <div id="warningBlock" style="display:none;">
             <h2 id="warningTitle"></h2>
             <p id="warningText"></p>
-            <button onclick="closeAndReturn()" class="return-btn">Close Tab & Return to Map</button>
+            <button onclick="closeAndReturn()" class="return-btn">Close Window</button>
         </div>
     </div>
 
@@ -147,7 +147,7 @@
         }, 150);
     }
 }
-    
+
     function cancelSubmit() {
         if (id) {
             let submitted = JSON.parse(localStorage.getItem('submitted_ids') || '[]');
