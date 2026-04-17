@@ -4441,14 +4441,11 @@ const params = new URLSearchParams({
     grid: grid,
     wasCommunityKept: loc.wasCommunityKept ? 'true' : 'false'
 });
-        const url = `https://0mrcrazy0.github.io/fallout76-itemfindermap/submit.html?v=${Date.now()}&${params.toString()}`;
-        const a = document.createElement('a');
-        a.href = url;
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+
+        // Relative URL + window.open forces normal browser tab (fixes Android PWA issue)
+        const url = `submit.html?${params.toString()}`;
+        window.open(url, '_blank', 'noopener,noreferrer');
+
         closeModal(itemModal);
         forceReload();
     });
