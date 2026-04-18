@@ -25,7 +25,7 @@
 
     <!-- ── PWA MANIFEST, ICONS & THEME COLOR ── -->
     <!-- Progressive Web App configuration with correct icon paths and theme color -->
-    <link rel="manifest" href="manifest.json?v=76.Vault-28">
+    <link rel="manifest" href="manifest.json?v=76.Vault-30">
     <link rel="icon" href="icon-192-v2.png" sizes="192x192">
     <link rel="icon" href="icon-512-v2.png" sizes="512x512">
     <link rel="apple-touch-icon" href="icon-192-v2.png">
@@ -56,15 +56,14 @@
     </div>
 
     <!-- ── CONTEXT MENU (RIGHT-CLICK / LONG-PRESS) ── -->
-    <!-- Shown when user right-clicks or long-presses the map to choose action -->
-    <div id="mapContextMenu" class="modal" style="display:none; z-index:100000;">
-        <div class="modal-content" style="max-width:360px; background:#1a3c34; border:3px solid #00ff00; box-shadow:0 0 25px #00ff00;">
-            <span class="close" style="color:#00ff00;">X</span>
-            <h2 style="text-align:center; margin:0 0 20px;">📍 Choose Action</h2>
-            <button id="contextCreateMarkerBtn" style="width:100%; margin:8px 0; background:#00ff00; color:#000; font-weight:bold;">Create Permanent Marker</button>
-            <button id="contextCreatePostcardBtn" style="width:100%; margin:8px 0; background:#00d4ff; color:#000; font-weight:bold;">Create Temporary Postcard</button>
-        </div>
+<div id="mapContextMenu" class="modal" style="display:none; z-index:100000;">
+    <div class="modal-content" style="max-width:360px; background:#1a3c34; border:3px solid #00ff00; box-shadow:0 0 25px #00ff00;">
+        <span class="close" style="color:#00ff00;">X</span>
+        <h2 style="text-align:center; margin:0 0 20px;">📍 Choose Action</h2>
+        <button id="contextCreateMarkerBtn" style="width:100%; margin:8px 0; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Create Permanent Marker</button>
+        <button id="contextCreatePostcardBtn" style="width:100%; margin:8px 0; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Create Temporary Postcard</button>
     </div>
+</div>
 
     <!-- ── SEARCH BAR ── -->
     <!-- Combined search, category filter, and category toggle controls -->
@@ -226,12 +225,12 @@
         </p>
         
         <div style="text-align:center; margin:15px 0;">
-            <button onclick="window.location.href = '/fallout76-itemfindermap/pending.html';"
-                style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00;
-                       padding:12px 32px; font-size:1.1em; font-weight:bold; cursor:pointer;">
-            View Pending Community Submissions
-            </button>
-        </div>
+    <button onclick="window.location.href = '/fallout76-itemfindermap/pending.html';"
+        style="background:#5E99F7 !important; color:#000000 !important; border:2px solid #5E99F7;
+               padding:12px 32px; font-size:1.1em; font-weight:bold; cursor:pointer;">
+    View Pending Community Submissions
+    </button>
+</div>
         
         <p style="margin-top:20px; text-align:center; font-size:1.0em; color:#88ff88;">
             <strong>Backup Recommendation:</strong> Use “Export Markers” regularly.<br>
@@ -265,20 +264,20 @@
     </div>
 
     <!-- ── CATEGORY TOGGLE MODAL ── -->
-    <div id="categoryToggleModal" class="modal">
-        <div class="modal-content">
-            <span class="close">X</span>
-            <h2>Toggle Categories</h2>
-            <div style="margin-bottom:10px; text-align:center;">
-                <button id="selectAllBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Select All</button>
-    <button id="deselectAllBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Deselect All</button>
-    <button id="createCategoryBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Create Category</button>
-    <button id="deleteCategoryBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Delete Category</button>
-            </div>
-            <div id="categoryCheckboxes"></div>
-            <button id="closeCategoryToggleBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Close</button>
+<div id="categoryToggleModal" class="modal">
+    <div class="modal-content">
+        <span class="close">X</span>
+        <h2>Toggle Categories</h2>
+        <div style="margin-bottom:10px; text-align:center;">
+            <button id="selectAllBtn" style="border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Select All</button>
+            <button id="deselectAllBtn" style="border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Deselect All</button>
+            <button id="createCategoryBtn" style="border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Create Category</button>
+            <button id="deleteCategoryBtn" style="border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Delete Category</button>
         </div>
+        <div id="categoryCheckboxes"></div>
+        <button id="closeCategoryToggleBtn" style="border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Close</button>
     </div>
+</div>
 
     <!-- ── CREATE NEW CATEGORY MODAL ── -->
     <div id="createCategoryModal" class="modal">
