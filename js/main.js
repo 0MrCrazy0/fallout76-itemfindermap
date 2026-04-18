@@ -1,4 +1,4 @@
-const CURRENT_APP_VERSION = '76.Vault-28';
+const CURRENT_APP_VERSION = '76.Vault-30';
 
 // ── Core version identifier — change this single value to bump the entire app version ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -555,7 +555,17 @@ fullscreenControl.onAdd = function(map) {
     link.title = 'Toggle fullscreen';
     link.innerHTML = '🔭';
     link.style.cssText = `display:block;width:34px;height:34px;line-height:34px;text-align:center;font-size:20px;background:#1a3c34;color:#00ff00;border:none;box-shadow:0 0 8px #00ff00;cursor:pointer;`;
+;
+    link.onmouseover = () => {
+        link.style.background = '#00ff00';
+        link.style.color = '#000';
 
+    };
+    link.onmouseout = () => {
+        link.style.background = '#1a3c34';
+        link.style.color = '#00ff00';
+
+    };
     L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
               .on(link, 'click', L.DomEvent.preventDefault)
               .on(link, 'click', () => {
@@ -597,12 +607,12 @@ screenshotControl.onAdd = function(map) {
     link.onmouseover = () => {
         link.style.background = '#00ff00';
         link.style.color = '#000';
-        link.style.boxShadow = '0 0 12px #00ff88, 0 0 20px #00ff00';
+
     };
     link.onmouseout = () => {
         link.style.background = '#1a3c34';
         link.style.color = '#00ff00';
-        link.style.boxShadow = '0 0 8px #00ff00';
+
     };
     L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
               .on(link, 'click', L.DomEvent.preventDefault)
@@ -924,7 +934,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-28-16-04-2026-Build-28"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-30-18-04-2026-Build-30"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -6050,7 +6060,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • CURRENT_APP_VERSION = 76.Vault-28 • 16-04-2026 • Made with ❤️\n' +
+    'Last updated: • CURRENT_APP_VERSION = 76.Vault-30 • 18-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
