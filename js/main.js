@@ -547,7 +547,7 @@ document.addEventListener('fullscreenchange', forceMapRender);
 document.addEventListener('webkitfullscreenchange', forceMapRender);
 
 // ── FULLSCREEN TOGGLE (🔭 button) — now uses unified manager
-const fullscreenControl = L.control({ position: 'topright' });
+const fullscreenControl = L.control({ position: 'topleft' });
 fullscreenControl.onAdd = function(map) {
     const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
     const link = L.DomUtil.create('a', '', container);
@@ -592,7 +592,7 @@ fullscreenControl.onAdd = function(map) {
 fullscreenControl.addTo(map);
 
 // ── Screenshot Button (📸) — only visible in fullscreen ──
-const screenshotControl = L.control({ position: 'topright' });
+const screenshotControl = L.control({ position: 'topleft' });
 screenshotControl.onAdd = function(map) {
     const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
     const link = L.DomUtil.create('a', '', container);
