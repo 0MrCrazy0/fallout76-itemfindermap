@@ -42,26 +42,6 @@
         touch-action: none !important;
     }
 
-    /* Height control only – width, margin, border and position remain from your #map rule */
-    /* (this preserves the exact styling that eliminates the blue line on iOS) */
-
-    @media (orientation: portrait) {
-        #map {
-            height: 100dvh !important;
-            min-height: 100dvh !important;
-            max-height: none !important;
-        }
-    }
-
-    @media (orientation: landscape) {
-        #map {
-            height: 74vh !important;
-            min-height: 74vh !important;
-            max-height: 74vh !important;
-            margin-bottom: 0 !important;   /* removes bottom margin in landscape */
-        }
-    }
-
     #map {
         position: fixed !important;
         top: 0 !important;
@@ -122,10 +102,10 @@ h1 {
 
 /* ── MAP CONTAINER ── */
 #map {
-    height: 550px;
+    height: 750px;
 	margin: 0 auto 20px;
-    max-width: 98%;
-    width: 98%;
+    max-width: 100% !important;
+    width: 100% !important;
     border: 2px solid #00ff00;
     box-shadow: 0 0 10px #00ff00;
     background-color: #000000;
@@ -134,8 +114,8 @@ h1 {
 }
 
 .leaflet-container {
-    max-width: 98%;
-    width: 98%;
+    max-width: 100% !important;
+    width: 100% !important;
     box-shadow: none !important;
     touch-action: none !important;
 }
