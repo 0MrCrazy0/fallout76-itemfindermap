@@ -1662,32 +1662,68 @@ button[onclick*="pending.html"],
     width: 30px !important;
     height: 30px !important;
 }
-/* ── TOP-LEFT CONTROLS GROUP — SHIFTED DOWN FROM TOP EDGE ── */
+/* ── TOP-LEFT CONTROLS — UNIFIED SIZE + NO DOUBLE BORDER ── */
 .leaflet-top.leaflet-left {
-    top: 55px !important;     /* ← Increase this value to move the entire group (Zoom + Fullscreen + Capture) further down */
+    top: 55px !important;
     left: 10px !important;
 }
 
-/* Zoom controls */
+/* All three buttons now identical: same size, clean green border, rounded corners */
+.leaflet-control-zoom a,
+.leaflet-control-fullscreen a,
+.leaflet-control-capture a {
+    background-color: #1a3c34 !important;
+    color: #00ff00 !important;
+    border: 2px solid #00ff00 !important;
+    border-radius: 6px !important;
+    width: 34px !important;
+    height: 34px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 20px !important;
+    box-shadow: none !important;          /* eliminates any extra glow or shadow */
+    transition: all 0.25s ease !important;
+}
+
+/* Remove Leaflet’s default container borders (this was the faint dark second border) */
+.leaflet-control-zoom,
+.leaflet-control-fullscreen,
+.leaflet-control-capture,
+.leaflet-bar {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+/* Hover state — consistent soft green glow on all buttons */
+.leaflet-control-zoom a:hover,
+.leaflet-control-fullscreen a:hover,
+.leaflet-control-capture a:hover {
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+}
+
+/* Vertical spacing between the button groups */
 .leaflet-control-zoom {
-    margin-top: 0 !important;
     margin-bottom: 8px !important;
 }
 
-/* Fullscreen button (🔭 / ✖) sits directly under Zoom */
-.leaflet-control:nth-child(2) {
+.leaflet-control-fullscreen,
+.leaflet-control-capture {
     margin-top: 6px !important;
 }
 
-/* Capture button (📸) sits directly under Fullscreen */
-.leaflet-control:nth-child(3) {
-    margin-top: 6px !important;
+/* Hide duplicate fullscreen button on the right side */
+.leaflet-top.leaflet-right .leaflet-control-fullscreen {
+    display: none !important;
 }
 
-/* Clean spacing on mobile */
+/* Clean mobile spacing */
 @media (max-width: 768px) {
-    .leaflet-control:nth-child(2),
-    .leaflet-control:nth-child(3) {
-        margin-top: 4px !important;
+    .leaflet-control-fullscreen,
+    .leaflet-control-capture {
+        margin-top: 5px !important;
     }
 }
