@@ -26,14 +26,14 @@
     }
 }
 
-/* ── FINAL iOS PWA FULLSCREEN FIX (portrait + rotation safe) ── */
+/* ── CUSTOM IMMERSIVE / PWA FULLSCREEN MODE (iOS) ── */
 @media (display-mode: standalone) and (-webkit-touch-callout: none) {
     html, body {
         margin: 0 !important;
         padding: 0 !important;
         width: 100vw !important;
         height: 100dvh !important;
-        min-height: 70dvh !important;
+        min-height: 100dvh !important;
         overflow: hidden !important;
         position: fixed !important;
         top: 0 !important;
@@ -42,21 +42,38 @@
         touch-action: none !important;
     }
 
+    /* MAP – edge-to-edge on iOS PWA (fixes the blue line) */
     #map {
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
-        width: 100vw !important;
-        height: 100dvh !important;
-        min-height: 70dvh !important;
+        right: 0 !important;           /* ← critical for iOS */
+        width: auto !important;        /* ← critical for iOS */
         margin: 0 !important;
         padding: 0 !important;
-        max-width: none !important;
-        max-height: none !important;
-        border: none !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
+        border: 2px solid #00ff00 !important;
+        box-shadow: 0 0 10px #00ff00 !important;
+        background-color: #000000 !important;
         overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Portrait: full height */
+    @media (orientation: portrait) {
+        #map {
+            height: 100dvh !important;
+            min-height: 100dvh !important;
+            max-height: none !important;
+        }
+    }
+
+    /* Landscape: allow JS to set reduced height (74vh etc.) */
+    @media (orientation: landscape) {
+        #map {
+            height: auto !important;
+            min-height: auto !important;
+            max-height: none !important;
+        }
     }
 
     .leaflet-container {
@@ -69,12 +86,9 @@
         padding: 0 !important;
     }
 
-    h1,
-    #titleToggleContainer,
-    #searchBar,
-    #toolsToggleRow,
-    #playerNameInput,
-    #xpStatus {
+    /* Safe-area padding for UI overlays */
+    h1, #titleToggleContainer, #searchBar, #toolsToggleRow,
+    #playerNameInput, #xpStatus {
         padding-top: env(safe-area-inset-top) !important;
         padding-left: env(safe-area-inset-left) !important;
         padding-right: env(safe-area-inset-right) !important;
