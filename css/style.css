@@ -681,13 +681,6 @@ body.dark-mode .leaflet-popup-tip {
 }
 
 /* ── ZOOM CONTROL ── */
-.leaflet-control-zoom {
-    top: -60px !important;
-    left: 60px !important;
-    margin: 0 !important;
-    margin-top: 120px !important;
-    left: 10px !important;
-}
 .leaflet-control-zoom a {
     background-color: #000000 !important;
     color: #00ff00 !important;
@@ -1464,11 +1457,6 @@ select#itemCategory:hover {
 #map {
     overscroll-behavior: none;
 }
-/* ── MOVE FULLSCREEN & CAPTURE BUTTONS DOWN TO MATCH ZOOM (100px) ── */
-.leaflet-top.leaflet-right {
-    top: 50px !important;
-}
-
 /* ── CUSTOM IMMERSIVE MODE FOR iPHONE BROWSERS ONLY ── */
 body.immersive-mode {
     margin: 0 !important;
@@ -1673,4 +1661,33 @@ button[onclick*="pending.html"],
     font-size: 20px !important;         /* slightly larger for better visual balance */
     width: 30px !important;
     height: 30px !important;
+}
+/* ── TOP-LEFT CONTROLS GROUP — SHIFTED DOWN FROM TOP EDGE ── */
+.leaflet-top.leaflet-left {
+    top: 55px !important;     /* ← Increase this value to move the entire group (Zoom + Fullscreen + Capture) further down */
+    left: 10px !important;
+}
+
+/* Zoom controls */
+.leaflet-control-zoom {
+    margin-top: 0 !important;
+    margin-bottom: 8px !important;
+}
+
+/* Fullscreen button (🔭 / ✖) sits directly under Zoom */
+.leaflet-control:nth-child(2) {
+    margin-top: 6px !important;
+}
+
+/* Capture button (📸) sits directly under Fullscreen */
+.leaflet-control:nth-child(3) {
+    margin-top: 6px !important;
+}
+
+/* Clean spacing on mobile */
+@media (max-width: 768px) {
+    .leaflet-control:nth-child(2),
+    .leaflet-control:nth-child(3) {
+        margin-top: 4px !important;
+    }
 }
