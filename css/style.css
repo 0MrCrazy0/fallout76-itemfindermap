@@ -33,7 +33,7 @@
         padding: 0 !important;
         width: 100vw !important;
         height: 100dvh !important;
-        min-height: 100dvh !important;
+        min-height: 70dvh !important;
         overflow: hidden !important;
         position: fixed !important;
         top: 0 !important;
@@ -48,7 +48,7 @@
         left: 0 !important;
         width: 100vw !important;
         height: 100dvh !important;
-        min-height: 80dvh !important;
+        min-height: 70dvh !important;
         margin: 0 !important;
         padding: 0 !important;
         max-width: none !important;
