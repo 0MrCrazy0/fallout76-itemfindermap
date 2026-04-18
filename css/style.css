@@ -26,8 +26,8 @@
     }
 }
 
-/* ── CUSTOM IMMERSIVE / PWA FULLSCREEN MODE (iOS & ANDROID) ── */
-@media (display-mode: standalone) {
+/* ── FINAL iOS PWA FULLSCREEN FIX (portrait + rotation safe) ── */
+@media (display-mode: standalone) and (-webkit-touch-callout: none) {
     html, body {
         margin: 0 !important;
         padding: 0 !important;
@@ -35,7 +35,6 @@
         height: 100dvh !important;
         min-height: 100dvh !important;
         overflow: hidden !important;
-        overflow-x: hidden !important;
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
@@ -43,24 +42,21 @@
         touch-action: none !important;
     }
 
-    /* Height control only – width, margin, border and position remain from your #map rule */
-    /* (this preserves the exact styling that eliminates the blue line on iOS) */
-
-    @media (orientation: portrait) {
-        #map {
-            height: 100dvh !important;
-            min-height: 100dvh !important;
-            max-height: none !important;
-        }
-    }
-
-    @media (orientation: landscape) {
-        #map {
-            height: 74vh !important;
-            min-height: 74vh !important;
-            max-height: 74vh !important;
-            margin-bottom: 0 !important;   /* removes bottom margin in landscape */
-        }
+    #map {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100dvh !important;
+        min-height: 100dvh !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+        max-height: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        overflow: hidden !important;
     }
 
     .leaflet-container {
@@ -73,9 +69,12 @@
         padding: 0 !important;
     }
 
-    /* Safe-area padding for UI elements (works on both iOS and Android) */
-    h1, #titleToggleContainer, #searchBar, #toolsToggleRow,
-    #playerNameInput, #xpStatus {
+    h1,
+    #titleToggleContainer,
+    #searchBar,
+    #toolsToggleRow,
+    #playerNameInput,
+    #xpStatus {
         padding-top: env(safe-area-inset-top) !important;
         padding-left: env(safe-area-inset-left) !important;
         padding-right: env(safe-area-inset-right) !important;
@@ -103,10 +102,10 @@ h1 {
 
 /* ── MAP CONTAINER ── */
 #map {
-    height: 750px;
+    height: 550px;
 	margin: 0 auto 20px;
-    max-width: 100% !important;
-    width: 100% !important;
+    max-width: 98%;
+    width: 98%;
     border: 2px solid #00ff00;
     box-shadow: 0 0 10px #00ff00;
     background-color: #000000;
@@ -115,8 +114,8 @@ h1 {
 }
 
 .leaflet-container {
-    max-width: 100% !important;
-    width: 100% !important;
+    max-width: 98%;
+    width: 98%;
     box-shadow: none !important;
     touch-action: none !important;
 }
