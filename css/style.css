@@ -27,7 +27,6 @@
 }
 
 /* ── FINAL iOS PWA FULLSCREEN FIX (portrait + rotation safe) ── */
-/* ── CUSTOM IMMERSIVE / PWA FULLSCREEN MODE (iOS) – Revised for right-edge gap ── */
 @media (display-mode: standalone) and (-webkit-touch-callout: none) {
     html, body {
         margin: 0 !important;
@@ -36,7 +35,6 @@
         height: 100dvh !important;
         min-height: 100dvh !important;
         overflow: hidden !important;
-        overflow-x: hidden !important;        /* ← extra protection against right gap */
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
@@ -44,36 +42,21 @@
         touch-action: none !important;
     }
 
-    /* MAP – edge-to-edge using inset (most reliable on iOS PWA) */
     #map {
         position: fixed !important;
-        inset: 0 !important;                    /* top/right/bottom/left = 0 */
+        top: 0 !important;
+        left: 0 !important;
         width: 100vw !important;
+        height: 100dvh !important;
+        min-height: 100dvh !important;
         margin: 0 !important;
         padding: 0 !important;
-        border: 2px solid #00ff00 !important;
-        box-shadow: 0 0 10px #00ff00 !important;
-        background-color: #000000 !important;
+        max-width: none !important;
+        max-height: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
         overflow: hidden !important;
-        box-sizing: border-box !important;
-    }
-
-    /* Portrait: full height */
-    @media (orientation: portrait) {
-        #map {
-            height: 100dvh !important;
-            min-height: 100dvh !important;
-            max-height: none !important;
-        }
-    }
-
-    /* Landscape: allow your JS (optimiseMobileLandscape) to set 74vh */
-    @media (orientation: landscape) {
-        #map {
-            height: auto !important;
-            min-height: auto !important;
-            max-height: none !important;
-        }
     }
 
     .leaflet-container {
@@ -86,9 +69,12 @@
         padding: 0 !important;
     }
 
-    /* Safe-area padding for UI elements */
-    h1, #titleToggleContainer, #searchBar, #toolsToggleRow,
-    #playerNameInput, #xpStatus {
+    h1,
+    #titleToggleContainer,
+    #searchBar,
+    #toolsToggleRow,
+    #playerNameInput,
+    #xpStatus {
         padding-top: env(safe-area-inset-top) !important;
         padding-left: env(safe-area-inset-left) !important;
         padding-right: env(safe-area-inset-right) !important;
