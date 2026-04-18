@@ -5,27 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Submit to Community Map</title>
     <style>
-        body { font-family: 'Courier New', monospace; background: #000000; color: #00ff00; padding: 20px; text-align: center; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .container { max-width: 460px; margin: 0 auto; background: #1a3c34; padding: 30px 25px; border: 2px solid #00ff00; box-shadow: 0 0 20px #00ff00; }
-        h1 { margin: 0 0 20px; text-shadow: 0 0 10px #00ff00; }
-        p { line-height: 1.5; color: #00ff00; }
-        label { display: block; margin: 15px 0 5px; font-weight: bold; color: #00ff88; }
-        input { width: 100%; padding: 10px; background: #000; color: #00ff00; border: 2px solid #00ff00; font-family: inherit; font-size: 1em; box-sizing: border-box; }
-        button { margin-top: 20px; padding: 14px 32px; background: #00ff00; color: #000; border: none; font-weight: bold; font-size: 1.2em; cursor: pointer; box-shadow: 0 0 12px #00ff00; }
-        button:hover { background: #00cc00; }
-        .cancel-btn { background: #ff4444; color: #fff; }
-        .cancel-btn:hover { background: #cc0000; }
-        .return-btn { background: #00ff88; color: #000; padding: 14px 32px; font-size: 1.2em; font-weight: bold; margin-top: 25px; }
-        #success, #error, #warningBlock { margin-top: 25px; padding: 20px; border: 2px solid; border-radius: 4px; }
-        #success { background: rgba(0,255,0,0.15); border-color: #00ff00; }
-        #error { background: rgba(255,0,0,0.15); border-color: #ff4444; color: #ff8888; }
-        #warningBlock { background: rgba(255,204,0,0.15); border-color: #ffcc00; color: #ffcc00; }
-        #submitLoadingOverlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; align-items: center; justify-content: center; flex-direction: column; color: #00ff00; font-size: 1.4em; text-shadow: 0 0 10px #00ff00; }
-        #submitLoadingOverlay.show { display: flex; }
-        .spinner { width: 60px; height: 60px; border: 6px solid #00ff00; border-top: 6px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .button-row { display: flex; justify-content: center; gap: 15px; margin-top: 20px; flex-wrap: wrap; }
-    </style>
+    body { font-family: 'Courier New', monospace; background: #000000; color: #00ff00; padding: 20px; text-align: center; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .container { max-width: 460px; margin: 0 auto; background: #1a3c34; padding: 30px 25px; border: 2px solid #00ff00; box-shadow: 0 0 20px #00ff00; }
+    h1 { margin: 0 0 20px; text-shadow: 0 0 20px #00ff00; }
+    p { line-height: 1.5; color: #00ff00; }
+    label { display: block; margin: 15px 0 5px; font-weight: bold; color: #00ff88; }
+    input { width: 100%; padding: 10px; background: #000; color: #00ff00; border: 2px solid #00ff00; font-family: inherit; font-size: 1em; box-sizing: border-box; border-radius: 6px; }
+    button { 
+        margin-top: 20px; 
+        padding: 14px 32px; 
+        background: #00ff00; 
+        color: #000; 
+        border: none; 
+        font-weight: bold; 
+        font-size: 1.2em; 
+        cursor: pointer; 
+        box-shadow: 0 0 6px #00ff00; 
+        border-radius: 6px; 
+    }
+    button:hover { background: #00cc00; }
+    .cancel-btn { 
+        background: #ff4444; 
+        color: #fff; 
+        border-radius: 6px; 
+    }
+    .cancel-btn:hover { background: #cc0000; }
+    .return-btn { 
+        background: #00ff88; 
+        color: #000; 
+        padding: 14px 32px; 
+        font-size: 1.2em; 
+        font-weight: bold; 
+        margin-top: 25px; 
+        border-radius: 6px; 
+    }
+    #success, #error, #warningBlock { margin-top: 25px; padding: 20px; border: 2px solid; border-radius: 6px; }
+    #success { background: rgba(0,255,0,0.15); border-color: #00ff00; }
+    #error { background: rgba(255,0,0,0.15); border-color: #ff4444; color: #ff8888; }
+    #warningBlock { background: rgba(255,204,0,0.15); border-color: #ffcc00; color: #ffcc00; }
+    #submitLoadingOverlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; align-items: center; justify-content: center; flex-direction: column; color: #00ff00; font-size: 1.4em; text-shadow: 0 0 10px #00ff00; }
+    #submitLoadingOverlay.show { display: flex; }
+    .spinner { width: 60px; height: 60px; border: 6px solid #00ff00; border-top: 6px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .button-row { display: flex; justify-content: center; gap: 15px; margin-top: 20px; flex-wrap: wrap; }
+</style>
 </head>
 <body>
     <div class="container">
@@ -48,18 +71,17 @@
             <p>Your marker has been submitted successfully.<br>An Administrator will review and merge it soon.</p>
             <button onclick="closeAndReturn()" class="return-btn">Close Window</button>
         </div>
-        <div id="error" style="display:none;">
+                <div id="error" style="display:none;">
             <h2 style="color:#ff8888;">Submission failed</h2>
             <p id="errorMsg"></p>
-            <button onclick="location.reload()">Try Again</button>
-            <button onclick="closeAndReturn()" class="return-btn" style="margin-left:10px;">Close Window</button>
+            <button onclick="location.reload()" class="return-btn">Try Again</button>
+            <button onclick="closeAndReturn()" class="cancel-btn">Close Window</button>
         </div>
         <div id="warningBlock" style="display:none;">
             <h2 id="warningTitle"></h2>
             <p id="warningText"></p>
-            <button onclick="closeAndReturn()" class="return-btn">Close Window</button>
+            <button onclick="closeAndReturn()" class="cancel-btn">Close Window</button>
         </div>
-    </div>
 
     <div id="submitLoadingOverlay">
         <div class="spinner"></div>
