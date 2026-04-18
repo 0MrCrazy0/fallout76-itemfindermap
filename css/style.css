@@ -1,13 +1,11 @@
 /* ── FALLOUT 76 ITEM FINDER MAP ── */
- /* ── MOBILE GRID + NO-CLUSTER FLICKER (Low-Zoom Focused) ── */
- /* Optimised grid visibility and performance specifically for touch devices at low zoom levels */
+/* ── MOBILE GRID + NO-CLUSTER FLICKER (Low-Zoom Focused) ── */
 @media (hover: none) and (pointer: coarse) {
     .grid-line {
         opacity: 0.06 !important;
         stroke-width: 0.6px !important;
     }
 
-    /* Extra low-zoom stability — reduces repaint thrashing at full zoom-out */
     .leaflet-zoom--3 .grid-line,
     .leaflet-zoom--2 .grid-line,
     .leaflet-zoom--1 .grid-line,
@@ -86,7 +84,6 @@
 }
 
 /* ── GLOBAL BODY STYLES ── */
-/* Core terminal/Pip-Boy aesthetic with restricted horizontal scrolling */
 body { 
     font-family: 'Courier New', monospace; 
     margin: 20px; 
@@ -95,12 +92,10 @@ body {
     overflow-x: hidden; 
 }
 
-/* ── MAIN TITLE ── */
-/* Strong glowing title to match Fallout branding */
 h1 {
     color: #00ff00;
     text-align: center;
-    text-shadow: 0 0 10px #00ff00;
+    text-shadow: 0 0 20px #00ff00;
     font-size: 2.2em;
     margin-bottom: 12px;
 }
@@ -109,7 +104,7 @@ h1 {
 #map {
     height: 750px;
 	margin: 0 auto 20px;
-    max-width: 100% !important;      /* Forces Leaflet to respect the wrapper */
+    max-width: 100% !important;
     width: 100% !important;
     border: 2px solid #00ff00;
     box-shadow: 0 0 10px #00ff00;
@@ -118,7 +113,6 @@ h1 {
     box-sizing: border-box;
 }
 
-/* Extra Leaflet safeguards */
 .leaflet-container {
     max-width: 100% !important;
     width: 100% !important;
@@ -126,12 +120,7 @@ h1 {
     touch-action: none !important;
 }
 
-#map-wrapper {
-    touch-action: pan-y !important;
-}
-
 /* ── TITLE TOGGLE ── */
-/* Button to collapse/expand the main title bar */
 #titleToggleContainer {
     text-align: center;
     margin-bottom: 8px;
@@ -153,7 +142,6 @@ h1 {
 }
 
 /* ── SEARCH BAR ── */
-/* Responsive search and filter controls */
 #searchBar {
     display: flex;
     align-items: center;
@@ -190,7 +178,6 @@ h1 {
 }
 
 /* ── MAIN BUTTON GROUP ── */
-/* Grid of primary action buttons */
 #buttonGroup {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -249,7 +236,7 @@ input[type="text"], select, textarea {
     max-width: 200px;
     box-sizing: border-box;
     border: 2px solid #00ff00;
-    border-radius: 0;
+    border-radius: 6px;
     background-color: #000;
     color: #00ff00;
     font-family: 'Courier New', monospace;
@@ -310,6 +297,75 @@ button.reset-btn {
     font-weight: 700;
 }
 
+/* ── NICE GREEN GLOW ONLY (no scale, no extra intense glow) ── */
+button:hover,
+#buttonGroup button:hover,
+#toggleButtonGroup:hover,
+#toggleCategoryModalBtn:hover,
+#prevPageBtn:hover,
+#nextPageBtn:hover,
+#selectAllBtn:hover,
+#deselectAllBtn:hover,
+#createCategoryBtn:hover,
+#deleteCategoryBtn:hover,
+#closeCategoryToggleBtn:hover,
+#saveCategoryBtn:hover,
+#createPostcardBtn:hover,
+#confirmDeleteCategoryBtn:hover,
+#itemModal button:hover,
+#contextCreateMarkerBtn:hover,
+#contextCreatePostcardBtn:hover,
+.leaflet-control-zoom a:hover,
+.leaflet-popup button:hover,
+#downloadCommunityBtn:hover,
+#voiceSearchBtn:hover,
+#lockAllBtn:hover,
+#toggleClusterBtn:hover,
+#toggleMapBtn:hover,
+#toggleGridBtn:hover,
+#toggleSoundsBtn:hover,
+#toggleDarkModeBtn:hover,
+#toggleMyMarkersBtn:hover,
+#howToUseBtn:hover,
+#nukeCodesBtn:hover,
+#exportJsonBtn:hover,
+#importBtn:hover,
+#saveMapJpegBtn:hover,
+#undoImportBtn:hover,
+#undoDeleteBtn:hover,
+#clearSearchBtn:hover,
+#toggleTitleBtn:hover,
+#resetAppBtn:hover,
+#confirmModalBtn:hover,
+#updateGotIt:hover,
+#proceedWipeBtn:hover,
+#cancelSafetyBtn:hover,
+#backupPersonalOnly:hover,
+#backupWithKept:hover,
+#saveItemBtn:hover,
+#shareItemBtn:hover,
+#exportOneBtn:hover,
+#shareOneBtn:hover,
+#duplicateItemBtn:hover,
+#deleteItemBtn:hover,
+#submitCommunityBtn:hover {
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+    box-shadow: 0 0 15px #00ff88 !important;
+    transform: none !important;
+    filter: none !important;
+    animation: none !important;
+}
+
+/* Dark mode hover — consistent nice glow */
+body.dark-mode button:hover,
+body.dark-mode #buttonGroup button:hover,
+body.dark-mode #toggleButtonGroup:hover {
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+    box-shadow: 0 0 15px #00ff88 !important;
+}
+
 /* ── LOCK TOGGLE ── */
 #modalLockToggle, .popup-lock-toggle {
     color: #ffa500;
@@ -337,32 +393,6 @@ button.reset-btn {
 .text-marker {
     transition: transform 0.1s ease-out, opacity 0.1s ease-out;
     will-change: transform;
-}
-
-/* ── DELETE CATEGORY BUTTON HOVER GLOW ── */
-#confirmDeleteCategoryBtn,
-#confirmDeleteCategoryBtn:hover,
-#confirmDeleteCategoryBtn:focus-visible {
-    transition: all 0.25s ease !important;
-}
-#confirmDeleteCategoryBtn:hover,
-#confirmDeleteCategoryBtn:focus-visible {
-    background-color: #00ff00 !important;
-    color: #000000 !important;
-    box-shadow:
-        0 0 12px #ffffff,
-        0 0 24px #00ff88,
-        0 0 36px #00ff00 !important;
-    transform: scale(1.06) !important;
-    filter: brightness(1.15) !important;
-}
-body.dark-mode #confirmDeleteCategoryBtn:hover,
-body.dark-mode #confirmDeleteCategoryBtn:focus-visible {
-    box-shadow:
-        0 0 16px #ffffff,
-        0 0 32px #00ff88,
-        0 0 48px #00ff00 !important;
-    transform: scale(1.06) !important;
 }
 
 /* ── LEAFLET MARKER PERFORMANCE ── */
@@ -457,9 +487,9 @@ body.dark-mode #confirmDeleteCategoryBtn:focus-visible {
     word-break: break-word !important;
     overflow-wrap: break-word !important;
 }
-#locationsTable tbody td:nth-child(1) { flex: 0.6; } /* Lock */
-#locationsTable tbody td:nth-child(2) { flex: 0.9; } /* Icon */
-#locationsTable tbody td:nth-child(3) { flex: 1.5; } /* Category */
+#locationsTable tbody td:nth-child(1) { flex: 0.6; }
+#locationsTable tbody td:nth-child(2) { flex: 0.9; }
+#locationsTable tbody td:nth-child(3) { flex: 1.5; }
 #locationsTable tbody td:nth-child(4) {
     flex: 3;
     justify-content: flex-start !important;
@@ -636,118 +666,6 @@ body.dark-mode h2 {
     color: #00ff00 !important;
 }
 
-/* ── BUTTON HOVER EFFECTS ── */
-body.dark-mode button,
-body.dark-mode #toggleButtonGroup,
-body.dark-mode #buttonGroup button {
-    box-shadow: none !important;
-    transition: background-color 0.2s ease;
-}
-body.dark-mode button:hover,
-body.dark-mode #toggleButtonGroup:hover,
-body.dark-mode #buttonGroup button:hover {
-    background-color: #00ff00 !important;
-    color: #000000 !important;
-    box-shadow: none !important; /* removed the bright glow */
-}
-
-/* ── CONSISTENT HOVER GLOW FOR REMAINING BUTTONS ── */
-#toggleCategoryModalBtn,
-#prevPageBtn,
-#nextPageBtn,
-#toggleCategoryModalBtn:hover,
-#prevPageBtn:hover,
-#nextPageBtn:hover,
-#toggleCategoryModalBtn:focus-visible,
-#prevPageBtn:focus-visible,
-#nextPageBtn:focus-visible {
-    transition: all 0.25s ease !important;
-}
-#toggleCategoryModalBtn:hover,
-#prevPageBtn:hover,
-#nextPageBtn:hover,
-#toggleCategoryModalBtn:focus-visible,
-#prevPageBtn:focus-visible,
-#nextPageBtn:focus-visible {
-    background-color: #00ff00 !important;
-    color: #000000 !important;
-    box-shadow:
-        0 0 12px #00ff88,
-        0 0 20px #00ff00 !important;
-    transform: scale(1.04) !important;
-    filter: brightness(1.1) !important;
-}
-body.dark-mode #toggleCategoryModalBtn:hover,
-body.dark-mode #prevPageBtn:hover,
-body.dark-mode #nextPageBtn:hover,
-body.dark-mode #toggleCategoryModalBtn:focus-visible,
-body.dark-mode #prevPageBtn:focus-visible,
-body.dark-mode #nextPageBtn:focus-visible {
-    box-shadow:
-        0 0 16px #00ff88,
-        0 0 28px #00ff00 !important;
-    transform: scale(1.05) !important;
-}
-
-/* ── CATEGORY & POSTCARD BUTTONS ── */
-#selectAllBtn,
-#deselectAllBtn,
-#createCategoryBtn,
-#deleteCategoryBtn,
-#closeCategoryToggleBtn,
-#saveCategoryBtn,
-#createPostcardBtn {
-    background-color: #1a3c34 !important;
-    color: #00ff00 !important;
-    border: 2px solid #00ff00 !important;
-    min-width: 140px;
-    padding: 10px 20px;
-    font-weight: bold;
-    transition: all 0.25s ease;
-}
-#selectAllBtn:hover,
-#deselectAllBtn:hover,
-#createCategoryBtn:hover,
-#deleteCategoryBtn:hover,
-#closeCategoryToggleBtn:hover,
-#saveCategoryBtn:hover,
-#createPostcardBtn:hover,
-#selectAllBtn:focus-visible,
-#deselectAllBtn:focus-visible,
-#createCategoryBtn:focus-visible,
-#deleteCategoryBtn:focus-visible,
-#closeCategoryToggleBtn:focus-visible,
-#saveCategoryBtn:focus-visible,
-#createPostcardBtn:focus-visible {
-    background-color: #00ff00 !important;
-    color: #000000 !important;
-    box-shadow:
-        0 0 12px #ffffff,
-        0 0 24px #00ff88,
-        0 0 36px #00ff00 !important;
-    transform: scale(1.06) !important;
-    filter: brightness(1.15) !important;
-}
-body.dark-mode #selectAllBtn:hover,
-body.dark-mode #deselectAllBtn:hover,
-body.dark-mode #createCategoryBtn:hover,
-body.dark-mode #deleteCategoryBtn:hover,
-body.dark-mode #closeCategoryToggleBtn:hover,
-body.dark-mode #saveCategoryBtn:hover,
-body.dark-mode #createPostcardBtn:hover,
-body.dark-mode #selectAllBtn:focus-visible,
-body.dark-mode #deselectAllBtn:focus-visible,
-body.dark-mode #createCategoryBtn:focus-visible,
-body.dark-mode #deleteCategoryBtn:focus-visible,
-body.dark-mode #closeCategoryToggleBtn:focus-visible,
-body.dark-mode #saveCategoryBtn:focus-visible,
-body.dark-mode #createPostcardBtn:focus-visible {
-    box-shadow:
-        0 0 16px #ffffff,
-        0 0 32px #00ff88,
-        0 0 48px #00ff00 !important;
-}
-
 /* ── LEAFLET POPUPS ── */
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
@@ -776,19 +694,12 @@ body.dark-mode .leaflet-popup-tip {
     border: 2px solid #00ff00 !important;
     font-family: 'Courier New', monospace !important;
     font-weight: bold !important;
-    text-shadow: 0 0 5px #00ff00 !important;
-    box-shadow: 0 0 8px #00ff00 !important;
     border-radius: 0 !important;
     width: 30px !important;
     height: 30px !important;
     line-height: 26px !important;
     font-size: 18px !important;
     text-align: center !important;
-}
-.leaflet-control-zoom a:hover {
-    background-color: #00ff00 !important;
-    color: #000000 !important;
-    box-shadow: 0 0 15px #00ff00, inset 0 0 10px #00ff00 !important;
 }
 
 /* ── POPUP BUTTONS ── */
@@ -807,32 +718,6 @@ body.dark-mode .leaflet-popup-tip {
 }
 .leaflet-popup button:hover {
     background: #00cc00 !important;
-}
-
-/* ── ITEM MODAL BUTTONS ── */
-#itemModal button {
-    transition: all 0.3s ease !important;
-    box-shadow: none !important;
-    outline: none !important;
-}
-#itemModal button:hover,
-#itemModal button:focus-visible {
-    background-color: inherit !important;
-    box-shadow:
-        0 0 12px #ffffff,
-        0 0 24px #00ff88,
-        0 0 36px #00ff00 !important;
-    transform: scale(1.08) !important;
-    filter: brightness(1.2) !important;
-    opacity: 0.92 !important;
-}
-body.dark-mode #itemModal button:hover,
-body.dark-mode #itemModal button:focus-visible {
-    box-shadow:
-        0 0 16px #ffffff,
-        0 0 32px #00ff88,
-        0 0 48px #00ff00 !important;
-    transform: scale(1.08) !important;
 }
 
 /* ── GLOWING MARKERS ── */
@@ -994,7 +879,6 @@ body.dark-mode #itemModal button:focus-visible {
 .leaflet-popup-content button:hover,
 .leaflet-popup-content-wrapper button:hover {
     background: #00cc00 !important;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8) !important;
 }
 body.dark-mode .leaflet-popup-content button,
 body.dark-mode .leaflet-popup-content-wrapper button {
@@ -1006,8 +890,10 @@ body.dark-mode .leaflet-popup-content-wrapper button:hover {
     background: #00cc00 !important;
 }
 
-/* ── ITEM DESCRIPTION TEXTAREA ── */
-#itemDesc, #itemModal textarea {
+/* ── ITEM DESCRIPTION TEXTAREA + POSTCARD MESSAGE ── */
+#itemDesc, 
+#itemModal textarea,
+#postcardMessage {
     height: 160px !important;
     width: 100% !important;
     max-width: none !important;
@@ -1015,6 +901,7 @@ body.dark-mode .leaflet-popup-content-wrapper button:hover {
     overflow-y: auto !important;
     scrollbar-width: thin;
     scrollbar-color: #00ff00 #000;
+    border-radius: 6px !important;   /* curved edges to match all other fields */
 }
 
 /* ── MARKER HOVER ── */
@@ -1294,7 +1181,6 @@ body.dark-mode .leaflet-popup-content-wrapper button:hover {
     color: #00ff88;
     font-weight: bold;
 }
-/* Dark-mode glow fix for Update Community Map button when (Available!) */
 body.dark-mode #downloadCommunityBtn.available,
 html.dark #downloadCommunityBtn.available {
     box-shadow:
@@ -1580,10 +1466,10 @@ select#itemCategory:hover {
 }
 /* ── MOVE FULLSCREEN & CAPTURE BUTTONS DOWN TO MATCH ZOOM (100px) ── */
 .leaflet-top.leaflet-right {
-    top: 50px !important;           /* moves fullscreen toggle (🔭/✖) down */
+    top: 50px !important;
 }
-/* ── CUSTOM IMMERSIVE MODE FOR iPHONE BROWSERS ONLY (Safari & Chrome) ── */
-/* Final v7 — strongest icon override + capture button visibility */
+
+/* ── CUSTOM IMMERSIVE MODE FOR iPHONE BROWSERS ONLY ── */
 body.immersive-mode {
     margin: 0 !important;
     padding: 0 !important;
@@ -1617,7 +1503,6 @@ body.immersive-mode .leaflet-container {
     box-shadow: none !important;
 }
 
-/* Hide everything above the map */
 body.immersive-mode h1,
 body.immersive-mode #titleToggleContainer,
 body.immersive-mode #searchBar,
@@ -1630,16 +1515,162 @@ body.immersive-mode #tableContainer .pagination {
     display: none !important;
 }
 
-/* Smoother transition */
 body.immersive-mode,
 body.immersive-mode #map,
 body.immersive-mode .leaflet-container {
     transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* STRONGEST ✖ override */
 .leaflet-control-fullscreen.immersive-active a,
 .leaflet-control-fullscreen.immersive-active a::before,
 .leaflet-control-fullscreen.immersive-active a::after {
     content: "✖" !important;
+}
+/* ── FULLSCREEN CAPTURE BUTTON — nice green glow + mobile touch support ── */
+.leaflet-control-fullscreen a,
+.leaflet-control-fullscreen a:hover,
+.leaflet-control-fullscreen a:active,
+.leaflet-control-fullscreen.immersive-active a,
+.leaflet-control-fullscreen.immersive-active a:hover,
+.leaflet-control-fullscreen.immersive-active a:active {
+    transition: all 0.25s ease !important;
+    background-color: #00ff00 !important;
+    color: #000000 !important;
+    box-shadow: 0 0 15px #00ff88 !important;
+    transform: none !important;
+    filter: none !important;
+    animation: none !important;
+}
+/* ── CATEGORY MODAL BUTTONS — default style to match Tools Panel ── */
+#selectAllBtn,
+#deselectAllBtn,
+#createCategoryBtn,
+#deleteCategoryBtn {
+    background-color: #1a3c34 !important;
+    color: #00ff00 !important;
+    border: 2px solid #00ff00 !important;
+    box-shadow: none !important;
+}
+/* ── ADDITIONAL BUTTONS — default style to match Tools Panel ── */
+#saveCategoryBtn,
+#contextCreateMarkerBtn,
+#saveItemBtn,
+#shareItemBtn,
+#shareOneBtn,
+#duplicateItemBtn,
+#contextCreatePostcardBtn {
+    background-color: #1a3c34 !important;
+    color: #00ff00 !important;
+    border: 2px solid #00ff00 !important;
+    box-shadow: none !important;
+}
+/* ── REMOVE GREEN OUTLINE FROM SHARE MARKER & DUPLICATE ── */
+#shareOneBtn,
+#duplicateItemBtn {
+    border: none !important;
+}
+/* ── SPECIFIC BUTTON COLOR OVERRIDES ── */
+
+/* Reset App - keep red, remove green outline */
+#resetAppBtn,
+.reset-btn {
+    background-color: #F7615E !important;
+    color: #000000 !important;
+    border: none !important;           /* removes green outline */
+    box-shadow: none !important;
+}
+
+/* View Pending Community Submissions - blue */
+button[onclick*="pending.html"] {
+    background-color: #5E99F7 !important;
+    color: #000000 !important;
+    border: 2px solid #5E99F7 !important;
+}
+
+/* PERSONAL MARKERS YOU CREATED ONLY - blue */
+#backupPersonalOnly {
+    background-color: #5E99F7 !important;
+    color: #000000 !important;
+    border: 2px solid #5E99F7 !important;
+}
+
+/* PERSONAL + KEPT COMMUNITY MARKERS - yellow */
+#backupWithKept {
+    background-color: #f7ee20 !important;
+    color: #000000 !important;
+    border: 2px solid #f7ee20 !important;
+}
+/* ── ALL BUTTONS — slight clean curve (exactly what you asked for) ── */
+button,
+#buttonGroup button,
+#toggleButtonGroup,
+#toggleTitleBtn,
+#toggleCategoryModalBtn,
+#prevPageBtn,
+#nextPageBtn,
+#selectAllBtn,
+#deselectAllBtn,
+#createCategoryBtn,
+#deleteCategoryBtn,
+#saveCategoryBtn,
+#closeCategoryToggleBtn,
+#confirmDeleteCategoryBtn,
+#saveItemBtn,
+#shareItemBtn,
+#exportOneBtn,
+#shareOneBtn,
+#duplicateItemBtn,
+#deleteItemBtn,
+#submitCommunityBtn,
+#contextCreateMarkerBtn,
+#contextCreatePostcardBtn,
+#resetAppBtn,
+#backupPersonalOnly,
+#backupWithKept,
+button[onclick*="pending.html"],
+.leaflet-control a,
+.leaflet-popup button,
+.modal-content button,
+.nuke-emoji-btn,
+#voiceSearchBtn,
+#lockAllBtn,
+#toggleClusterBtn,
+#toggleMapBtn,
+#toggleGridBtn,
+#toggleSoundsBtn,
+#toggleDarkModeBtn,
+#toggleMyMarkersBtn,
+#howToUseBtn,
+#nukeCodesBtn,
+#exportJsonBtn,
+#importBtn,
+#downloadCommunityBtn,
+#undoImportBtn,
+#undoDeleteBtn,
+#clearSearchBtn {
+    border-radius: 6px !important;
+}
+/* ── LEAFLET ZOOM CONTROLS — green background only, NO soft bright glow ── */
+.leaflet-control-zoom a:hover {
+    background-color: none !important;
+    color: #000000 !important;
+    box-shadow: 0 0 7px #00ff00 !important;       /* removes the soft glow halo */
+}
+/* ── YOUR IN-GAME NAME FIELD — slight curved corners to match buttons ── */
+#playerNameInput {
+    border-radius: 6px !important;
+}
+/* ── LEAFLET ZOOM CONTROLS — default background to match fullscreen button ── */
+.leaflet-control-zoom a {
+    background-color: #1a3c34 !important;
+}
+/* ── LEAFLET ZOOM CONTROLS — perfectly center + and - symbols ── */
+.leaflet-control-zoom a {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: normal !important;     /* removes old line-height conflict */
+    font-size: 20px !important;         /* slightly larger for better visual balance */
+    width: 30px !important;
+    height: 30px !important;
 }
