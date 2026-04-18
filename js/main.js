@@ -5935,10 +5935,10 @@ function optimiseMobileLandscape() {
     if (isLandscape && isSmallScreen) {
         // Reduced height = much more room to scroll the UI below the map
         if (mapEl) {
-            mapEl.style.height = '78vh';        // ← you can change to 80vh or 82vh if you prefer
-            mapEl.style.maxHeight = '78vh';
-            mapEl.style.maxWidth = '96%';       // slightly narrower for better balance
-            mapEl.style.margin = '0 auto';      // center the map
+            mapEl.style.height = '74vh';           // ← change to 76vh or 78vh if you prefer
+            mapEl.style.maxHeight = '74vh';
+            mapEl.style.maxWidth = '96%';          // prevents forced full widescreen
+            mapEl.style.margin = '0 auto';         // centers the map nicely
         }
 
         // Slightly tighter tools panel
