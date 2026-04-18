@@ -104,10 +104,11 @@ h1 {
 #map {
     /* No fixed height – allow JS and media queries to control it */
     height: auto;
-    min-height: 650px;           /* sensible desktop fallback */
+    min-height: 600px;           /* sensible desktop fallback */
     margin: 0 auto;
-    max-width: 94% !important;
-    width: 94% !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    border: 2px solid #00ff00;
     box-shadow: 0 0 10px #00ff00;
     background-color: #000000;
     position: relative;
