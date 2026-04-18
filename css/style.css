@@ -26,8 +26,8 @@
     }
 }
 
-/* ── CUSTOM IMMERSIVE / PWA FULLSCREEN MODE (iOS) – Height-only fix ── */
-@media (display-mode: standalone) and (-webkit-touch-callout: none) {
+/* ── CUSTOM IMMERSIVE / PWA FULLSCREEN MODE (iOS & ANDROID) ── */
+@media (display-mode: standalone) {
     html, body {
         margin: 0 !important;
         padding: 0 !important;
@@ -44,7 +44,7 @@
     }
 
     /* Height control only – width, margin, border and position remain from your #map rule */
-    /* (this is what prevents the blue line) */
+    /* (this preserves the exact styling that eliminates the blue line on iOS) */
 
     @media (orientation: portrait) {
         #map {
@@ -73,7 +73,7 @@
         padding: 0 !important;
     }
 
-    /* Safe-area padding for UI elements */
+    /* Safe-area padding for UI elements (works on both iOS and Android) */
     h1, #titleToggleContainer, #searchBar, #toolsToggleRow,
     #playerNameInput, #xpStatus {
         padding-top: env(safe-area-inset-top) !important;
