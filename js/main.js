@@ -5921,22 +5921,24 @@ window.addEventListener('load', () => {
 // Initial run
 setTimeout(forceUltraWideScaling, 300);
 
-        // ── Mobile Landscape Optimisation (smaller screens only) ──
-        // Reduces scrolling in landscape while keeping portrait mode 100% unchanged
-        function optimiseMobileLandscape() {
+// ── Mobile Landscape Optimisation (smaller screens only) ──
+// Gives comfortable finger-scroll space in landscape while keeping fullscreen intact
+function optimiseMobileLandscape() {
     const width = window.innerWidth;
     const height = window.innerHeight;
     const isLandscape = width > height;
-    const isSmallScreen = width < 900; // typical phone in landscape
+    const isSmallScreen = width < 900;   // typical small phone in landscape
 
-    const mapEl       = document.getElementById('map');
+    const mapEl = document.getElementById('map');
     const buttonGroup = document.getElementById('buttonGroup');
 
     if (isLandscape && isSmallScreen) {
-        // Make map slightly less tall so UI elements are easier to reach
+        // Reduced height = much more room to scroll the UI below the map
         if (mapEl) {
-            mapEl.style.height = '90vh';
-            mapEl.style.maxHeight = '90vh';
+            mapEl.style.height = '78vh';        // ← you can change to 80vh or 82vh if you prefer
+            mapEl.style.maxHeight = '78vh';
+            mapEl.style.maxWidth = '96%';       // slightly narrower for better balance
+            mapEl.style.margin = '0 auto';      // center the map
         }
 
         // Slightly tighter tools panel
@@ -5949,6 +5951,8 @@ setTimeout(forceUltraWideScaling, 300);
         if (mapEl) {
             mapEl.style.height = '';
             mapEl.style.maxHeight = '';
+            mapEl.style.maxWidth = '';
+            mapEl.style.margin = '';
         }
         if (buttonGroup) {
             buttonGroup.style.padding = '';
@@ -5956,7 +5960,7 @@ setTimeout(forceUltraWideScaling, 300);
         }
     }
 
-    // Force Leaflet to redraw correctly – small delay helps speech bubbles stay open
+    // Force Leaflet to redraw correctly
     if (typeof map !== 'undefined' && map) {
         setTimeout(() => {
             map.invalidateSize({ animate: false });
