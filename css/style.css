@@ -42,6 +42,26 @@
         touch-action: none !important;
     }
 
+    /* Height control only – width, margin, border and position remain from your #map rule */
+    /* (this preserves the exact styling that eliminates the blue line on iOS) */
+
+    @media (orientation: portrait) {
+        #map {
+            height: 100dvh !important;
+            min-height: 100dvh !important;
+            max-height: none !important;
+        }
+    }
+
+    @media (orientation: landscape) {
+        #map {
+            height: 74vh !important;
+            min-height: 74vh !important;
+            max-height: 74vh !important;
+            margin-bottom: 0 !important;   /* removes bottom margin in landscape */
+        }
+    }
+
     #map {
         position: fixed !important;
         top: 0 !important;
