@@ -42,37 +42,21 @@
         touch-action: none !important;
     }
 
-    /* Keep full-screen only in portrait; allow JS to control landscape */
     #map {
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
         width: 100vw !important;
+        height: 100dvh !important;
+        min-height: 100dvh !important;
         margin: 0 !important;
         padding: 0 !important;
+        max-width: none !important;
+        max-height: none !important;
         border: none !important;
         border-radius: 0 !important;
         box-shadow: none !important;
         overflow: hidden !important;
-    }
-
-    /* Portrait only – full height */
-    @media (orientation: portrait) {
-        #map {
-            height: 100dvh !important;
-            min-height: 100dvh !important;
-            max-height: none !important;
-            max-width: none !important;
-        }
-    }
-
-    /* Landscape – remove height constraints so JS can apply 74vh */
-    @media (orientation: landscape) {
-        #map {
-            height: auto !important;
-            min-height: auto !important;
-            max-height: none !important;
-        }
     }
 
     .leaflet-container {
@@ -85,9 +69,12 @@
         padding: 0 !important;
     }
 
-    /* Safe-area padding for UI elements (unchanged) */
-    h1, #titleToggleContainer, #searchBar, #toolsToggleRow,
-    #playerNameInput, #xpStatus {
+    h1,
+    #titleToggleContainer,
+    #searchBar,
+    #toolsToggleRow,
+    #playerNameInput,
+    #xpStatus {
         padding-top: env(safe-area-inset-top) !important;
         padding-left: env(safe-area-inset-left) !important;
         padding-right: env(safe-area-inset-right) !important;
@@ -115,15 +102,19 @@ h1 {
 
 /* ── MAP CONTAINER ── */
 #map {
-    height: 750px;
-	margin: 0 auto 20px;
-    max-width: 100% !important;
-    width: 100% !important;
+    /* No fixed height – allow JS and media queries to control it */
+    height: auto;
+    min-height: 500px;           /* sensible desktop fallback */
+    margin: 0 auto;
+    max-width: 94% !important;
+    width: 94% !important;
     border: 2px solid #00ff00;
     box-shadow: 0 0 10px #00ff00;
     background-color: #000000;
     position: relative;
     box-sizing: border-box;
+    /* Ensure Leaflet can take full control of the inner container */
+    overflow: hidden;
 }
 
 .leaflet-container {
