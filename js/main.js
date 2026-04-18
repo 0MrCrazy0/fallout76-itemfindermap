@@ -5935,8 +5935,8 @@ setTimeout(forceUltraWideScaling, 300);
     if (isLandscape && isSmallScreen) {
         // Make map slightly less tall so UI elements are easier to reach
         if (mapEl) {
-            mapEl.style.height = '90vh';
-            mapEl.style.maxHeight = '90vh';
+            mapEl.style.height = '80vh';
+            mapEl.style.maxHeight = '80vh';
         }
 
         // Slightly tighter tools panel
