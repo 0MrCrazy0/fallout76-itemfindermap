@@ -26,7 +26,8 @@
     }
 }
 
-/* ── CUSTOM IMMERSIVE / PWA FULLSCREEN MODE (iOS) ── */
+/* ── FINAL iOS PWA FULLSCREEN FIX (portrait + rotation safe) ── */
+/* ── CUSTOM IMMERSIVE / PWA FULLSCREEN MODE (iOS) – Revised for right-edge gap ── */
 @media (display-mode: standalone) and (-webkit-touch-callout: none) {
     html, body {
         margin: 0 !important;
@@ -35,6 +36,7 @@
         height: 100dvh !important;
         min-height: 100dvh !important;
         overflow: hidden !important;
+        overflow-x: hidden !important;        /* ← extra protection against right gap */
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
@@ -42,13 +44,11 @@
         touch-action: none !important;
     }
 
-    /* MAP – edge-to-edge on iOS PWA (fixes the blue line) */
+    /* MAP – edge-to-edge using inset (most reliable on iOS PWA) */
     #map {
         position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;           /* ← critical for iOS */
-        width: auto !important;        /* ← critical for iOS */
+        inset: 0 !important;                    /* top/right/bottom/left = 0 */
+        width: 100vw !important;
         margin: 0 !important;
         padding: 0 !important;
         border: 2px solid #00ff00 !important;
@@ -67,7 +67,7 @@
         }
     }
 
-    /* Landscape: allow JS to set reduced height (74vh etc.) */
+    /* Landscape: allow your JS (optimiseMobileLandscape) to set 74vh */
     @media (orientation: landscape) {
         #map {
             height: auto !important;
@@ -86,7 +86,7 @@
         padding: 0 !important;
     }
 
-    /* Safe-area padding for UI overlays */
+    /* Safe-area padding for UI elements */
     h1, #titleToggleContainer, #searchBar, #toolsToggleRow,
     #playerNameInput, #xpStatus {
         padding-top: env(safe-area-inset-top) !important;
