@@ -554,8 +554,7 @@ fullscreenControl.onAdd = function(map) {
     link.href = '#';
     link.title = 'Toggle fullscreen';
     link.innerHTML = '🔭';
-    link.style.cssText = `display:block;width:34px;height:34px;line-height:34px;text-align:center;font-size:20px;background:#1a3c34;color:#00ff00;border:none;box-shadow:0 0 8px #00ff00;cursor:pointer;`;
-;
+    link.style.cssText = `display:block;width:34px;height:34px;line-height:34px;text-align:center;font-size:20px;background:#1a3c34;color:#00ff00;border:2px solid #00ff00;border-radius:6px;cursor:pointer;`;
     link.onmouseover = () => {
         link.style.background = '#00ff00';
         link.style.color = '#000';
@@ -599,11 +598,7 @@ screenshotControl.onAdd = function(map) {
     link.href = '#';
     link.title = 'Capture fullscreen view';
     link.innerHTML = '📸';
-    link.style.cssText = `
-        display:block; width:34px; height:34px; line-height:34px; text-align:center;
-        font-size:20px; background:#1a3c34; color:#00ff00; border:none;
-        box-shadow:0 0 8px #00ff00; cursor:pointer;
-    `;
+    link.style.cssText = `display:block;width:34px;height:34px;line-height:34px;text-align:center;font-size:20px;background:#1a3c34;color:#00ff00;border:2px solid #00ff00;border-radius:6px;cursor:pointer;`;
     link.onmouseover = () => {
         link.style.background = '#00ff00';
         link.style.color = '#000';
