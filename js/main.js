@@ -929,7 +929,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-18-04-2026-Build-A1"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-20-04-2026-Build-A1"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -3298,12 +3298,15 @@ resetAppBtn.onclick = () => {
         'Other Community markers can be re-added later by clicking the "Update Community Map" button.<br><br>' +
         'Ready to initiate reset protocol?',
         () => {
-            // Backup first
+            // Backup first — now includes player name
+            const playerName = document.getElementById('playerNameInput')?.value.trim() || '';
+
             const userMarkers = locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard);
             const personalBackup = {
                 version: "personal-plus-kept-fullbackup",
                 timestamp: new Date().toISOString(),
                 communityVersion: localStorage.getItem(MAP_VERSION_KEY) || "1.0",
+                playerName: playerName,                    // ← added for name restore
                 customCategories,
                 locations: userMarkers,
                 level,
@@ -3490,12 +3493,17 @@ resetAppBtn.onclick = () => {
 
 exportBtn.onclick = () => {
     playSound('click');
+    const playerName = document.getElementById('playerNameInput')?.value.trim() || '';
+
     const purePersonalCount = locations.filter(l =>
         l.userEdited === true && !l.wasCommunityKept && !l.isPostcard
     ).length;
-    const withKeptCount = locations.filter(l =>
-        (l.userEdited || l.wasCommunityKept) && !l.isPostcard
+
+    const keptCount = locations.filter(l =>
+        l.wasCommunityKept === true && !l.isPostcard
     ).length;
+
+    const withKeptCount = purePersonalCount + keptCount;
 
     const modal = document.createElement('div');
     modal.className = 'modal';
@@ -3504,24 +3512,25 @@ exportBtn.onclick = () => {
         <div class="modal-content" style="max-width:560px;">
             <span class="close">×</span>
             <h2 style="text-align:center; margin-bottom:18px;">Choose Backup Type</h2>
+        
+            <div style="max-width:460px; margin:0 auto; padding:0 10px;">
+                <button id="backupPersonalOnly" style="width:100%; padding:18px 12px; margin:10px 0; background:#00ff00; color:#000; font-weight:bold; font-size:1.05em; line-height:1.45; border-radius:4px;">
+                    PERSONAL MARKERS YOU CREATED ONLY<br>
+                    <small style="opacity:0.9; font-size:0.93em;">${purePersonalCount} markers + Level ${level} + All Settings</small>
+                </button>
+                
+                <button id="backupWithKept" style="width:100%; padding:18px 12px; margin:10px 0; background:#00d4ff; color:#000; font-weight:bold; font-size:1.05em; line-height:1.45; border-radius:4px;">
+                    PERSONAL + KEPT COMMUNITY MARKERS<br>
+                    <small style="opacity:0.9; font-size:0.93em;">${purePersonalCount} markers + ${keptCount} kept = ${withKeptCount} total + Level ${level} + All Settings</small>
+                </button>
+            </div>
          
-<div style="max-width:460px; margin:0 auto; padding:0 10px;">
-    <button id="backupPersonalOnly" style="width:100%; padding:18px 12px; margin:10px 0; background:#00ff00; color:#000; font-weight:bold; font-size:1.05em; line-height:1.45; border-radius:4px;">
-        PERSONAL MARKERS YOU CREATED ONLY<br>
-        <small style="opacity:0.9; font-size:0.93em;">${purePersonalCount} marker${purePersonalCount === 1 ? '' : 's'} + Level ${level} + All Settings</small>
-    </button>
-             
-    <button id="backupWithKept" style="width:100%; padding:18px 12px; margin:10px 0; background:#00d4ff; color:#000; font-weight:bold; font-size:1.05em; line-height:1.45; border-radius:4px;">
-        PERSONAL + KEPT COMMUNITY MARKERS<br>
-        <small style="opacity:0.9; font-size:0.93em;">${withKeptCount} marker${withKeptCount === 1 ? '' : 's'} + Level ${level} + All Settings</small>
-    </button>
-</div>
-          
-<p style="text-align:center; font-size:0.95em; opacity:0.9; line-height:1.5; margin:20px auto 0; max-width:460px;">
-    Personal Only = clean backup (recommended)<br>
-    With Kept = includes markers you decided to keep<br>
-    Missing markers? Download the community map again if needed.
-</p>
+            <p style="text-align:center; font-size:0.95em; opacity:0.9; line-height:1.5; margin:20px auto 0; max-width:460px;">
+                Personal Only = clean backup (recommended)<br>
+                With Kept = includes markers you decided to keep<br>
+                Missing markers? Download the community map again if needed.
+            </p>
+        </div>
     `;
     document.body.appendChild(modal);
     document.body.classList.add('modal-open');
@@ -3537,6 +3546,7 @@ exportBtn.onclick = () => {
         const data = {
             version: "personal-only",
             timestamp: new Date().toISOString(),
+            playerName: playerName,
             locations: playerMarkers.map(l => ({
                 ...l,
                 userEdited: true,
@@ -3562,6 +3572,7 @@ exportBtn.onclick = () => {
         const data = {
             version: "personal-plus-kept",
             timestamp: new Date().toISOString(),
+            playerName: playerName,
             locations: playerMarkers.map(l => ({
                 ...l,
                 userEdited: l.userEdited,
@@ -3610,7 +3621,7 @@ importBtn.onclick = () => {
             try {
                 const data = JSON.parse(ev.target.result);
                 const incoming = data.locations || (Array.isArray(data) ? data : []);
-                
+
                 const isPersonalBackup = data.version && (
                     data.version.startsWith("personal") ||
                     file.name.includes("Personal") ||
@@ -3618,11 +3629,29 @@ importBtn.onclick = () => {
                     file.name.includes("FullResetBackup") ||
                     file.name.includes("PersonalPlusKeptFullBackup")
                 );
-                
+
                 const isPlusKeptBackup = data.version && data.version.includes("plus-kept");
-                
+
                 let added = 0, updated = 0, skipped = 0;
-                const beforeState = JSON.stringify(locations);
+
+                // ── CAPTURE FULL PRE-IMPORT STATE FOR PERFECT UNDO ──
+                const beforeFullState = {
+                    locations: JSON.stringify(locations),
+                    level: level,
+                    xp: xp,
+                    customCategories: JSON.stringify(customCategories),
+                    playerName: document.getElementById('playerNameInput')?.value.trim() || '',
+                    settings: {
+                        clusteringEnabled,
+                        gridEnabled,
+                        currentMap,
+                        darkMode,
+                        soundsEnabled,
+                        titleVisible,
+                        toolsVisible,
+                        activeCategories: [...activeCategories]
+                    }
+                };
 
                 if (window.undoImportTimer) {
                     clearInterval(window.undoImportTimer);
@@ -3635,7 +3664,7 @@ importBtn.onclick = () => {
                     if (!existing && imp.cid) existing = locations.find(l => l.cid === imp.cid);
 
                     if (existing) {
-                        skipped++; // ← This is the completed skip logic
+                        skipped++;
                         return;
                     }
 
@@ -3658,18 +3687,35 @@ importBtn.onclick = () => {
                     }
                 });
 
+                // ── PLAYER NAME RESTORE ──
+                if (data.playerName !== undefined && data.playerName !== null) {
+                    localStorage.setItem('fo76_playerName', data.playerName);
+                    const nameInput = document.getElementById('playerNameInput');
+                    if (nameInput) nameInput.value = data.playerName;
+                }
+
                 // ── SETTINGS RESTORATION ──
                 if (isPersonalBackup && data.settings) {
-                    clusteringEnabled = data.settings.clusteringEnabled ?? clusteringEnabled;
-                    gridEnabled = data.settings.gridEnabled ?? gridEnabled;
-                    currentMap = data.settings.currentMap ?? currentMap;
-                    darkMode = data.settings.darkMode ?? darkMode;
-                    soundsEnabled = data.settings.soundsEnabled ?? soundsEnabled;
-                    titleVisible = data.settings.titleVisible ?? titleVisible;
-                    toolsVisible = data.settings.toolsVisible ?? toolsVisible;
-                    if (data.settings.activeCategories) activeCategories = new Set(data.settings.activeCategories);
+                    const s = data.settings;
+                    clusteringEnabled = s.clusteringEnabled !== undefined ? s.clusteringEnabled : clusteringEnabled;
+                    gridEnabled = s.gridEnabled !== undefined ? s.gridEnabled : gridEnabled;
+                    currentMap = s.currentMap || currentMap;
+                    darkMode = s.darkMode !== undefined ? s.darkMode : darkMode;
+                    soundsEnabled = s.soundsEnabled !== undefined ? s.soundsEnabled : soundsEnabled;
+                    titleVisible = s.titleVisible !== undefined ? s.titleVisible : titleVisible;
+                    toolsVisible = s.toolsVisible !== undefined ? s.toolsVisible : toolsVisible;
+                    if (s.activeCategories && Array.isArray(s.activeCategories)) {
+                        activeCategories = new Set(s.activeCategories);
+                    }
+
                     document.body.classList.toggle('dark-mode', darkMode);
                     syncToggleButtonStates();
+
+                    mainTitle.style.display = titleVisible ? 'block' : 'none';
+                    titleToggleBtn.textContent = titleVisible ? '-' : '+';
+                    buttonGroup.classList.toggle('hidden', !toolsVisible);
+                    toolsToggleBtn.textContent = toolsVisible ? 'Hide Tools' : 'Show Tools';
+                    renderCategoryToggles();
                 }
 
                 if (isPersonalBackup) {
@@ -3682,10 +3728,10 @@ importBtn.onclick = () => {
                 saveLocations();
                 forceReload();
 
-                                if (added + updated > 0) {
+                if (added + updated > 0) {
                     const count = added + updated;
-                    savePendingUndo('import', beforeState, { count: count });
 
+                    // ── UNDO LAST IMPORT — now restores EVERYTHING ──
                     setTimeout(() => {
                         const undoBtn = document.getElementById('undoImportBtn');
                         if (undoBtn) {
@@ -3708,13 +3754,44 @@ importBtn.onclick = () => {
                             undoBtn.onclick = () => {
                                 clearInterval(window.undoImportTimer);
                                 window.undoImportTimer = null;
-                                locations = JSON.parse(beforeState);
+
+                                // ── RESTORE FULL STATE ──
+                                const state = beforeFullState;
+                                locations = JSON.parse(state.locations);
+                                level = state.level;
+                                xp = state.xp;
+                                customCategories = JSON.parse(state.customCategories);
+
+                                const nameInput = document.getElementById('playerNameInput');
+                                if (nameInput) nameInput.value = state.playerName;
+                                localStorage.setItem('fo76_playerName', state.playerName);
+
+                                const s = state.settings;
+                                clusteringEnabled = s.clusteringEnabled;
+                                gridEnabled = s.gridEnabled;
+                                currentMap = s.currentMap;
+                                darkMode = s.darkMode;
+                                soundsEnabled = s.soundsEnabled;
+                                titleVisible = s.titleVisible;
+                                toolsVisible = s.toolsVisible;
+                                activeCategories = new Set(s.activeCategories);
+
+                                document.body.classList.toggle('dark-mode', darkMode);
+                                syncToggleButtonStates();
+
+                                mainTitle.style.display = titleVisible ? 'block' : 'none';
+                                titleToggleBtn.textContent = titleVisible ? '-' : '+';
+                                buttonGroup.classList.toggle('hidden', !toolsVisible);
+                                toolsToggleBtn.textContent = toolsVisible ? 'Hide Tools' : 'Show Tools';
+                                renderCategoryToggles();
+
                                 recalculateXP();
                                 saveLocations();
                                 forceReload();
+
                                 undoBtn.style.display = 'none';
                                 localStorage.removeItem('fo76_pendingUndo_import');
-                                showTempMessage('✅ IMPORT UNDONE', 4000);
+                                showTempMessage('✅ IMPORT FULLY UNDONE — ALL SETTINGS RESTORED', 4000);
                                 playSound('undo');
                             };
                         }
@@ -5120,11 +5197,14 @@ if (urlParams.has('permshare')) {
     }
 }
 
-        document.getElementById('backupAllBtn')?.addEventListener('click', () => {
+document.getElementById('backupAllBtn')?.addEventListener('click', () => {
+    const playerName = document.getElementById('playerNameInput')?.value.trim() || '';
+
     const fullBackup = {
         version: "full-backup",
         timestamp: new Date().toISOString(),
         communityVersion: localStorage.getItem('fo76_map_version') || '1.0',
+        playerName: playerName,                    // ← fixed capture
         locations: locations,
         customCategories: customCategories,
         level: level,
@@ -5149,30 +5229,38 @@ if (urlParams.has('permshare')) {
     playSound('saving');
 });
 
-        document.getElementById('restoreAllBtn')?.addEventListener('click', () => {
+document.getElementById('restoreAllBtn')?.addEventListener('click', () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
     input.onchange = e => {
         const file = e.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = ev => {
             try {
                 const data = JSON.parse(ev.target.result);
-
-                if (data.version && data.version.includes('full-v76')) {
+                
+                // Updated version check — now matches the current Full Backup export
+                if (data.version && (data.version.includes('full-backup') || data.version.includes('full-v76'))) {
                     showConfirmModal(
                         'FULL RESTORE FROM BACKUP',
                         'This will OVERWRITE EVERYTHING:<br><br>• All your markers<br>• XP & Level<br>• Settings<br>• Community map version<br><br>Are you absolutely sure?',
                         () => {
-                            // FULL RESTORE
                             locations = data.locations || [];
                             customCategories = data.customCategories || {};
                             Object.assign(categoryIcons, defaultCategoryIcons, customCategories);
                             level = data.level || 1;
                             xp = data.xp || 0;
+
+                            // ── RESTORE PLAYER NAME (now guaranteed to run) ──
+                            if (data.playerName !== undefined && data.playerName !== null) {
+                                localStorage.setItem('fo76_playerName', data.playerName);
+                                const nameInput = document.getElementById('playerNameInput');
+                                if (nameInput) nameInput.value = data.playerName;
+                            }
+
+                            // ── RESTORE ACTIVE CATEGORIES (checkbox toggles) ──
                             const s = data.settings || {};
                             clusteringEnabled = s.clusteringEnabled !== undefined ? s.clusteringEnabled : true;
                             gridEnabled = s.gridEnabled || false;
@@ -5181,7 +5269,7 @@ if (urlParams.has('permshare')) {
                             soundsEnabled = s.soundsEnabled !== undefined ? s.soundsEnabled : true;
                             titleVisible = s.titleVisible !== undefined ? s.titleVisible : true;
                             toolsVisible = s.toolsVisible !== undefined ? s.toolsVisible : true;
-                            activeCategories = new Set(s.activeCategories || Object.keys(defaultCategoryIcons));
+                            if (s.activeCategories) activeCategories = new Set(s.activeCategories);
 
                             localStorage.setItem('fo76_map_version', data.communityVersion || s.communityVersion || '1.0');
                             localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
@@ -5196,6 +5284,15 @@ if (urlParams.has('permshare')) {
                             localStorage.setItem('titleVisible', titleVisible);
                             localStorage.setItem('toolsVisible', toolsVisible);
                             localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
+
+                            // ── IMMEDIATE UI UPDATE (no refresh needed) ──
+                            mainTitle.style.display = titleVisible ? 'block' : 'none';
+                            titleToggleBtn.textContent = titleVisible ? '-' : '+';
+                            buttonGroup.classList.toggle('hidden', !toolsVisible);
+                            toolsToggleBtn.textContent = toolsVisible ? 'Hide Tools' : 'Show Tools';
+                            document.body.classList.toggle('dark-mode', darkMode);
+                            syncToggleButtonStates();
+                            renderCategoryToggles();   // updates category checkboxes instantly
 
                             // SUCCESS SCREEN + RELOAD
                             const successOverlay = document.createElement('div');
@@ -5220,7 +5317,6 @@ if (urlParams.has('permshare')) {
                             `;
                             document.body.appendChild(successOverlay);
                             playSound('levelUp');
-
                             let count = 3;
                             const countdown = setInterval(() => {
                                 count--;
@@ -6055,7 +6151,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • CURRENT_APP_VERSION = 76.Vault.Ok • 18-04-2026 • Made with ❤️\n' +
+    'Last updated: • CURRENT_APP_VERSION = 76.Vault.Ok • 20-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
