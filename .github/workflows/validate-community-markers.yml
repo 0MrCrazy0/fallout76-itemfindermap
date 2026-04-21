@@ -54,11 +54,11 @@ jobs:
             });
 
             if (!allValid) {
-              summary += '❌ Some markers failed validation.\n';
+              summary += '❌ Marker Failed Validation.\n';
               labels = labels.filter(l => l !== 'validated');
               labels.push('needs-review');
             } else {
-              summary += '✅ All markers passed validation.\n';
+              summary += '✅ Marker Passed Validation.\n';
             }
 
             summary += '\n**Detailed log:**\n```\n' + log + '\n```';
