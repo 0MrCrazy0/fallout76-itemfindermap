@@ -34,11 +34,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if [ -n "$(git status --porcelain communitymap.json)" ]; then
+          if git diff --quiet; then
+            echo "No changes to commit"
+          else
             git add communitymap.json
             git commit -m "Auto-update: communitymap.json (version bumped + validation passed)"
             git push
-            echo "✅ communitymap.json updated and pushed successfully"
-          else
-            echo "No changes to commit"
+            echo "✅ Successfully updated and pushed communitymap.json"
           fi
