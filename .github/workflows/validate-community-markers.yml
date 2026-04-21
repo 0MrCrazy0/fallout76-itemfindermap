@@ -35,7 +35,7 @@ jobs:
             python scripts/validate-community-marker.py "$file" >> validation.log
           done
 
-      - name: Post validation results
+            - name: Post validation results
         uses: actions/github-script@v7
         with:
           script: |
@@ -51,14 +51,15 @@ jobs:
               if (line.includes('VALID:False')) allValid = false;
               if (line.includes('Duplicate')) labels.push('potential-duplicate');
               if (line.includes('Schema error') || line.includes('Invalid JSON')) labels.push('invalid-format');
+              if (line.includes('No real description') || line.includes('too short')) labels.push('needs-review');
             });
 
             if (!allValid) {
-              summary += '❌ Some markers failed validation.\n';
+              summary += '❌ Marker Failed Validation.\n';
               labels = labels.filter(l => l !== 'validated');
               labels.push('needs-review');
             } else {
-              summary += '✅ All markers passed validation.\n';
+              summary += '✅ Marker Passed Validation.\n';
             }
 
             summary += '\n**Detailed log:**\n```\n' + log + '\n```';
