@@ -1,0 +1,18 @@
+{
+  "id": "id-a6877123-663d-4901-9288-62ff5a718b8b",
+  "cid": "plans_test_marker_can_be_removed_grid_c2_x_8703_y_5612_561.23974_870.33733",
+  "category": "plans",
+  "desc": "Test marker can be removed\nGrid C2 (X: 870.3, Y: 561.2)\nSubmitted By MrCrazy",
+  "lat": 561.2397403589032,
+  "lng": 870.33732608724,
+  "icon": "📜",
+  "addedTime": 1776796432934,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+}
