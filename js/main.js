@@ -929,7 +929,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-20-04-2026-Build-A1"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-22-04-2026-Build-A1"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -5345,7 +5345,6 @@ document.getElementById('restoreAllBtn')?.addEventListener('click', () => {
 let reportTimer = null;
 
 // Permanent report block — uses cid, survives refresh/reset
-// ── REPORT BAD MARKER MODAL (matches Postcard modal behaviour) ──
 window.startReport = function(markerId) {
     const marker = locations.find(l => l.id === markerId);
     if (!marker) {
@@ -5382,7 +5381,7 @@ window.startReport = function(markerId) {
             </div>
             
             <div style="text-align:center; font-weight:bold; color:#00ff88; margin-bottom:10px; font-size:1.1em;">
-                Optional message (highly appreciated!)
+                Description of the problem <span style="color:#ff8888;">(required)</span>
             </div>
             <textarea id="reportMessageTxt"
                       placeholder="e.g. Wrong location — should be E8, not E9"
@@ -5402,25 +5401,32 @@ window.startReport = function(markerId) {
 
     const closeBtn = modal.querySelector('.close');
     const sendBtn = modal.querySelector('#sendReportNow');
+    const reportMessageTxt = modal.querySelector('#reportMessageTxt');
 
-    // Both X and SEND REPORT now use the global closeModal (respects fullscreen flag)
-    closeBtn.onclick = (e) => {
-        e.stopPropagation();
-        closeModal(modal);
-    };
+    closeBtn.onclick = () => closeModal(modal);
 
-    sendBtn.onclick = () => {
-        const extraMessage = modal.querySelector('#reportMessageTxt').value.trim();
+        sendBtn.onclick = () => {
+        const message = reportMessageTxt.value.trim();
         
+        if (!message || message.length < 10) {
+            showTempMessage(
+                '❌ Please provide a description of the problem<br>(minimum 10 characters).',
+                5000
+            );
+            reportMessageTxt.focus();
+            playSound('error');
+            return;
+        }
+
         localStorage.setItem(reportKey, "true");
-        
+
         fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 type: "report",
                 markerId: markerId,
-                message: extraMessage || "(no message provided)",
+                message: message,
                 marker: {
                     id: markerId,
                     cid: marker.cid || generateCid(marker),
@@ -5438,10 +5444,10 @@ window.startReport = function(markerId) {
         .then(() => showTempMessage('🚩 REPORT SENT — THANK YOU IT WILL BE REVIEWED.', 6000))
         .catch(err => {
             console.error("Report failed:", err);
-            showTempMessage('❌ REPORT SENT FAILED — GITHUB OFFLINE.', 6000);
+            showTempMessage('❌ REPORT FAILED — TRY AGAIN LATER.', 6000);
         });
 
-        closeModal(modal);   // ← Global closeModal — triggers Return to Fullscreen ONLY if you were in fullscreen before
+        closeModal(modal);
     };
 
     playSound('error');
@@ -6151,7 +6157,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • CURRENT_APP_VERSION = 76.Vault.Ok • 20-04-2026 • Made with ❤️\n' +
+    'Last updated: • CURRENT_APP_VERSION = 76.Vault.Ok • 22-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
