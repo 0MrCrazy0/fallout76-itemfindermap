@@ -31,9 +31,16 @@ def validate_marker(file_path):
         if not (0 <= marker["lat"] <= 4096 and 0 <= marker["lng"] <= 4096):
             return False, "Coordinates outside Fallout 76 map bounds"
         
+        # Special check for weak description
+        desc = str(marker.get("desc", "")).strip()
+        if len(desc) < 15 or "Grid" in desc and "Submitted By" in desc:
+            return False, "No real description added by user (only auto-generated fallback)"
+        
         return True, "Valid marker"
     
     except ValidationError as e:
+        if "desc" in str(e.message).lower():
+            return False, "Description is too short or missing (minimum 15 characters)"
         return False, f"Schema error: {e.message}"
     except Exception as e:
         return False, f"Invalid JSON or other error: {str(e)}"
