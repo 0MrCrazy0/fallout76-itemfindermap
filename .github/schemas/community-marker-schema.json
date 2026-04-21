@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fallout 76 Community Marker",
+  "type": "object",
+  "required": ["id", "cid", "category", "desc", "lat", "lng", "icon", "addedTime", "locked", "isPostcard", "isTemp", "keepBtnBound", "userEdited", "isCommunity", "wasCommunityKept"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^id-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$" },
+    "cid": { "type": "string", "minLength": 5 },
+    "category": { "type": "string", "minLength": 1 },
+    "desc": { "type": "string", "minLength": 5 },
+    "lat": { "type": "number", "minimum": 0, "maximum": 4096 },
+    "lng": { "type": "number", "minimum": 0, "maximum": 4096 },
+    "icon": { "type": "string", "minLength": 1 },
+    "addedTime": { "type": "integer", "minimum": 1000000000000 },
+    "locked": { "type": "boolean" },
+    "isPostcard": { "type": "boolean" },
+    "isTemp": { "type": "boolean" },
+    "startTime": { "type": ["null", "integer"] },
+    "keepBtnBound": { "type": "boolean" },
+    "userEdited": { "type": "boolean" },
+    "isCommunity": { "type": "boolean", "const": true },
+    "wasCommunityKept": { "type": "boolean" }
+  },
+  "additionalProperties": false
+}
