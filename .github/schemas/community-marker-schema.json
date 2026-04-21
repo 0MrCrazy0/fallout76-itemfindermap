@@ -7,7 +7,7 @@
     "id": { "type": "string", "pattern": "^id-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$" },
     "cid": { "type": "string", "minLength": 5 },
     "category": { "type": "string", "minLength": 1 },
-    "desc": { "type": "string", "minLength": 5 },
+    "desc": { "type": "string", "minLength": 15 },
     "lat": { "type": "number", "minimum": 0, "maximum": 4096 },
     "lng": { "type": "number", "minimum": 0, "maximum": 4096 },
     "icon": { "type": "string", "minLength": 1 },
