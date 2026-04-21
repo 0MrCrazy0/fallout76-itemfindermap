@@ -35,7 +35,7 @@ jobs:
             python scripts/validate-community-marker.py "$file" >> validation.log
           done
 
-      - name: Post validation results
+            - name: Post validation results
         uses: actions/github-script@v7
         with:
           script: |
@@ -51,15 +51,14 @@ jobs:
               if (line.includes('VALID:False')) allValid = false;
               if (line.includes('Duplicate')) labels.push('potential-duplicate');
               if (line.includes('Schema error') || line.includes('Invalid JSON')) labels.push('invalid-format');
-              if (line.includes('No real description') || line.includes('too short')) labels.push('needs-review');
             });
 
             if (!allValid) {
               summary += '❌ Marker Failed Validation.\n';
-              labels = labels.filter(l => l !== 'validated');
-              labels.push('needs-review');
+              labels = ['needs-review'];                    // ← Clean: only needs-review on failure
             } else {
               summary += '✅ Marker Passed Validation.\n';
+              labels = ['validated'];                       // ← Clean: only validated on success
             }
 
             summary += '\n**Detailed log:**\n```\n' + log + '\n```';
@@ -71,9 +70,16 @@ jobs:
               body: summary
             });
 
+            // Remove old pending-review label and apply the new one
+            await github.rest.issues.removeAllLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              labels: [...new Set(labels)]
+              labels: labels
             });
