@@ -3,6 +3,8 @@ name: Combine Community Markers
 on:
   pull_request:
     types: [closed]
+    paths:
+      - 'community-markers/**.json'   # ← This is the important line
 
 jobs:
   combine:
