@@ -70,7 +70,7 @@ jobs:
               body: summary
             });
 
-            // Remove old pending-review and apply clean label
+            // Clean labels: remove old ones and apply only the correct one
             await github.rest.issues.removeAllLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
