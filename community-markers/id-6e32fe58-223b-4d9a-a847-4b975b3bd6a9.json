@@ -1,0 +1,18 @@
+{
+  "id": "id-6e32fe58-223b-4d9a-a847-4b975b3bd6a9",
+  "cid": "workshops_workshop_yup_a_workshop_3093_3006",
+  "category": "workshops",
+  "desc": "Workshop location.\nGrid H8 (X: 3006, Y: 3093)",
+  "lat": 3092.7513491216673,
+  "lng": 3005.870875269018,
+  "icon": "🔧",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

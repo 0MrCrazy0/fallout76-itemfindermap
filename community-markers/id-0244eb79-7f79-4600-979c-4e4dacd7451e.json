@@ -1,0 +1,18 @@
+{
+  "id": "id-0244eb79-7f79-4600-979c-4e4dacd7451e",
+  "cid": "creatures_rad_stag_glowing_rad_stags_can_be_found_here_288_1817",
+  "category": "creatures",
+  "desc": "Glowing rad stags can be found here.\nGrid E1 (X: 1817, Y: 288)",
+  "lat": 287.7698592794675,
+  "lng": 1816.785647695593,
+  "icon": "🐺",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

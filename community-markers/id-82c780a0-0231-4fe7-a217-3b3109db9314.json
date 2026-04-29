@@ -1,0 +1,18 @@
+{
+  "id": "id-82c780a0-0231-4fe7-a217-3b3109db9314",
+  "cid": "junk_stealthboy_found_inside_upstairs_1052_3040",
+  "category": "junk",
+  "desc": "Stealth Boy located inside upstairs.\nGrid H3 (X: 3040, Y: 1052)",
+  "lat": 1051.9974418466693,
+  "lng": 3039.500387162985,
+  "icon": "🗑️",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

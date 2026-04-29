@@ -1,0 +1,18 @@
+{
+  "id": "id-833e4441-c18e-42c2-ba79-05a8d76221d0",
+  "cid": "creatures_mirlurks_queen_mirlurk_spawns_here_1234_3153",
+  "category": "creatures",
+  "desc": "Mirelurk queen and additional mirelurks spawn here.\nGrid H4 (X: 3153, Y: 1234)",
+  "lat": 1234.3829350666479,
+  "lng": 3153.498899094309,
+  "icon": "🐺",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

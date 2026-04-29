@@ -1,0 +1,18 @@
+{
+  "id": "id-7fdfd27a-c933-4c3d-a890-e6a7ef26f1fa",
+  "cid": "aid_aid_box_found_a_few_doctor_bags_aid_boxes_upstairs_as_well_1057_3033",
+  "category": "aid",
+  "desc": "Aid box and several doctor bags located upstairs.\nGrid H3 (X: 3033, Y: 1057)",
+  "lat": 1056.5631222535128,
+  "lng": 3033.187340084854,
+  "icon": "💉",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

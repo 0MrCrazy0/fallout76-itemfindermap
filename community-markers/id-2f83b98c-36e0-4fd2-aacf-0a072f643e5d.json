@@ -1,0 +1,18 @@
+{
+  "id": "id-2f83b98c-36e0-4fd2-aacf-0a072f643e5d",
+  "cid": "food_drink_purified_water_in_a_cooler_at_the_kanawha_county_cemetery_1868_807",
+  "category": "food/drink",
+  "desc": "Purified water located in a cooler at the Kanawha County Cemetery.\nGrid B5 (X: 807, Y: 1868)",
+  "lat": 1868.2469814113565,
+  "lng": 806.5,
+  "icon": "🍽️",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

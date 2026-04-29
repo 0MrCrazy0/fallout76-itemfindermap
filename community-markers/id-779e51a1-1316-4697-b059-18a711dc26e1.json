@@ -1,0 +1,18 @@
+{
+  "id": "id-779e51a1-1316-4697-b059-18a711dc26e1",
+  "cid": "creatures_mole_miners_many_mole_miners_in_this_area_1197_1136",
+  "category": "creatures",
+  "desc": "Multiple mole miners located in this area.\nGrid C3 (X: 1136, Y: 1197)",
+  "lat": 1196.5046166649843,
+  "lng": 1135.7576062575013,
+  "icon": "🐺",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

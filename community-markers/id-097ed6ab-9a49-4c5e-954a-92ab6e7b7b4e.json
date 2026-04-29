@@ -1,0 +1,20 @@
+{
+  "id": "id-097ed6ab-9a49-4c5e-954a-92ab6e7b7b4e",
+  "lat": 912.796419785345,
+  "lng": 2594.625,
+  "category": "terminal locations",
+  "desc": "System relay terminal: insert load US government supply requisition to call in a supply drop mission.\nGrid G3 (X: 2595, Y: 913)",
+  "icon": "🖥️",
+  "addedTime": 1764610903999,
+  "userEdited": false,
+  "locked": true,
+  "cid": "terminal locations_system_relay_terminal_insert_load_us_goverment_supply_requisition_calls_in_a_get_the_supply_drop_mission_grid_c6_x_1206_y_2309_2309_1206",
+  "isTemp": false,
+  "isPostcard": false,
+  "postcardExpire": null,
+  "startTime": null,
+  "popupTimer": null,
+  "keepBtnBound": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

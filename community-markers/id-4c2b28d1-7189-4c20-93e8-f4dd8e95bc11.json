@@ -1,0 +1,18 @@
+{
+  "id": "id-4c2b28d1-7189-4c20-93e8-f4dd8e95bc11",
+  "cid": "fusion_core_fusion_core_found_inside_the_generator_building_at_poseidon_energy_plant_3008_2279",
+  "category": "fusion core",
+  "desc": "Fusion core located inside the generator building at Poseidon Energy Plant.\nGrid F8 (X: 2279, Y: 3008)",
+  "lat": 3008.241832054259,
+  "lng": 2278.9991993413155,
+  "icon": "🔋",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

@@ -1,0 +1,18 @@
+{
+  "id": "id-0d764979-2379-47be-8e69-b320bac76c14",
+  "cid": "fishing locations_good_fishing_spot_grid_b8_x_430_y_3271_submitted_by_mrcrazy_3271_430",
+  "category": "fishing locations",
+  "desc": "Good fishing spot.\nGrid B8 (X: 430, Y: 3271)",
+  "lat": 3271.035181803751,
+  "lng": 430.0754749116306,
+  "icon": "🎣",
+  "addedTime": 1765102065701,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+}

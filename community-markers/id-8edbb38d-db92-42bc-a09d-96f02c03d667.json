@@ -1,0 +1,18 @@
+{
+  "id": "id-8edbb38d-db92-42bc-a09d-96f02c03d667",
+  "cid": "junk_microscope_found_upstairs_in_a_locked_room_grid_h3_x_3037_y_1051_1051_3037",
+  "category": "junk",
+  "desc": "Microscope located upstairs in a locked room.\nGrid H3 (X: 3037, Y: 1051)",
+  "lat": 1051.0955172001086,
+  "lng": 3036.570859151964,
+  "icon": "🗑️",
+  "addedTime": 1770346607951,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+}

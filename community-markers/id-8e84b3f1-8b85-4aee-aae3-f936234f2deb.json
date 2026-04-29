@@ -1,0 +1,20 @@
+{
+  "id": "id-8e84b3f1-8b85-4aee-aae3-f936234f2deb",
+  "lat": 1115.4803675708797,
+  "lng": 2791.536593828957,
+  "category": "holotapes",
+  "desc": "Overseers log – Allegheny (3rd floor).\nGrid G3 (X: 2792, Y: 1115)",
+  "icon": "📀",
+  "addedTime": 1764610903999,
+  "userEdited": false,
+  "locked": true,
+  "cid": "holotapes_overseers_log_allegheny_grid_g3_x_2792_y_1115_1115_2792",
+  "isTemp": false,
+  "isPostcard": false,
+  "postcardExpire": null,
+  "startTime": null,
+  "popupTimer": null,
+  "keepBtnBound": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

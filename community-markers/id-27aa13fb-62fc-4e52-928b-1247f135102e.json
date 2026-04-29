@@ -1,0 +1,18 @@
+{
+  "id": "id-27aa13fb-62fc-4e52-928b-1247f135102e",
+  "cid": "aid_aid_box_found_inside_2623_1991",
+  "category": "aid",
+  "desc": "Aid box located inside.\nGrid E7 (X: 1991, Y: 2623)",
+  "lat": 2622.6812769877706,
+  "lng": 1991.0699823455159,
+  "icon": "💉",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}
