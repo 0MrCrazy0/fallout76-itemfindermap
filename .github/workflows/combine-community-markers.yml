@@ -6,6 +6,11 @@ on:
     paths:
       - 'community-markers/**.json'
 
+# ── CONCURRENCY FIX ── Prevents cancelled checks when multiple markers are submitted quickly
+concurrency:
+  group: combine-community-markers
+  cancel-in-progress: false   # Queue instead of cancel
+
 jobs:
   combine:
     if: github.event.pull_request.merged == true
