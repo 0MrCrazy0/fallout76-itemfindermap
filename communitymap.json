@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": 4.7,
+  "communityVersion": 4.8,
   "customCategories": {},
   "locations": [
     {
@@ -4512,6 +4512,24 @@
       "addedTime": 1777461441520,
       "locked": true,
       "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
+    },
+    {
+      "id": "id-a0fb0a25-c278-416b-8ab9-313a90cada80",
+       "cid": "treasure maps_savage_divide_treasure_map_8_dig_site_you_can_find_this_treasure_at_a_rest_stop_near_some_tables_as_shown_on_the_map_a_rusted_motorcycle_is_leaning_against_a_beam_dig_site_near_the_wooden_fence_beams_grid_g6_x_25248_y_22643_2264.25000_2524.75000",
+       "category": "treasure maps",
+       "desc": "Savage Divide Treasure Map #8 dig site: You can find this treasure at a rest stop near some tables, as shown on the map, a rusted motorcycle is leaning against a beam dig site near the wooden fence beams.\nGrid G6 (X: 2525, Y: 2264.8)\nSubmitted By MrCrazy",
+       "lat": 2264.8125,
+       "lng": 2525,
+       "icon": "🗺️",
+       "addedTime": 1777469648784,
+       "locked": true,
+       "isPostcard": false,
       "isTemp": false,
       "startTime": null,
       "keepBtnBound": false,
