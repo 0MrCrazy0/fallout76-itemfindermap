@@ -15,6 +15,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    # Temporary bypass for GitHub's Node.js 20 deprecation error (Sept 2025)
+    env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
     steps:
       - name: Checkout latest main branch
         uses: actions/checkout@v4
