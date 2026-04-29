@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": 4.0,
+  "communityVersion": 4.1,
   "customCategories": {},
   "locations": [
     {
@@ -4428,7 +4428,25 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-58b09582-959c-4cbd-a7cb-47797b842d86",
+      "cid": "treasure maps_savage_divide_treasure_map_2_dig_site_go_to_the_train_station_and_then_walk_along_the_railway_tracks_to_the_north_look_for_a_red_and_blue_train_carriage_off_the_tracks_between_these_two_is_the_mound_the_top_of_the_world_tower_can_be_seen_from_here_grid_f5_x_2160_y_1932_1932.25439_2160.06882",
+      "category": "treasure maps",
+      "desc": "Savage Divide Treasure Map #4 dig site: To find this treasure you go to Solomon’s Pond. There, a wooden bridge leads over a small lake. Cross the bridge, in the middle of the bridge, jump down near the rocks next to the bridge and walkway, edge of water. There you will find the mound with the treasure.\nGrid F4 (X: 2303.3, Y: 1611.4)\nSubmitted By MrCrazy",
+      "lat": 1611.375,
+      "lng": 2303.25,
+      "icon": "🗺️",
+      "addedTime": 1777447903780,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ],
-  "lastUpdated": "2026-04-29T06:39:27.875394Z"
+  "lastUpdated": "2026-04-29T07:36:45.594117Z"
 }
