@@ -314,11 +314,26 @@ typeSoundObserver.observe(document.body, { childList: true, subtree: true });
 
         function generateUniqueId() { return 'id-' + crypto.randomUUID(); }
 
+                // ── IMPROVED CID GENERATION ──
+        // Prevents collisions on very similar markers (e.g. treasure maps)
         function generateCid(loc) {
-            const desc = (loc.desc || '').toString().toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '_');
+            const desc = (loc.desc || '').toString().toLowerCase()
+                .replace(/[^a-z0-9\s]/g, '')
+                .replace(/\s+/g, '_')
+                .substring(0, 60);                    // safe length limit
+
             const lat = loc.lat.toFixed(5);
             const lng = loc.lng.toFixed(5);
-            return `${loc.category}_${desc}_${lat}_${lng}`;
+
+            // Add unique suffix from the marker's own ID (makes CID 100% unique)
+            let idSuffix = '';
+            if (loc.id && typeof loc.id === 'string' && loc.id.length > 8) {
+                idSuffix = loc.id.slice(-8);
+            } else {
+                idSuffix = Math.random().toString(36).substring(2, 10);
+            }
+
+            return `${loc.category}_${desc}_${lat}_${lng}_${idSuffix}`;
         }
 
         function hasBeenSubmitted(id) {
@@ -929,7 +944,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-29-04-2026-Build-A1"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-30-04-2026-Build-A1"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -6159,7 +6174,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • CURRENT_APP_VERSION = 76.Vault.Ok • 29-04-2026 • Made with ❤️\n' +
+    'Last updated: • CURRENT_APP_VERSION = 76.Vault.Ok • 30-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
