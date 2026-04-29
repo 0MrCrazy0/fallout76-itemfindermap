@@ -1,0 +1,18 @@
+{
+  "id": "id-f96b151b-7a02-47a6-8744-2836537e953d",
+  "cid": "misc_bobblehead_on_a_shelf_in_the_observation_deck_at_top_of_the_world_2195_2276",
+  "category": "bobbleheads",
+  "desc": "Bobblehead located on a shelf in the observation deck at Top of the World.\nGrid F6 (X: 2276, Y: 2195)",
+  "lat": 2195.471589753943,
+  "lng": 2275.5,
+  "icon": "🎎",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

@@ -1,0 +1,18 @@
+{
+  "id": "id-fc45c8cf-9e98-4fc1-af86-3ff14c14d89e",
+  "cid": "misc_cap_stash_inside_a_fridge_upstairs_1057_3039",
+  "category": "misc",
+  "desc": "Cap stash located inside a fridge upstairs.\nGrid H3 (X: 3039, Y: 1057)",
+  "lat": 1056.6874654303604,
+  "lng": 3039.4374663336534,
+  "icon": "📝",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

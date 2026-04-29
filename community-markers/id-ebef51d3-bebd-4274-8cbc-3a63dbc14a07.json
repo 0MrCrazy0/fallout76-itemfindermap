@@ -1,0 +1,18 @@
+{
+  "id": "id-ebef51d3-bebd-4274-8cbc-3a63dbc14a07",
+  "cid": "workshops_workshop_yup_a_workshop_2692_1655",
+  "category": "workshops",
+  "desc": "Workshop location.\nGrid E7 (X: 1655, Y: 2692)",
+  "lat": 2691.6527104111756,
+  "lng": 1655.136212659021,
+  "icon": "🔧",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

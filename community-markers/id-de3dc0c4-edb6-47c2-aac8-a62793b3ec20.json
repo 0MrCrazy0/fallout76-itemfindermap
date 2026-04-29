@@ -1,0 +1,20 @@
+{
+  "id": "id-de3dc0c4-edb6-47c2-aac8-a62793b3ec20",
+  "lat": 2228.347315466859,
+  "lng": 1655.4113325999765,
+  "category": "named locations",
+  "desc": "Overseers home.\nGrid E6 (X: 1655, Y: 2228)",
+  "icon": "🚩",
+  "addedTime": 1764610903999,
+  "userEdited": false,
+  "locked": true,
+  "cid": "named locations_overseers_home_grid_e6_x_1655_y_2228_2228_1655",
+  "isTemp": false,
+  "isPostcard": false,
+  "postcardExpire": null,
+  "startTime": null,
+  "popupTimer": null,
+  "keepBtnBound": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

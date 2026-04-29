@@ -1,0 +1,18 @@
+{
+  "id": "id-e1a7beb0-2cc0-4722-8fc6-d7f965fd8bbb",
+  "cid": "creatures_scorched_megasloth_walks_around_alot_2440_2948",
+  "category": "creatures",
+  "desc": "Scorched megasloth frequently patrols the area.\nGrid H6 (X: 2948, Y: 2440)",
+  "lat": 2439.5013263408687,
+  "lng": 2947.5004726020247,
+  "icon": "🐺",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

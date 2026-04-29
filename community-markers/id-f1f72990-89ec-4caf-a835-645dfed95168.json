@@ -1,0 +1,18 @@
+{
+  "id": "id-f1f72990-89ec-4caf-a835-645dfed95168",
+  "cid": "creatures_yaoguai_found_here_grid_f7_x_2346_y_2782_2782_2346",
+  "category": "creatures",
+  "desc": "Yao guai located here.\nGrid E4 (X: 1913, Y: 1486)",
+  "lat": 1485.965706886826,
+  "lng": 1912.6236657415839,
+  "icon": "🐺",
+  "addedTime": 1765946916957,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+}

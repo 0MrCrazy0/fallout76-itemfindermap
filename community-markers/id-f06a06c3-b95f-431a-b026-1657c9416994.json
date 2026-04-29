@@ -1,0 +1,18 @@
+{
+  "id": "id-f06a06c3-b95f-431a-b026-1657c9416994",
+  "cid": "exchanges_exchange_exchange_items_3038_1625",
+  "category": "exchanges",
+  "desc": "Exchange location for trading items.\nGrid D8 (X: 1625, Y: 3038)",
+  "lat": 3037.7555044851733,
+  "lng": 1624.5029023877307,
+  "icon": "⚖️",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}
