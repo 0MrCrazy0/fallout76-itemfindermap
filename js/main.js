@@ -929,7 +929,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-22-04-2026-Build-A1"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-29-04-2026-Build-A1"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -1526,6 +1526,8 @@ duplicateBtn.onclick = () => {
     newMarker.isTemp = false;
     newMarker.isPostcard = false;
     newMarker.locked = false;
+    newMarker.isCommunity = false;
+    newMarker.wasCommunityKept = false;
     newMarker.userEdited = true;
 
     locations.push(newMarker);
@@ -6157,7 +6159,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • CURRENT_APP_VERSION = 76.Vault.Ok • 22-04-2026 • Made with ❤️\n' +
+    'Last updated: • CURRENT_APP_VERSION = 76.Vault.Ok • 29-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
