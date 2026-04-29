@@ -1,6 +1,6 @@
 # Fallout 76 Item Finder Map
 
-**Last updated:** v76.Vault-OK • 22 April 2026  
+**Last updated:** v76.Vault-OK • 30 April 2026  
 **Live version:** [https://0mrcrazy0.github.io/fallout76-itemfindermap/](https://0mrcrazy0.github.io/fallout76-itemfindermap/)
 
 A free, no-login browser tool for Fallout 76 players to mark and track items, locations, and discoveries across Appalachia.
