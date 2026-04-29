@@ -15,15 +15,12 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
     steps:
       - name: Checkout latest main branch
         uses: actions/checkout@v4
         with:
           ref: main
-          token: ${{ secrets.PAT_COMBINE }}      # ← This line now uses your token
+          token: ${{ secrets.PAT_COMBINE }}
           fetch-depth: 0
 
       - name: Set up Python
