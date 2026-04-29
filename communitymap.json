@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": 4.2,
+  "communityVersion": 4.3,
   "customCategories": {},
   "locations": [
     {
@@ -4464,7 +4464,25 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-dc4b2ffe-180d-4599-993b-a8c0005b58e7",
+      "cid": "treasure maps_savage_divide_treasure_map_7_dig_site_this_treasure_can_be_found_in_the_mountains_south_of_savage_divide_east_of_the_spruce_knob_campground_the_pile_of_earth_is_on_a_rocky_outcrop_from_which_one_sees_the_two_metal_things_as_seen_on_the_treasure_map_grid_g3_x_2485_y_11683_1168.25000_2485.00000",
+      "category": "treasure maps",
+      "desc": "Savage Divide Treasure Map #7 dig site: This treasure can be found in the mountains south of Savage Divide, east of the Spruce Knob Campground. The pile of earth is on a rocky outcrop, from which one sees the two metal things as seen on the treasure map.\nGrid G3 (X: 2485, Y: 1168.3)\nSubmitted By MrCrazy",
+      "lat": 1168.25,
+      "lng": 2485,
+      "icon": "🗺️",
+      "addedTime": 1777448775561,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ],
-  "lastUpdated": "2026-04-29T07:37:26.791406Z"
+  "lastUpdated": "2026-04-29T08:09:41.918287Z"
 }
