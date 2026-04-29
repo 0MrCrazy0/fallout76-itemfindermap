@@ -1,0 +1,18 @@
+{
+  "id": "id-13160be2-e30e-47dc-bf8d-157b8eaee9b4",
+  "cid": "creatures_super_mutant_super_mutants_in_the_area_1843_3279",
+  "category": "creatures",
+  "desc": "Super mutants located in the area.\nGrid I5 (X: 3279, Y: 1843)",
+  "lat": 1843.2687982503298,
+  "lng": 3279.055616804464,
+  "icon": "🐺",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

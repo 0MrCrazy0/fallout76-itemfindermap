@@ -1,0 +1,18 @@
+{
+  "id": "id-d49105c0-c9a1-4b45-858d-c15557a3c7d8",
+  "cid": "fishing_locations_spotted_axolotl_seen_here_in_october_1192_2292",
+  "category": "fishing locations",
+  "desc": "Spotted axolotl seen here in October.\nGrid F3 (X: 2292, Y: 1192)",
+  "lat": 1191.5876071833977,
+  "lng": 2291.639380604472,
+  "icon": "🎣",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

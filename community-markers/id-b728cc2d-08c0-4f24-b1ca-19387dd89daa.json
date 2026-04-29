@@ -1,0 +1,18 @@
+{
+  "id": "id-b728cc2d-08c0-4f24-b1ca-19387dd89daa",
+  "cid": "nuke_drop_zones_nuke_event_drop_zone_a_colossal_problem_2775_2354",
+  "category": "nuke drop zones",
+  "desc": "Nuke event drop zone for A Colossal Problem.\nGrid F7 (X: 2354, Y: 2775)",
+  "lat": 2775.0145602511043,
+  "lng": 2353.509746012861,
+  "icon": "☢️",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

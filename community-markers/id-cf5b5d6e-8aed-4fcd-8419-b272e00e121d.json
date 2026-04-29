@@ -1,0 +1,18 @@
+{
+  "id": "id-cf5b5d6e-8aed-4fcd-8419-b272e00e121d",
+  "cid": "food_drink_pumpkin_pie_foods_drinks_in_vault_51_3472_1158",
+  "category": "food/drink",
+  "desc": "Pumpkin pie and other food and drink located in Vault 51.\nGrid C9 (X: 1158, Y: 3472)",
+  "lat": 3471.749346324657,
+  "lng": 1157.9990885532377,
+  "icon": "🍽️",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

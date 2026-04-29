@@ -1,0 +1,18 @@
+{
+  "id": "id-d05f77d6-5cb2-4952-898f-c56f32a7c78e",
+  "cid": "junk_junk_cigar_box_1049_3280",
+  "category": "junk",
+  "desc": "Cigar box located here.\nGrid I3 (X: 3280, Y: 1049)",
+  "lat": 1049.1895396087366,
+  "lng": 3279.874596003842,
+  "icon": "🗑️",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

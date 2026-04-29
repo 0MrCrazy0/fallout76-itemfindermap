@@ -1,0 +1,20 @@
+{
+  "id": "id-dd21b18a-e3a1-4dc9-93d8-e1ea8b43a78e",
+  "lat": 1750.8890914183708,
+  "lng": 2070,
+  "category": "food/drink",
+  "desc": "Sugar Bombs can be found here inside the workshed.\nGrid F5 (X: 2070, Y: 1751)",
+  "icon": "🍽️",
+  "addedTime": 1764610903999,
+  "userEdited": false,
+  "locked": true,
+  "cid": "food/drink_sugar_bomb_can_be_found_here_inside_the_workshed_grid_f5_x_2070_y_1751_1751_2070",
+  "isTemp": false,
+  "isPostcard": false,
+  "postcardExpire": null,
+  "startTime": null,
+  "popupTimer": null,
+  "keepBtnBound": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+}

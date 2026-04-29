@@ -1,0 +1,18 @@
+{
+  "id": "id-631300c8-2cb8-40ea-be22-ef89def673bb",
+  "cid": "food_drink_bubblegum_found_in_the_main_building_1957_1556",
+  "category": "food/drink",
+  "desc": "Bubblegum located in the main building.\nGrid D5 (X: 1556, Y: 1957)",
+  "lat": 1956.9692320665508,
+  "lng": 1555.6350999039585,
+  "icon": "🍽️",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

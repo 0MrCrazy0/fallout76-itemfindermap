@@ -1,0 +1,18 @@
+{
+  "id": "id-91728090-263b-4f7f-ac10-5ba44e35a6b9",
+  "cid": "creatures_mirlurks_queen_mirlurk_spawns_here_as_well_also_bugs_near_by_1179_1582",
+  "category": "creatures",
+  "desc": "Mirelurk queen and additional mirelurks spawn here, with bugs nearby.\nGrid D3 (X: 1582, Y: 1179)",
+  "lat": 1178.74737270739,
+  "lng": 1582,
+  "icon": "🐺",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

@@ -1,0 +1,18 @@
+{
+  "id": "id-6450b84f-0e77-47a3-bddd-0b40b195a494",
+  "cid": "vendors_vendors_buy_or_sell_1313_2312",
+  "category": "vendors",
+  "desc": "Vendors available to buy or sell items.\nGrid F4 (X: 2312, Y: 1313)",
+  "lat": 1312.9980467955836,
+  "lng": 2312.4997998353288,
+  "icon": "💰",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

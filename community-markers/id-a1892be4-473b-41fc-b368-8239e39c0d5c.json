@@ -1,0 +1,18 @@
+{
+  "id": "id-a1892be4-473b-41fc-b368-8239e39c0d5c",
+  "cid": "junk_junk_cigar_box_inside_the_workshop_1675_2091",
+  "category": "junk",
+  "desc": "Cigar box located inside the workshop.\nGrid F5 (X: 2091, Y: 1675)",
+  "lat": 1675.2601980436832,
+  "lng": 2091.374654919948,
+  "icon": "🗑️",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

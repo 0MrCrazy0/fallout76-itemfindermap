@@ -1,0 +1,18 @@
+{
+  "id": "id-af3451cc-7577-4bc2-8120-f83aa47f0018",
+  "cid": "creatures_feral_ghouls_inside_the_main_building_2624_1988",
+  "category": "creatures",
+  "desc": "Feral ghouls located inside the main building.\nGrid E7 (X: 1988, Y: 2624)",
+  "lat": 2623.56422848198,
+  "lng": 1988.4995286711487,
+  "icon": "🐺",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

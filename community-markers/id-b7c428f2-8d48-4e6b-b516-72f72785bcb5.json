@@ -1,0 +1,18 @@
+{
+  "id": "id-b7c428f2-8d48-4e6b-b516-72f72785bcb5",
+  "cid": "food_drink_corn_around_the_wayward_area_2376_1469",
+  "category": "food/drink",
+  "desc": "Corn located around the Wayward area.\nGrid D6 (X: 1469, Y: 2376)",
+  "lat": 2376.363245368333,
+  "lng": 1468.63067277939,
+  "icon": "🍽️",
+  "addedTime": 1764610903999,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}

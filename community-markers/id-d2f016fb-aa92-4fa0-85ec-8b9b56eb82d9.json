@@ -1,0 +1,18 @@
+{
+  "id": "id-d2f016fb-aa92-4fa0-85ec-8b9b56eb82d9",
+  "cid": "train_stations_train_station_yup_a_train_station_1114_2113",
+  "category": "train stations",
+  "desc": "Train station (R&G).\nGrid F3 (X: 2113, Y: 1114)",
+  "lat": 1114.286874721481,
+  "lng": 2113.354883450556,
+  "icon": "🚂",
+  "addedTime": 1764610903998,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "isCommunity": true,
+  "wasCommunityKept": false
+}
