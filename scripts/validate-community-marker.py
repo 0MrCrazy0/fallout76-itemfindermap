@@ -6,29 +6,48 @@ from jsonschema import validate, ValidationError
 SCHEMA_PATH = Path(".github/schemas/community-marker-schema.json")
 COMMUNITYMAP_PATH = Path("communitymap.json")
 
+
 def load_schema():
     with open(SCHEMA_PATH, encoding="utf-8") as f:
         return json.load(f)
 
+
 def load_existing_ids():
+    """Load all existing marker IDs from communitymap.json for duplicate prevention."""
     if not COMMUNITYMAP_PATH.exists():
         return set()
     with open(COMMUNITYMAP_PATH, encoding="utf-8") as f:
         data = json.load(f)
     return {loc.get("id") for loc in data.get("locations", []) if loc.get("id")}
 
+
+def load_existing_cids():
+    """Load all existing marker CIDs from communitymap.json (new stronger duplicate check)."""
+    if not COMMUNITYMAP_PATH.exists():
+        return set()
+    with open(COMMUNITYMAP_PATH, encoding="utf-8") as f:
+        data = json.load(f)
+    return {loc.get("cid") for loc in data.get("locations", []) if loc.get("cid")}
+
+
 def validate_marker(file_path):
     try:
         with open(file_path, encoding="utf-8") as f:
             marker = json.load(f)
         
+        # Schema validation
         validate(instance=marker, schema=load_schema())
         
-        # Duplicate check
+        # ── Duplicate check (both id and cid) ──
         existing_ids = load_existing_ids()
+        existing_cids = load_existing_cids()
+
         if marker["id"] in existing_ids:
             return False, "Duplicate ID detected"
         
+        if marker.get("cid") in existing_cids:
+            return False, "Duplicate CID detected"
+
         # Coordinate bounds check
         if not (0 <= marker["lat"] <= 4096 and 0 <= marker["lng"] <= 4096):
             return False, "Coordinates outside Fallout 76 map bounds"
@@ -50,6 +69,7 @@ def validate_marker(file_path):
         return False, f"Schema error: {e.message}"
     except Exception as e:
         return False, f"Invalid JSON or other error: {str(e)}"
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
