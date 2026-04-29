@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [closed]
     paths:
-      - 'community-markers/**.json'     # ← Only trigger on marker submissions
+      - 'community-markers/**.json'
 
 jobs:
   combine:
@@ -15,7 +15,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    # Silences the Node.js 20 deprecation warning
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -24,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_COMBINE }}      # ← This line now uses your token
           fetch-depth: 0
 
       - name: Set up Python
