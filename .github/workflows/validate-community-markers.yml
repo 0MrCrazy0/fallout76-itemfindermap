@@ -6,6 +6,11 @@ on:
     paths:
       - 'community-markers/**.json'
 
+# ── CONCURRENCY FIX ── Prevents cancelled checks when multiple markers are submitted quickly
+concurrency:
+  group: validate-community-markers
+  cancel-in-progress: false   # Queue instead of cancel
+
 jobs:
   validate:
     runs-on: ubuntu-latest
