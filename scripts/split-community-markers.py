@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-Combine Community Markers - ROBUST VERSION
+Combine Community Markers - ROBUST VERSION (Cleanup Fixed)
 - Deduplicates properly using 'id' (primary) and 'cid' (secondary)
 - New markers always added at the bottom
 - Prevents any duplication against existing community map
-- Better logging and error handling
+- GUARANTEED cleanup of temporary marker files
+- Enhanced logging for easier debugging
 """
 
 import json
@@ -24,7 +25,7 @@ def load_json_file(file_path):
         return None
 
 def main():
-    print("Starting community markers combiner (robust deduplication)...")
+    print("Starting community markers combiner...")
 
     if not COMMUNITY_MARKERS_DIR.exists():
         print(f"Error: Folder '{COMMUNITY_MARKERS_DIR}' not found!")
@@ -37,7 +38,7 @@ def main():
             with open(OUTPUT_FILE, 'r', encoding='utf-8') as f:
                 base_data = json.load(f)
         except Exception as e:
-            print(f"Warning: Could not load existing {OUTPUT_FILE}: {e}")
+            print(f"Warning: Could not load {OUTPUT_FILE}: {e}")
 
     current_locations = base_data.get("locations", [])
 
@@ -49,7 +50,10 @@ def main():
     added_count = 0
     duplicate_count = 0
 
-    for json_file in COMMUNITY_MARKERS_DIR.glob("*.json"):
+    files_before = list(COMMUNITY_MARKERS_DIR.glob("*.json"))
+    print(f"Found {len(files_before)} files in community-markers/ before processing")
+
+    for json_file in files_before:
         data = load_json_file(json_file)
         if not data or not isinstance(data, dict):
             continue
@@ -61,7 +65,7 @@ def main():
             print(f"Found sentinel: {json_file.name} → skipped")
             continue
 
-        # Check for duplicates against the current map
+        # Check for duplicates
         is_duplicate = False
         if marker_id and marker_id in existing_ids:
             is_duplicate = True
@@ -71,22 +75,18 @@ def main():
         if is_duplicate:
             print(f"⚠️ Duplicate skipped: {json_file.name} (id={marker_id}, cid={cid})")
             duplicate_count += 1
-            json_file.unlink()  # remove duplicate file
+            json_file.unlink()
             continue
 
-        # Add as new marker
+        # Add valid new marker
         new_markers.append(data)
         added_count += 1
+        if marker_id: existing_ids.add(marker_id)
+        if cid: existing_cids.add(cid)
 
-        if marker_id:
-            existing_ids.add(marker_id)
-        if cid:
-            existing_cids.add(cid)
-
-    # Combine: existing markers first + new markers at the bottom
+    # Combine and version bump
     updated_locations = current_locations + new_markers
 
-    # Version bump
     current_version = float(base_data.get("communityVersion", 3.1))
     new_version = round(current_version + 0.1, 1)
 
@@ -101,9 +101,13 @@ def main():
         with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
             json.dump(output_data, f, indent=2, ensure_ascii=False)
 
-        # Clean up the community-markers folder
+        # ── GUARANTEED CLEANUP ──
+        print("Cleaning community-markers/ folder (keeping only sentinel + gitkeep)...")
         for json_file in COMMUNITY_MARKERS_DIR.glob("*.json"):
+            if json_file.name == "sentinel.json" or json_file.name.endswith(".gitkeep") or json_file.name == "gitkeep.txt":
+                continue
             json_file.unlink()
+            print(f"Deleted: {json_file.name}")
 
         print(f"\n✅ Success! Updated {OUTPUT_FILE}")
         print(f"New communityVersion: {new_version}")
