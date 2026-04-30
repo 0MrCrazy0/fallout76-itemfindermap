@@ -1727,3 +1727,38 @@ button[onclick*="pending.html"],
         margin-top: 5px !important;
     }
 }
+/* ── Clean blue glow for outdated kept community markers (no clear box) ── */
+.custom-icon.update-available .marker-background,
+.text-marker.update-available {
+    animation: updatePulse 2s infinite ease-in-out !important;
+    filter: drop-shadow(0 0 8px #0066ff) drop-shadow(0 0 16px #3399ff) !important;
+    box-shadow: none !important;
+}
+
+@keyframes updatePulse {
+    0%, 100% { 
+        filter: drop-shadow(0 0 8px #0066ff) drop-shadow(0 0 16px #3399ff); 
+    }
+    50% { 
+        filter: drop-shadow(0 0 12px #3399ff) drop-shadow(0 0 24px #66ccff); 
+    }
+}
+/* ── Revert All Outdated button — matches other toolbar buttons perfectly on resize ── */
+#revertAllOutdatedBtn {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+    white-space: normal !important;
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+    line-height: 1.25 !important;
+    margin: 5px !important;
+}
+
+@media (max-width: 768px) {
+    #revertAllOutdatedBtn {
+        font-size: 12.5px !important;
+        padding: 9px 10px !important;
+    }
+}
