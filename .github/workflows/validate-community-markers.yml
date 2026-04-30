@@ -9,7 +9,7 @@ on:
 # ── CONCURRENCY FIX ── Prevents cancelled checks when multiple markers are submitted quickly
 concurrency:
   group: validate-community-markers
-  cancel-in-progress: false   # Queue instead of cancel
+  cancel-in-progress: false
 
 jobs:
   validate:
@@ -18,9 +18,12 @@ jobs:
       contents: read
       pull-requests: write
 
-    # Bypass for GitHub Node.js 20 deprecation (Sept 2025)
+    # ── DEVELOPER NOTE ──
+    # Node.js 24 opt-in (fixes GitHub deprecation warning)
+    # This replaces the old ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION bypass
+    # Will be required after June 2026
     env:
-      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout repository
@@ -79,7 +82,6 @@ jobs:
               body: summary
             });
 
-            // Clean labels
             await github.rest.issues.removeAllLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
