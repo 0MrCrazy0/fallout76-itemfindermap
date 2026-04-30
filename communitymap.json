@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": 5.3,
+  "communityVersion": 5.4,
   "customCategories": {},
   "locations": [
     {
@@ -4608,7 +4608,25 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-9c52fbb0-87a2-47c0-9caa-b1f281833708",
+      "cid": "junk_this_test_marker_will_be_removed_grid_a1_x_2075_y_189_189.00000_207.50000_8dxszotk",
+      "category": "junk",
+      "desc": "this test marker will be removed.\nGrid A1 (X: 207.5, Y: 189)\nSubmitted By MrCrazy",
+      "lat": 189,
+      "lng": 207.5,
+      "icon": "🗑️",
+      "addedTime": 1777549210460,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ],
-  "lastUpdated": "2026-04-30T11:21:10.937658Z"
+  "lastUpdated": "2026-04-30T11:41:01.924065Z"
 }
