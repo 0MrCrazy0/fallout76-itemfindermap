@@ -6,7 +6,6 @@ on:
     paths:
       - 'community-markers/**.json'
 
-# ── CONCURRENCY FIX ── Prevents cancelled checks when multiple markers are submitted quickly
 concurrency:
   group: combine-community-markers
   cancel-in-progress: false
@@ -20,10 +19,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    # ── DEVELOPER NOTE ──
-    # Node.js 24 opt-in (fixes GitHub deprecation warning)
-    # This replaces the old ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION bypass
-    # Will be required after June 2026
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -43,16 +38,18 @@ jobs:
       - name: Run community markers combiner
         run: python scripts/split-community-markers.py
 
-      - name: Commit and push updated communitymap.json
+      - name: Commit and push updated communitymap.json + cleanup
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if git diff --quiet; then
+          git add communitymap.json
+          git add -u community-markers/     # ← Critical fix: deletes old marker files
+
+          if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git add communitymap.json
-            git commit -m "Auto-update: communitymap.json (version bumped + validation passed)"
+            git commit -m "Auto-update: communitymap.json (version bumped + marker files cleaned)"
             git push
-            echo "✅ Successfully updated and pushed communitymap.json"
+            echo "✅ Successfully updated communitymap.json and cleaned up marker files"
           fi
