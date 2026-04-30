@@ -944,7 +944,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-31-04-2026-Build-A1"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-31-04-2026-Build-B1"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -1477,10 +1477,15 @@ playSound('selectcategory');
         playSound('type');
     }
 });
-        categoryFilter.onchange = () => {
-            loadData(combinedSearch.value, categoryFilter.value);
+                // ── FIXED: Category Filter Change Handler (now correctly handles "All Categories") ──
+        categoryFilter.addEventListener('change', function() {
+            currentCategoryFilter = this.value || '';   // '' = All Categories
+            localStorage.setItem('currentCategoryFilter', currentCategoryFilter);
+            
+            refreshTable(combinedSearch.value || '', currentCategoryFilter);
+            loadData(combinedSearch.value || '', currentCategoryFilter);
             playSound('selectcategory');
-        };
+        });
         function updateLockAllBtn() {
             const hasUnlocked = locations.some(l => !l.locked && !l.isPostcard);
             if (lockAllBtn) {
@@ -4039,6 +4044,10 @@ This will fetch the latest verified community markers.<br><br>
                 recalculateXP();
                 updateCounterDisplay();
                 forceReload();
+				                // ── Re-sync dropdown after community update ──
+                if (categoryFilter) {
+                    categoryFilter.value = currentCategoryFilter || '';
+                }
                 saveLocations();
 
 showConfirmModal(
@@ -5853,6 +5862,11 @@ forceReload = function() {
     originalForceReload.call(this);
     startLiveTableTimer();
     startIndependentGlowRefresh();
+
+    // ── FIXED: Re-sync category dropdown after any full reload ──
+    if (categoryFilter) {
+        categoryFilter.value = currentCategoryFilter || '';
+    }
 };
 
 <!-- ── SINGLE UNIFIED ONBOARDING HINT (with How to Use reference) ── -->
