@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": 5.1,
+  "communityVersion": 5.2,
   "customCategories": {},
   "locations": [
     {
@@ -4590,7 +4590,25 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-1a29c45e-f739-4bf5-929d-a47f05031267",
+      "cid": "treasure maps_toxic_valley_treasure_map_3_dig_site_to_find_this_treasure_h_2992.49754_2089.09969_05031267",
+      "category": "treasure maps",
+      "desc": "Toxic Valley Treasure Map #4 dig site: This treasure can be found south of the Crashed Space Station on a hill, at the point marked on the map, near the rock ledge.\nGrid F9 (X: 2240.5, Y: 3395.8)\nSubmitted By MrCrazy",
+      "lat": 3395.75,
+      "lng": 2240.5,
+      "icon": "🗺️",
+      "addedTime": 1777521533332,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ],
-  "lastUpdated": "2026-04-30T04:14:06.492532Z"
+  "lastUpdated": "2026-04-30T04:14:59.519717Z"
 }
