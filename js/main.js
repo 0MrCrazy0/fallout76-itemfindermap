@@ -944,7 +944,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-30-04-2026-Build-A1"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-31-04-2026-Build-A1"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -1254,6 +1254,72 @@ document.getElementById('toggleMyMarkersBtn').onclick = () => {
         const exportBtn = document.getElementById('exportJsonBtn');
         const importBtn = document.getElementById('importBtn');
         const downloadCommunityBtn = document.getElementById('downloadCommunityBtn');
+
+// ── Revert All Outdated button (now perfectly responsive like other buttons) ──
+let revertAllBtn = null;
+
+function updateRevertAllButton() {
+    const outdatedCount = locations.filter(l => l.wasCommunityKept && l.communityUpdateAvailable).length;
+
+    if (outdatedCount > 0) {
+        if (!revertAllBtn) {
+            revertAllBtn = document.createElement('button');
+            revertAllBtn.id = 'revertAllOutdatedBtn';
+            revertAllBtn.style.cssText = `
+                background:#0066ff;
+                color:#00ff00;
+                border:2px solid #00ff00;
+                font-weight:bold;
+                font-size:13px;
+                border-radius:4px;
+                cursor:pointer;
+                margin-left:8px;
+                box-sizing:border-box;
+                text-align:center;
+                line-height:1.3;
+                padding:8px 12px;
+                white-space:normal;
+            `;
+            revertAllBtn.innerHTML = `↩ Revert All Outdated <span style="font-size:12px;">(0)</span>`;
+
+            // Insert right after the Update Community Map button
+            if (downloadCommunityBtn && downloadCommunityBtn.parentNode) {
+                downloadCommunityBtn.parentNode.insertBefore(revertAllBtn, downloadCommunityBtn.nextSibling);
+            }
+
+            revertAllBtn.onclick = window.revertAllOutdatedMarkers;
+        }
+        revertAllBtn.querySelector('span').textContent = `(${outdatedCount})`;
+        revertAllBtn.style.display = 'inline-block';
+    } else if (revertAllBtn) {
+        revertAllBtn.style.display = 'none';
+    }
+}
+
+// Safe integration — update button after any data change
+function safeUpdateRevertAll() {
+    setTimeout(updateRevertAllButton, 150);
+}
+
+// Hook into existing functions safely
+if (typeof forceReload === 'function') {
+    const oldForceReload = forceReload;
+    forceReload = function() {
+        oldForceReload.call(this);
+        safeUpdateRevertAll();
+    };
+}
+if (typeof saveLocations === 'function') {
+    const oldSaveLocations = saveLocations;
+    saveLocations = function() {
+        oldSaveLocations.call(this);
+        safeUpdateRevertAll();
+    };
+}
+
+// Initial check
+setTimeout(updateRevertAllButton, 1500);
+
         const saveJpegBtn = document.getElementById('saveMapJpegBtn');
         const resetAppBtn = document.getElementById('resetAppBtn');
         const toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn');
@@ -2072,32 +2138,35 @@ function dustPostcard(id) {
             return div.innerHTML;
         }
         function createMarkerIcon(loc) {
-    const isTextOnly = ['named locations', 'regions'].includes(loc.category);
-    if (isTextOnly) {
-        const iconToUse = loc.icon || categoryIcons[loc.category] || '📝';
-        const words = loc.desc.split('\n')[0].trim().split(' ');
-        const shortText = words.slice(0, 3).join(' ') + (words.length > 3 ? '...' : '');
-        const width = Math.min(120, Math.max(60, shortText.length * 9));
-        const glowClass = isGlowing(loc) ? 'glowing' : '';
-        const html = `<div class="${glowClass}" style="background:#000;color:#fff;padding:3px 6px;border:2px solid #0f0;border-radius:4px;font-weight:bold;font-size:11px;white-space:nowrap;width:${width}px;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(shortText)}</div>`;
-       
-        return L.divIcon({
-            className: 'text-marker',
-            html,
-            iconSize: [width + 12, 26],
-            iconAnchor: [(width + 12)/2, 13],
-            zIndexOffset: 1000
-        });
-    } else {
-        const base = `<div class="marker-background" style="background-color:${categoryColors[loc.category] || '#808080'};"><span style="font-size:18px;">${ loc.icon || categoryIcons[loc.category] || '📝' }</span></div>`;
-        return L.divIcon({
-            className: isGlowing(loc) ? 'custom-icon glowing' : 'custom-icon',
-            html: base,
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
-        });
-    }
-}
+            const isTextOnly = ['named locations', 'regions'].includes(loc.category);
+            const isUpdateAvailable = !!loc.communityUpdateAvailable;
+
+            if (isTextOnly) {
+                const iconToUse = loc.icon || categoryIcons[loc.category] || '📝';
+                const words = loc.desc.split('\n')[0].trim().split(' ');
+                const shortText = words.slice(0, 3).join(' ') + (words.length > 3 ? '...' : '');
+                const width = Math.min(120, Math.max(60, shortText.length * 9));
+                const glowClass = isGlowing(loc) ? 'glowing' : (isUpdateAvailable ? 'update-available' : '');
+                const html = `<div class="${glowClass}" style="background:#000;color:#fff;padding:3px 6px;border:2px solid #0f0;border-radius:4px;font-weight:bold;font-size:11px;white-space:nowrap;width:${width}px;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(shortText)}</div>`;
+               
+                return L.divIcon({
+                    className: 'text-marker',
+                    html,
+                    iconSize: [width + 12, 26],
+                    iconAnchor: [(width + 12)/2, 13],
+                    zIndexOffset: 1000
+                });
+            } else {
+                const base = `<div class="marker-background" style="background-color:${categoryColors[loc.category] || '#808080'};"><span style="font-size:18px;">${ loc.icon || categoryIcons[loc.category] || '📝' }</span></div>`;
+                const glowClass = isGlowing(loc) ? 'glowing' : (isUpdateAvailable ? 'update-available' : '');
+                return L.divIcon({
+                    className: `custom-icon ${glowClass}`,
+                    html: base,
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                });
+            }
+        }
         const messageQueue = [];
         let activeMessageControl = null;
         function showTempMessage(html, ms = 3000) {
@@ -2353,6 +2422,11 @@ ${loc.isCommunity && !loc.userEdited && !loc.wasCommunityKept ? `
 
 ${loc.wasCommunityKept ? `
 <div style="text-align:center; display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+        ${loc.communityUpdateAvailable ? `
+    <div style="background:#0066ff;color:#fff;padding:6px 12px;border-radius:4px;font-size:13px;margin-bottom:6px;line-height:1.25;">
+        🔄 Community Marker Outdated!<br>
+        <span style="font-size:12px;opacity:0.9;">Tap “Revert” then “Update Community Map”</span>
+    </div>` : ''}
     <div style="margin:8px 0; text-align:center;">
         <span class="popup-lock-toggle" onclick="toggleLockFromPopup(${locations.indexOf(loc)})">${loc.locked ? '🔐 LOCKED' : '🔓 UNLOCKED'}</span>
     </div>
@@ -2552,23 +2626,20 @@ function refreshTable(search = '', cat = '') {
         if (isGlowing(loc)) tr.classList.add('glowing');
 
         const short = loc.desc.split('\n')[0].trim();
-        let lockCell = '';
+                let lockCell = '';
 
-                if (loc.isPostcard) {
+        if (loc.isPostcard) {
             lockCell = `<span style="color:#ff0;font-size:13px;font-weight:bold;">Expire: </span><span class="postcard-timer" data-id="${loc.id}" style="color:#ff0;font-size:13px;font-weight:bold;"></span>`;
         } else if (isGlowing(loc)) {
-            // ── ONLY owned/kept markers get the real button ──
             const isOwned = loc.userEdited || loc.wasCommunityKept;
             if (isOwned) {
                 const lockText = loc.locked ? '🔐 Locked' : '🔓 Unlocked';
                 lockCell = `<button class="lock-toggle-btn" style="margin-right:10px;cursor:pointer;background:none;border:none;color:inherit;font:inherit;padding:0;">${lockText}</button>`;
             } else {
-                // pure community marker → static locked icon (no button)
                 lockCell = `<span style="margin-right:10px;color:#666;">🔒</span>`;
             }
             lockCell += `<span class="new-marker-timer" data-id="${loc.id}" style="color:#ff0;font-size:13px;font-weight:bold;"></span>`;
         } else {
-            // normal owned/kept marker (not glowing)
             const isOwned = loc.userEdited || loc.wasCommunityKept;
             if (isOwned) {
                 const lockText = loc.locked ? '🔐 Locked' : '🔓 Unlocked';
@@ -2576,6 +2647,11 @@ function refreshTable(search = '', cat = '') {
             } else {
                 lockCell = `<span style="margin-right:10px;color:#666;">🔒</span>`;
             }
+        }
+
+        // ── Blue UPDATE badge for kept markers with community update available ──
+        if (loc.wasCommunityKept && loc.communityUpdateAvailable) {
+            lockCell += ` <span style="background:#0066ff;color:#fff;padding:2px 2px;border-radius:2px;font-size:10px;font-weight:bold;">↩ UPDATE</span>`;
         }
 
         tr.innerHTML = `
@@ -3916,13 +3992,43 @@ This will fetch the latest verified community markers.<br><br>
                     loc.userEdited = false;
                     loc.wasCommunityKept = !!existing?.wasCommunityKept;
                 });
-                for (let i = locations.length - 1; i >= 0; i--) {
+                                for (let i = locations.length - 1; i >= 0; i--) {
                     const loc = locations[i];
                     if (loc.isCommunity && !incomingIds.has(loc.id)) {
                         locations.splice(i, 1);
                         cleaned++;
                     }
                 }
+
+                // ── NEW: Community Update Available for KEPT markers ──
+                let updateAvailableCount = 0;
+                const incomingByCid = new Map(incoming.map(m => [m.cid, m]));
+
+                locations.forEach(loc => {
+                    if (!loc.wasCommunityKept || loc.isPostcard) return;
+
+                    const communityVersion = incomingByCid.get(loc.cid);
+
+                    if (!communityVersion) {
+                        // Marker was removed from community map
+                        loc.communityUpdateAvailable = true;
+                        updateAvailableCount++;
+                    } else if (
+                        communityVersion.desc !== loc.desc ||
+                        communityVersion.category !== loc.category ||
+                        Math.abs(communityVersion.lat - loc.lat) > 0.0001 ||
+                        Math.abs(communityVersion.lng - loc.lng) > 0.0001
+                    ) {
+                        // Description, category, or position changed
+                        loc.communityUpdateAvailable = true;
+                        updateAvailableCount++;
+                    } else {
+                        // Clear flag if now up-to-date
+                        if (loc.communityUpdateAvailable) {
+                            delete loc.communityUpdateAvailable;
+                        }
+                    }
+                });
                 if (data.customCategories) {
                     customCategories = { ...customCategories, ...data.customCategories };
                 }
@@ -3943,6 +4049,7 @@ showConfirmModal(
 <strong style="color:#ffcc00;">${userMarkersBefore}</strong> - personal markers untouched<br>
 ${cleaned > 0 ? `<strong style="color:#ff4444;">${cleaned}</strong> - deleted community markers removed<br>` : ''}
 ${approvedCount > 0 ? `<strong style="color:#00ff88;">${approvedCount}</strong> - of your submissions approved!<br>` : ''}
+${updateAvailableCount > 0 ? `<strong style="color:#0066ff;">${updateAvailableCount}</strong> of your kept markers have newer versions available!<br>` : ''}
 <strong style="color:#00ff00;">Total markers on map: ${locations.length}</strong><br><br>
 
 • You kept <strong style="color:#88ccff;">${skipped}</strong> community marker${skipped === 1 ? '' : 's'}<br>
@@ -4682,7 +4789,7 @@ if (nukeCodesBtn) {
         playSound('click');
     };
 }
-// ── Toggle Categories Modal — FIXED Close Button (works on every device) ──
+// ── TOGGLE CATEGORIES MODAL — STRICT BEHAVIOR (only closes with Close button / ×) ──
 if (toggleCategoryModalBtn) {
     toggleCategoryModalBtn.onclick = () => {
         const modal = document.getElementById('categoryToggleModal');
@@ -4695,10 +4802,9 @@ if (toggleCategoryModalBtn) {
         document.body.classList.add('modal-open');
         renderCategoryToggles();
 
-        // ── Attach close handler to BOTH the big Close button AND the × ──
+        // ── Close button (×) and "Close" button ONLY ──
         const closeBtn = document.getElementById('closeCategoryToggleBtn') ||
                          modal.querySelector('.close');
-
         if (closeBtn) {
             // Remove any old listeners first (prevents stacking)
             const newCloseBtn = closeBtn.cloneNode(true);
@@ -4711,16 +4817,6 @@ if (toggleCategoryModalBtn) {
                 playSound('modalClose');
             };
         }
-
-        // Background click also closes the modal
-        modal.onclick = (e) => {
-            if (e.target === modal) {
-                modal.style.display = 'none';
-                document.body.classList.remove('modal-open');
-                playSound('modalClose');
-            }
-        };
-
         playSound('click');
     };
 }
@@ -5525,7 +5621,7 @@ window.revertToCommunityMarker = function(markerId) {
         showTempMessage('❌ THIS IS NOT A KEPT COMMUNITY MARKER.', 4000);
         return;
     }
-playSound('click');
+    playSound('click');
     showConfirmModal(
         'REVERT TO COMMUNITY MARKER',
         'This will turn the marker back into a normal community marker.<br><br>' +
@@ -5540,13 +5636,57 @@ playSound('click');
             marker.locked = true;
             marker.addedTime = Date.now();
 
+            // ── CRITICAL FIX: Clear the update-available badge after revert ──
+            if (marker.communityUpdateAvailable !== undefined) {
+                delete marker.communityUpdateAvailable;
+            }
+
             saveLocations();
             recalculateXP();
             forceReload();
-			setTimeout(() => playSound('saving'), 150);
+            setTimeout(() => playSound('saving'), 150);
             showTempMessage('🔄 MARKER REVERTED TO COMMUNITY STATUS', 4000);
         },
         'Yes — Revert',
+        'Cancel'
+    );
+};
+
+// ── Revert ALL outdated kept community markers at once ──
+window.revertAllOutdatedMarkers = function() {
+    const outdated = locations.filter(l => l.wasCommunityKept && l.communityUpdateAvailable);
+    if (outdated.length === 0) return;
+
+    playSound('click');
+    showConfirmModal(
+        'REVERT ALL OUTDATED MARKERS',
+        `This will revert <strong>${outdated.length}</strong> kept marker${outdated.length === 1 ? '' : 's'} back to official community status.<br><br>` +
+        '• They will receive future community updates again<br>' +
+        '• You will lose edit rights on them<br>' +
+        '• The blue UPDATE badges will be cleared<br><br>' +
+        'Proceed with reverting all?',
+        () => {
+            let revertedCount = 0;
+            locations.forEach(loc => {
+                if (loc.wasCommunityKept && loc.communityUpdateAvailable) {
+                    loc.isCommunity = true;
+                    loc.userEdited = false;
+                    loc.wasCommunityKept = false;
+                    loc.locked = true;
+                    loc.addedTime = Date.now();
+                    if (loc.communityUpdateAvailable !== undefined) delete loc.communityUpdateAvailable;
+                    revertedCount++;
+                }
+            });
+
+            saveLocations();
+            recalculateXP();
+            forceReload();
+            setTimeout(() => playSound('saving'), 150);
+
+            showTempMessage(`✅ ${revertedCount} MARKER${revertedCount === 1 ? '' : 'S'} REVERTED TO COMMUNITY`, 5000);
+        },
+        'Yes — Revert All',
         'Cancel'
     );
 };
@@ -6174,7 +6314,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • CURRENT_APP_VERSION = 76.Vault.Ok • 30-04-2026 • Made with ❤️\n' +
+    'Last updated: • CURRENT_APP_VERSION = 76.Vault.Ok • 31-04-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
