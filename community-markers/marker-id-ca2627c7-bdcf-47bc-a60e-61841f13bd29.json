@@ -1,0 +1,18 @@
+{
+  "id": "id-ca2627c7-bdcf-47bc-a60e-61841f13bd29",
+  "cid": "misc_test_marker_location_grid_b1_x_5233_y_1988_198.75000_523.25000_82xvj7rt",
+  "category": "misc",
+  "desc": "test marker location\nGrid B1 (X: 523.3, Y: 198.8)\nSubmitted By MrCrazy",
+  "lat": 198.75,
+  "lng": 523.25,
+  "icon": "📝",
+  "addedTime": 1777647733806,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+}
