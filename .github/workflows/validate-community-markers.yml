@@ -18,10 +18,6 @@ jobs:
       contents: read
       pull-requests: write
 
-    # ── DEVELOPER NOTE ──
-    # Node.js 24 opt-in (fixes GitHub deprecation warning)
-    # This replaces the old ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION bypass
-    # Will be required after June 2026
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -42,7 +38,6 @@ jobs:
       - name: Validate changed markers
         id: validate
         run: |
-          echo "results=[]" > results.json
           for file in $(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '^community-markers/.*\.json$'); do
             python scripts/validate-community-marker.py "$file" >> validation.log
           done
@@ -52,25 +47,25 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const log = fs.readFileSync('validation.log', 'utf8');
+            const log = fs.readFileSync('validation.log', 'utf8').trim();
             const results = log.split('\n').filter(line => line.trim() !== '');
 
             let summary = '## 🔍 Community Marker Validation Report\n\n';
             let allValid = true;
-            let labels = ['validated'];
+            let labels = ['pending-review', 'community-submission'];
 
             results.forEach(line => {
               if (line.includes('VALID:False')) allValid = false;
-              if (line.includes('Duplicate')) labels.push('potential-duplicate');
-              if (line.includes('Schema error') || line.includes('Invalid JSON')) labels.push('invalid-format');
+              if (line.includes('Duplicate')) labels.push('duplicate');
+              if (line.includes('Schema error') || line.includes('Invalid JSON')) labels.push('invalid');
             });
 
             if (!allValid) {
               summary += '❌ Marker Failed Validation.\n';
-              labels = ['needs-review'];
+              if (!labels.includes('needs-review')) labels.push('needs-review');
             } else {
               summary += '✅ Marker Passed Validation.\n';
-              labels = ['validated'];
+              labels = ['validated', 'community-submission'];
             }
 
             summary += '\n**Detailed log:**\n```\n' + log + '\n```';
