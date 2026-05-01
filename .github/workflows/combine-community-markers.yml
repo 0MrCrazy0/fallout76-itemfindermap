@@ -36,7 +36,7 @@ jobs:
           python-version: '3.11'
 
       - name: Run community markers combiner
-        run: python split-community-markers.py
+        run: python scripts/split-community-markers.py
 
       - name: Commit and push updated communitymap.json + cleanup
         run: |
