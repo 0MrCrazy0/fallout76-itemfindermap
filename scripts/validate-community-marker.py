@@ -6,9 +6,6 @@ from jsonschema import validate, ValidationError
 SCHEMA_PATH = Path(".github/schemas/community-marker-schema.json")
 COMMUNITYMAP_PATH = Path("communitymap.json")
 
-# ── CONFIGURATION ──
-MIN_DESC_LENGTH = 5
-
 def load_schema():
     with open(SCHEMA_PATH, encoding="utf-8") as f:
         return json.load(f)
@@ -45,10 +42,10 @@ def validate_marker(file_path):
         if not (0 <= marker.get("lat", 0) <= 4096 and 0 <= marker.get("lng", 0) <= 4096):
             return False, "Coordinates outside map bounds"
 
-        # === SIMPLE RELIABLE CLEANING ===
+        # === SIMPLE & RELIABLE CLEANING (keeps real user description) ===
         raw_desc = str(marker.get("desc", "")).strip()
 
-        # Remove everything from the first "Grid" or "Submitted By" line onward
+        # Cut off at the first "Grid" or "Submitted By" line
         if "Grid" in raw_desc:
             cleaned_desc = raw_desc.split("Grid", 1)[0].strip()
         elif "Submitted By" in raw_desc:
@@ -56,12 +53,8 @@ def validate_marker(file_path):
         else:
             cleaned_desc = raw_desc
 
-        # Debug output (will appear in validation comment)
-        print(f"DEBUG_CLEANED_DESC_LENGTH: {len(cleaned_desc)}")
-        print(f"DEBUG_CLEANED_DESC: {repr(cleaned_desc)}")
-
-        if len(cleaned_desc) < MIN_DESC_LENGTH:
-            return False, f"Description too short (minimum {MIN_DESC_LENGTH} characters)"
+        if len(cleaned_desc) < 5:
+            return False, "Description too short (minimum 5 characters)"
 
         return True, "Valid marker"
 
