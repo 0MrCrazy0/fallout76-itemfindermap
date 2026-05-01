@@ -6,6 +6,9 @@ from jsonschema import validate, ValidationError
 SCHEMA_PATH = Path(".github/schemas/community-marker-schema.json")
 COMMUNITYMAP_PATH = Path("communitymap.json")
 
+# ── CONFIGURATION ──
+MIN_DESC_LENGTH = 10   # ← You can change this number anytime (e.g. 5, 8, 10, etc.)
+
 def load_schema():
     with open(SCHEMA_PATH, encoding="utf-8") as f:
         return json.load(f)
@@ -42,9 +45,27 @@ def validate_marker(file_path):
         if not (0 <= marker.get("lat", 0) <= 4096 and 0 <= marker.get("lng", 0) <= 4096):
             return False, "Coordinates outside map bounds"
 
-        desc = str(marker.get("desc", "")).strip()
-        if len(desc) < 15:
-            return False, "Description too short (minimum 15 characters)"
+        # === DESCRIPTION CHECK (ignores auto-added lines) ===
+        raw_desc = str(marker.get("desc", "")).strip()
+        lines = raw_desc.split('\n')
+        cleaned_lines = []
+
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            lower = stripped.lower()
+            # Skip auto-added lines
+            if lower.startswith("submitted by:"):
+                continue
+            if lower.startswith("grid ") and "(x:" in lower and "(y:" in lower:
+                continue
+            cleaned_lines.append(line)
+
+        cleaned_desc = '\n'.join(cleaned_lines).strip()
+
+        if len(cleaned_desc) < MIN_DESC_LENGTH:
+            return False, f"Description too short (minimum {MIN_DESC_LENGTH} characters)"
 
         return True, "Valid marker"
 
