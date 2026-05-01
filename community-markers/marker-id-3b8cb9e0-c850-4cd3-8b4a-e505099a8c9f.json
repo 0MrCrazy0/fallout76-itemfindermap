@@ -1,0 +1,18 @@
+{
+  "id": "id-3b8cb9e0-c850-4cd3-8b4a-e505099a8c9f",
+  "cid": "misc_this_is_a_dig_location_test_grid_b2_x_680_y_468_468.00000_680.00000_enxb73hw",
+  "category": "misc",
+  "desc": "this is a dig location test\nGrid B2 (X: 680, Y: 468)\nSubmitted By Anonymous Wastelander",
+  "lat": 468,
+  "lng": 680,
+  "icon": "📝",
+  "addedTime": 1777658282025,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+}
