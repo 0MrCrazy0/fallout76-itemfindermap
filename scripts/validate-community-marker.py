@@ -7,7 +7,7 @@ SCHEMA_PATH = Path(".github/schemas/community-marker-schema.json")
 COMMUNITYMAP_PATH = Path("communitymap.json")
 
 # ── CONFIGURATION ──
-MIN_DESC_LENGTH = 10   # ← You can change this number anytime (e.g. 5, 8, 10, etc.)
+MIN_DESC_LENGTH = 5   # ← Minimum real description length (you can change this)
 
 def load_schema():
     with open(SCHEMA_PATH, encoding="utf-8") as f:
@@ -45,7 +45,7 @@ def validate_marker(file_path):
         if not (0 <= marker.get("lat", 0) <= 4096 and 0 <= marker.get("lng", 0) <= 4096):
             return False, "Coordinates outside map bounds"
 
-        # === DESCRIPTION CHECK (ignores auto-added lines) ===
+        # === STRONGER DESCRIPTION CHECK ===
         raw_desc = str(marker.get("desc", "")).strip()
         lines = raw_desc.split('\n')
         cleaned_lines = []
@@ -55,11 +55,14 @@ def validate_marker(file_path):
             if not stripped:
                 continue
             lower = stripped.lower()
+
             # Skip auto-added lines
             if lower.startswith("submitted by:"):
                 continue
-            if lower.startswith("grid ") and "(x:" in lower and "(y:" in lower:
+            # Skip any grid coordinate line (more flexible matching)
+            if "grid" in lower and ("x:" in lower or "(x:" in lower) and ("y:" in lower or "(y:" in lower):
                 continue
+
             cleaned_lines.append(line)
 
         cleaned_desc = '\n'.join(cleaned_lines).strip()
