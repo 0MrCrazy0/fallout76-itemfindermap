@@ -1,0 +1,18 @@
+{
+  "id": "id-6f2a8f7d-3d31-4fa2-8b3f-0e15ec70848a",
+  "cid": "misc_this_is_a_test_location_grid_a1_x_232_y_14_14.00000_232.00000_xhn21da0",
+  "category": "misc",
+  "desc": "this is a test location\nGrid A1 (X: 232, Y: 14)\nSubmitted By Anonymous Wastelander",
+  "lat": 14,
+  "lng": 232,
+  "icon": "📝",
+  "addedTime": 1777653783064,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+}
