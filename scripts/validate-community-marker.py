@@ -45,7 +45,7 @@ def validate_marker(file_path):
         if not (0 <= marker.get("lat", 0) <= 4096 and 0 <= marker.get("lng", 0) <= 4096):
             return False, "Coordinates outside map bounds"
 
-        # === EXTREMELY STRONG DESCRIPTION CLEANING ===
+        # === PRECISE DESCRIPTION CLEANING ===
         raw_desc = str(marker.get("desc", "")).strip()
         lines = raw_desc.split('\n')
         cleaned_lines = []
@@ -56,21 +56,19 @@ def validate_marker(file_path):
                 continue
             lower = stripped.lower()
 
-            # Skip ANY "Submitted By" line (any variation)
+            # Skip auto-added "Submitted By" line (any casing)
             if "submitted by" in lower:
                 continue
-            # Skip ANY grid coordinate line (any variation)
-            if "grid" in lower or ("x:" in lower or "(x:" in lower) or ("y:" in lower or "(y:" in lower):
-                continue
-            # Extra safety: skip anything that looks like coordinates
-            if any(x in lower for x in ["x:", "y:", "(x:", "(y:"]):
+
+            # Skip exact grid coordinate lines (very specific pattern)
+            if lower.startswith("grid ") and "x:" in lower and "y:" in lower:
                 continue
 
             cleaned_lines.append(line)
 
         cleaned_desc = '\n'.join(cleaned_lines).strip()
 
-        # Debug output (will appear in the validation comment)
+        # Debug output (will appear in validation comment)
         print(f"DEBUG_CLEANED_DESC_LENGTH: {len(cleaned_desc)}")
         print(f"DEBUG_CLEANED_DESC: {repr(cleaned_desc)}")
 
