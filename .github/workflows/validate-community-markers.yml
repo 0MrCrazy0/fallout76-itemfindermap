@@ -94,5 +94,5 @@ jobs:
             });
 
             if (!allValid) {
-              process.exit(1);   # ← This makes the PR show red X
+              process.exit(1);  # This creates the red X
             }
