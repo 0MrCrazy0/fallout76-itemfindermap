@@ -37,49 +37,41 @@ jobs:
       - name: Validate changed markers
         id: validate
         run: |
-          echo "=== Validation started at $(date) ===" > validation.log
+          echo "=== Validation started ===" > validation.log
           for file in community-markers/*.json; do
             if [ -f "$file" ]; then
-              echo "Checking file: $file" >> validation.log
+              echo "Checking: $file" >> validation.log
               python validate-community-marker.py "$file" >> validation.log 2>&1
               echo "----------------------------------------" >> validation.log
             fi
           done
-          echo "=== Validation completed ===" >> validation.log
 
       - name: Post validation results
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            let log = 'No log file found';
-            try {
-              log = fs.readFileSync('validation.log', 'utf8').trim();
-            } catch (e) {}
-
-            const lines = log.split('\n');
-            let allValid = true;
-            let errorMessage = 'Unknown error';
-
-            for (const line of lines) {
-              if (line.includes('VALID:False')) allValid = false;
-              if (line.includes('MESSAGE:')) {
-                errorMessage = line.replace('MESSAGE:', '').trim();
-              }
-            }
+            let log = fs.readFileSync('validation.log', 'utf8').trim();
+            const results = log.split('\n').filter(line => line.trim() !== '');
 
             let summary = '## 🔍 Community Marker Validation Report\n\n';
+            let allValid = true;
+
+            results.forEach(line => {
+              if (line.includes('VALID:False')) allValid = false;
+            });
+
             let labels = ['community-submission'];
 
             if (!allValid) {
-              summary += `❌ Marker Failed Validation.\n\n**Reason:** ${errorMessage}\n`;
+              summary += '❌ Marker Failed Validation.\n';
               labels = ['invalid', 'needs-review', 'community-submission'];
             } else {
               summary += '✅ Marker Passed Validation.\n';
               labels = ['validated', 'community-submission'];
             }
 
-            summary += `\n**Full Log:**\n\`\`\`\n${log}\n\`\`\``;
+            summary += '\n**Detailed log:**\n```\n' + log + '\n```';
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
