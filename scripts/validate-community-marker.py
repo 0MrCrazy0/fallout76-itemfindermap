@@ -7,7 +7,7 @@ SCHEMA_PATH = Path(".github/schemas/community-marker-schema.json")
 COMMUNITYMAP_PATH = Path("communitymap.json")
 
 # ── CONFIGURATION ──
-MIN_DESC_LENGTH = 5   # ← Minimum real description length (you can change this)
+MIN_DESC_LENGTH = 5   # ← You can change this anytime
 
 def load_schema():
     with open(SCHEMA_PATH, encoding="utf-8") as f:
@@ -45,7 +45,7 @@ def validate_marker(file_path):
         if not (0 <= marker.get("lat", 0) <= 4096 and 0 <= marker.get("lng", 0) <= 4096):
             return False, "Coordinates outside map bounds"
 
-        # === STRONGER DESCRIPTION CHECK ===
+        # === VERY STRONG DESCRIPTION CLEANING ===
         raw_desc = str(marker.get("desc", "")).strip()
         lines = raw_desc.split('\n')
         cleaned_lines = []
@@ -59,13 +59,20 @@ def validate_marker(file_path):
             # Skip auto-added lines
             if lower.startswith("submitted by:"):
                 continue
-            # Skip any grid coordinate line (more flexible matching)
-            if "grid" in lower and ("x:" in lower or "(x:" in lower) and ("y:" in lower or "(y:" in lower):
+            # Skip ANY grid coordinate line (very broad match)
+            if ("grid" in lower or "x:" in lower or "y:" in lower) and ("(" in lower or ":" in lower):
+                continue
+            # Extra safety: skip anything that looks like coordinates
+            if any(x in lower for x in ["x:", "y:", "(x:", "(y:"]):
                 continue
 
             cleaned_lines.append(line)
 
         cleaned_desc = '\n'.join(cleaned_lines).strip()
+
+        # Debug output so you can see what was left in the validation comment
+        print(f"DEBUG_CLEANED_DESC_LENGTH: {len(cleaned_desc)}")
+        print(f"DEBUG_CLEANED_DESC: {repr(cleaned_desc)}")
 
         if len(cleaned_desc) < MIN_DESC_LENGTH:
             return False, f"Description too short (minimum {MIN_DESC_LENGTH} characters)"
