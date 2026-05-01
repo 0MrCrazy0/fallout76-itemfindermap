@@ -41,7 +41,7 @@ jobs:
           for file in community-markers/*.json; do
             if [ -f "$file" ]; then
               echo "Checking: $file" >> validation.log
-              python validate-community-marker.py "$file" >> validation.log 2>&1
+              python scripts/validate-community-marker.py "$file" >> validation.log 2>&1
               echo "----------------------------------------" >> validation.log
             fi
           done
