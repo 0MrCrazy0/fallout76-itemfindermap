@@ -1,0 +1,18 @@
+{
+  "id": "id-60625a07-2a46-41d8-b176-f22a7d97e78c",
+  "cid": "misc_test_location_marker_waiting_to_see_if_this_gets_approved_gr_372.00000_722.00000_cq6lou65",
+  "category": "misc",
+  "desc": "Test location marker waiting to see if this gets approved\nGrid B1 (X: 722, Y: 372)\nSubmitted By Anonymous Wastelander",
+  "lat": 372,
+  "lng": 722,
+  "icon": "📝",
+  "addedTime": 1777658518110,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+}
