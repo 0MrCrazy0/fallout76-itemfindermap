@@ -1,0 +1,94 @@
+name: Validate Community Markers
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'community-markers/**.json'
+
+# ── CONCURRENCY FIX ── Prevents cancelled checks when multiple markers are submitted quickly
+concurrency:
+  group: validate-community-markers
+  cancel-in-progress: false   # Queue instead of cancel
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    # Bypass for GitHub Node.js 20 deprecation (Sept 2025)
+    env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install jsonschema
+
+      - name: Validate changed markers
+        id: validate
+        run: |
+          echo "results=[]" > results.json
+          for file in $(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '^community-markers/.*\.json$'); do
+            python scripts/validate-community-marker.py "$file" >> validation.log
+          done
+
+      - name: Post validation results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const log = fs.readFileSync('validation.log', 'utf8');
+            const results = log.split('\n').filter(line => line.trim() !== '');
+
+            let summary = '## 🔍 Community Marker Validation Report\n\n';
+            let allValid = true;
+            let labels = ['validated'];
+
+            results.forEach(line => {
+              if (line.includes('VALID:False')) allValid = false;
+              if (line.includes('Duplicate')) labels.push('potential-duplicate');
+              if (line.includes('Schema error') || line.includes('Invalid JSON')) labels.push('invalid-format');
+            });
+
+            if (!allValid) {
+              summary += '❌ Marker Failed Validation.\n';
+              labels = ['needs-review'];
+            } else {
+              summary += '✅ Marker Passed Validation.\n';
+              labels = ['validated'];
+            }
+
+            summary += '\n**Detailed log:**\n```\n' + log + '\n```';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: summary
+            });
+
+            // Clean labels
+            await github.rest.issues.removeAllLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: labels
+            });
