@@ -49,25 +49,24 @@
         text-decoration: underline;
     }
     .close-btn {
-    background: #1a3c34;
-    color: #00ff00;
-    border: none;
-    padding: 10px 24px;
-    font-size: 1.0em;
-    font-weight: bold;
-    cursor: pointer;
-    margin: 25px auto;
-    display: block;
-    box-shadow: 0 0 15px #00ff00;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-}
-
-.close-btn:hover {
-    background: #00ff00;
-    color: #000000;
-    box-shadow: 0 0 20px #00ff88;
-}
+        background: #1a3c34;
+        color: #00ff00;
+        border: none;
+        padding: 10px 24px;
+        font-size: 1.0em;
+        font-weight: bold;
+        cursor: pointer;
+        margin: 25px auto;
+        display: block;
+        box-shadow: 0 0 15px #00ff00;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+    }
+    .close-btn:hover {
+        background: #00ff00;
+        color: #000000;
+        box-shadow: 0 0 20px #00ff88;
+    }
     .preview-box {
         background: #0f2f2a;
         border: 1px solid #00ff00;
@@ -79,7 +78,7 @@
         word-break: break-word;
         border-radius: 6px;
     }
-</style>
+    </style>
 </head>
 <body>
     <h1>Pending Community Map Submissions</h1>
@@ -93,12 +92,11 @@
 
     <script>
         function returnToMap() {
-            // This flag tells the main map to open How to Use ONLY this time
             sessionStorage.setItem('returnFromPending', 'true');
             window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
         }
 
-        // Strong cache buster
+        // Updated for full label consistency (still uses pending-review as the primary filter)
         fetch('https://itemfinder-submit.crzymn05.workers.dev/pending?v=20260319_' + Date.now())
             .then(r => r.ok ? r.json() : Promise.reject())
             .then(data => {
