@@ -6,7 +6,6 @@ on:
     paths:
       - 'community-markers/**.json'
 
-# ── CONCURRENCY FIX ── Prevents cancelled checks when multiple markers are submitted quickly
 concurrency:
   group: validate-community-markers
   cancel-in-progress: false
@@ -18,10 +17,6 @@ jobs:
       contents: read
       pull-requests: write
 
-    # ── DEVELOPER NOTE ──
-    # Node.js 24 opt-in (fixes GitHub deprecation warning)
-    # This replaces the old ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION bypass
-    # Will be required after June 2026
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -42,9 +37,13 @@ jobs:
       - name: Validate changed markers
         id: validate
         run: |
-          echo "results=[]" > results.json
-          for file in $(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '^community-markers/.*\.json$'); do
-            python scripts/validate-community-marker.py "$file" >> validation.log
+          echo "=== Validation started ===" > validation.log
+          for file in community-markers/*.json; do
+            if [ -f "$file" ]; then
+              echo "Checking: $file" >> validation.log
+              python scripts/validate-community-marker.py "$file" >> validation.log 2>&1
+              echo "----------------------------------------" >> validation.log
+            fi
           done
 
       - name: Post validation results
@@ -52,25 +51,24 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const log = fs.readFileSync('validation.log', 'utf8');
+            let log = fs.readFileSync('validation.log', 'utf8').trim();
             const results = log.split('\n').filter(line => line.trim() !== '');
 
             let summary = '## 🔍 Community Marker Validation Report\n\n';
             let allValid = true;
-            let labels = ['validated'];
 
             results.forEach(line => {
               if (line.includes('VALID:False')) allValid = false;
-              if (line.includes('Duplicate')) labels.push('potential-duplicate');
-              if (line.includes('Schema error') || line.includes('Invalid JSON')) labels.push('invalid-format');
             });
+
+            let labels = ['community-submission'];
 
             if (!allValid) {
               summary += '❌ Marker Failed Validation.\n';
-              labels = ['needs-review'];
+              labels = ['invalid', 'needs-review', 'community-submission'];   // ← RED invalid label
             } else {
               summary += '✅ Marker Passed Validation.\n';
-              labels = ['validated'];
+              labels = ['validated', 'community-submission'];                // ← GREEN validated label
             }
 
             summary += '\n**Detailed log:**\n```\n' + log + '\n```';
