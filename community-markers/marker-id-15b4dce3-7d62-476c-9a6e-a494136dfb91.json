@@ -1,0 +1,18 @@
+{
+  "id": "id-15b4dce3-7d62-476c-9a6e-a494136dfb91",
+  "cid": "misc_12345678910111213141516_grid_b1_x_5566_y_1821_182.12500_556.62500_zo1eu0jx",
+  "category": "misc",
+  "desc": "this is a test location found here.\nGrid B1 (X: 556.6, Y: 182.1)\nSubmitted By MrCrazy",
+  "lat": 182.125,
+  "lng": 556.625,
+  "icon": "📝",
+  "addedTime": 1777651458160,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+}
