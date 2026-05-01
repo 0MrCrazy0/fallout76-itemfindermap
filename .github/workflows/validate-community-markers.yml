@@ -52,20 +52,18 @@ jobs:
 
             let summary = '## 🔍 Community Marker Validation Report\n\n';
             let allValid = true;
-            let labels = ['pending-review', 'community-submission'];
+            let labels = ['community-submission'];
 
             results.forEach(line => {
               if (line.includes('VALID:False')) allValid = false;
-              if (line.includes('Duplicate')) labels.push('duplicate');
-              if (line.includes('Schema error') || line.includes('Invalid JSON')) labels.push('invalid');
             });
 
             if (!allValid) {
               summary += '❌ Marker Failed Validation.\n';
-              if (!labels.includes('needs-review')) labels.push('needs-review');
+              labels = ['invalid', 'needs-review', 'community-submission'];   // ← RED + needs review
             } else {
               summary += '✅ Marker Passed Validation.\n';
-              labels = ['validated', 'community-submission'];
+              labels = ['validated', 'community-submission'];                // ← GREEN
             }
 
             summary += '\n**Detailed log:**\n```\n' + log + '\n```';
