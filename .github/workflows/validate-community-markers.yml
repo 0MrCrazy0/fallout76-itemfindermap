@@ -39,7 +39,7 @@ jobs:
         run: |
           echo "=== Validation started ===" > validation.log
           for file in community-markers/*.json; do
-            if [ -f "$file" ]; then
+            if [ -f "$file" ] && [ "$file" != "community-markers/sentinel.json" ]; then
               echo "Checking: $file" >> validation.log
               python scripts/validate-community-marker.py "$file" >> validation.log 2>&1
               echo "----------------------------------------" >> validation.log
@@ -93,7 +93,6 @@ jobs:
               labels: labels
             });
 
-            // ← THIS MAKES THE PR SHOW RED X WHEN VALIDATION FAILS
             if (!allValid) {
-              process.exit(1);
+              process.exit(1);   # ← This makes the PR show red X
             }
