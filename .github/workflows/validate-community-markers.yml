@@ -65,10 +65,10 @@ jobs:
 
             if (!allValid) {
               summary += '❌ Marker Failed Validation.\n';
-              labels = ['invalid', 'needs-review', 'community-submission'];   // ← RED invalid label
+              labels = ['invalid', 'needs-review', 'community-submission'];
             } else {
               summary += '✅ Marker Passed Validation.\n';
-              labels = ['validated', 'community-submission'];                // ← GREEN validated label
+              labels = ['validated', 'community-submission'];
             }
 
             summary += '\n**Detailed log:**\n```\n' + log + '\n```';
@@ -92,3 +92,8 @@ jobs:
               issue_number: context.issue.number,
               labels: labels
             });
+
+            // ← THIS MAKES THE PR SHOW RED X WHEN VALIDATION FAILS
+            if (!allValid) {
+              process.exit(1);
+            }
