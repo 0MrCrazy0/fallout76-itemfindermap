@@ -1,0 +1,18 @@
+{
+  "id": "id-4a1b377f-7959-416a-868c-bcfa8ef85139",
+  "cid": "misc_test_grid_a1_x_1455_y_85_8.50000_145.50000_68hzbit0",
+  "category": "misc",
+  "desc": "test\nGrid A1 (X: 145.5, Y: 8.5)\nSubmitted By Anonymous Wastelander",
+  "lat": 8.5,
+  "lng": 145.5,
+  "icon": "📝",
+  "addedTime": 1777653682650,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+}
