@@ -42,10 +42,10 @@ def validate_marker(file_path):
         if not (0 <= marker.get("lat", 0) <= 4096 and 0 <= marker.get("lng", 0) <= 4096):
             return False, "Coordinates outside map bounds"
 
-        # === SIMPLE & RELIABLE CLEANING (keeps real user description) ===
+        # === SIMPLE & SAFE CLEANING (original style) ===
         raw_desc = str(marker.get("desc", "")).strip()
 
-        # Cut off at the first "Grid" or "Submitted By" line
+        # Keep only text before the first "Grid" or "Submitted By" line
         if "Grid" in raw_desc:
             cleaned_desc = raw_desc.split("Grid", 1)[0].strip()
         elif "Submitted By" in raw_desc:
