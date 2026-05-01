@@ -6,7 +6,6 @@ on:
     paths:
       - 'community-markers/**.json'
 
-# ── CONCURRENCY FIX ── Prevents cancelled checks when multiple markers are submitted quickly
 concurrency:
   group: validate-community-markers
   cancel-in-progress: false
@@ -38,8 +37,14 @@ jobs:
       - name: Validate changed markers
         id: validate
         run: |
-          for file in $(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '^community-markers/.*\.json$'); do
-            python validate-community-marker.py "$file" >> validation.log
+          echo "=== Starting validation ===" > validation.log
+          # More reliable: check every JSON file in the folder (new PRs are always one file)
+          for file in community-markers/*.json; do
+            if [ -f "$file" ]; then
+              echo "Validating: $file" >> validation.log
+              python validate-community-marker.py "$file" >> validation.log 2>&1
+              echo "----------------------------------------" >> validation.log
+            fi
           done
 
       - name: Post validation results
@@ -47,26 +52,32 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const log = fs.readFileSync('validation.log', 'utf8').trim();
+            let log = '';
+            try {
+              log = fs.readFileSync('validation.log', 'utf8').trim();
+            } catch (e) {
+              log = 'No validation.log found';
+            }
             const results = log.split('\n').filter(line => line.trim() !== '');
 
             let summary = '## 🔍 Community Marker Validation Report\n\n';
             let allValid = true;
-            let labels = ['community-submission'];
 
             results.forEach(line => {
               if (line.includes('VALID:False')) allValid = false;
             });
 
+            let labels = ['community-submission'];
+
             if (!allValid) {
               summary += '❌ Marker Failed Validation.\n';
-              labels = ['invalid', 'needs-review', 'community-submission'];   // ← RED + needs review
+              labels = ['invalid', 'needs-review', 'community-submission'];   // ← RED label
             } else {
               summary += '✅ Marker Passed Validation.\n';
-              labels = ['validated', 'community-submission'];                // ← GREEN
+              labels = ['validated', 'community-submission'];                // ← GREEN label
             }
 
-            summary += '\n**Detailed log:**\n```\n' + log + '\n```';
+            summary += '\n**Full validation log:**\n```\n' + log + '\n```';
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -75,6 +86,7 @@ jobs:
               body: summary
             });
 
+            // Remove all existing labels and apply the correct ones
             await github.rest.issues.removeAllLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
