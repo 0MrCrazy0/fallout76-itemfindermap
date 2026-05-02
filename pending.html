@@ -140,19 +140,12 @@
     <div id="list" class="loading">Loading pending markers…</div>
 
     <!-- Back to Top Button -->
-    <button id="backToTop" onclick="scrollToTop()">↑ Back to Top</button>
+    <button id="backToTop" onclick="location.reload()">↑ Back to Top</button>
 
     <script>
         function returnToMap() {
             sessionStorage.setItem('returnFromPending', 'true');
             window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
-        }
-
-        function scrollToTop() {
-            const list = document.getElementById('list');
-            if (list) {
-                list.scrollTo({ top: 0, behavior: 'smooth' });
-            }
         }
 
         fetch('https://itemfinder-submit.crzymn05.workers.dev/pending?v=20260502_' + Date.now())
