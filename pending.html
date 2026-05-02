@@ -84,7 +84,7 @@
         line-height: 1.4;
     }
 
-    /* Back to Top Button - centered below the list */
+    /* Back to Top Button */
     #backToTop {
         background: #1a3c34;
         color: #00ff00;
@@ -135,7 +135,7 @@
         This page shows pending submissions.<br>
     </div>
     <button onclick="returnToMap()" class="close-btn">
-        RETURN TO MAP ← Show How to Use
+        RETURN TO MAP
     </button>
     <div id="list" class="loading">Loading pending markers…</div>
 
@@ -144,7 +144,6 @@
 
     <script>
         function returnToMap() {
-            sessionStorage.setItem('returnFromPending', 'true');
             window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
         }
 
