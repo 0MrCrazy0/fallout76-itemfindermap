@@ -1762,3 +1762,19 @@ button[onclick*="pending.html"],
         padding: 9px 10px !important;
     }
 }
+/* Temporary context-menu PIN indicator */
+.temp-context-pin {
+    position: absolute;
+    font-size: 42px;
+    z-index: 999998;
+    pointer-events: none;
+    animation: tempPinPulse 1.2s infinite ease-in-out;
+    text-shadow: 0 0 12px #00ff00;
+    filter: drop-shadow(0 0 8px #00ff00);
+    transform: translate(-50%, -50%);
+}
+
+@keyframes tempPinPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.15); }
+}
