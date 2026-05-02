@@ -395,6 +395,62 @@ typeSoundObserver.observe(document.body, { childList: true, subtree: true });
         localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
 
         let postcardTicker = null;
+// ── GENTLE FLOATING DUST WARNING (final 30 seconds) ──
+let floatingDustTimers = {};
+
+function createGentleDustParticles(latlng) {
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) return;
+
+    const point = map.latLngToContainerPoint(latlng);
+    const particleCount = 4;   // thinner & smaller
+
+    for (let i = 0; i < particleCount; i++) {
+        const dust = document.createElement('div');
+        dust.style.position = 'absolute';
+        dust.style.left = `${point.x + (Math.random() * 16 - 8)}px`;   // tighter around marker
+        dust.style.top = `${point.y + (Math.random() * 16 - 8)}px`;
+        dust.style.fontSize = `${5 + Math.random() * 6}px`;           // noticeably smaller
+        dust.style.opacity = '0.70';
+        dust.style.pointerEvents = 'none';
+        dust.style.zIndex = '999999';
+        dust.style.transition = `all ${1.4 + Math.random() * 0.9}s cubic-bezier(0.4, 0, 1, 1)`;
+        dust.textContent = ['💨', '🟢', '⚪', '🟡'][Math.floor(Math.random() * 4)];
+
+        mapContainer.appendChild(dust);
+
+        // Shorter, tighter upward drift
+        setTimeout(() => {
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 22 + Math.random() * 38;
+            dust.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance - 78}px)`;
+            dust.style.opacity = '0';
+        }, 40);
+
+        // Cleanup
+        setTimeout(() => dust.remove(), 2800);
+    }
+}
+
+function startFloatingDust(id) {
+    if (floatingDustTimers[id]) return;
+
+    floatingDustTimers[id] = setInterval(() => {
+        const marker = [...nonClusteredMarkers.getLayers(), ...clusteredMarkers.getLayers()]
+            .find(m => m.options && m.options.id === id);
+
+        if (marker) {
+            createGentleDustParticles(marker.getLatLng());
+        }
+    }, 480);
+}
+
+function stopFloatingDust(id) {
+    if (floatingDustTimers[id]) {
+        clearInterval(floatingDustTimers[id]);
+        delete floatingDustTimers[id];
+    }
+}
         function startPostcardTicker() {
             if (postcardTicker) return;
             postcardTicker = setInterval(() => {
@@ -421,18 +477,91 @@ typeSoundObserver.observe(document.body, { childList: true, subtree: true });
             if (postcardTicker) { clearInterval(postcardTicker); postcardTicker = null; }
         }
 
-        function updatePostcardTimers() {
-            document.querySelectorAll('.postcard-timer').forEach(el => {
-                const id = el.getAttribute('data-id');
-                const loc = locations.find(l => l.id === id);
-                if (!loc || !loc.isPostcard) return;
-                const timeLeft = Math.max(0, 300000 - (Date.now() - (loc.startTime || Date.now())));
-                const mins = Math.floor(timeLeft / 60000);
-                const secs = Math.floor((timeLeft % 60000) / 1000).toString().padStart(2, '0');
-                el.textContent = `${mins}:${secs}`;
-                if (timeLeft <= 0) el.textContent = '0:00';
-            });
+function updatePostcardTimers() {
+    document.querySelectorAll('.postcard-timer').forEach(el => {
+        const id = el.getAttribute('data-id');
+        const loc = locations.find(l => l.id === id);
+        if (!loc || !loc.isPostcard) return;
+
+        const start = loc.startTime || Date.now();
+        const timeLeft = Math.max(0, 300000 - (Date.now() - start));
+
+        const mins = Math.floor(timeLeft / 60000);
+        const secs = Math.floor((timeLeft % 60000) / 1000).toString().padStart(2, '0');
+        el.textContent = `${mins}:${secs}`;
+
+        // ── GENTLE FLOATING DUST starts at 30 seconds remaining ──
+        if (timeLeft <= 30000 && timeLeft > 0) {
+            startFloatingDust(id);
+        } else {
+            stopFloatingDust(id);
         }
+
+        if (timeLeft <= 0) {
+            el.textContent = '0:00';
+        }
+    });
+}
+
+// ── TEMPORARY CONTEXT MENU PIN (shows at right-click / long-press location) ──
+let tempContextPin = null;
+
+function showTempContextPin(latlng) {
+    removeTempContextPin(); // clear any previous
+
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) return;
+
+    const point = map.latLngToContainerPoint(latlng);
+
+    tempContextPin = document.createElement('div');
+    tempContextPin.className = 'temp-context-pin';
+    tempContextPin.textContent = '📍';
+    tempContextPin.style.left = `${point.x}px`;
+    tempContextPin.style.top = `${point.y}px`;
+
+    mapContainer.appendChild(tempContextPin);
+}
+
+function removeTempContextPin() {
+    if (tempContextPin && tempContextPin.parentNode) {
+        tempContextPin.parentNode.removeChild(tempContextPin);
+    }
+    tempContextPin = null;
+}
+
+// ── CELEBRATORY CREATION BURST (when new marker or postcard is created) ──
+function createCreationBurst(latlng) {
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) return;
+
+    const point = map.latLngToContainerPoint(latlng);
+    const particleCount = 14;
+
+    for (let i = 0; i < particleCount; i++) {
+        const burst = document.createElement('div');
+        burst.style.position = 'absolute';
+        burst.style.left = `${point.x + (Math.random() * 26 - 13)}px`;
+        burst.style.top = `${point.y + (Math.random() * 26 - 13)}px`;
+        burst.style.fontSize = `${7 + Math.random() * 11}px`;
+        burst.style.opacity = '0.9';
+        burst.style.pointerEvents = 'none';
+        burst.style.zIndex = '999999';
+        burst.style.transition = `all ${1.1 + Math.random() * 1.0}s cubic-bezier(0.25, 0.1, 0.25, 1)`;
+        burst.textContent = ['✨', '⭐', '🟢', '🎉', '⚡'][Math.floor(Math.random() * 5)];
+
+        mapContainer.appendChild(burst);
+
+        setTimeout(() => {
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 45 + Math.random() * 65;
+            burst.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance - 110}px)`;
+            burst.style.opacity = '0';
+        }, 30);
+
+        setTimeout(() => burst.remove(), 2600);
+    }
+}
 
         function updateNewMarkerTimers() {
             document.querySelectorAll('.new-marker-timer').forEach(el => {
@@ -944,7 +1073,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-2-05-2026-Build-B3"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-2-05-2026-Build-B5"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -1934,6 +2063,9 @@ document.getElementById('createPostcardBtn').onclick = () => {
     locations.push(loc);
     saveLocations();
 
+    // ── ADD CELEBRATORY BURST FOR POSTCARD ──
+    createCreationBurst(currentPostcardLatLng);
+
     window.justCreatedPostcardId = loc.id;
     currentIndex = -1;
     justClosedEditModal = false;
@@ -1944,17 +2076,17 @@ document.getElementById('createPostcardBtn').onclick = () => {
     const encodedMsg = encodeURIComponent(msg);
     const url = `${window.location.href.split('?')[0].split('#')[0]}?postcard=${loc.id}&lat=${Math.round(loc.lat)}&lng=${Math.round(loc.lng)}&msg=${encodedMsg}`;
 
-navigator.clipboard.writeText(url).then(() => {
-    showTempMessage('📬 POSTCARD LINK COPIED — 🔗 SEND TO A FRIEND', 4000);
-    setTimeout(() => playSound('postcard'), 180);
-}).catch(() => {
-    showTempMessage('❌ CLIPBOARD COPY FAILED — POSTCARD CREATED', 5000);
-    prompt('Copy this postcard link manually (works everywhere):', url);
-    setTimeout(() => playSound('postcard'), 180);
-});
+    navigator.clipboard.writeText(url).then(() => {
+        showTempMessage('📬 POSTCARD LINK COPIED — 🔗 SEND TO A FRIEND', 4000);
+        setTimeout(() => playSound('postcard'), 180);
+    }).catch(() => {
+        showTempMessage('❌ CLIPBOARD COPY FAILED — POSTCARD CREATED', 5000);
+        prompt('Copy this postcard link manually (works everywhere):', url);
+        setTimeout(() => playSound('postcard'), 180);
+    });
 
-setTimeout(() => showPostcardMarker(loc), 850);
-startPostcardTicker();
+    setTimeout(() => showPostcardMarker(loc), 850);
+    startPostcardTicker();
 };
         const urlParams = new URLSearchParams(window.location.search);
         let pendingPostcard = null;
@@ -2119,18 +2251,29 @@ function dustPostcard(id) {
     const loc = locations.find(l => l.id === id);
     if (!loc) return;
 
-    // Guard prevents duplicate calls from the live ticker
     if (loc.dusting) return;
     loc.dusting = true;
 
-    const marker = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === id);
+    // ── IMMEDIATELY stop spinning BEFORE dust animation begins ──
+    const spinningMarker = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === id);
+    if (spinningMarker && spinningMarker._icon) {
+        spinningMarker._icon.classList.remove('postcard-spinning');
+    }
 
-    // Animate marker if it exists
-    if (marker && marker._icon) {
-        const icon = marker._icon;
-        icon.style.transition = 'all 1.5s ease-out';
-        icon.style.opacity = '0';
-        icon.style.transform = 'scale(0.3) rotate(720deg)';
+    // Show message IMMEDIATELY when animation begins
+    showTempMessage('💨 POSTCARD EXPIRED — TURNED TO DUST', 4000);
+    playSound('dust');
+
+    const marker = [...nonClusteredMarkers.getLayers()].find(m => m.options.id === id);
+    if (marker) {
+        let iconEl = marker._icon || (typeof marker.getElement === 'function' ? marker.getElement() : null);
+        if (iconEl) {
+            iconEl.style.transition = 'all 2.8s cubic-bezier(0.55, 0.085, 0.68, 0.53)';
+            iconEl.style.willChange = 'transform, opacity';
+            iconEl.style.transform = 'translateY(-110px) scale(0.05) rotate(1620deg)';
+            iconEl.style.opacity = '0';
+            createDustParticles(marker.getLatLng());
+        }
     }
 
     setTimeout(() => {
@@ -2138,19 +2281,53 @@ function dustPostcard(id) {
         if (index !== -1) locations.splice(index, 1);
 
         saveLocations();
+
+        const currentSearchVal = combinedSearch ? (combinedSearch.value || '') : '';
+        const currentCat = categoryFilter ? (categoryFilter.value || currentCategoryFilter) : '';
+
         forceReload();
+        refreshTable(currentSearchVal, currentCat);
+        loadData(currentSearchVal, currentCat);
 
-        // Short delay allows speech-bubble close sound to finish first
+        if (!locations.some(l => l.isPostcard)) stopPostcardTicker();
+
+        delete loc.dusting;
+    }, 2900);
+}
+
+// ── Floating Dust Particles Helper ──
+function createDustParticles(latlng) {
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) return;
+
+    const point = map.latLngToContainerPoint(latlng);
+    const particleCount = 18;
+
+    for (let i = 0; i < particleCount; i++) {
+        const dust = document.createElement('div');
+        dust.style.position = 'absolute';
+        dust.style.left = `${point.x + (Math.random() * 30 - 15)}px`;
+        dust.style.top = `${point.y + (Math.random() * 30 - 15)}px`;
+        dust.style.fontSize = `${8 + Math.random() * 12}px`;
+        dust.style.opacity = '0.9';
+        dust.style.pointerEvents = 'none';
+        dust.style.zIndex = '999999';
+        dust.style.transition = `all ${1.8 + Math.random() * 1.2}s cubic-bezier(0.4, 0, 1, 1)`;
+        dust.textContent = ['💨', '🟢', '⚪', '🟡'][Math.floor(Math.random() * 4)];
+
+        mapContainer.appendChild(dust);
+
+        // Random upward movement + fade
         setTimeout(() => {
-            showTempMessage('💨 POSTCARD EXPIRED — TURNED TO DUST', 4000);
-            playSound('dust');
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 60 + Math.random() * 90;
+            dust.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance - 120}px)`;
+            dust.style.opacity = '0';
+        }, 30);
 
-            if (!locations.some(l => l.isPostcard)) stopPostcardTicker();
-
-            // Clean up guard flag
-            delete loc.dusting;
-        }, 80);
-    }, 1500);
+        // Cleanup
+        setTimeout(() => dust.remove(), 3200);
+    }
 }
         function isGlowing(loc) {
             if (loc.isPostcard) return true;
@@ -4527,6 +4704,7 @@ saveItemBtn.onclick = () => {
     }
     closeModal(itemModal, true);
     saveLocations();
+	createCreationBurst(tempLatLng);
     // Delayed sound to bypass the 80 ms debounce from modalClose
     setTimeout(() => {
         playSound('saving');
@@ -5269,6 +5447,7 @@ if (urlParams.has('permshare')) {
             localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
             localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
             saveLocations();
+			createCreationBurst(tempLatLng);
             forceReload();
 
             showTempMessage(`📥 SHARED MARKER${added > 1 ? 'S' : ''} IMPORTED — NOW YOURS TO EDIT`, 6000);
@@ -5920,7 +6099,7 @@ function showUnifiedOnboardingHint() {
     `  to create a permanent marker or postcard.<br>` +
     `• Drag to pan the map.<br>` +
     `• Mouse wheel or two-finger pinch to zoom.<br>` +
-    `• Fullscreen button (🔭) in the top-right corner.<br><br>` +
+    `• Fullscreen button (🔭) in the top-left corner below the zoom buttons.<br><br>` +
     `For full instructions, tap the <strong>How to Use</strong> button in the Tools panel.`,
     11000
 );
@@ -6075,6 +6254,9 @@ function showMapContextMenu(latlng) {
         exitFullscreen();
     }
 
+    // Show the temporary PIN
+    showTempContextPin(latlng);
+
     contextMenu.style.display = 'block';
     document.body.classList.add('modal-open');
     window.lastContextLatLng = latlng;
@@ -6089,7 +6271,8 @@ function attachContextButtons() {
 
     if (createMarkerBtn) {
         createMarkerBtn.onclick = () => {
-		playSound('click');
+            playSound('click');
+            removeTempContextPin();
             contextMenu.style.display = 'none';
             document.body.classList.remove('modal-open');
             if (window.lastContextLatLng) {
@@ -6101,7 +6284,8 @@ function attachContextButtons() {
 
     if (createPostcardBtn) {
         createPostcardBtn.onclick = () => {
-		playSound('click');
+            playSound('click');
+            removeTempContextPin();
             contextMenu.style.display = 'none';
             document.body.classList.remove('modal-open');
             if (window.lastContextLatLng) {
@@ -6111,16 +6295,22 @@ function attachContextButtons() {
 
                 const postcardCloseBtn = postcardModal.querySelector('.close');
                 if (postcardCloseBtn) {
-                    postcardCloseBtn.onclick = () => closeModal(postcardModal);
-                }
-
-                const copyLinkBtn = postcardModal.querySelector('#copyLinkBtn'); // ← change selector if needed
-                if (copyLinkBtn) {
-                    copyLinkBtn.onclick = () => {
+                    postcardCloseBtn.onclick = () => {
+                        removeTempContextPin();
                         closeModal(postcardModal);
                     };
                 }
             }
+        };
+    }
+
+    // ── FIXED: Remove pin when user clicks the X close button on the context menu ──
+    const contextCloseBtn = contextMenu.querySelector('.close');
+    if (contextCloseBtn) {
+        contextCloseBtn.onclick = () => {
+            removeTempContextPin();
+            contextMenu.style.display = 'none';
+            document.body.classList.remove('modal-open');
         };
     }
 }
@@ -6359,7 +6549,7 @@ console.log(
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
     '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • CURRENT_APP_VERSION = 76.Vault.Ok • 1-05-2026 • Made with ❤️\n' +
+    'Last updated: • CURRENT_APP_VERSION = 76.Vault.Ok • 2-05-2026 • Made with ❤️\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
