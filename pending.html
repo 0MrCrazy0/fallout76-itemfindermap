@@ -15,24 +15,27 @@
         margin: 0;
         padding: 20px;
         min-height: 100vh;
+        display: flex;
+        flex-direction: column;
         text-align: center;
     }
     h1 {
         text-shadow: 0 0 20px #00ff00;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
     }
     .instruction {
         font-size: 1.35em;
-        margin: 40px 0 30px;
+        margin: 10px 0 20px;
         line-height: 1.6;
         color: #00ff88;
     }
     #list {
+        flex: 1;
         max-width: 900px;
         margin: 0 auto;
         text-align: left;
-        max-height: 70vh;
         overflow-y: auto;
+        padding-right: 8px;
     }
     .pr {
         background: #1a3c34;
@@ -57,7 +60,7 @@
         font-size: 1.0em;
         font-weight: bold;
         cursor: pointer;
-        margin: 25px auto;
+        margin: 15px auto;
         display: block;
         box-shadow: 0 0 15px #00ff00;
         border-radius: 6px;
@@ -74,15 +77,36 @@
         padding: 10px;
         margin-top: 8px;
         max-height: 180px;
-        overflow: auto;
+        overflow-y: auto;
         white-space: pre-wrap;
         word-break: break-word;
         border-radius: 6px;
+        line-height: 1.4;
     }
-    ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+
+    /* Back to Top Button - centered below the list */
+    #backToTop {
+        background: #1a3c34;
+        color: #00ff00;
+        border: 2px solid #00ff00;
+        border-radius: 6px;
+        padding: 12px 24px;
+        font-size: 1.1em;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 0 15px #00ff00;
+        margin: 20px auto 10px;
+        display: block;
+        transition: all 0.3s ease;
     }
+    #backToTop:hover {
+        background: #00ff00;
+        color: #000000;
+        box-shadow: 0 0 20px #00ff88;
+    }
+
+    /* PIP-BOY GREEN SCROLLBARS */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track {
         background: #000;
         border-left: 1px solid #00ff00;
@@ -98,12 +122,8 @@
         background: #00ff88;
         box-shadow: 0 0 8px #00ff88;
     }
-    * {
-        scrollbar-width: thin;
-        scrollbar-color: #00ff00 #000;
-    }
-    #list::-webkit-scrollbar-thumb,
-    .preview-box::-webkit-scrollbar-thumb {
+    * { scrollbar-width: thin; scrollbar-color: #00ff00 #000; }
+    #list::-webkit-scrollbar-thumb, .preview-box::-webkit-scrollbar-thumb {
         background: #00ff00;
         border: 2px solid #000;
     }
@@ -119,13 +139,22 @@
     </button>
     <div id="list" class="loading">Loading pending markers…</div>
 
+    <!-- Back to Top Button -->
+    <button id="backToTop" onclick="scrollToTop()">↑ Back to Top</button>
+
     <script>
         function returnToMap() {
             sessionStorage.setItem('returnFromPending', 'true');
             window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
         }
 
-        // Strong cache buster
+        function scrollToTop() {
+            const list = document.getElementById('list');
+            if (list) {
+                list.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
         fetch('https://itemfinder-submit.crzymn05.workers.dev/pending?v=20260502_' + Date.now())
             .then(r => r.ok ? r.json() : Promise.reject())
             .then(data => {
