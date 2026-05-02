@@ -4,37 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pending Community Submissions</title>
-    <!-- Strong cache buster -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <style>
-    body {
+    html, body {
         font-family: 'Courier New', monospace;
-        background: #0a2a2a;
-        color: #00ff00;
+        background: #000000 !important;     /* Pure black background as requested */
+        color: #00ff00 !important;
         margin: 0;
         padding: 20px;
         min-height: 100vh;
+        display: flex;
+        flex-direction: column;
         text-align: center;
     }
     h1 {
         text-shadow: 0 0 20px #00ff00;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
     }
     .instruction {
         font-size: 1.35em;
-        margin: 40px 0 30px;
+        margin: 10px 0 20px;
         line-height: 1.6;
         color: #00ff88;
     }
     #list {
+        flex: 1;
         max-width: 900px;
         margin: 0 auto;
         text-align: left;
+        overflow-y: auto;
+        padding-right: 8px;
     }
     .pr {
-        background: #1a3c34;
+        background: #1a3c34 !important;
         border: 2px solid #00ff00;
         margin: 20px 0;
         padding: 20px;
@@ -49,37 +53,81 @@
         text-decoration: underline;
     }
     .close-btn {
-    background: #1a3c34;
-    color: #00ff00;
-    border: none;
-    padding: 10px 24px;
-    font-size: 1.0em;
-    font-weight: bold;
-    cursor: pointer;
-    margin: 25px auto;
-    display: block;
-    box-shadow: 0 0 15px #00ff00;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-}
-
-.close-btn:hover {
-    background: #00ff00;
-    color: #000000;
-    box-shadow: 0 0 20px #00ff88;
-}
+        background: #1a3c34;
+        color: #00ff00;
+        border: none;
+        padding: 10px 24px;
+        font-size: 1.0em;
+        font-weight: bold;
+        cursor: pointer;
+        margin: 15px auto;
+        display: block;
+        box-shadow: 0 0 15px #00ff00;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+    }
+    .close-btn:hover {
+        background: #00ff00;
+        color: #000000;
+        box-shadow: 0 0 20px #00ff88;
+    }
     .preview-box {
         background: #0f2f2a;
         border: 1px solid #00ff00;
         padding: 10px;
         margin-top: 8px;
         max-height: 180px;
-        overflow: auto;
+        overflow-y: auto;
         white-space: pre-wrap;
         word-break: break-word;
         border-radius: 6px;
+        line-height: 1.4;
     }
-</style>
+
+    /* Back to Top Button */
+    #backToTop {
+        background: #1a3c34;
+        color: #00ff00;
+        border: 2px solid #00ff00;
+        border-radius: 6px;
+        padding: 12px 24px;
+        font-size: 1.1em;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 0 15px #00ff00;
+        margin: 20px auto 10px;
+        display: block;
+        transition: all 0.3s ease;
+    }
+    #backToTop:hover {
+        background: #00ff00;
+        color: #000000;
+        box-shadow: 0 0 20px #00ff88;
+    }
+
+    /* PIP-BOY GREEN SCROLLBARS */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track {
+        background: #000;
+        border-left: 1px solid #00ff00;
+        border-right: 1px solid #00ff00;
+        box-shadow: inset 0 0 6px rgba(0, 255, 0, 0.2);
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #00ff00;
+        border: 2px solid #000;
+        border-radius: 0;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #00ff88;
+        box-shadow: 0 0 8px #00ff88;
+    }
+    * { scrollbar-width: thin; scrollbar-color: #00ff00 #000; }
+    #list::-webkit-scrollbar-thumb, .preview-box::-webkit-scrollbar-thumb {
+        background: #00ff00;
+        border: 2px solid #000;
+    }
+    </style>
 </head>
 <body>
     <h1>Pending Community Map Submissions</h1>
@@ -87,19 +135,19 @@
         This page shows pending submissions.<br>
     </div>
     <button onclick="returnToMap()" class="close-btn">
-        RETURN TO MAP ← Show How to Use
+        RETURN TO MAP
     </button>
     <div id="list" class="loading">Loading pending markers…</div>
 
+    <!-- Back to Top Button -->
+    <button id="backToTop" onclick="location.reload()">↑ Back to Top</button>
+
     <script>
         function returnToMap() {
-            // This flag tells the main map to open How to Use ONLY this time
-            sessionStorage.setItem('returnFromPending', 'true');
             window.location.replace('https://0mrcrazy0.github.io/fallout76-itemfindermap/');
         }
 
-        // Strong cache buster
-        fetch('https://itemfinder-submit.crzymn05.workers.dev/pending?v=20260319_' + Date.now())
+        fetch('https://itemfinder-submit.crzymn05.workers.dev/pending?v=20260502_' + Date.now())
             .then(r => r.ok ? r.json() : Promise.reject())
             .then(data => {
                 const container = document.getElementById('list');
