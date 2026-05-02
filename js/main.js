@@ -944,7 +944,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-2-05-2026-Build-B2"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-2-05-2026-Build-B3"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -1351,26 +1351,18 @@ setTimeout(updateRevertAllButton, 1500);
         categoryFilter.style.cssText += 'height:42px;font-size:16px;min-width:160px;';
         toggleCategoryModalBtn.style.cssText += 'height:42px;min-width:150px;padding:0 8px;font 14px;white-space:nowrap;';
 
-        // ── CLEAR BUTTON (×) — Now fully resets map to All Categories ──
+        // ── CLEAR BUTTON (×) — clears only the search text, keeps selected category
         clearBtn.onclick = () => {
             combinedSearch.value = '';
-            categoryFilter.value = '';
-            currentCategoryFilter = '';
-            localStorage.setItem('currentCategoryFilter', '');
             clearBtn.style.display = 'none';
             combinedSearch.focus();
-            refreshTable('', '');
-            loadData('', '');
+            refreshTable(combinedSearch.value, categoryFilter.value || currentCategoryFilter);
+            loadData(combinedSearch.value, categoryFilter.value || currentCategoryFilter);
             playSound('modalClose');
         };
 
         combinedSearch.addEventListener('input', () => {
-    const val = combinedSearch.value.trim();
-if (categoryFilter.value !== '') {
-                categoryFilter.value = '';
-                currentCategoryFilter = '';
-                localStorage.setItem('currentCategoryFilter', '');
-            }
+        const val = combinedSearch.value.trim();
 if (showOnlyMyMarkers === true) {
         showOnlyMyMarkers = false;
         document.getElementById('toggleMyMarkersBtn').textContent = 'My Markers: All';
@@ -1394,7 +1386,7 @@ if (showOnlyMyMarkers === true) {
             }
         }
     }
-    // === TEXT SEARCH + SUGGESTIONS DROPDOWN ===
+    // === TEXT SEARCH + SUGGESTIONS DROPDOWN (loose/predictive — matches draw window) ===
     const q = val.toLowerCase();
     suggestionsBox.innerHTML = '';
    
@@ -1403,9 +1395,14 @@ if (showOnlyMyMarkers === true) {
     } else {
         const matches = [];
         locations.forEach(loc => {
-            const descLower = loc.desc.toLowerCase();
-            const catLower = (loc.category || '').toLowerCase();
-            if (descLower.includes(q) || catLower.includes(q)) {
+            const grid = (typeof getGridFromLatLng === 'function') ? (getGridFromLatLng(loc.lat, loc.lng) || '') : '';
+            const text = normalizeString(loc.desc + ' ' + (loc.category || '') + ' ' + grid);
+            const queryNorm = normalizeString(q);
+            const terms = queryNorm.split(' ').filter(t => t.length > 0);
+            
+            const isMatch = terms.every(term => text.includes(term));
+            
+            if (isMatch) {
                 const displayText = loc.desc.length > 50 ? loc.desc.substring(0,47) + '...' : loc.desc;
                 matches.push({
                     display: displayText,
@@ -1467,7 +1464,7 @@ playSound('selectcategory');
         combinedSearch.style.boxShadow = '0 0 8px #0f0';
         setTimeout(() => combinedSearch.style.boxShadow = '', 1500);
     }
-    refreshTable(val, categoryFilter.value);
+    refreshTable(val, categoryFilter.value || currentCategoryFilter);
     loadData(combinedSearch.value, categoryFilter.value);
 
     // ── LOCAL THROTTLE — fixes double sound on PC & Android for search bar only ──
@@ -1849,6 +1846,28 @@ if (postcardMsg) {
             playSound('type');
         }
     });
+}
+
+// ── Smart search helpers — makes search accurate and keeps dropdown in sync with map ──
+function normalizeString(str) {
+    return (str || '').toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function matchesSearch(loc, query) {
+    if (!query) return true;
+    const q = normalizeString(query);
+    if (!q) return true;
+
+    const grid = (typeof getGridFromLatLng === 'function') ? (getGridFromLatLng(loc.lat, loc.lng) || '') : '';
+    const text = normalizeString(loc.desc + ' ' + (loc.category || '') + ' ' + grid);
+
+    const terms = q.split(' ').filter(t => t.length > 0);
+    
+    // ← Now uses the exact same loose matching as the suggestions dropdown
+    return terms.every(term => text.includes(term));
 }
 
 // Live character counter + warning colors
@@ -2613,11 +2632,15 @@ function refreshTable(search = '', cat = '') {
     }
 
     if (search) {
-        const normalizedSearch = normalizeString(search);
-        list = list.filter(l => {
-            const text = normalizeString(l.desc + ' ' + l.category);
-            return text.includes(normalizedSearch) || normalizedSearch.includes(text.split(' ')[0]);
-        });
+        const q = normalizeString(search);
+        if (q) {
+            const terms = q.split(' ').filter(t => t.length > 0);
+            list = list.filter(l => {
+                const grid = (typeof getGridFromLatLng === 'function') ? (getGridFromLatLng(l.lat, l.lng) || '') : '';
+                const text = normalizeString(l.desc + ' ' + (l.category || '') + ' ' + grid);
+                return terms.every(term => text.includes(term));
+            });
+        }
     }
 
     const glow = list.filter(isGlowing).sort((a, b) => b.addedTime - a.addedTime);
@@ -4044,7 +4067,16 @@ This will fetch the latest verified community markers.<br><br>
                 recalculateXP();
                 updateCounterDisplay();
                 forceReload();
-				                // ── Re-sync dropdown after community update ──
+
+                // Clear search bar when updating community map (no flash)
+                combinedSearch.value = '';
+                clearBtn.style.display = 'none';
+                const currentCat = categoryFilter.value || '';
+
+                loadData('', currentCat);
+                refreshTable('', currentCat);
+
+                // ── Re-sync dropdown after community update ──
                 if (categoryFilter) {
                     categoryFilter.value = currentCategoryFilter || '';
                 }
@@ -4318,14 +4350,16 @@ document.getElementById('shareOneBtn').onclick = () => {
             clusteringEnabled = !clusteringEnabled;
             localStorage.setItem('clusteringEnabled', clusteringEnabled);
             toggleClusterBtn.textContent = `Clustering: ${clusteringEnabled ? 'On' : 'Off'}`;
-            const currentCat = categoryFilter.value;
+
+            // Clear search bar when toggling clustering (prevents flash)
+            combinedSearch.value = '';
+            clearBtn.style.display = 'none';
+            const currentCat = categoryFilter.value || '';
+
             forceReload();
-            setTimeout(() => {
-                if (categoryFilter.querySelector(`option[value="${currentCat}"]`)) {
-                    categoryFilter.value = currentCat;
-                }
-                playSound('click');
-            }, 100);
+            loadData('', currentCat);
+            refreshTable('', currentCat);
+            playSound('click');
         };
                 toggleMapBtn.onclick = () => {
             currentMap = currentMap === 'named' ? 'noName' : 'named';
@@ -4697,17 +4731,19 @@ document.getElementById('submitCommunityBtn').onclick = () => {
     map.getContainer().addEventListener('mouseleave', () => {
         coordHoverControl.getContainer().classList.remove('show');
     });
-    map.on('click', e => {
+    // ── MAP CLICK HANDLER — Preserve search filter when tapping map/markers ──
+map.on('click', e => {
     if (isDraggingAny) {
         isDraggingAny = false;
         return;
     }
+
+    // Allow normal popup behaviour on markers / spiderfied clusters
     const clickedOnSpiderfied = e.originalEvent?.target?.closest('.leaflet-marker-icon');
     if (clickedOnSpiderfied) return;
 
-    // Clear search and reload (keeps existing behaviour)
-    combinedSearch.value = '';
-    loadData('', categoryFilter.value);
+    // Pass current search text so filtered results remain visible
+    loadData(combinedSearch.value || '', categoryFilter.value || '');
 });
         updateCategoryDropdowns();
         renderCategoryToggles();
@@ -5027,7 +5063,6 @@ function checkForUpdate() {
 const searchInput = document.getElementById('combinedSearch');
 const suggestionsBox = document.getElementById('searchSuggestions');
 
-
 searchInput.addEventListener('input', function(e) {
     if (e && !e.isTrusted) return;
 
@@ -5039,76 +5074,72 @@ searchInput.addEventListener('input', function(e) {
 
     const matches = [];
 
+    // ── LOOSE PREDICTIVE MATCH FOR DROPDOWN ONLY ──
+    // Forgiving for typos, partial typing, and misspellings
     locations.forEach(loc => {
-        if (!loc.desc) return;
+        const grid = (typeof getGridFromLatLng === 'function') ? (getGridFromLatLng(loc.lat, loc.lng) || '') : '';
+        const text = normalizeString(loc.desc + ' ' + (loc.category || '') + ' ' + grid);
+        const queryNorm = normalizeString(q);
 
-        const descLower = loc.desc.toLowerCase();
-        if (descLower.includes(q)) {
+        const terms = queryNorm.split(' ').filter(t => t.length > 0);
+        
+        // Every term must appear anywhere in the text (very forgiving)
+        const isMatch = terms.every(term => text.includes(term));
+        
+        if (isMatch) {
             const displayText = loc.desc.length > 50 ? loc.desc.substring(0,47) + '...' : loc.desc;
             matches.push({
                 display: displayText,
                 desc: loc.desc,
                 lat: loc.lat,
                 lng: loc.lng,
-                id: loc.id
-            });
-        }
-
-        if (loc.category && loc.category.toLowerCase().includes(q)) {
-            matches.push({
-                display: loc.category,
-                desc: loc.category,
-                lat: loc.lat,
-                lng: loc.lng,
-                id: loc.id
+                id: loc.id,
+                score: text.indexOf(terms[0])   // simple relevance (earlier = better)
             });
         }
     });
 
+    // Sort by relevance (best matches first) then take top 12
     const seen = new Set();
-    const unique = matches.filter(item => {
-        if (seen.has(item.desc + item.lat + item.lng)) return false;
-        seen.add(item.desc + item.lat + item.lng);
-        return true;
-    }).slice(0, 12);
+    const unique = matches
+        .sort((a, b) => a.score - b.score)
+        .filter(item => {
+            const key = item.desc + item.lat + item.lng;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        })
+        .slice(0, 12);
 
     if (unique.length === 0) return;
 
-unique.forEach(item => {
-    const div = document.createElement('div');
-    div.textContent = item.display;
-    div.style.padding = '12px';
-    div.style.cursor = 'pointer';
-    div.style.borderBottom = '1px solid #00ff33';
-    div.onclick = () => {
-        combinedSearch.value = '';
-        clearBtn.style.display = 'none';
-        suggestionsBox.style.display = 'none';
-        loadData('', categoryFilter.value);
-        
-        // Strict ID-based lookup after fly-to
-        safeFlyTo(item.lat, item.lng, 4);
-        map.once('moveend', () => {
-            setTimeout(() => {
-                const marker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
-                    .find(m => m.options && m.options.id === item.id);
-                
-                if (marker) {
-                    marker.openPopup();
-                    playSound('click');
-                } else {
-                    // Fallback: force click on the exact marker if popup still fails
-                    const fallbackMarker = map._layers[Object.keys(map._layers).find(k => 
-                        map._layers[k].options && map._layers[k].options.id === item.id
-                    )];
-                    if (fallbackMarker) fallbackMarker.fire('click');
-                }
-            }, 650); // Increased timeout for reliable clustering/spiderfy
-        });
-        playSound('selectcategory');
-    };
-    suggestionsBox.appendChild(div);
-});
+    unique.forEach(item => {
+        const div = document.createElement('div');
+        div.textContent = item.display;
+        div.style.padding = '12px';
+        div.style.cursor = 'pointer';
+        div.style.borderBottom = '1px solid #00ff33';
+        div.onclick = () => {
+            combinedSearch.value = '';
+            clearBtn.style.display = 'none';
+            suggestionsBox.style.display = 'none';
+            loadData('', categoryFilter.value);
+            
+            safeFlyTo(item.lat, item.lng, 4);
+            map.once('moveend', () => {
+                setTimeout(() => {
+                    const marker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
+                        .find(m => m.options && m.options.id === item.id);
+                    if (marker) {
+                        marker.openPopup();
+                        playSound('click');
+                    }
+                }, 650);
+            });
+            playSound('selectcategory');
+        };
+        suggestionsBox.appendChild(div);
+    });
 
     suggestionsBox.style.display = 'block';
 });
