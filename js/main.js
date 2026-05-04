@@ -128,6 +128,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadLatestCommunityVersion();
 
     showUpdateNotice();
+	createStartupAnimation();
 
     if (sessionStorage.getItem('returnFromPending') === 'true') {
         sessionStorage.removeItem('returnFromPending');
@@ -149,6 +150,172 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ── Main application IIFE — everything lives inside here for clean scoping ──
+// ── STARTUP ANIMATION ──
+function createStartupAnimation() {
+    const splash = document.getElementById('startupSplash');
+    if (!splash) return;
+
+    const canvas = document.getElementById('startupCanvas');
+    const ctx = canvas.getContext('2d');
+    const title1 = document.getElementById('splashTitle1');
+    const title2 = document.getElementById('splashTitle2');
+    const skipPrompt = document.getElementById('skipPrompt');
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    let doorProgress = 0;
+
+    function drawVaultDoor() {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+        const r = Math.min(canvas.width, canvas.height) * 1.20;
+
+        ctx.strokeStyle = '#00ff88';
+        ctx.lineWidth = 36;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.lineWidth = 16;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 0.78, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 0.55, 0, Math.PI * 2);
+        ctx.stroke();
+
+        const split = r * 0.82 * doorProgress;
+        ctx.lineWidth = 22;
+        ctx.beginPath();
+        ctx.moveTo(cx - split, 0);
+        ctx.lineTo(cx - split, canvas.height);
+        ctx.moveTo(cx + split, 0);
+        ctx.lineTo(cx + split, canvas.height);
+        ctx.stroke();
+
+        if (doorProgress < 1) doorProgress += 0.009;
+    }
+
+    let frame;
+    function animate() {
+        drawVaultDoor();
+        frame = requestAnimationFrame(animate);
+    }
+    animate();
+
+    // ── Long continuous raining celebration ──
+    function startRainingConfetti() {
+        const container = splash;
+        const colors = ['#00ff88', '#88ff88', '#ffff88', '#00ff00', '#ffcc00'];
+        const emojis = ['✨', '⭐', '🟢', '⚡', '🎈', '🎉', '🎊', '🌟', '💥', '🪅', '🏆', '🔥', '☢️', '🛡️', '💖'];
+        let rainInterval = null;
+
+        rainInterval = setInterval(() => {
+            for (let i = 0; i < 5; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.top = '-30px';
+                particle.style.fontSize = (9 + Math.random() * 19) + 'px';
+                particle.style.color = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.opacity = '0.9';
+                particle.style.pointerEvents = 'none';
+                particle.style.zIndex = '5';
+                particle.style.transition = `all ${2.8 + Math.random() * 3.2}s linear`;
+                particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                container.appendChild(particle);
+
+                setTimeout(() => {
+                    const xDrift = (Math.random() * 90 - 45);
+                    const yDrift = window.innerHeight + 120;
+                    particle.style.transform = `translate(${xDrift}px, ${yDrift}px) rotate(${Math.random() * 720}deg)`;
+                    particle.style.opacity = '0';
+                }, 30);
+
+                setTimeout(() => particle.remove(), 6800);
+            }
+        }, 38);
+
+        setTimeout(() => {
+            if (rainInterval) clearInterval(rainInterval);
+        }, 6200);
+    }
+
+    // Typewriter for titles
+    async function typeText(element, text, delay = 38) {
+        element.textContent = '';
+        element.style.opacity = '1';
+        for (let i = 0; i < text.length; i++) {
+            element.textContent += text[i];
+            if (typeof playSound === 'function') playSound('type');
+            await new Promise(r => setTimeout(r, delay));
+        }
+    }
+
+    async function startSequence() {
+        await typeText(title1, 'FALLOUT 76', 42);
+        await new Promise(r => setTimeout(r, 280));
+        await typeText(title2, 'ITEM FINDER MAP', 36);
+
+        skipPrompt.style.opacity = '1';
+        startRainingConfetti();
+
+        // Text fade (titles + skip prompt) while rain continues
+        setTimeout(() => {
+            title1.style.transition = 'opacity 800ms ease-out';
+            title2.style.transition = 'opacity 800ms ease-out';
+            skipPrompt.style.transition = 'opacity 800ms ease-out';
+            title1.style.opacity = '0';
+            title2.style.opacity = '0';
+            skipPrompt.style.opacity = '0';
+
+            // After all text is gone → clean zoom into center of open door
+            setTimeout(() => {
+                splash.style.transition = 'transform 1700ms cubic-bezier(0.25, 0.1, 0.25, 1)';
+                splash.style.transformOrigin = 'center center';
+                splash.style.transform = 'scale(3.2) translate(0, -12vh)';
+                
+                // ── ULTRA-SMOOTH FINAL FADE ── starts later and fades more gently
+                setTimeout(() => endAnimation(), 950);
+            }, 950);
+        }, 2100);
+    }
+
+    function endAnimation() {
+        cancelAnimationFrame(frame);
+
+        splash.style.transition = 'opacity 1000ms cubic-bezier(0.4, 0, 0.2, 1)';
+        splash.style.opacity = '0';
+
+        setTimeout(() => {
+            if (splash && splash.parentNode) splash.remove();
+        }, 1050);
+    }
+
+    // Reliable tap anywhere to skip
+    const skipHandler = (e) => {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        endAnimation();
+    };
+
+    splash.addEventListener('click', skipHandler, { once: true });
+    splash.addEventListener('pointerdown', skipHandler, { once: true, passive: false });
+    splash.addEventListener('touchstart', skipHandler, { once: true, passive: false });
+
+    startSequence();
+}
+
     (function() {
         // ── Constants & Storage Keys ──
         const STORAGE_KEY = 'fo76_locations';
@@ -210,7 +377,6 @@ function unlockAudio() {
     } catch (e) {}
 
     audioUnlocked = true;
-    console.log('🔊 Audio fully unlocked for iOS Safari');
 }
 
 function playSound(type) {
@@ -503,6 +669,16 @@ function updatePostcardTimers() {
     });
 }
 
+/**
+ * Safe wrapper for map.invalidateSize() — eliminates the exact console error
+ * during early initialization, orientation changes, fullscreen, etc.
+ */
+function safeInvalidateSize() {
+    if (typeof map !== 'undefined' && map && typeof map.invalidateSize === 'function') {
+        map.invalidateSize({ animate: false });
+    }
+}
+
 // ── TEMPORARY CONTEXT MENU PIN (shows at right-click / long-press location) ──
 let tempContextPin = null;
 
@@ -658,17 +834,15 @@ if (mapEl) {
 
 // ── Stronger iOS Render Safeguard (Safari browser + installed PWA) ──
 function forceMapRender() {
-    if (!map || typeof map.invalidateSize !== 'function') return;
+    safeInvalidateSize();
     
-    map.invalidateSize({ animate: false });
-    
-    // Multiple staggered calls — critical for large ImageOverlay on iOS
-    setTimeout(() => map.invalidateSize({ animate: false }), 50);
-    setTimeout(() => map.invalidateSize({ animate: false }), 180);
-    setTimeout(() => map.invalidateSize({ animate: false }), 420);
-    setTimeout(() => map.invalidateSize({ animate: false }), 800);
-    setTimeout(() => map.invalidateSize({ animate: false }), 1200);
-    setTimeout(() => map.invalidateSize({ animate: false }), 1800);   // extra safety for stubborn loads
+    // Staggered calls — essential for iOS Safari + large ImageOverlay
+    setTimeout(safeInvalidateSize, 50);
+    setTimeout(safeInvalidateSize, 180);
+    setTimeout(safeInvalidateSize, 420);
+    setTimeout(safeInvalidateSize, 800);
+    setTimeout(safeInvalidateSize, 1200);
+    setTimeout(safeInvalidateSize, 1800);
 }
 
 // Initial render attempts
@@ -1073,7 +1247,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-2-05-2026-Build-B5"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-4-05-2026-Build-B6"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -2241,7 +2415,6 @@ function showPostcardMarker(loc) {
         recalculateXP();
         forceReload();
         showTempMessage('✅ POSTCARD KEPT SUCCESSFULLY', 4000);
-        console.log('🎵 Attempting to play saving sound for postcard keep');
         setTimeout(() => {
             playSound('saving');
         }, 150);
@@ -2528,7 +2701,6 @@ function showConfirmModal(title, content, onConfirm, restoreFullscreenOnClose = 
             lastMovedMarker = marker;
             saveLocations();
             showTempMessage(`📍 MARKER MOVED — SAVED & RE-LOCKED ${loc.icon}`, 4000);
-            console.log('🎵 Attempting to play saving sound after drag');
             setTimeout(() => {
                 playSound('saving');
             }, 150);
@@ -4466,7 +4638,6 @@ function createPermanentShare(markersToShare) {
 
 navigator.clipboard.writeText(shareUrl).then(() => {
         showTempMessage('🔗 MARKER LINK COPIED — SEND TO A FRIEND', 6000);
-        console.log('🎵 Attempting to play postcard sound for permanent share');
         setTimeout(() => {
             playSound('postcard');
         }, 150);
@@ -6548,8 +6719,8 @@ console.log(
 
 console.log(
     '%c──────────────────────────────────────────────────────────────\n' +
-    '© 2025 MrCrazy — All rights reserved\n' +
-    'Last updated: • CURRENT_APP_VERSION = 76.Vault.Ok • 2-05-2026 • Made with ❤️\n' +
+    '© ' + new Date().getFullYear() + ' MrCrazy — All rights reserved\n' +
+    'Version: ' + CURRENT_APP_VERSION + ' • Made with ❤️ for the Fallout 76 Community\n' +
     '──────────────────────────────────────────────────────────────',
     'color:#888888; font-family:monospace; font-size:12px; background:#000; padding:6px 0; line-height:1.4;'
 );
