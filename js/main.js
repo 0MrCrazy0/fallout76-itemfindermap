@@ -4326,49 +4326,68 @@ This will fetch the latest verified community markers.<br><br>
                     !l.isPostcard
                 ).length;
                 incoming.forEach(imp => {
-                    const existing = locations.find(l => l.id === imp.id);
-                    if (existing && hasBeenSubmitted(imp.id)) {
-                        let submitted = JSON.parse(localStorage.getItem('submitted_ids') || '[]');
-                        const idx = submitted.indexOf(imp.id);
-                        if (idx !== -1) {
-                            submitted.splice(idx, 1);
-                            localStorage.setItem('submitted_ids', JSON.stringify(submitted));
-                        }
-                        existing.isCommunity = true;
-                        existing.userEdited = false;
-                        existing.wasCommunityKept = false;
-                        approvedCount++;
-                        showTempMessage(`🤩 Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED! ✅`, 10000);
-                        playSound('levelUp');
-                    }
-                    if (existing && (existing.userEdited || existing.wasCommunityKept)) {
-                        skipped++;
-                        return;
-                    }
-                    let loc;
-                    if (existing) {
-                        Object.assign(existing, imp);
-                        loc = existing;
-                        refreshed++;
-                    } else {
-                        loc = {
-                            ...imp,
-                            addedTime: Date.now(),
-                            locked: true,
-                            isCommunity: true,
-                            isTemp: false,
-                            isPostcard: false,
-                            userEdited: false,
-                            wasCommunityKept: false
-                        };
-                        locations.push(loc);
-                        added++;
-                    }
-                    loc.isCommunity = true;
-                    loc.locked = true;
-                    loc.userEdited = false;
-                    loc.wasCommunityKept = !!existing?.wasCommunityKept;
-                });
+    const existing = locations.find(l => l.id === imp.id);
+
+    if (existing && hasBeenSubmitted(imp.id)) {
+        let submitted = JSON.parse(localStorage.getItem('submitted_ids') || '[]');
+        const idx = submitted.indexOf(imp.id);
+        if (idx !== -1) {
+            submitted.splice(idx, 1);
+            localStorage.setItem('submitted_ids', JSON.stringify(submitted));
+        }
+        existing.isCommunity = true;
+        existing.userEdited = false;
+        existing.wasCommunityKept = false;
+        approvedCount++;
+        showTempMessage(`🤩 Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED! ✅`, 10000);
+        playSound('levelUp');
+    }
+
+    if (existing && (existing.userEdited || existing.wasCommunityKept)) {
+        skipped++;
+        return;
+    }
+
+    // ── AUTO-REGISTER NEW CUSTOM CATEGORIES FROM COMMUNITY ──
+    if (imp.category && 
+        !defaultCategoryIcons[imp.category] && 
+        !customCategories[imp.category]) {
+
+        customCategories[imp.category] = imp.icon || '📦';
+        categoryIcons[imp.category]   = imp.icon || '📦';
+        categoryColors[imp.category]  = '#002F00';
+        activeCategories.add(imp.category);
+    }
+    // ───────────────────────────────────────────────────────
+
+    let loc;
+    if (existing) {
+        Object.assign(existing, imp);
+        loc = existing;
+        refreshed++;
+    } else {
+        loc = {
+            ...imp,
+            addedTime: Date.now(),
+            locked: true,
+            isCommunity: true,
+            isTemp: false,
+            isPostcard: false,
+            userEdited: false,
+            wasCommunityKept: false
+        };
+        locations.push(loc);
+        added++;
+    }
+
+    loc.isCommunity = true;
+    loc.locked = true;
+    loc.userEdited = false;
+    loc.wasCommunityKept = !!existing?.wasCommunityKept;
+});
+// Save new custom categories permanently so they appear in the app
+localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
                                 for (let i = locations.length - 1; i >= 0; i--) {
                     const loc = locations[i];
                     if (loc.isCommunity && !incomingIds.has(loc.id)) {
