@@ -42,6 +42,23 @@
     </script>
 </head>
 <body>
+
+<!-- ── STARTUP ANIMATION ── -->
+<div id="startupSplash" style="position:fixed;inset:0;background:#000;z-index:2147483647;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#0f0;font-family:'Courier New',monospace;overflow:hidden;user-select:none;pointer-events:all;">
+    <canvas id="startupCanvas" style="position:absolute;inset:0;width:100%;height:100%;z-index:3;opacity:0.95;"></canvas>
+    
+    <!-- Titles + Skip Prompt -->
+    <div id="splashTextContainer" style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);z-index:4;display:flex;flex-direction:column;align-items:center;text-align:center;text-shadow:0 0 40px #0f0,0 0 80px #0f0;">
+        <div id="splashTitle1" style="font-size:clamp(2.8rem,9vw,5rem);letter-spacing:8px;font-weight:bold;margin-bottom:12px;opacity:0;">FALLOUT 76</div>
+        <div id="splashTitle2" style="font-size:clamp(1.6rem,5.5vw,2.8rem);letter-spacing:4px;opacity:0;">ITEM FINDER MAP</div>
+        
+        <!-- Skip prompt -->
+        <div id="skipPrompt" style="font-size:1.5rem;opacity:0;transition:opacity 600ms;color:#0f0;text-shadow:0 0 40px #0f0,0 0 80px #0f0;margin-top:24px;">
+            > TAP ANYWHERE TO SKIP
+        </div>
+    </div>
+</div>
+
 <br><br>
 
     <!-- ── MAIN TITLE WITH TOGGLE BUTTON ── -->
@@ -316,16 +333,26 @@
     </div>
 	
     <!-- iOS PWA rotation fix -->
-    <script>
-        function resizeMap() {
-            if (typeof map !== 'undefined' && map !== null) {
-                setTimeout(() => {
-                    map.invalidateSize(true);
-                }, 500);
-            }
+<!-- iOS PWA rotation fix — SAFE VERSION -->
+<script>
+    function resizeMap() {
+        // Only run once main.js has initialized the map
+        if (typeof safeInvalidateSize === 'function') {
+            safeInvalidateSize();
+        } else if (typeof map !== 'undefined' && map && typeof map.invalidateSize === 'function') {
+            setTimeout(() => {
+                map.invalidateSize({ animate: false });
+            }, 300);
         }
-        window.addEventListener('resize', resizeMap);
-        window.addEventListener('orientationchange', resizeMap);
-    </script>
+    }
+    
+    // Attach listeners after the page and main.js have loaded
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            window.addEventListener('resize', resizeMap);
+            window.addEventListener('orientationchange', resizeMap);
+        }, 800);
+    });
+</script>
 </body>
 </html>
