@@ -142,18 +142,20 @@
         <p id="counter" class="counter"></p>
 
     </div>
-
-    <!-- ── CONTENT INVENTORY TABLE (remains outside the box) ── -->
+            <!-- ── CONTENT INVENTORY TABLE ── -->
     <div id="tableContainer" style="margin:0 auto 20px; max-width:90%; background:rgba(0,0,0,0.7); border:1px solid #0f0; border-radius:8px; padding:10px;">
-        <div class="pagination">
-		        <!-- Content Inventory Header + Counter -->
-        <h2 style="text-align:center; margin:15px 0 5px;">Content Inventory</h2>
-        <p id="counter" class="counter"></p>
+        
+        <!-- Title + Counter (on its own clean line) -->
+        <h2 style="text-align:center; margin:15px 0 8px;">Content Inventory</h2>
+        <p id="counter" class="counter" style="margin-bottom:12px;"></p>
 
+        <!-- Pagination buttons (cleanly below the title) -->
+        <div class="pagination" style="display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:12px;">
             <button id="prevPageBtn" disabled>Prev</button>
             <span id="pageInfo">Page 1 of 1</span>
             <button id="nextPageBtn" disabled>Next</button>
         </div>
+
         <table id="locationsTable" style="width:100%; border-collapse:collapse; color:#0f0;">
             <tbody></tbody>
         </table>
