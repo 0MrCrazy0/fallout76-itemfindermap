@@ -1,7 +1,7 @@
 // ——— SERVICE WORKER ———
 // Cache busting: Update this line on EVERY deployment that changes HTML, JS, or CSS.
 // Format: "fo76-ifm-v{VERSION}-{DDMMYYYY}" or "fo76-ifm-v{VERSION}-{DDMMYYYY}-buildN"
-const CACHE_NAME = "76-Vault-OK-5-05-2026-Build-B7";
+const CACHE_NAME = "76-Vault-OK-5-05-2026-Build-B8";
 
 // ── Precache the two large map images for instant loading after first visit ──
 const MAP_IMAGES = [
