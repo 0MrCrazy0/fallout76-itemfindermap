@@ -1718,6 +1718,51 @@ setTimeout(updateRevertAllButton, 1500);
                 playSound('click');
             };
         }
+		        // ── CORRECTED Rich Stats Panel (You Logged = Created + Kept only) ──
+        function updateRichStatsPanel() {
+            // You Created = only markers you originally created yourself
+            const youCreated = locations.filter(l => 
+                l.userEdited && 
+                !l.wasCommunityKept && 
+                !l.isPostcard
+            ).length;
+
+            // You Kept = community markers you chose to keep
+            const youKept = locations.filter(l => l.wasCommunityKept === true).length;
+
+            // You Logged = total markers you personally control
+            const youLogged = youCreated + youKept;
+
+            const youSubmitted = JSON.parse(localStorage.getItem('fo76_submittedApproved') || '[]').length;
+
+            // Total Logged = all permanent markers (excluding postcards)
+            const totalLogged = locations.filter(l => !l.isPostcard).length;
+
+            // Unexplored (approximate total map locations = 534)
+            const unexplored = Math.max(0, 534 - totalLogged);
+
+            // Update panel
+            document.getElementById('statTotalLogged').textContent = totalLogged;
+            document.getElementById('statUnexplored').textContent = unexplored;
+            document.getElementById('statYouCreated').textContent = youCreated;
+            document.getElementById('statYouSubmitted').textContent = youSubmitted;
+            document.getElementById('statYouKept').textContent = youKept;
+            document.getElementById('statYouLogged').textContent = youLogged;
+
+            // Version display
+            document.getElementById('appVersionDisplay').textContent = CURRENT_APP_VERSION;
+            const commVer = localStorage.getItem('fo76_map_version') || latestCommunityVersion || '1.0';
+            document.getElementById('communityVersionDisplay').textContent = `v${commVer}`;
+        }
+		        // Update stats whenever XP or data changes
+        const originalRecalculateXP = window.recalculateXP;
+        window.recalculateXP = function() {
+            if (originalRecalculateXP) originalRecalculateXP();
+            updateRichStatsPanel();
+        };
+
+        // Initial update after load
+        setTimeout(updateRichStatsPanel, 800);
 
         combinedSearch.addEventListener('input', () => {
         const val = combinedSearch.value.trim();
