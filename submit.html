@@ -210,42 +210,18 @@
             submitBtn.disabled = false;
             submitBtn.textContent = 'SUBMIT MARKER';
 
-    if (data.success) {
-        // ── Track submitted ID (prevents duplicates) ──
-        if (id) {
-            let submitted = JSON.parse(localStorage.getItem('submitted_ids') || '[]');
-            if (!submitted.includes(id)) {
-                submitted.push(id);
-                localStorage.setItem('submitted_ids', JSON.stringify(submitted));
-            }
-        }
-
-        // ── Maintain "You Submitted" counter + XP ──
-        let submittedApproved = JSON.parse(localStorage.getItem('fo76_submittedApproved') || '[]');
-        if (id && !submittedApproved.includes(id)) {
-            submittedApproved.push(id);
-            localStorage.setItem('fo76_submittedApproved', JSON.stringify(submittedApproved));
-        }
-
-        // ── DIRECT +100 XP ──
-        let currentXP = parseInt(localStorage.getItem('fo76_xp') || '0');
-        currentXP += 100;
-        localStorage.setItem('fo76_xp', currentXP.toString());
-
-        // Strong cross-window notification
-        if (window.opener) {
-            window.opener.postMessage({ type: 'SUBMISSION_SUCCESS' }, '*');
-            window.opener.postMessage({ type: 'FORCE_UI_REFRESH' }, '*');
-        }
-
-        form.style.display = 'none';
-        successDiv.style.display = 'block';
-
-        // Auto-close
-        setTimeout(() => {
-            closeAndReturn();
-        }, 1600);
-    }   else if (data.error === "duplicate") {
+            if (data.success) {
+                // Store by ID (this is the fix)
+                if (id) {
+                    let submitted = JSON.parse(localStorage.getItem('submitted_ids') || '[]');
+                    if (!submitted.includes(id)) {
+                        submitted.push(id);
+                        localStorage.setItem('submitted_ids', JSON.stringify(submitted));
+                    }
+                }
+                form.style.display = 'none';
+                successDiv.style.display = 'block';
+            } else if (data.error === "duplicate") {
                 form.style.display = 'none';
                 warningBlock.style.display = 'block';
                 warningTitle.textContent = 'Already Submitted';
