@@ -543,61 +543,24 @@ typeSoundObserver.observe(document.body, { childList: true, subtree: true });
             localStorage.setItem('nanCleanupDone_v76', 'true');
         }
 
-// ── Data migration & default values for legacy markers ──
-locations.forEach(loc => {
-    if (!loc.id) loc.id = generateUniqueId();
-    if (!loc.cid) loc.cid = generateCid(loc);
-    if (loc.locked === undefined) loc.locked = false;
-    if (loc.isTemp === undefined) loc.isTemp = false;
-    if (loc.postcardExpire === undefined && loc.isTemp) loc.postcardExpire = Date.now() + 300000;
-    if (loc.isPostcard === undefined) loc.isPostcard = loc.isTemp;
-    if (loc.startTime === undefined) loc.startTime = loc.postcardExpire - 300000;
-    if (loc.keepBtnBound === undefined) loc.keepBtnBound = false;
-    if (loc.userEdited === undefined) loc.userEdited = true;
-    if (loc.userEdited && loc.isCommunity === false && loc.wasCommunityKept === undefined) loc.wasCommunityKept = true;
-    if (loc.wasCommunityKept === undefined) loc.wasCommunityKept = false;
-});
+        // ── Data migration & default values for legacy markers ──
+        locations.forEach(loc => {
+            if (!loc.id) loc.id = generateUniqueId();
+            if (!loc.cid) loc.cid = generateCid(loc);
+            if (loc.locked === undefined) loc.locked = false;
+            if (loc.isTemp === undefined) loc.isTemp = false;
+            if (loc.postcardExpire === undefined && loc.isTemp) loc.postcardExpire = Date.now() + 300000;
+            if (loc.isPostcard === undefined) loc.isPostcard = loc.isTemp;
+            if (loc.startTime === undefined) loc.startTime = loc.postcardExpire - 300000;
+            if (loc.keepBtnBound === undefined) loc.keepBtnBound = false;
+            if (loc.userEdited === undefined) loc.userEdited = true;
+            if (loc.userEdited && loc.isCommunity === false && loc.wasCommunityKept === undefined) loc.wasCommunityKept = true;
+            if (loc.wasCommunityKept === undefined) loc.wasCommunityKept = false;
+        });
 
-// ── MIGRATE PAST SUBMISSIONS into the new counter (runs only once) ──
-if (!localStorage.getItem('fo76_submittedApproved_migrated')) {
-    const oldSubmitted = JSON.parse(localStorage.getItem('submitted_ids') || '[]');
-    let currentSubmitted = JSON.parse(localStorage.getItem('fo76_submittedApproved') || '[]');
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
 
-    oldSubmitted.forEach(id => {
-        if (!currentSubmitted.includes(id)) {
-            currentSubmitted.push(id);
-        }
-    });
-
-    localStorage.setItem('fo76_submittedApproved', JSON.stringify(currentSubmitted));
-    localStorage.setItem('fo76_submittedApproved_migrated', 'true');
-}
-
-// ── ONE-TIME MIGRATION: Give existing users permanent credit for previously submitted markers ──
-if (!localStorage.getItem('fo76_submittedApproved_xp_migrated')) {
-    let submittedApproved = JSON.parse(localStorage.getItem('fo76_submittedApproved') || '[]');
-    let added = 0;
-
-    locations.forEach(loc => {
-        if (loc.id && loc.userEdited && !loc.isPostcard && !submittedApproved.includes(loc.id)) {
-            submittedApproved.push(loc.id);
-            added++;
-        }
-    });
-
-    if (added > 0) {
-        localStorage.setItem('fo76_submittedApproved', JSON.stringify(submittedApproved));
-        if (typeof showTempMessage === 'function') {
-            showTempMessage(`📡 ${added} PREVIOUS SUBMISSION${added === 1 ? '' : 'S'} RESTORED — XP PROTECTED FOREVER`, 7000);
-        }
-    }
-
-    localStorage.setItem('fo76_submittedApproved_xp_migrated', 'true');
-}
-
-localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
-
-let postcardTicker = null;
+        let postcardTicker = null;
 // ── GENTLE FLOATING DUST WARNING (final 30 seconds) ──
 let floatingDustTimers = {};
 
@@ -1284,7 +1247,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-5-05-2026-Build-B7"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-5-05-2026-Build-B8"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -1700,69 +1663,6 @@ setTimeout(updateRevertAllButton, 1500);
             loadData(combinedSearch.value, categoryFilter.value || currentCategoryFilter);
             playSound('modalClose');
         };
-		
-		        // ── STATS TOGGLE BUTTON (new) ──
-        let statsVisible = localStorage.getItem('statsVisible') !== 'false';
-        const statsPanel = document.getElementById('xpStatsPanel');
-        const toggleStatsBtn = document.getElementById('toggleStatsBtn');
-
-        if (statsPanel && toggleStatsBtn) {
-            statsPanel.style.display = statsVisible ? 'block' : 'none';
-            toggleStatsBtn.textContent = statsVisible ? 'Hide Stats' : 'Show Stats';
-
-            toggleStatsBtn.onclick = () => {
-                statsVisible = !statsVisible;
-                statsPanel.style.display = statsVisible ? 'block' : 'none';
-                toggleStatsBtn.textContent = statsVisible ? 'Hide Stats' : 'Show Stats';
-                localStorage.setItem('statsVisible', statsVisible);
-                playSound('click');
-            };
-        }
-		        // ── CORRECTED Rich Stats Panel (You Logged = Created + Kept only) ──
-        function updateRichStatsPanel() {
-            // You Created = only markers you originally created yourself
-            const youCreated = locations.filter(l => 
-                l.userEdited && 
-                !l.wasCommunityKept && 
-                !l.isPostcard
-            ).length;
-
-            // You Kept = community markers you chose to keep
-            const youKept = locations.filter(l => l.wasCommunityKept === true).length;
-
-            // You Logged = total markers you personally control
-            const youLogged = youCreated + youKept;
-
-            const youSubmitted = JSON.parse(localStorage.getItem('fo76_submittedApproved') || '[]').length;
-
-            // Total Logged = all permanent markers (excluding postcards)
-            const totalLogged = locations.filter(l => !l.isPostcard).length;
-
-            // Unexplored (approximate total map locations = 534)
-            const unexplored = Math.max(0, 534 - totalLogged);
-
-            // Update panel
-            document.getElementById('statTotalLogged').textContent = totalLogged;
-            document.getElementById('statUnexplored').textContent = unexplored;
-            document.getElementById('statYouCreated').textContent = youCreated;
-            document.getElementById('statYouSubmitted').textContent = youSubmitted;
-            document.getElementById('statYouKept').textContent = youKept;
-            document.getElementById('statYouLogged').textContent = youLogged;
-
-            // Version display
-            document.getElementById('appVersionDisplay').textContent = CURRENT_APP_VERSION;
-            const commVer = localStorage.getItem('fo76_map_version') || latestCommunityVersion || '1.0';
-            document.getElementById('communityVersionDisplay').textContent = `v${commVer}`;
-        }
-		        // Update stats whenever XP or data changes
-        const originalRecalculateXP = window.recalculateXP;
-        window.recalculateXP = function() {
-            if (originalRecalculateXP) originalRecalculateXP();
-            updateRichStatsPanel();
-        };
-
-        // Initial update after load
-        setTimeout(updateRichStatsPanel, 800);
 
         combinedSearch.addEventListener('input', () => {
         const val = combinedSearch.value.trim();
@@ -3038,17 +2938,6 @@ function addMarkerToMap(loc) {
 function updateCounterDisplay() {
     const communityVer = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
     
-    // Load submitted IDs so submitted markers permanently count toward XP
-    let submittedIds = new Set();
-    try {
-        const data = localStorage.getItem('fo76_submittedApproved');
-        if (data) {
-            submittedIds = new Set(JSON.parse(data));
-        }
-    } catch (e) {
-        console.warn('Could not parse submittedApproved:', e);
-    }
-
     const totalLogged = locations.filter(l => activeCategories.has(l.category)).length;
     const communityTotal = locations.filter(l =>
         l.isCommunity === true &&
@@ -3056,20 +2945,15 @@ function updateCounterDisplay() {
         !l.wasCommunityKept &&
         !l.isPostcard
     ).length;
-
-    // You Created now permanently includes submitted markers
-    const created = locations.filter(l => 
-        !l.isPostcard && 
-        (l.userEdited === true || (l.id && submittedIds.has(l.id)))
+    const created = locations.filter(l =>
+        l.userEdited === true &&
+        !l.wasCommunityKept &&
+        !l.isPostcard
     ).length;
-
     const kept = locations.filter(l =>
         l.wasCommunityKept === true &&
         !l.isPostcard
     ).length;
-
-    const submittedApproved = submittedIds.size;
-
     const userLogged = created + kept;
 
     counter.innerHTML = `
@@ -3080,7 +2964,6 @@ function updateCounterDisplay() {
         Total Logged: <strong style="color:#00ff88;">${totalLogged}</strong><br>
         Unexplored: <strong style="color:#88ccff;">${communityTotal}</strong><br>
         You Created: <strong style="color:#00ff88;">${created}</strong><br>
-        You Submitted: <strong style="color:#00ccff;">${submittedApproved}</strong><br>
         You Kept: <strong style="color:#00ff88;">${kept}</strong><br>
         You Logged: <strong style="color:#00ff88;">${userLogged}</strong><br>
         Explorer Level: <strong style="color:#00ff88;">${level}</strong>
@@ -3414,57 +3297,30 @@ function reopenPopupAfterModalClose() {
     }, 650);
 }
 function recalculateXP() {
-    const oldLevel = lastLevel || 1;
+    const oldLevel = lastLevel;
+    const userMarkers = locations.filter(l => l.userEdited === true && !l.isPostcard);
+    xp = userMarkers.length * xpPerMarker;
+    level = 1 + Math.floor(xp / xpPerLevel);
+    xp = xp % xpPerLevel;
 
-    // 1. XP from approved community submissions (100 XP each)
-    const submittedApproved = JSON.parse(localStorage.getItem('fo76_submittedApproved') || '[]');
-    let totalXP = submittedApproved.length * 100;
-
-    // 2. XP from your own created + kept markers (original system)
-    const userMarkers = locations.filter(l => 
-        (l.userEdited === true || l.wasCommunityKept === true) && 
-        !l.isPostcard
-    );
-    totalXP += userMarkers.length * xpPerMarker;   // xpPerMarker is already defined as 100
-
-    // 3. Calculate level and remainder
-    const xpPerLevel = 1000;
-    level = 1 + Math.floor(totalXP / xpPerLevel);
-    xp = totalXP % xpPerLevel;
-
-    // Persist values
-    localStorage.setItem('fo76_level', level.toString());
-    localStorage.setItem('fo76_xp', xp.toString());
-    lastLevel = level;
-
-    // Update UI
-    if (typeof updateXPBar === 'function') updateXPBar();
-    if (typeof updateLevelDisplay === 'function') updateLevelDisplay();
-    if (typeof updateCounterDisplay === 'function') updateCounterDisplay();
-
-    // Level-up celebration
     if (level > oldLevel) {
         playSound('levelUp');
         triggerConfetti();
         showTempMessage(`☢️ LEVEL UP! — NOW EXPLORER LEVEL ${level} 🎉`, 10000);
+
         const bar = document.getElementById('xpProgress');
-        if (bar) {
-            bar.classList.add('level-up');
-            setTimeout(() => bar.classList.remove('level-up'), 18000);
-        }
+        bar.classList.add('level-up');
+
+        // Increased from 10 seconds → 18 seconds (stays glowing longer after nuke animation)
+        setTimeout(() => bar.classList.remove('level-up'), 18000);
+
         triggerNuke();
     }
 
-    // Save and refresh UI
     localStorage.setItem('fo76_level', level);
     localStorage.setItem('fo76_xp', xp);
     lastLevel = level;
     updateXPBar();
-
-    // Also update the submitted counter display
-    if (typeof updateCounterDisplay === 'function') {
-        updateCounterDisplay();
-    }
 }
 function triggerConfetti() {
     const fire = (options = {}) => {
@@ -3912,7 +3768,7 @@ resetAppBtn.onclick = () => {
         'Other Community markers can be re-added later by clicking the "Update Community Map" button.<br><br>' +
         'Ready to initiate reset protocol?',
         () => {
-            // Backup first
+            // Backup first — now includes player name
             const playerName = document.getElementById('playerNameInput')?.value.trim() || '';
 
             const userMarkers = locations.filter(l => (l.userEdited || l.wasCommunityKept) && !l.isPostcard);
@@ -3920,12 +3776,11 @@ resetAppBtn.onclick = () => {
                 version: "personal-plus-kept-fullbackup",
                 timestamp: new Date().toISOString(),
                 communityVersion: localStorage.getItem(MAP_VERSION_KEY) || "1.0",
-                playerName: playerName,
+                playerName: playerName,                    // ← added for name restore
                 customCategories,
                 locations: userMarkers,
                 level,
                 xp,
-				submittedApproved: JSON.parse(localStorage.getItem('fo76_submittedApproved') || '[]'),
                 settings: {
                     clusteringEnabled, gridEnabled, currentMap, darkMode,
                     soundsEnabled, titleVisible, toolsVisible,
@@ -4084,7 +3939,6 @@ resetAppBtn.onclick = () => {
                                                     const key = localStorage.key(i);
                                                     if (key?.startsWith("reported_cid_")) savedReports[key] = localStorage.getItem(key);
                                                 }
-												localStorage.removeItem('fo76_submittedApproved');
                                                 localStorage.clear();
                                                 Object.keys(savedReports).forEach(k => localStorage.setItem(k, savedReports[k]));
                                                 localStorage.setItem('postResetMessageShown', 'true');
@@ -4237,6 +4091,7 @@ importBtn.onclick = () => {
             try {
                 const data = JSON.parse(ev.target.result);
                 const incoming = data.locations || (Array.isArray(data) ? data : []);
+
                 const isPersonalBackup = data.version && (
                     data.version.startsWith("personal") ||
                     file.name.includes("Personal") ||
@@ -4244,7 +4099,9 @@ importBtn.onclick = () => {
                     file.name.includes("FullResetBackup") ||
                     file.name.includes("PersonalPlusKeptFullBackup")
                 );
+
                 const isPlusKeptBackup = data.version && data.version.includes("plus-kept");
+
                 let added = 0, updated = 0, skipped = 0;
 
                 // ── CAPTURE FULL PRE-IMPORT STATE FOR PERFECT UNDO ──
@@ -4275,10 +4132,12 @@ importBtn.onclick = () => {
                     let existing = null;
                     if (imp.id) existing = locations.find(l => l.id === imp.id);
                     if (!existing && imp.cid) existing = locations.find(l => l.cid === imp.cid);
+
                     if (existing) {
                         skipped++;
                         return;
                     }
+
                     if (isPersonalBackup) {
                         const newMarker = { ...imp };
                         if (isPlusKeptBackup) {
@@ -4318,8 +4177,10 @@ importBtn.onclick = () => {
                     if (s.activeCategories && Array.isArray(s.activeCategories)) {
                         activeCategories = new Set(s.activeCategories);
                     }
+
                     document.body.classList.toggle('dark-mode', darkMode);
                     syncToggleButtonStates();
+
                     mainTitle.style.display = titleVisible ? 'block' : 'none';
                     titleToggleBtn.textContent = titleVisible ? '-' : '+';
                     buttonGroup.classList.toggle('hidden', !toolsVisible);
@@ -4333,19 +4194,13 @@ importBtn.onclick = () => {
                     if (data.customCategories) customCategories = data.customCategories;
                 }
 
-                // ── RESTORE SUBMITTED HISTORY (this was missing) ──
-                if (data.submittedApproved && Array.isArray(data.submittedApproved)) {
-                    localStorage.setItem('fo76_submittedApproved', JSON.stringify(data.submittedApproved));
-                    localStorage.setItem('fo76_submittedApproved_migrated', 'true');
-                }
-
-                // ── FORCE RECALCULATION AFTER submittedApproved is restored ──
                 recalculateXP();
                 saveLocations();
                 forceReload();
 
                 if (added + updated > 0) {
                     const count = added + updated;
+
                     // ── UNDO LAST IMPORT — now restores EVERYTHING ──
                     setTimeout(() => {
                         const undoBtn = document.getElementById('undoImportBtn');
@@ -4365,18 +4220,22 @@ importBtn.onclick = () => {
                                     localStorage.removeItem('fo76_pendingUndo_import');
                                 } else updateText();
                             }, 1000);
+
                             undoBtn.onclick = () => {
                                 clearInterval(window.undoImportTimer);
                                 window.undoImportTimer = null;
+
                                 // ── RESTORE FULL STATE ──
                                 const state = beforeFullState;
                                 locations = JSON.parse(state.locations);
                                 level = state.level;
                                 xp = state.xp;
                                 customCategories = JSON.parse(state.customCategories);
+
                                 const nameInput = document.getElementById('playerNameInput');
                                 if (nameInput) nameInput.value = state.playerName;
                                 localStorage.setItem('fo76_playerName', state.playerName);
+
                                 const s = state.settings;
                                 clusteringEnabled = s.clusteringEnabled;
                                 gridEnabled = s.gridEnabled;
@@ -4386,16 +4245,20 @@ importBtn.onclick = () => {
                                 titleVisible = s.titleVisible;
                                 toolsVisible = s.toolsVisible;
                                 activeCategories = new Set(s.activeCategories);
+
                                 document.body.classList.toggle('dark-mode', darkMode);
                                 syncToggleButtonStates();
+
                                 mainTitle.style.display = titleVisible ? 'block' : 'none';
                                 titleToggleBtn.textContent = titleVisible ? '-' : '+';
                                 buttonGroup.classList.toggle('hidden', !toolsVisible);
                                 toolsToggleBtn.textContent = toolsVisible ? 'Hide Tools' : 'Show Tools';
                                 renderCategoryToggles();
+
                                 recalculateXP();
                                 saveLocations();
                                 forceReload();
+
                                 undoBtn.style.display = 'none';
                                 localStorage.removeItem('fo76_pendingUndo_import');
                                 showTempMessage('✅ IMPORT FULLY UNDONE — ALL SETTINGS RESTORED', 4000);
@@ -4411,15 +4274,16 @@ importBtn.onclick = () => {
                         <strong style="color:#00ff88;">${added + updated} marker${(added + updated) === 1 ? '' : 's'} processed successfully</strong><br>
                         ${skipped > 0 ? `Skipped: <strong style="color:#ffa500;">${skipped}</strong> (already present on map)<br>` : ''}
                         <br>
-                        <strong style="color:#88ff88;">Stats + Settings fully restored</strong>
+                        <strong style="color:#88ff88;">XP • Level • All Settings restored successfully</strong>
                     </div>`,
                     null
                 );
 
                 triggerEpicFlash("🧬", "IMPORT COMPLETE",
                     `${added + updated} marker${(added + updated) === 1 ? '' : 's'} loaded!`,
-                    skipped > 0 ? `${skipped} markers skipped (already present)` : "Stats + Settings fully restored");
+                    skipped > 0 ? `${skipped} markers skipped (already present)` : "Settings & progress restored");
                 playSound('saving');
+
             } catch (err) {
                 console.error("Import failed:", err);
                 showTempMessage('❌ INVALID FILE OR CORRUPTED BACKUP', 5000);
@@ -5056,7 +4920,7 @@ saveItemBtn.onclick = () => {
     }
 };
 
-// ── DELETE BUTTON WITH SUBMITTED XP PROTECTION + UNDO LOGIC ──
+  // Delete button – with confirmation
 deleteBtn.onclick = () => {
     if (currentIndex < 0) return;
     const loc = locations[currentIndex];
@@ -5065,7 +4929,7 @@ deleteBtn.onclick = () => {
         playSound('error');
         return;
     }
-   
+    
     playSound('click');
     showConfirmModal(
         '☢ CONFIRM DELETION ☢',
@@ -5073,37 +4937,24 @@ deleteBtn.onclick = () => {
          <strong>Description:</strong> ${escapeHtml(loc.desc || '(no description)')}<br>
          <strong>Category:</strong> ${loc.category}<br>
          <strong>Grid:</strong> ${getGridFromLatLng(loc.lat, loc.lng) || 'Unknown'}<br><br>
-         <strong style="color:#ff8888;">If this marker was submitted, you will lose the +100 XP and submission credit.</strong><br><br>
-         This action can be undone for 2 minutes using the "Undo Last Delete" button.`,
+         This action can be undone for 2 minutes using the "Undo Last Delete" button in the Tools panel.`,
         () => {
-            // Capture full state for perfect undo
-            const id = loc.id;
-            const submittedApproved = JSON.parse(localStorage.getItem('fo76_submittedApproved') || '[]');
+            lastDeleted = { ...loc };
+            locations.splice(currentIndex, 1);
+            recalculateXP();
+			setTimeout(() => playSound('delete'), 180);
+            closeModal(itemModal, true);
+            saveLocations();
+            forceReload();
             
-            lastDeleted = { 
-                ...loc,
-                wasSubmitted: submittedApproved.includes(id)
-            };
-
-            // Perform deletion
-            deleteLocation(loc.id);
-
-            // ── AGGRESSIVE MODAL CLOSE (fixes the remaining issue) ──
-            if (itemModal) {
-                itemModal.style.display = 'none';
-                document.body.classList.remove('modal-open');
-            }
-            if (typeof closeModal === 'function') {
-                closeModal(itemModal);
-            }
-            currentIndex = -1;
-
-            // Show undo button
+                        // Show the new tools-panel undo button
             const undoDeleteBtn = document.getElementById('undoDeleteBtn');
             if (undoDeleteBtn) {
                 undoDeleteBtn.style.display = 'inline-block';
+                savePendingUndo('delete', JSON.stringify(locations), { lastDeleted: { ...loc } });
                 showUndoDeleteButton();
             }
+            showTempMessage('🧼️ MARKER DELETED — UNDO AVAILABLE (2 MINUTES)', 5000);
         },
         'Yes — Delete It',
         'Cancel'
@@ -5115,13 +4966,11 @@ let undoDeleteTimer = null;
 function showUndoDeleteButton() {
     const btn = document.getElementById('undoDeleteBtn');
     if (!btn) return;
-
     let secondsLeft = 120;
     const updateText = () => {
         btn.textContent = `UNDO LAST DELETE (${Math.floor(secondsLeft / 60)}:${(secondsLeft % 60).toString().padStart(2, '0')})`;
     };
     updateText();
-
     if (undoDeleteTimer) clearInterval(undoDeleteTimer);
     undoDeleteTimer = setInterval(() => {
         secondsLeft--;
@@ -5133,34 +4982,18 @@ function showUndoDeleteButton() {
 
     btn.onclick = () => {
         clearInterval(undoDeleteTimer);
-
         if (lastDeleted) {
-            // Restore marker to map
             locations.push({ ...lastDeleted });
-
-            // ── STRONGER RESTORE FOR SUBMISSION CREDIT + XP ──
-            if (lastDeleted.wasSubmitted && lastDeleted.id) {
-                let submitted = JSON.parse(localStorage.getItem('fo76_submittedApproved') || '[]');
-                if (!submitted.includes(lastDeleted.id)) {
-                    submitted.push(lastDeleted.id);
-                    localStorage.setItem('fo76_submittedApproved', JSON.stringify(submitted));
-                }
-                let currentXP = parseInt(localStorage.getItem('fo76_xp') || '0');
-                currentXP += 100;
-                localStorage.setItem('fo76_xp', currentXP.toString());
-            }
-
             recalculateXP();
             saveLocations();
             forceReload();
-
-            showTempMessage('✅ MARKER FULLY RESTORED (XP + Submission Credit Returned)', 4000);
+            showTempMessage('✅ MARKER RESTORED', 3000);
             playSound('undo');
             lastDeleted = null;
         }
         btn.style.display = 'none';
     };
-};
+}
 
 exportOneBtn.onclick = () => {
     const loc = locations[currentIndex];
@@ -5893,12 +5726,11 @@ document.getElementById('backupAllBtn')?.addEventListener('click', () => {
         version: "full-backup",
         timestamp: new Date().toISOString(),
         communityVersion: localStorage.getItem('fo76_map_version') || '1.0',
-        playerName: playerName,
+        playerName: playerName,                    // ← fixed capture
         locations: locations,
         customCategories: customCategories,
         level: level,
         xp: xp,
-        submittedApproved: JSON.parse(localStorage.getItem('fo76_submittedApproved') || '[]'),   // ← THIS WAS MISSING
         settings: {
             clusteringEnabled,
             gridEnabled,
@@ -5910,7 +5742,6 @@ document.getElementById('backupAllBtn')?.addEventListener('click', () => {
             activeCategories: [...activeCategories]
         }
     };
-
     const blob = new Blob([JSON.stringify(fullBackup, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -5927,88 +5758,106 @@ document.getElementById('restoreAllBtn')?.addEventListener('click', () => {
     input.onchange = e => {
         const file = e.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
-        reader.onload = event => {
+        reader.onload = ev => {
             try {
-                const backup = JSON.parse(event.target.result);
+                const data = JSON.parse(ev.target.result);
+                
+                // Updated version check — now matches the current Full Backup export
+                if (data.version && (data.version.includes('full-backup') || data.version.includes('full-v76'))) {
+                    showConfirmModal(
+                        'FULL RESTORE FROM BACKUP',
+                        'This will OVERWRITE EVERYTHING:<br><br>• All your markers<br>• XP & Level<br>• Settings<br>• Community map version<br><br>Are you absolutely sure?',
+                        () => {
+                            locations = data.locations || [];
+                            customCategories = data.customCategories || {};
+                            Object.assign(categoryIcons, defaultCategoryIcons, customCategories);
+                            level = data.level || 1;
+                            xp = data.xp || 0;
 
-                let restoredCount = 0;
+                            // ── RESTORE PLAYER NAME (now guaranteed to run) ──
+                            if (data.playerName !== undefined && data.playerName !== null) {
+                                localStorage.setItem('fo76_playerName', data.playerName);
+                                const nameInput = document.getElementById('playerNameInput');
+                                if (nameInput) nameInput.value = data.playerName;
+                            }
 
-                // Restore locations (core map data)
-                if (Array.isArray(backup.locations)) {
-                    locations = backup.locations;
-                    localStorage.setItem('fo76_locations', JSON.stringify(locations));
-                    restoredCount++;
+                            // ── RESTORE ACTIVE CATEGORIES (checkbox toggles) ──
+                            const s = data.settings || {};
+                            clusteringEnabled = s.clusteringEnabled !== undefined ? s.clusteringEnabled : true;
+                            gridEnabled = s.gridEnabled || false;
+                            currentMap = s.currentMap || 'named';
+                            darkMode = s.darkMode || false;
+                            soundsEnabled = s.soundsEnabled !== undefined ? s.soundsEnabled : true;
+                            titleVisible = s.titleVisible !== undefined ? s.titleVisible : true;
+                            toolsVisible = s.toolsVisible !== undefined ? s.toolsVisible : true;
+                            if (s.activeCategories) activeCategories = new Set(s.activeCategories);
+
+                            localStorage.setItem('fo76_map_version', data.communityVersion || s.communityVersion || '1.0');
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
+                            localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+                            localStorage.setItem('fo76_level', level);
+                            localStorage.setItem('fo76_xp', xp);
+                            localStorage.setItem('clusteringEnabled', clusteringEnabled);
+                            localStorage.setItem('gridEnabled', gridEnabled);
+                            localStorage.setItem('currentMap', currentMap);
+                            localStorage.setItem('darkMode', darkMode);
+                            localStorage.setItem('soundsEnabled', soundsEnabled);
+                            localStorage.setItem('titleVisible', titleVisible);
+                            localStorage.setItem('toolsVisible', toolsVisible);
+                            localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
+
+                            // ── IMMEDIATE UI UPDATE (no refresh needed) ──
+                            mainTitle.style.display = titleVisible ? 'block' : 'none';
+                            titleToggleBtn.textContent = titleVisible ? '-' : '+';
+                            buttonGroup.classList.toggle('hidden', !toolsVisible);
+                            toolsToggleBtn.textContent = toolsVisible ? 'Hide Tools' : 'Show Tools';
+                            document.body.classList.toggle('dark-mode', darkMode);
+                            syncToggleButtonStates();
+                            renderCategoryToggles();   // updates category checkboxes instantly
+
+                            // SUCCESS SCREEN + RELOAD
+                            const successOverlay = document.createElement('div');
+                            successOverlay.style.cssText = `
+                                position:fixed;top:0;left:0;width:100vw;height:100vh;
+                                background:#000;z-index:999999;display:flex;
+                                flex-direction:column;align-items:center;justify-content:center;
+                                font-family:'Courier New',monospace;color:#00ff00;
+                                text-align:center;gap:30px;
+                            `;
+                            successOverlay.innerHTML = `
+                                <div style="font-size:clamp(80px,20vw,200px);text-shadow:0 0 60px #00ff00;">🧬</div>
+                                <h1 style="font-size:clamp(32px,9vw,80px);margin:0;text-shadow:0 0 40px #00ff00;">
+                                    FULL RESTORE COMPLETE
+                                </h1>
+                                <p style="font-size:clamp(20px,6vw,48px);margin:0;">
+                                    All data successfully restored!
+                                </p>
+                                <p style="font-size:clamp(18px,5vw,36px);opacity:0.9;">
+                                    Reloading in 3...
+                                </p>
+                            `;
+                            document.body.appendChild(successOverlay);
+                            playSound('levelUp');
+                            let count = 3;
+                            const countdown = setInterval(() => {
+                                count--;
+                                successOverlay.querySelector('p:last-child').textContent = `Reloading in ${count}...`;
+                                if (count <= 0) {
+                                    clearInterval(countdown);
+                                    location.reload();
+                                }
+                            }, 1000);
+                        }
+                    );
+                } else {
+                    showTempMessage('❌ ERROR: NOT A VALID FULL BACKUP FILE!', 5000);
+                    playSound('error');
                 }
-
-                // Restore custom categories
-                if (backup.customCategories && typeof backup.customCategories === 'object') {
-                    customCategories = backup.customCategories;
-                    localStorage.setItem('fo76_customCategories', JSON.stringify(customCategories));
-                    restoredCount++;
-                }
-
-                // Restore player progress (new full-backup format)
-                if (backup.version === 'full-backup' || backup.level !== undefined) {
-                    if (typeof backup.level === 'number') {
-                        level = backup.level;
-                        localStorage.setItem('fo76_level', level.toString());
-                    }
-                    if (typeof backup.xp === 'number') {
-                        xp = backup.xp;
-                        localStorage.setItem('fo76_xp', xp.toString());
-                    }
-                    if (Array.isArray(backup.submittedApproved)) {
-                        localStorage.setItem('fo76_submittedApproved', JSON.stringify(backup.submittedApproved));
-                    }
-                    restoredCount++;
-                }
-
-                // Restore settings (new full-backup format)
-                if (backup.settings && typeof backup.settings === 'object') {
-                    const s = backup.settings;
-                    if (typeof s.clusteringEnabled === 'boolean') clusteringEnabled = s.clusteringEnabled;
-                    if (typeof s.gridEnabled === 'boolean') gridEnabled = s.gridEnabled;
-                    if (typeof s.currentMap === 'string') currentMap = s.currentMap;
-                    if (typeof s.darkMode === 'boolean') darkMode = s.darkMode;
-                    if (typeof s.soundsEnabled === 'boolean') soundsEnabled = s.soundsEnabled;
-                    if (typeof s.titleVisible === 'boolean') titleVisible = s.titleVisible;
-                    if (typeof s.toolsVisible === 'boolean') toolsVisible = s.toolsVisible;
-                    if (Array.isArray(s.activeCategories)) {
-                        activeCategories = new Set(s.activeCategories);
-                    }
-                    // Persist settings
-                    localStorage.setItem('fo76_clusteringEnabled', clusteringEnabled);
-                    localStorage.setItem('fo76_gridEnabled', gridEnabled);
-                    localStorage.setItem('fo76_currentMap', currentMap);
-                    localStorage.setItem('fo76_darkMode', darkMode);
-                    localStorage.setItem('fo76_soundsEnabled', soundsEnabled);
-                    localStorage.setItem('fo76_titleVisible', titleVisible);
-                    localStorage.setItem('fo76_toolsVisible', toolsVisible);
-                    localStorage.setItem('fo76_activeCategories', JSON.stringify([...activeCategories]));
-                    restoredCount++;
-                }
-
-                // Re-apply UI state
-                updateMap();
-                renderCategories();
-                recalculateXP();           // ensures XP/Level are consistent
-                updateSubmittedCountDisplay();
-
-                // Updated success message (includes Settings)
-                const msg = `✅ FULL RESTORE COMPLETE: You Submitted counter + XP + Level + Settings fully restored!`;
-                showTempMessage(msg, 8000);
-                playSound('success');
-
-                console.log('%c✅ Restore completed successfully', 'color:#00ff00; font-weight:bold;');
-                console.log('Restored items count:', restoredCount);
-                console.log('Submitted count after restore:', JSON.parse(localStorage.getItem('fo76_submittedApproved') || '[]').length);
-                console.log('XP after restore:', xp, '| Level:', level);
-
             } catch (err) {
-                console.error('Restore failed:', err);
-                showTempMessage('❌ Restore failed – invalid backup file.', 6000);
+                showTempMessage('❌ ERROR: INVALID OR CORRUPTED BACKUP FILE!', 5000);
+                playSound('error');
+                console.error(err);
             }
         };
         reader.readAsText(file);
@@ -6249,47 +6098,6 @@ window.revertAllOutdatedMarkers = function() {
         'Yes — Revert All',
         'Cancel'
     );
-};
-
-// ── DELETE MARKER WITH SUBMITTED XP PROTECTION ──
-window.deleteLocation = function(id) {
-    const markerIndex = locations.findIndex(l => l.id === id);
-    if (markerIndex === -1) return;
-
-    const marker = locations[markerIndex];
-
-    // Check if this marker was previously submitted
-    let submittedApproved = JSON.parse(localStorage.getItem('fo76_submittedApproved') || '[]');
-    const wasSubmitted = submittedApproved.includes(id);
-
-    // Remove the marker
-    locations.splice(markerIndex, 1);
-
-    // If it was submitted → revoke credit and XP
-    if (wasSubmitted) {
-        submittedApproved = submittedApproved.filter(subId => subId !== id);
-        localStorage.setItem('fo76_submittedApproved', JSON.stringify(submittedApproved));
-
-        let currentXP = parseInt(localStorage.getItem('fo76_xp') || '0');
-        currentXP = Math.max(0, currentXP - 100);   // never go negative
-        localStorage.setItem('fo76_xp', currentXP.toString());
-
-        console.log('🗑️ Submitted marker deleted — revoked +100 XP and submission credit');
-    }
-
-    saveLocations();
-    recalculateXP();           // updates level + UI
-    forceReload();
-
-    if (typeof showTempMessage === 'function') {
-        showTempMessage(
-            wasSubmitted 
-                ? '🗑️ MARKER DELETED — SUBMISSION CREDIT & 100 XP REMOVED' 
-                : '🗑️ MARKER DELETED', 
-            5000
-        );
-    }
-    playSound('delete');
 };
 
 // ── ANIMATION INTERACTION LOCK ──
@@ -6725,55 +6533,11 @@ mapContainer.addEventListener('touchcancel', () => clearTimeout(longPressTimer))
 // Attach the button handlers
 attachContextButtons();
 
-// ── Cross-window submission refresh (message + storage fallback) ──
+// ── Prevent unwanted jump-to-last-marker after Submit window closes ──
 window.addEventListener('message', function (event) {
-    if (!event.data) return;
-
-    if (event.data.type === 'SUBMIT_WINDOW_CLOSED' ||
-        event.data.type === 'SUBMISSION_SUCCESS' ||
-        event.data.type === 'FORCE_UI_REFRESH') {
-
-        console.log('✅ Submission refresh received – updating UI');
-
-        // Force sync from localStorage
-        if (typeof recalculateXP === 'function') recalculateXP();
-
-        // Direct XP variable sync
-        if (typeof xp !== 'undefined') {
-            xp = parseInt(localStorage.getItem('fo76_xp') || '0');
-        }
-
-        // Direct DOM refresh for XP bar and "You Submitted" counter
-        const currentXP = parseInt(localStorage.getItem('fo76_xp') || '0');
-        const submittedCount = JSON.parse(localStorage.getItem('fo76_submittedApproved') || '[]').length;
-
-        // Update every possible XP element
-        document.querySelectorAll('#xpText, .xp-value, #xp-amount, .player-xp, .xp-bar-text, #levelSpan').forEach(el => {
-            if (el) el.textContent = currentXP;
-        });
-
-        // Update every possible "You Submitted" counter element
-        document.querySelectorAll('.submitted-count, #you-submitted-count, .you-submitted, #submittedCount').forEach(el => {
-            if (el) el.textContent = submittedCount;
-        });
-
-        // Call any existing helper functions as fallback
-        if (typeof updateCounterDisplay === 'function') updateCounterDisplay();
-        if (typeof updateSubmittedCountDisplay === 'function') updateSubmittedCountDisplay();
-
-        if (typeof showTempMessage === 'function') {
-            showTempMessage('📡 MARKER SUBMITTED — +100 XP BONUS AWARDED!', 4500);
-        }
-        playSound('levelUp');
-    }
-});
-
-// Extra reliable fallback: Storage Event (fires when submit.html changes localStorage from another tab)
-window.addEventListener('storage', function (e) {
-    if (e.key === 'fo76_submittedApproved' || e.key === 'fo76_xp') {
-        if (typeof recalculateXP === 'function') recalculateXP();
-        if (typeof updateCounterDisplay === 'function') updateCounterDisplay();
-        if (typeof updateSubmittedCountDisplay === 'function') updateSubmittedCountDisplay();
+    if (event.data && event.data.type === 'SUBMIT_WINDOW_CLOSED') {
+        // Explicitly suppress any auto-center or popup logic
+        return;
     }
 });
 
@@ -6955,13 +6719,6 @@ if (/iPad/.test(navigator.userAgent)) {
         unlockAudio();
     }, 1200);
 }
-
-// ── GLOBAL EXPOSURE FOR CONSOLE TESTING & DEBUGGING ──
-        // Allows the simulator and future console commands to read XP/Level
-        window.recalculateXP = recalculateXP;
-        window.updateCounterDisplay = updateCounterDisplay;
-        window.xp = xp;
-        window.level = level;
 
         console.log(
     '%c╔═════════════════════════════════════════════════════════════╗\n' +
