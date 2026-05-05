@@ -1807,3 +1807,14 @@ button[onclick*="pending.html"],
     background: #00ff00;
     color: #000;
 }
+/* ── CLEAN CONTENT INVENTORY PAGINATION ── */
+#tableContainer .pagination {
+    gap: 12px !important;
+}
+
+@media (max-width: 768px) {
+    #tableContainer .pagination {
+        gap: 8px;
+        font-size: 14px;
+    }
+}
