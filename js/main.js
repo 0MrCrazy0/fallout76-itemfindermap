@@ -772,24 +772,41 @@ function createCreationBurst(latlng) {
             'event locations': '🎉', 'named locations': '🚩', 'regions': '📍'
         };
 
-        let categoryIcons = { ...defaultCategoryIcons, ...customCategories };
-        const defaultCategoryColors = {
-            'weapons': '#002F00', 'armor': '#002F00', 'aid': '#002F00', 'food/drink': '#002F00',
-            'ammunition': '#002F00', 'apparel': '#002F00', 'plans': '#002F00', 'junk': '#002F00',
-            'holotapes': '#002F00', 'misc': '#002F00', 'plants': '#002F00', 'eggs': '#002F00',
-            'creatures': '#002F00', 'vendors': '#002F00', 'exchanges': '#002F00', 'vaults': '#002F00',
-            'power armor': '#002F00', 'fusion core': '#002F00', 'nuke drop zones': '#002F00',
-            'nuke silos': '#002F00', 'magazines': '#002F00', 'bobbleheads': '#002F00',
-            'treasure maps': '#002F00', 'resource deposits': '#002F00', 'fishing locations': '#002F00',
-            'workshops': '#002F00', 'train stations': '#002F00', 'town locations': '#002F00',
-            'event locations': '#002F00', 'named locations': '#002F00', 'regions': '#002F00',
-            'terminal locations': '#002F00', 'safe locations': '#002F00'
-        };
+        // ── Category Icons & Colors Setup ──
+let categoryIcons = { ...defaultCategoryIcons, ...customCategories };
 
-        let categoryColors = { ...defaultCategoryColors };
-        Object.keys(customCategories).forEach(cat => {
-            if (!categoryColors[cat]) categoryColors[cat] = '#002F00';
-        });
+const defaultCategoryColors = {
+    'weapons': '#002F00', 'armor': '#002F00', 'aid': '#002F00', 'food/drink': '#002F00',
+    'ammunition': '#002F00', 'apparel': '#002F00', 'plans': '#002F00', 'junk': '#002F00',
+    'holotapes': '#002F00', 'misc': '#002F00', 'plants': '#002F00', 'eggs': '#002F00',
+    'creatures': '#002F00', 'vendors': '#002F00', 'exchanges': '#002F00', 'vaults': '#002F00',
+    'power armor': '#002F00', 'fusion core': '#002F00', 'nuke drop zones': '#002F00',
+    'nuke silos': '#002F00', 'magazines': '#002F00', 'bobbleheads': '#002F00',
+    'treasure maps': '#002F00', 'resource deposits': '#002F00', 'fishing locations': '#002F00',
+    'workshops': '#002F00', 'train stations': '#002F00', 'town locations': '#002F00',
+    'event locations': '#002F00', 'named locations': '#002F00', 'regions': '#002F00',
+    'terminal locations': '#002F00', 'safe locations': '#002F00'
+};
+
+let categoryColors = { ...defaultCategoryColors };
+
+// ── STRONG REBUILD FUNCTION (fixes minerva + any custom category) ──
+function rebuildCategoryData() {
+    categoryIcons = { ...defaultCategoryIcons, ...customCategories };
+    categoryColors = { ...defaultCategoryColors };
+    
+    Object.keys(customCategories || {}).forEach(cat => {
+        if (!categoryColors[cat]) {
+            categoryColors[cat] = '#002F00';
+        }
+    });
+
+    console.log('✅ Category colors rebuilt. Custom categories:', Object.keys(customCategories));
+    console.log('   minerva color =', categoryColors['minerva'] || 'MISSING');
+}
+
+// Run it immediately on every app load
+rebuildCategoryData();
 
         // ── Leaflet map initialization with optimized settings for performance ──
 const map = L.map('map', {
@@ -4428,6 +4445,7 @@ localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
                 if (data.customCategories) {
                     customCategories = { ...customCategories, ...data.customCategories };
                 }
+				rebuildCategoryData();
                 const newVersion = String(data.communityVersion || "1.0");
                 localStorage.setItem(MAP_VERSION_KEY, newVersion);
                 communityVersion = newVersion;
@@ -5771,6 +5789,7 @@ document.getElementById('restoreAllBtn')?.addEventListener('click', () => {
                         () => {
                             locations = data.locations || [];
                             customCategories = data.customCategories || {};
+							rebuildCategoryData();
 
                             // ── Restore colors for ALL custom categories ──
                             categoryIcons = { ...defaultCategoryIcons, ...customCategories };
@@ -6267,6 +6286,7 @@ if (originalCreateBtn) {
 const originalForceReload = forceReload;
 forceReload = function() {
     originalForceReload.call(this);
+	rebuildCategoryData();
     startLiveTableTimer();
     startIndependentGlowRefresh();
 
