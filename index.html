@@ -99,6 +99,7 @@
     <!-- Button to show/hide the full tools panel -->
     <div id="toolsToggleRow">
         <button id="toggleButtonGroup">Hide Tools</button>
+		<button id="toggleStatsBtn">Hide Stats</button>
     </div>
 
     <!-- ── TOOLS PANEL ── -->
@@ -122,27 +123,33 @@
         <button id="saveMapJpegBtn">Save Map as JPEG</button>
     </div>
 	
-	    <!-- ── PLAYER NAME INPUT (PERSISTENT ACROSS SESSIONS) ── -->
-    <div style="text-align:center; margin:10px auto 20px; max-width:320px;">
-      <input type="text" id="playerNameInput" placeholder="Your In-Game Name (optional)"
-             style="width:100%; padding:12px; background:#000; color:#0f0; border:2px solid #0f0;
-                    font-family:'Courier New',monospace; font-size:16px; text-align:center;
-                    box-sizing:border-box;">
+    <!-- ── PLAYER NAME + XP + STATS CONTAINER (new boxed panel) ── -->
+    <div id="xpStatsPanel" class="panel-container">
+
+        <!-- Player Name Input -->
+        <div style="text-align:center; margin-bottom:18px;">
+            <input type="text" id="playerNameInput" placeholder="Your In-Game Name (optional)"
+                   style="width:100%; max-width:320px; padding:12px; background:#000; color:#0f0; border:2px solid #0f0;
+                          font-family:'Courier New',monospace; font-size:16px; text-align:center; box-sizing:border-box;">
+        </div>
+
+        <!-- Explorer Level and XP Progress -->
+        <div id="xpStatus" style="text-align:center; margin:10px 0 15px; color:#0f0; font-weight:bold;">
+            Explorer Level: <span id="levelSpan">1</span><br>
+            XP: <progress id="xpProgress" value="0" max="1000" style="width:200px;"></progress> 
+            <span id="xpText">0 / 1000</span>
+        </div>
+        <p id="counter" class="counter"></p>
+
     </div>
 
-    <!-- ── XP PROGRESS BAR ── -->
-    <!-- Explorer level and XP progress (updated dynamically) -->
-    <div id="xpStatus" style="text-align:center; margin:10px; color:#0f0; font-weight:bold;">
-    Explorer Level: <span id="levelSpan">1</span><br>
-    XP: <progress id="xpProgress" value="0" max="1000" style="width:200px;"></progress> <span id="xpText">0 / 1000</span>
-</div>
-
-    <!-- ── CONTENT INVENTORY TABLE ── -->
-    <!-- Table showing all logged markers with pagination -->
-    <h2 style="text-align:center; margin:15px 0 5px;">Content Inventory</h2>
-    <p id="counter" class="counter"></p>
+    <!-- ── CONTENT INVENTORY TABLE (remains outside the box) ── -->
     <div id="tableContainer" style="margin:0 auto 20px; max-width:90%; background:rgba(0,0,0,0.7); border:1px solid #0f0; border-radius:8px; padding:10px;">
         <div class="pagination">
+		        <!-- Content Inventory Header + Counter -->
+        <h2 style="text-align:center; margin:15px 0 5px;">Content Inventory</h2>
+        <p id="counter" class="counter"></p>
+
             <button id="prevPageBtn" disabled>Prev</button>
             <span id="pageInfo">Page 1 of 1</span>
             <button id="nextPageBtn" disabled>Next</button>
