@@ -5762,7 +5762,7 @@ document.getElementById('restoreAllBtn')?.addEventListener('click', () => {
         reader.onload = ev => {
             try {
                 const data = JSON.parse(ev.target.result);
-                
+               
                 // Updated version check — now matches the current Full Backup export
                 if (data.version && (data.version.includes('full-backup') || data.version.includes('full-v76'))) {
                     showConfirmModal(
@@ -5771,7 +5771,14 @@ document.getElementById('restoreAllBtn')?.addEventListener('click', () => {
                         () => {
                             locations = data.locations || [];
                             customCategories = data.customCategories || {};
-                            Object.assign(categoryIcons, defaultCategoryIcons, customCategories);
+
+                            // ── Restore colors for ALL custom categories ──
+                            categoryIcons = { ...defaultCategoryIcons, ...customCategories };
+                            categoryColors = { ...defaultCategoryColors };
+                            Object.keys(customCategories).forEach(cat => {
+                                if (!categoryColors[cat]) categoryColors[cat] = '#002F00';
+                            });
+
                             level = data.level || 1;
                             xp = data.xp || 0;
 
@@ -5814,7 +5821,7 @@ document.getElementById('restoreAllBtn')?.addEventListener('click', () => {
                             toolsToggleBtn.textContent = toolsVisible ? 'Hide Tools' : 'Show Tools';
                             document.body.classList.toggle('dark-mode', darkMode);
                             syncToggleButtonStates();
-                            renderCategoryToggles();   // updates category checkboxes instantly
+                            renderCategoryToggles(); // updates category checkboxes instantly
 
                             // SUCCESS SCREEN + RELOAD
                             const successOverlay = document.createElement('div');
