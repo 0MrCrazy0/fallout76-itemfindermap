@@ -1,0 +1,18 @@
+{
+  "id": "id-0dec4aa6-456a-4830-984c-90e14f35079a",
+  "cid": "misc_test_test_grid_b1_x_800_y_288_288.00000_800.00000_rqhobqyv",
+  "category": "misc",
+  "desc": "test test\nGrid B1 (X: 800, Y: 288)\nSubmitted By MrCrazy",
+  "lat": 288,
+  "lng": 800,
+  "icon": "📝",
+  "addedTime": 1777967267690,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+}
