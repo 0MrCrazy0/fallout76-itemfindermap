@@ -790,23 +790,60 @@ const defaultCategoryColors = {
 
 let categoryColors = { ...defaultCategoryColors };
 
-// ── STRONG REBUILD FUNCTION (fixes minerva + any custom category) ──
+// ── ROBUST REBUILD FOR ALL CUSTOM CATEGORIES (safe & future-proof) ──
 function rebuildCategoryData() {
     categoryIcons = { ...defaultCategoryIcons, ...customCategories };
-    categoryColors = { ...defaultCategoryColors };
     
+    // Force correct dark green background for EVERY custom category
+    categoryColors = { ...defaultCategoryColors };
     Object.keys(customCategories || {}).forEach(cat => {
-        if (!categoryColors[cat]) {
-            categoryColors[cat] = '#002F00';
+        categoryColors[cat] = '#002F00';
+    });
+
+}
+
+// ── SELECTIVE STYLING ONLY FOR CUSTOM CATEGORIES (keeps them as revertible community markers) ──
+function applyCustomCategoryStyling() {
+    if (!customCategories || Object.keys(customCategories).length === 0) return;
+
+    let styledCount = 0;
+    locations.forEach(loc => {
+        if (customCategories[loc.category]) {
+            // Apply dark green background ONLY — do NOT change ownership flags
+            categoryColors[loc.category] = '#002F00';
+            styledCount++;
         }
     });
 
-    console.log('✅ Category colors rebuilt. Custom categories:', Object.keys(customCategories));
-    console.log('   minerva color =', categoryColors['minerva'] || 'MISSING');
+    if (styledCount > 0) {
+    }
+}
+
+// ── AUTO-REGISTER NEW CUSTOM CATEGORIES FROM IMPORTED / KEPT MARKERS ──
+// This fixes custom category markers disappearing after backup import or refresh
+function registerUnknownCategories() {
+    let added = 0;
+    locations.forEach(loc => {
+        const cat = loc.category;
+        if (cat && 
+            !defaultCategoryIcons[cat] &&      // not a built-in default category
+            !customCategories[cat]) {          // not already registered
+            
+            customCategories[cat] = loc.icon || '📦';
+            activeCategories.add(cat);
+            added++;
+        }
+    });
+
+    if (added > 0) {
+        localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+        localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
+    }
 }
 
 // Run it immediately on every app load
 rebuildCategoryData();
+applyCustomCategoryStyling();
 
         // ── Leaflet map initialization with optimized settings for performance ──
 const map = L.map('map', {
@@ -1264,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-5-05-2026-Build-B8"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-6-05-2026-Build-B9"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -1426,6 +1463,9 @@ clusteredMarkers.on('clusterclick', function (a) {
                 ? JSON.parse(localStorage.getItem('activeCategories'))
                 : Object.keys(defaultCategoryIcons)
         );
+		registerUnknownCategories();
+		rebuildCategoryData();
+		applyCustomCategoryStyling();
         let level = parseInt(localStorage.getItem('fo76_level')) || 1;
         let xp = parseInt(localStorage.getItem('fo76_xp')) || 0;
         const xpPerLevel = 1000;
@@ -4206,10 +4246,14 @@ importBtn.onclick = () => {
                 }
 
                 if (isPersonalBackup) {
-                    if (data.level !== undefined) level = data.level;
-                    if (data.xp !== undefined) xp = data.xp;
-                    if (data.customCategories) customCategories = data.customCategories;
-                }
+    if (data.level !== undefined) level = data.level;
+    if (data.xp !== undefined) xp = data.xp;
+    if (data.customCategories) {
+        customCategories = data.customCategories;
+        rebuildCategoryData();
+        applyCustomCategoryStyling();	
+    }
+}
 
                 recalculateXP();
                 saveLocations();
@@ -4271,6 +4315,7 @@ importBtn.onclick = () => {
                                 buttonGroup.classList.toggle('hidden', !toolsVisible);
                                 toolsToggleBtn.textContent = toolsVisible ? 'Hide Tools' : 'Show Tools';
                                 renderCategoryToggles();
+								applyCustomCategoryStyling();
 
                                 recalculateXP();
                                 saveLocations();
@@ -4446,6 +4491,7 @@ localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
                     customCategories = { ...customCategories, ...data.customCategories };
                 }
 				rebuildCategoryData();
+				applyCustomCategoryStyling();
                 const newVersion = String(data.communityVersion || "1.0");
                 localStorage.setItem(MAP_VERSION_KEY, newVersion);
                 communityVersion = newVersion;
@@ -5789,7 +5835,9 @@ document.getElementById('restoreAllBtn')?.addEventListener('click', () => {
                         () => {
                             locations = data.locations || [];
                             customCategories = data.customCategories || {};
+							registerUnknownCategories();
 							rebuildCategoryData();
+							applyCustomCategoryStyling();
 
                             // ── Restore colors for ALL custom categories ──
                             categoryIcons = { ...defaultCategoryIcons, ...customCategories };
@@ -6027,7 +6075,8 @@ playSound('click');
 			
 			// ── Priority flag for auto-popup ──
             window.justKeptMarkerId = markerId;
-
+			
+            applyCustomCategoryStyling();
             saveLocations();
             recalculateXP();
             forceReload();
@@ -6287,6 +6336,7 @@ const originalForceReload = forceReload;
 forceReload = function() {
     originalForceReload.call(this);
 	rebuildCategoryData();
+	applyCustomCategoryStyling();
     startLiveTableTimer();
     startIndependentGlowRefresh();
 
