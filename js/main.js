@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B21"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B22"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -6097,7 +6097,8 @@ window.cancelReport = function() {
 window.keepCommunityMarker = function(markerId) {
     const marker = locations.find(l => l.id === markerId);
     if (!marker || !marker.isCommunity) return;
-playSound('click');
+
+    playSound('click');
     showConfirmModal(
         '👍Keep This Community Marker?💾',
         '<strong>This marker will become yours permanently:</strong><br><br>' +
@@ -6105,7 +6106,7 @@ playSound('click');
         '• You can edit, move, or delete it<br>' +
         '• It will <strong>NOT</strong> receive future community updates<br>' +
         '• You will no longer be able to report it<br><br>' +
-		'You can always revert it back to a community map marker.<br>' +
+        'You can always revert it back to a community map marker.<br>' +
         'You can always delete it and re-download the updated version later.',
         () => {
             marker.isCommunity = false;
@@ -6113,30 +6114,33 @@ playSound('click');
             marker.wasCommunityKept = true;
             marker.locked = true;
             marker.addedTime = Date.now();
-			
-			// ── Priority flag for auto-popup ──
+
+            // ── Priority flag for auto-popup ──
             window.justKeptMarkerId = markerId;
-			
-			// ── Double XP support for approved submissions ──
-            if (marker.approvedSubmission) {
-                delete marker.approvedSubmission;   // clear flag after keeping
-            }
-			
+
             applyCustomCategoryStyling();
             saveLocations();
+
+            // ── Double XP support for approved submissions ──
+            // Recalculate FIRST while the flag still exists
             recalculateXP();
+
+            // Then safely clear the flag (no double-counting on future updates)
+            if (marker.approvedSubmission) {
+                delete marker.approvedSubmission;
+            }
+
             forceReload();
 
-            // === NEW: Sparkle / creation burst effect when keeping a marker ===
+            // Sparkle / creation burst
             if (typeof createCreationBurst === 'function') {
                 createCreationBurst([marker.lat, marker.lng]);
             }
-            // ================================================================
 
-			setTimeout(() => playSound('saving'), 150);
+            setTimeout(() => playSound('saving'), 150);
             showTempMessage(`✅ MARKER KEPT — +100 XP (LEVEL ${level})`, 5000);
 
-            // ── Auto-open speech bubble on the marker you just kept ──
+            // Auto-open speech bubble
             setTimeout(() => {
                 const keptMarker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
                     .find(m => m.options && m.options.id === markerId);
