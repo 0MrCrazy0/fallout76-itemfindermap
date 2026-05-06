@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B19"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B20"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -3377,25 +3377,22 @@ function reopenPopupAfterModalClose() {
 }
 function recalculateXP() {
     const oldLevel = lastLevel;
-    const userMarkers = locations.filter(l => l.userEdited === true && !l.isPostcard);
+    const userMarkers = locations.filter(l => 
+        (l.userEdited === true || l.approvedSubmission === true) && !l.isPostcard
+    );
     xp = userMarkers.length * xpPerMarker;
     level = 1 + Math.floor(xp / xpPerLevel);
     xp = xp % xpPerLevel;
-
     if (level > oldLevel) {
         playSound('levelUp');
         triggerConfetti();
         showTempMessage(`☢️ LEVEL UP! — NOW EXPLORER LEVEL ${level} 🎉`, 10000);
-
         const bar = document.getElementById('xpProgress');
         bar.classList.add('level-up');
-
         // Increased from 10 seconds → 18 seconds (stays glowing longer after nuke animation)
         setTimeout(() => bar.classList.remove('level-up'), 18000);
-
         triggerNuke();
     }
-
     localStorage.setItem('fo76_level', level);
     localStorage.setItem('fo76_xp', xp);
     lastLevel = level;
@@ -4427,10 +4424,7 @@ This will fetch the latest verified community markers.<br><br>
         existing.isCommunity = true;
         existing.userEdited = false;
         existing.wasCommunityKept = false;
-
-        // Reward the user +100 XP for approved submission
-        xp += 100;
-        recalculateXP();
+		existing.approvedSubmission = true;
 
         approvedCount++;
         showTempMessage(`🤩 Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED! +100 XP`, 10000);
@@ -4530,15 +4524,8 @@ localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
                 communityVersion = newVersion;
                 localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
                 recalculateXP();
-
-// ── Reward approved submissions with +100 XP (after recalculateXP so it sticks) ──
-if (approvedCount > 0) {
-    xp += approvedCount * 100;
-    recalculateXP();
-}
-
-updateCounterDisplay();
-forceReload();
+                updateCounterDisplay();
+                forceReload();
 
                 // Clear search bar when updating community map (no flash)
                 combinedSearch.value = '';
