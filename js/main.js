@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-6-05-2026-Build-B9"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-6-05-2026-Build-B10"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -1578,6 +1578,28 @@ function formatTime(seconds) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
+        // ── INFO PANEL TOGGLE ──
+        let infoPanelVisible = localStorage.getItem('infoPanelVisible') !== 'false';
+
+        function syncInfoPanelToggle() {
+            const btn = document.getElementById('toggleInfoPanelBtn');
+            const panel = document.getElementById('infoPanel');
+            if (!btn || !panel) return;
+            
+            panel.classList.toggle('hidden', !infoPanelVisible);
+            btn.textContent = infoPanelVisible ? 'Hide Info' : 'Show Info';
+        }
+
+        // Toggle handler
+        const infoToggleBtn = document.getElementById('toggleInfoPanelBtn');
+        if (infoToggleBtn) {
+            infoToggleBtn.addEventListener('click', () => {
+                infoPanelVisible = !infoPanelVisible;
+                localStorage.setItem('infoPanelVisible', infoPanelVisible);
+                syncInfoPanelToggle();
+                playSound('click');
+            });
+        }
 
 let showOnlyMyMarkers = false;
 document.getElementById('toggleMyMarkersBtn').onclick = () => {
@@ -4237,6 +4259,7 @@ importBtn.onclick = () => {
 
                     document.body.classList.toggle('dark-mode', darkMode);
                     syncToggleButtonStates();
+					syncInfoPanelToggle();
 
                     mainTitle.style.display = titleVisible ? 'block' : 'none';
                     titleToggleBtn.textContent = titleVisible ? '-' : '+';
@@ -4309,6 +4332,7 @@ importBtn.onclick = () => {
 
                                 document.body.classList.toggle('dark-mode', darkMode);
                                 syncToggleButtonStates();
+								syncInfoPanelToggle();
 
                                 mainTitle.style.display = titleVisible ? 'block' : 'none';
                                 titleToggleBtn.textContent = titleVisible ? '-' : '+';
@@ -5184,6 +5208,7 @@ map.on('click', e => {
         updateXPBar();
 		restorePendingUndo();
 syncToggleButtonStates();
+syncInfoPanelToggle();
 
 if (!localStorage.getItem('seenCommunityHint')) {
     const showHintAfterWelcome = () => {
@@ -5235,6 +5260,7 @@ function syncToggleButtonStates() {
                 : 'Sounds: Off';
         }
         syncToggleButtonStates();
+		syncInfoPanelToggle();
 		
 if (localStorage.getItem('postResetMessageShown') === 'true') {
     localStorage.removeItem('postResetMessageShown');
@@ -5888,6 +5914,7 @@ document.getElementById('restoreAllBtn')?.addEventListener('click', () => {
                             toolsToggleBtn.textContent = toolsVisible ? 'Hide Tools' : 'Show Tools';
                             document.body.classList.toggle('dark-mode', darkMode);
                             syncToggleButtonStates();
+							syncInfoPanelToggle();
                             renderCategoryToggles(); // updates category checkboxes instantly
 
                             // SUCCESS SCREEN + RELOAD
@@ -6080,9 +6107,17 @@ playSound('click');
             saveLocations();
             recalculateXP();
             forceReload();
+
+            // === NEW: Sparkle / creation burst effect when keeping a marker ===
+            if (typeof createCreationBurst === 'function') {
+                createCreationBurst([marker.lat, marker.lng]);
+            }
+            // ================================================================
+
 			setTimeout(() => playSound('saving'), 150);
             showTempMessage(`✅ MARKER KEPT — +100 XP (LEVEL ${level})`, 5000);
-        // ── Auto-open speech bubble on the marker you just kept ──
+
+            // ── Auto-open speech bubble on the marker you just kept ──
             setTimeout(() => {
                 const keptMarker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
                     .find(m => m.options && m.options.id === markerId);
