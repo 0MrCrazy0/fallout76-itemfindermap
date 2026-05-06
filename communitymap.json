@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": 7.9,
+  "communityVersion": 8.0,
   "customCategories": {},
   "locations": [
     {
@@ -4924,24 +4924,6 @@
       "lng": 3353,
       "icon": "⛏️",
       "addedTime": 1778068697462,
-      "locked": true,
-      "isPostcard": false,
-      "isTemp": false,
-      "startTime": null,
-      "keepBtnBound": false,
-      "userEdited": false,
-      "wasCommunityKept": false,
-      "isCommunity": true
-    },
-    {
-      "id": "id-49f439bf-e54a-4d1b-981a-c2068fb8a392",
-      "cid": "misc_test_marker_grid_c2_x_8195_y_4385_438.50000_819.50000_rl1f0i3q",
-      "category": "misc",
-      "desc": "test marker\nGrid C2 (X: 819.5, Y: 438.5)\nSubmitted By MrCrazy",
-      "lat": 438.5,
-      "lng": 819.5,
-      "icon": "📝",
-      "addedTime": 1778085764215,
       "locked": true,
       "isPostcard": false,
       "isTemp": false,
