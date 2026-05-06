@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-6-05-2026-Build-B10"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-6-05-2026-Build-B12"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -4873,12 +4873,23 @@ document.getElementById('shareOneBtn').onclick = () => {
             playSound('click');
         };
         document.getElementById('deleteCategoryBtn').onclick = () => {
-            const sel = document.getElementById('deleteCategorySelect');
-            sel.innerHTML = '<option value="">Select custom</option>' +
-                Object.keys(customCategories).sort().map(n => `<option value="${n}">${n} ${customCategories[n]}</option>`).join('');
-            document.getElementById('deleteCategoryModal').style.display = 'block';
-            playSound('click');
-        };
+    const sel = document.getElementById('deleteCategorySelect');
+
+    const userOnlyCategories = Object.keys(customCategories).filter(cat => {
+        const hasCommunityMarker = locations.some(l => 
+            l.category === cat && l.isCommunity === true
+        );
+        return !hasCommunityMarker && !defaultCategoryIcons[cat];
+    }).sort();
+
+    sel.innerHTML = '<option value="">Select custom</option>' +
+        userOnlyCategories.map(n => 
+            `<option value="${n}">${n} ${customCategories[n]}</option>`
+        ).join('');
+
+    document.getElementById('deleteCategoryModal').style.display = 'block';
+    playSound('click');
+};
         document.getElementById('saveCategoryBtn').onclick = () => {
             const name = document.getElementById('newCategoryName').value.trim();
             const emoji = document.getElementById('newCategoryEmoji').value.trim();
