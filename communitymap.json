@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": 8.1,
+  "communityVersion": 8.2,
   "customCategories": {},
   "locations": [
     {
@@ -4932,7 +4932,25 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-ed3e7d3d-200a-47f5-9a70-bf4cc608d3bc",
+      "cid": "misc_test_marker_removing_soon_grid_c2_x_821_y_440_440.00000_821.00000_b3qkfbke",
+      "category": "misc",
+      "desc": "test marker removing soon.\nGrid C2 (X: 821, Y: 440)\nSubmitted By MrCrazy",
+      "lat": 440,
+      "lng": 821,
+      "icon": "📝",
+      "addedTime": 1778089046718,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ],
-  "lastUpdated": "2026-05-06T17:10:17.704621Z"
+  "lastUpdated": "2026-05-06T17:38:45.099888Z"
 }
