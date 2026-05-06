@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B17"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B18"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -4423,13 +4423,17 @@ This will fetch the latest verified community markers.<br><br>
             localStorage.setItem('submitted_ids', JSON.stringify(submitted));
         }
 
-        // Clean conversion to community marker (this was the missing piece)
+        // Convert to clean community marker (correct popup)
         existing.isCommunity = true;
         existing.userEdited = false;
         existing.wasCommunityKept = false;
 
+        // Reward the user +100 XP for approved submission
+        xp += 100;
+        recalculateXP();
+
         approvedCount++;
-        showTempMessage(`🤩 Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED! ✅`, 10000);
+        showTempMessage(`🤩 Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED! +100 XP`, 10000);
         playSound('levelUp');
     }
 
