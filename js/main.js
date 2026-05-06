@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B20"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B21"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -6116,6 +6116,11 @@ playSound('click');
 			
 			// ── Priority flag for auto-popup ──
             window.justKeptMarkerId = markerId;
+			
+			// ── Double XP support for approved submissions ──
+            if (marker.approvedSubmission) {
+                delete marker.approvedSubmission;   // clear flag after keeping
+            }
 			
             applyCustomCategoryStyling();
             saveLocations();
