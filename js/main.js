@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-6-05-2026-Build-B13"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-6-05-2026-Build-B14"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -4413,7 +4413,6 @@ This will fetch the latest verified community markers.<br><br>
                 ).length;
                 incoming.forEach(imp => {
     const existing = locations.find(l => l.id === imp.id);
-
     if (existing && hasBeenSubmitted(imp.id)) {
         let submitted = JSON.parse(localStorage.getItem('submitted_ids') || '[]');
         const idx = submitted.indexOf(imp.id);
@@ -4421,31 +4420,35 @@ This will fetch the latest verified community markers.<br><br>
             submitted.splice(idx, 1);
             localStorage.setItem('submitted_ids', JSON.stringify(submitted));
         }
+
+        const wasUserCreated = existing.userEdited || existing.wasCommunityKept;
+
         existing.isCommunity = true;
         existing.userEdited = false;
         existing.wasCommunityKept = false;
+
+        if (wasUserCreated) {
+            existing.userEdited = true;   // keeps original +100 XP
+        }
+
         approvedCount++;
         showTempMessage(`🤩 Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED! ✅`, 10000);
         playSound('levelUp');
     }
-
     if (existing && (existing.userEdited || existing.wasCommunityKept)) {
         skipped++;
         return;
     }
-
     // ── AUTO-REGISTER NEW CUSTOM CATEGORIES FROM COMMUNITY ──
-    if (imp.category && 
-        !defaultCategoryIcons[imp.category] && 
+    if (imp.category &&
+        !defaultCategoryIcons[imp.category] &&
         !customCategories[imp.category]) {
-
         customCategories[imp.category] = imp.icon || '📦';
-        categoryIcons[imp.category]   = imp.icon || '📦';
-        categoryColors[imp.category]  = '#002F00';
+        categoryIcons[imp.category] = imp.icon || '📦';
+        categoryColors[imp.category] = '#002F00';
         activeCategories.add(imp.category);
     }
     // ───────────────────────────────────────────────────────
-
     let loc;
     if (existing) {
         Object.assign(existing, imp);
@@ -4465,12 +4468,12 @@ This will fetch the latest verified community markers.<br><br>
         locations.push(loc);
         added++;
     }
-
     loc.isCommunity = true;
     loc.locked = true;
     loc.userEdited = false;
     loc.wasCommunityKept = !!existing?.wasCommunityKept;
 });
+
 // Save new custom categories permanently so they appear in the app
 localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
 localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
@@ -4695,12 +4698,14 @@ if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
     );
 };
 
-// ── COMMUNITY MAP "AVAILABLE!" GLOW CHECK ──
+    // ── REAL-TIME COMMUNITY UPDATE CHECK ──
+    // Checks every 3 minutes while the page is visible — no page refresh occurs
     async function checkForCommunityUpdate() {
         try {
-            const response = await fetch('https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?v=' + Date.now(), { 
-                cache: 'no-store' 
-            });
+            const response = await fetch(
+                'https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?v=' + Date.now(),
+                { cache: 'no-store' }
+            );
             if (!response.ok) return;
 
             const data = await response.json();
@@ -4721,15 +4726,13 @@ if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
         }
     }
 
-    // Run it now and every 10 minutes
+    // Run immediately and every 3 minutes (balanced interval)
     checkForCommunityUpdate();
-    setInterval(checkForCommunityUpdate, 600000);
-
-// Run the check when the page loads and every 10 minutes
-document.addEventListener('DOMContentLoaded', () => {
-    checkForCommunityUpdate();
-    setInterval(checkForCommunityUpdate, 600000); // 10 minutes
-});
+    setInterval(() => {
+        if (document.visibilityState === 'visible') {
+            checkForCommunityUpdate();
+        }
+    }, 180000);
 
 function createPermanentShare(markersToShare) {
     if (markersToShare.length === 0) return;
@@ -6560,16 +6563,41 @@ function isClickOnMarkerOrCluster(e) {
 }
 
 function showMapContextMenu(latlng) {
-    // ALWAYS exit fullscreen first — matches PC/Android behaviour exactly
-    if (isFullscreenActive()) {
+
+    const wasFullscreen = isFullscreenActive();
+
+    if (wasFullscreen) {
         wasInFullscreenBeforeModal = true;
         exitedForContextMenu = true;
+
+        // Use browser event to wait for the exit to complete
+        const onExitComplete = function () {
+            document.removeEventListener('fullscreenchange', onExitComplete);
+            document.removeEventListener('webkitfullscreenchange', onExitComplete);
+
+            if (map && typeof map.invalidateSize === 'function') {
+                map.invalidateSize(true);
+            }
+
+            // Now safely show pin + modal
+            showTempContextPin(latlng);
+            contextMenu.style.display = 'block';
+            document.body.classList.add('modal-open');
+            window.lastContextLatLng = latlng;
+
+            showTempMessage('📍 Choose Action — Create Marker or Postcard', 2200);
+            playSound('click');
+        };
+
+        document.addEventListener('fullscreenchange', onExitComplete, { once: true });
+        document.addEventListener('webkitfullscreenchange', onExitComplete, { once: true });
+
         exitFullscreen();
+        return;
     }
 
-    // Show the temporary PIN
+    // Normal path (not in fullscreen)
     showTempContextPin(latlng);
-
     contextMenu.style.display = 'block';
     document.body.classList.add('modal-open');
     window.lastContextLatLng = latlng;
