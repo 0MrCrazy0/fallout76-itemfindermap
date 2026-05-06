@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B15"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B16"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -4413,6 +4413,8 @@ This will fetch the latest verified community markers.<br><br>
                 ).length;
                 incoming.forEach(imp => {
     const existing = locations.find(l => l.id === imp.id);
+
+    // ── APPROVAL HANDLING ──
     if (existing && hasBeenSubmitted(imp.id)) {
         let submitted = JSON.parse(localStorage.getItem('submitted_ids') || '[]');
         const idx = submitted.indexOf(imp.id);
@@ -4428,17 +4430,20 @@ This will fetch the latest verified community markers.<br><br>
         existing.wasCommunityKept = false;
 
         if (wasUserCreated) {
-            existing.userEdited = true;   // keeps original +100 XP
+            existing.userEdited = true;   // Preserve original +100 XP
         }
 
         approvedCount++;
         showTempMessage(`🤩 Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED! ✅`, 10000);
         playSound('levelUp');
     }
-    if (existing && (existing.userEdited || existing.wasCommunityKept)) {
+
+    // ── SKIP ONLY NON-APPROVED USER MARKERS ──
+    if (existing && (existing.userEdited || existing.wasCommunityKept) && !hasBeenSubmitted(imp.id || '')) {
         skipped++;
         return;
     }
+
     // ── AUTO-REGISTER NEW CUSTOM CATEGORIES FROM COMMUNITY ──
     if (imp.category &&
         !defaultCategoryIcons[imp.category] &&
@@ -4448,7 +4453,8 @@ This will fetch the latest verified community markers.<br><br>
         categoryColors[imp.category] = '#002F00';
         activeCategories.add(imp.category);
     }
-    // ───────────────────────────────────────────────────────
+
+    // ── NORMAL IMPORT / UPDATE LOGIC ──
     let loc;
     if (existing) {
         Object.assign(existing, imp);
@@ -4468,6 +4474,7 @@ This will fetch the latest verified community markers.<br><br>
         locations.push(loc);
         added++;
     }
+
     loc.isCommunity = true;
     loc.locked = true;
     loc.userEdited = false;
