@@ -95,10 +95,10 @@
     <div id="searchSuggestions"></div>
 </div>
 
-    <!-- ── TOOLS TOGGLE ROW ── -->
-    <!-- Button to show/hide the full tools panel -->
-    <div id="toolsToggleRow">
+    <!-- ── TOOLS + INFO TOGGLE ROW ── -->
+    <div id="toolsToggleRow" style="text-align:center; margin:10px 0; display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
         <button id="toggleButtonGroup">Hide Tools</button>
+        <button id="toggleInfoPanelBtn">Hide Info</button>
     </div>
 
     <!-- ── TOOLS PANEL ── -->
@@ -122,31 +122,38 @@
         <button id="saveMapJpegBtn">Save Map as JPEG</button>
     </div>
 	
-	    <!-- ── PLAYER NAME INPUT (PERSISTENT ACROSS SESSIONS) ── -->
-    <div style="text-align:center; margin:10px auto 20px; max-width:320px;">
-      <input type="text" id="playerNameInput" placeholder="Your In-Game Name (optional)"
-             style="width:100%; padding:12px; background:#000; color:#0f0; border:2px solid #0f0;
-                    font-family:'Courier New',monospace; font-size:16px; text-align:center;
-                    box-sizing:border-box;">
+<!-- ── NEW INFO PANEL ── -->
+    <div id="infoPanel" class="info-panel">
+        <!-- Player Name -->
+        <div style="text-align:center; margin:10px auto 15px; max-width:420px; width:100%;">
+          <input type="text" id="playerNameInput" placeholder="Your In-Game Name (optional)"
+                 style="width:100%; padding:12px; background:#000; color:#0f0; border:2px solid #0f0;
+                        font-family:'Courier New',monospace; font-size:16px; text-align:center;
+                        box-sizing:border-box;">
+        </div>
+
+        <!-- XP Status -->
+        <div id="xpStatus" style="text-align:center; margin:10px; color:#0f0; font-weight:bold;">
+        Explorer Level: <span id="levelSpan">1</span><br>
+        XP: <progress id="xpProgress" value="0" max="1000" style="width:200px;"></progress> <span id="xpText">0 / 1000</span>
+        </div>
+
+        <!-- Content Inventory Counter -->
+        <p id="counter" class="counter"></p>
     </div>
 
-    <!-- ── XP PROGRESS BAR ── -->
-    <!-- Explorer level and XP progress (updated dynamically) -->
-    <div id="xpStatus" style="text-align:center; margin:10px; color:#0f0; font-weight:bold;">
-    Explorer Level: <span id="levelSpan">1</span><br>
-    XP: <progress id="xpProgress" value="0" max="1000" style="width:200px;"></progress> <span id="xpText">0 / 1000</span>
-</div>
-
-    <!-- ── CONTENT INVENTORY TABLE ── -->
-    <!-- Table showing all logged markers with pagination -->
-    <h2 style="text-align:center; margin:15px 0 5px;">Content Inventory</h2>
-    <p id="counter" class="counter"></p>
-    <div id="tableContainer" style="margin:0 auto 20px; max-width:90%; background:rgba(0,0,0,0.7); border:1px solid #0f0; border-radius:8px; padding:10px;">
-        <div class="pagination">
+<!-- ── CONTENT INVENTORY SECTION ── -->
+    <div id="tableContainer" style="margin:0 auto 20px; max-width:90%; background:rgba(0,0,0,0.7); border:1px solid #0f0; border-radius:8px; padding:15px 10px 10px;">
+        
+        <h2 style="text-align:center; margin:0 0 12px;">Content Inventory</h2>
+        
+        <!-- Pagination centered below the title -->
+        <div class="pagination" style="display:flex; justify-content:center; align-items:center; gap:15px; margin-bottom:15px;">
             <button id="prevPageBtn" disabled>Prev</button>
             <span id="pageInfo">Page 1 of 1</span>
             <button id="nextPageBtn" disabled>Next</button>
         </div>
+
         <table id="locationsTable" style="width:100%; border-collapse:collapse; color:#0f0;">
             <tbody></tbody>
         </table>
