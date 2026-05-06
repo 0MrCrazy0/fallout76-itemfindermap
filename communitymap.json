@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": 7.1,
+  "communityVersion": 7.2,
   "customCategories": {},
   "locations": [
     {
@@ -4878,7 +4878,25 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-86d67f17-0fb7-4bf5-bcb7-8419897a04b8",
+      "cid": "creatures_cultist_can_be_found_here_grid_h5_x_31061_y_18184_1818.44644_3106.12499_76801cvl",
+      "category": "creatures",
+      "desc": "Cultist can be found here.\nGrid H5 (X: 3106.1, Y: 1818.4)\nSubmitted By MrCrazy",
+      "lat": 1818.4464362874705,
+      "lng": 3106.1249905949553,
+      "icon": "🐺",
+      "addedTime": 1778049796350,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ],
-  "lastUpdated": "2026-05-06T07:19:47.779238Z"
+  "lastUpdated": "2026-05-06T07:22:58.273313Z"
 }
