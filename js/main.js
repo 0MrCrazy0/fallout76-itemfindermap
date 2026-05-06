@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B18"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B19"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -4530,8 +4530,15 @@ localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
                 communityVersion = newVersion;
                 localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
                 recalculateXP();
-                updateCounterDisplay();
-                forceReload();
+
+// ── Reward approved submissions with +100 XP (after recalculateXP so it sticks) ──
+if (approvedCount > 0) {
+    xp += approvedCount * 100;
+    recalculateXP();
+}
+
+updateCounterDisplay();
+forceReload();
 
                 // Clear search bar when updating community map (no flash)
                 combinedSearch.value = '';
