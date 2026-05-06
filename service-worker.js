@@ -1,5 +1,5 @@
 // ——— SERVICE WORKER ———
-// Cache busting: Update this line on EVERY deployment that changes HTML, JS, or CSS.
+// Cache busting: Update this line on EVERY deployment that changes HTML, JS, CSS, or communitymap.json
 // Format: "fo76-ifm-v{VERSION}-{DDMMYYYY}" or "fo76-ifm-v{VERSION}-{DDMMYYYY}-buildN"
 const CACHE_NAME = "76-Vault-OK-6-05-2026-Build-B12";
 
@@ -41,6 +41,7 @@ self.addEventListener("fetch", e => {
         url.includes('communitymap.json') ||
         url.includes('githubusercontent.com') ||
         url.includes('index.html') || 
+		url.includes('service-worker.js') ||
         e.request.mode === 'navigate') {
         e.respondWith(fetch(e.request));
         return;
