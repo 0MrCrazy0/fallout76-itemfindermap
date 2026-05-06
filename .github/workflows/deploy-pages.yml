@@ -1,0 +1,42 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:        # Allows manual trigger from the Actions tab if needed
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Critical: Ensures deployments run one after another (fixes your pages-build-deployment issue)
+concurrency:
+  group: "pages-deployment"
+  cancel-in-progress: false   # New runs WAIT for the previous one to finish
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'                     # Entire repository root is your static site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
