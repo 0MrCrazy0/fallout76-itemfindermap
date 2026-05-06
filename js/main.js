@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B23"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B24"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -6107,7 +6107,6 @@ window.keepCommunityMarker = function(markerId) {
         '👍Keep This Community Marker?💾',
         '<strong>This marker will become yours permanently:</strong><br><br>' +
         '• You gain +100 XP<br>' +
-        (wasApprovedSubmission ? '• You gain **another +100 XP** (previously approved)<br>' : '') +
         '• You can edit, move, or delete it<br>' +
         '• It will <strong>NOT</strong> receive future community updates<br>' +
         '• You will no longer be able to report it<br><br>' +
@@ -6186,11 +6185,17 @@ window.revertToCommunityMarker = function(markerId) {
         showTempMessage('❌ THIS IS NOT A KEPT COMMUNITY MARKER.', 4000);
         return;
     }
+
     playSound('click');
+
+    // ── Capture original creation XP status before any changes ──
+    const wasApprovedSubmission = !!marker.approvedSubmission;
+
     showConfirmModal(
         'REVERT TO COMMUNITY MARKER',
         'This will turn the marker back into a normal community marker.<br><br>' +
-        '• You will lose edit/move rights and the XP from keeping it<br>' +
+        '• You will **lose only the +100 XP from keeping it**<br>' +
+        '• You will **keep the original +100 XP** from creating and getting it approved<br>' +
         '• It will receive future community updates again<br>' +
         '• The marker will be locked automatically<br><br>' +
         'Proceed with revert?',
@@ -6201,7 +6206,12 @@ window.revertToCommunityMarker = function(markerId) {
             marker.locked = true;
             marker.addedTime = Date.now();
 
-            // ── CRITICAL FIX: Clear the update-available badge after revert ──
+            // ── CRITICAL: Preserve original creation XP ──
+            if (wasApprovedSubmission) {
+                marker.approvedSubmission = true;
+            }
+
+            // Clear any update-available badge
             if (marker.communityUpdateAvailable !== undefined) {
                 delete marker.communityUpdateAvailable;
             }
@@ -6209,8 +6219,9 @@ window.revertToCommunityMarker = function(markerId) {
             saveLocations();
             recalculateXP();
             forceReload();
+
             setTimeout(() => playSound('saving'), 150);
-            showTempMessage('🔄 MARKER REVERTED TO COMMUNITY STATUS', 4000);
+            showTempMessage('🔄 MARKER REVERTED TO COMMUNITY — Original creation XP preserved', 5000);
         },
         'Yes — Revert',
         'Cancel'
