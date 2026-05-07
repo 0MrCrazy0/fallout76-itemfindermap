@@ -1,0 +1,18 @@
+{
+  "id": "id-d5f57ef8-f5eb-4357-b85e-e2e89e8dc8ce",
+  "cid": "misc_test_marker_grid_d2_x_12375_y_545_545.00000_1237.50000_p3vq4m2u",
+  "category": "misc",
+  "desc": "test marker\nGrid D2 (X: 1237.5, Y: 545)\nSubmitted By MrCrazy",
+  "lat": 545,
+  "lng": 1237.5,
+  "icon": "📝",
+  "addedTime": 1778128256973,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+}
