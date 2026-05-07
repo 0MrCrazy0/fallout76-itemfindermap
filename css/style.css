@@ -1816,3 +1816,41 @@ button[onclick*="pending.html"],
     background: #00ff00;
     color: #000;
 }
+/* Player name field — fixed compact width */
+#infoPanel input#playerNameInput {
+    max-width: 420px !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    display: block !important;
+}
+/* ── PLACE TOGGLE CATEGORIES BUTTON DIRECTLY UNDER ALL CATEGORIES DROPDOWN ── */
+#searchBar {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 12px !important;
+    max-width: 420px !important;
+    margin: 15px auto !important;
+}
+
+/* Keep search input and clear button on their own row (clean & compact) */
+#combinedSearch,
+#clearSearchBtn {
+    width: 100% !important;
+    max-width: 420px !important;
+    box-sizing: border-box !important;
+}
+
+/* Force category dropdown + Toggle button to stack neatly */
+#categoryFilter,
+#toggleCategoryModalBtn {
+    width: 100% !important;
+    max-width: 420px !important;
+    box-sizing: border-box !important;
+}
+
+/* Optional: slightly tighter spacing on very wide screens */
+@media (min-width: 1200px) {
+    #searchBar {
+        max-width: 400px !important;
+    }
+}
