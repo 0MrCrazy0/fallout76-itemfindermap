@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B26"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B27"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -4411,7 +4411,8 @@ This will fetch the latest verified community markers.<br><br>
                 incoming.forEach(imp => {
     const existing = locations.find(l => l.id === imp.id);
 
-    // ── APPROVAL HANDLING ──
+    // ── APPROVAL HANDLING (protected from overwrite) ──
+    let isApprovedSubmission = false;
     if (existing && hasBeenSubmitted(imp.id)) {
         let submitted = JSON.parse(localStorage.getItem('submitted_ids') || '[]');
         const idx = submitted.indexOf(imp.id);
@@ -4419,36 +4420,7 @@ This will fetch the latest verified community markers.<br><br>
             submitted.splice(idx, 1);
             localStorage.setItem('submitted_ids', JSON.stringify(submitted));
         }
-
-        // Convert to clean community marker (correct popup + speech bubble)
-        existing.isCommunity = true;
-        existing.userEdited = false;
-        existing.wasCommunityKept = false;
-        existing.approvedSubmission = true;
-
-        // ── EXPLICIT APPROVAL BONUS (+100 XP) ──
-        xp += 100;
-        const oldLevel = level;
-        level = 1 + Math.floor(xp / xpPerLevel);
-        xp = xp % xpPerLevel;
-
-        if (level > oldLevel) {
-            playSound('levelUp');
-            triggerConfetti();
-            showTempMessage(`☢️ LEVEL UP! — NOW EXPLORER LEVEL ${level} 🎉`, 10000);
-            const bar = document.getElementById('xpProgress');
-            bar.classList.add('level-up');
-            setTimeout(() => bar.classList.remove('level-up'), 18000);
-            triggerNuke();
-        }
-        updateXPBar();
-        localStorage.setItem('fo76_level', level);
-        localStorage.setItem('fo76_xp', xp);
-        lastLevel = level;
-
-        approvedCount++;
-        showTempMessage(`🤩 Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED! +100 XP`, 10000);
-        playSound('levelUp');
+        isApprovedSubmission = true;
     }
 
     // ── SKIP ONLY NON-APPROVED USER MARKERS ──
@@ -4488,10 +4460,40 @@ This will fetch the latest verified community markers.<br><br>
         added++;
     }
 
+    // ── FINAL CLEANUP AND FLAG PRESERVATION ──
     loc.isCommunity = true;
     loc.locked = true;
     loc.userEdited = false;
     loc.wasCommunityKept = !!existing?.wasCommunityKept;
+
+    // Re-apply approvedSubmission flag AFTER Object.assign (this is the fix)
+    if (isApprovedSubmission) {
+        loc.approvedSubmission = true;
+
+        // ── EXPLICIT APPROVAL BONUS (+100 XP) ──
+        xp += 100;
+        const oldLevel = level;
+        level = 1 + Math.floor(xp / xpPerLevel);
+        xp = xp % xpPerLevel;
+
+        if (level > oldLevel) {
+            playSound('levelUp');
+            triggerConfetti();
+            showTempMessage(`☢️ LEVEL UP! — NOW EXPLORER LEVEL ${level} 🎉`, 10000);
+            const bar = document.getElementById('xpProgress');
+            bar.classList.add('level-up');
+            setTimeout(() => bar.classList.remove('level-up'), 18000);
+            triggerNuke();
+        }
+        updateXPBar();
+        localStorage.setItem('fo76_level', level);
+        localStorage.setItem('fo76_xp', xp);
+        lastLevel = level;
+
+        approvedCount++;
+        showTempMessage(`🤩 Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED! +100 XP`, 10000);
+        playSound('levelUp');
+    }
 });
 
 // Save new custom categories permanently so they appear in the app
