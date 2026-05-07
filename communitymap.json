@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": 10.1,
+  "communityVersion": 10.2,
   "customCategories": {},
   "locations": [
     {
@@ -4924,24 +4924,6 @@
       "lng": 3353,
       "icon": "⛏️",
       "addedTime": 1778068697462,
-      "locked": true,
-      "isPostcard": false,
-      "isTemp": false,
-      "startTime": null,
-      "keepBtnBound": false,
-      "userEdited": false,
-      "wasCommunityKept": false,
-      "isCommunity": true
-    },
-    {
-      "id": "id-a61cc046-fc72-4d09-aa53-11a818986517",
-      "cid": "misc_this_is_a_auto_merge_test_grid_b2_x_452_y_608_608.00000_452.00000_mxpip784",
-      "category": "misc",
-      "desc": "this is a auto merge test\nGrid B2 (X: 452, Y: 608)\nSubmitted By Anonymous Wastelander",
-      "lat": 608,
-      "lng": 452,
-      "icon": "📝",
-      "addedTime": 1778158744761,
       "locked": true,
       "isPostcard": false,
       "isTemp": false,
