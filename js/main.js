@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B-31"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B-32"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -4387,7 +4387,8 @@ downloadCommunityBtn.onclick = () => {
 This will fetch the latest verified community markers.<br><br>
 • Community markers may receive description & category improvements<br>
 • Your created and kept markers will never be changed or deleted<br>
-• Removed community markers will be cleaned up automatically<br><br>
+• Removed community markers will be cleaned up automatically<br>
+• Approved submissions will convert to community markers you can keep<br><br>
 <strong style="display:block; text-align:left !important;">Proceed with the update?</strong>`,
     async () => {
         downloadCommunityBtn.disabled = true;
@@ -4467,32 +4468,12 @@ This will fetch the latest verified community markers.<br><br>
                     loc.userEdited = false;
                     loc.wasCommunityKept = !!existing?.wasCommunityKept;
 
-                    // ── RE-APPLY APPROVED SUBMISSION + BONUS ──
+                    // ── RE-APPLY APPROVED SUBMISSION (informational only) ──
                     if (isApprovedSubmission) {
                         loc.approvedSubmission = true;
-
-                        // ── EXPLICIT APPROVAL BONUS (+100 XP) ──
-                        xp += 100;
-                        const oldLevel = level;
-                        level = 1 + Math.floor(xp / xpPerLevel);
-                        xp = xp % xpPerLevel;
-
-                        if (level > oldLevel) {
-                            playSound('levelUp');
-                            triggerConfetti();
-                            showTempMessage(`☢️ LEVEL UP! — NOW EXPLORER LEVEL ${level} 🎉`, 10000);
-                            const bar = document.getElementById('xpProgress');
-                            bar.classList.add('level-up');
-                            setTimeout(() => bar.classList.remove('level-up'), 18000);
-                            triggerNuke();
-                        }
-                        updateXPBar();
-                        localStorage.setItem('fo76_level', level);
-                        localStorage.setItem('fo76_xp', xp);
-                        lastLevel = level;
-
                         approvedCount++;
-                        showTempMessage(`🤩 Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED! +100 XP`, 10000);
+
+                        showTempMessage(`🤩 Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED! You Keep The Created 100XP`, 10000);
                         playSound('levelUp');
                     }
                 });
@@ -4570,7 +4551,7 @@ This will fetch the latest verified community markers.<br><br>
 <strong style="color:#ffa500;">${skipped}</strong> - kept/edited markers protected<br>
 <strong style="color:#ffcc00;">${userMarkersBefore}</strong> - personal markers untouched<br>
 ${cleaned > 0 ? `<strong style="color:#ff4444;">${cleaned}</strong> - deleted community markers removed<br>` : ''}
-${approvedCount > 0 ? `<strong style="color:#00ff88;">${approvedCount}</strong> - of your submissions approved!<br>` : ''}
+${approvedCount > 0 ? `<strong style="color:#00ff88;">${approvedCount}</strong> - of your submissions approved! converting to community marker you can keep it<br>` : ''}
 ${updateAvailableCount > 0 ? `<strong style="color:#0066ff;">${updateAvailableCount}</strong> of your kept markers have newer versions available!<br>` : ''}
 <strong style="color:#00ff00;">Total markers on map: ${locations.length}</strong><br><br>
 
@@ -4714,6 +4695,7 @@ ${updateAvailableCount > 0 ? `<strong style="color:#0066ff;">${updateAvailableCo
             if (remoteVersion !== storedVersion) {
                 downloadCommunityBtn.classList.add('available');
                 downloadCommunityBtn.textContent = 'Update Community Map (Available!)';
+				showUpdateNotice();
             } else {
                 downloadCommunityBtn.classList.remove('available');
                 downloadCommunityBtn.textContent = 'Update Community Map';
