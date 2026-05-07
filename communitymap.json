@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": 9.3,
+  "communityVersion": 9.4,
   "customCategories": {},
   "locations": [
     {
@@ -4924,24 +4924,6 @@
       "lng": 3353,
       "icon": "⛏️",
       "addedTime": 1778068697462,
-      "locked": true,
-      "isPostcard": false,
-      "isTemp": false,
-      "startTime": null,
-      "keepBtnBound": false,
-      "userEdited": false,
-      "wasCommunityKept": false,
-      "isCommunity": true
-    },
-    {
-      "id": "id-52c00d8d-ff5a-4d97-9d4a-cb8c9b9d79ab",
-      "cid": "bobbleheads_hi_this_is_a_test_grid_a1_x_2114_y_1907_190.67432_211.43750_rzy0fyi2",
-      "category": "bobbleheads",
-      "desc": "Hi This Is A Test\nGrid A1 (X: 211.4, Y: 190.7)\nSubmitted By Anonymous Wastelander",
-      "lat": 190.67431640625,
-      "lng": 211.4375,
-      "icon": "🎎",
-      "addedTime": 1778150870872,
       "locked": true,
       "isPostcard": false,
       "isTemp": false,
