@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B-32"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B-33"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -6075,20 +6075,17 @@ window.cancelReport = function() {
     clearTimeout(reportTimer);
 };
 
-// ── Keep a community marker (with explicit keep bonus for approved submissions) ──
+// ── Keep a community marker (ALWAYS award +100 XP keep bonus) ──
 window.keepCommunityMarker = function(markerId) {
     const marker = locations.find(l => l.id === markerId);
     if (!marker || !marker.isCommunity) return;
 
     playSound('click');
 
-    const wasApprovedSubmission = !!marker.approvedSubmission;
-
     showConfirmModal(
         '👍 Keep This Community Marker? 💾',
         '<strong>This marker will become yours permanently:</strong><br><br>' +
         '• You gain +100 XP (keep bonus)<br>' +
-        (wasApprovedSubmission ? '• You keep your original +100 XP from creation/approval<br>' : '') +
         '• You can edit, move, or delete it<br>' +
         '• It will <strong>NOT</strong> receive future community updates<br>' +
         '• You will no longer be able to report it<br><br>' +
@@ -6104,30 +6101,25 @@ window.keepCommunityMarker = function(markerId) {
             applyCustomCategoryStyling();
             saveLocations();
 
-            // ── Standard recalculation (preserves creation XP) ──
-            recalculateXP();
+            // ALWAYS award +100 XP keep bonus for ANY community marker
+            xp += 100;
+            const oldLevel = level;
+            level = 1 + Math.floor(xp / xpPerLevel);
+            xp = xp % xpPerLevel;
 
-            // ── EXPLICIT KEEP BONUS for approved submissions ──
-            if (wasApprovedSubmission) {
-                xp += 100;
-                const oldLevel = level;
-                level = 1 + Math.floor(xp / xpPerLevel);
-                xp = xp % xpPerLevel;
-
-                if (level > oldLevel) {
-                    playSound('levelUp');
-                    triggerConfetti();
-                    showTempMessage(`☢️ LEVEL UP! — NOW EXPLORER LEVEL ${level} 🎉`, 10000);
-                    const bar = document.getElementById('xpProgress');
-                    bar.classList.add('level-up');
-                    setTimeout(() => bar.classList.remove('level-up'), 18000);
-                    triggerNuke();
-                }
-                updateXPBar();
-                localStorage.setItem('fo76_level', level);
-                localStorage.setItem('fo76_xp', xp);
-                lastLevel = level;
+            if (level > oldLevel) {
+                playSound('levelUp');
+                triggerConfetti();
+                showTempMessage(`☢️ LEVEL UP! — NOW EXPLORER LEVEL ${level} 🎉`, 10000);
+                const bar = document.getElementById('xpProgress');
+                bar.classList.add('level-up');
+                setTimeout(() => bar.classList.remove('level-up'), 18000);
+                triggerNuke();
             }
+            updateXPBar();
+            localStorage.setItem('fo76_level', level);
+            localStorage.setItem('fo76_xp', xp);
+            lastLevel = level;
 
             forceReload();
 
@@ -6163,18 +6155,15 @@ window.revertToCommunityMarker = function(markerId) {
 
     playSound('click');
 
-    const wasApprovedSubmission = !!marker.approvedSubmission;
-
     showConfirmModal(
         '↩ REVERT TO COMMUNITY MARKER',
         'This will turn the marker back into a normal community marker.<br><br>' +
         '• You will lose the +100 XP from **keeping** it<br>' +
-        (wasApprovedSubmission ? '• You will **keep** the original +100 XP from creation/approval<br>' : '') +
+        (marker.approvedSubmission ? '• You will **keep** the original +100 XP from creation/approval<br>' : '') +
         '• It will receive future community updates again<br>' +
         '• The marker will be locked automatically<br><br>' +
         'Proceed with revert?',
         () => {
-            // Preserve original creation XP permanently
             const hadApprovedFlag = !!marker.approvedSubmission;
 
             marker.isCommunity = true;
@@ -6183,18 +6172,22 @@ window.revertToCommunityMarker = function(markerId) {
             marker.locked = true;
             marker.addedTime = Date.now();
 
-            // CRITICAL: approvedSubmission survives revert (original XP is never lost)
             if (hadApprovedFlag) {
                 marker.approvedSubmission = true;
             }
 
-            // Clear any update badge
             if (marker.communityUpdateAvailable !== undefined) {
                 delete marker.communityUpdateAvailable;
             }
 
+            // Always deduct exactly 100 XP (the keep bonus only)
+            xp = Math.max(0, xp - 100);
+            const oldLevel = level;
+            level = 1 + Math.floor(xp / xpPerLevel);
+            xp = xp % xpPerLevel;
+
             saveLocations();
-            recalculateXP();
+            updateXPBar();
             forceReload();
 
             setTimeout(() => playSound('saving'), 150);
