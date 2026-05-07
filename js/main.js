@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B28"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B29"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -5000,7 +5000,7 @@ saveItemBtn.onclick = () => {
     setTimeout(() => {
         playSound('saving');
     }, 120);
-    showTempMessage('✅ MARKER SAVED & LOCKED 🔒', 4000);
+    showTempMessage(`✅ MARKER SAVED & LOCKED 🔒 — +100 XP (LEVEL ${level})`, 5000);
     forceReload();
     if (window.justCreatedMarkerId) {
         setTimeout(() => {
@@ -6154,7 +6154,7 @@ window.keepCommunityMarker = function(markerId) {
             }
 
             setTimeout(() => playSound('saving'), 150);
-            showTempMessage(`✅ MARKER KEPT — +100 XP (LEVEL ${level})`, 5000);
+            showTempMessage(`✅ MARKER KEPT — +100 XP (LEVEL ${level})<br>Won't receive future community updates • Revert anytime`, 5500);
 
             setTimeout(() => {
                 const keptMarker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
@@ -6216,7 +6216,7 @@ window.revertToCommunityMarker = function(markerId) {
             forceReload();
 
             setTimeout(() => playSound('saving'), 150);
-            showTempMessage('🔄 MARKER REVERTED TO COMMUNITY — Original creation XP preserved', 5000);
+            showTempMessage(`🔄 MARKER REVERTED TO COMMUNITY — -100 XP (LEVEL ${level})<br>Will receive future updates`, 5500);
         },
         'Yes — Revert',
         'Cancel'
