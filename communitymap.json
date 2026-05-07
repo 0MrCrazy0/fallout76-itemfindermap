@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": 9.4,
+  "communityVersion": 9.5,
   "customCategories": {},
   "locations": [
     {
@@ -4932,7 +4932,25 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-aaef453c-2cdf-45e0-8392-7642a4d14f28",
+      "cid": "fishing locations_test_marker_grid_b2_x_730_y_5032_503.15625_730.00000_ay5i88hf",
+      "category": "fishing locations",
+      "desc": "test marker\nGrid B2 (X: 730, Y: 503.2)\nSubmitted By Anonymous Wastelander",
+      "lat": 503.15625,
+      "lng": 730,
+      "icon": "🎣",
+      "addedTime": 1778152330727,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ],
-  "lastUpdated": "2026-05-07T10:49:01.912998Z"
+  "lastUpdated": "2026-05-07T11:12:53.399962Z"
 }
