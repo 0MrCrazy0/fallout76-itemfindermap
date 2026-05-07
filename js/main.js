@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B29"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B-30"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -4467,30 +4467,9 @@ This will fetch the latest verified community markers.<br><br>
                     loc.userEdited = false;
                     loc.wasCommunityKept = !!existing?.wasCommunityKept;
 
-                    // ── RE-APPLY APPROVED SUBMISSION + BONUS ──
+                    // ── RE-APPLY APPROVED SUBMISSION (no manual XP here) ──
                     if (isApprovedSubmission) {
                         loc.approvedSubmission = true;
-
-                        // ── EXPLICIT APPROVAL BONUS (+100 XP) ──
-                        xp += 100;
-                        const oldLevel = level;
-                        level = 1 + Math.floor(xp / xpPerLevel);
-                        xp = xp % xpPerLevel;
-
-                        if (level > oldLevel) {
-                            playSound('levelUp');
-                            triggerConfetti();
-                            showTempMessage(`☢️ LEVEL UP! — NOW EXPLORER LEVEL ${level} 🎉`, 10000);
-                            const bar = document.getElementById('xpProgress');
-                            bar.classList.add('level-up');
-                            setTimeout(() => bar.classList.remove('level-up'), 18000);
-                            triggerNuke();
-                        }
-                        updateXPBar();
-                        localStorage.setItem('fo76_level', level);
-                        localStorage.setItem('fo76_xp', xp);
-                        lastLevel = level;
-
                         approvedCount++;
                         showTempMessage(`🤩 Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED! +100 XP`, 10000);
                         playSound('levelUp');
@@ -4516,7 +4495,6 @@ This will fetch the latest verified community markers.<br><br>
                     if (!loc.wasCommunityKept || loc.isPostcard) return;
                     const communityVersion = incomingByCid.get(loc.cid);
                     if (!communityVersion) {
-                        // Marker was removed from community map
                         loc.communityUpdateAvailable = true;
                         updateAvailableCount++;
                     } else if (
@@ -4525,14 +4503,10 @@ This will fetch the latest verified community markers.<br><br>
                         Math.abs(communityVersion.lat - loc.lat) > 0.0001 ||
                         Math.abs(communityVersion.lng - loc.lng) > 0.0001
                     ) {
-                        // Description, category, or position changed
                         loc.communityUpdateAvailable = true;
                         updateAvailableCount++;
                     } else {
-                        // Clear flag if now up-to-date
-                        if (loc.communityUpdateAvailable) {
-                            delete loc.communityUpdateAvailable;
-                        }
+                        if (loc.communityUpdateAvailable) delete loc.communityUpdateAvailable;
                     }
                 });
 
@@ -4546,6 +4520,8 @@ This will fetch the latest verified community markers.<br><br>
                 localStorage.setItem(MAP_VERSION_KEY, newVersion);
                 communityVersion = newVersion;
                 localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+
+                // ── XP is now handled cleanly here (includes approval bonus) ──
                 recalculateXP();
                 updateCounterDisplay();
                 forceReload();
@@ -4557,7 +4533,6 @@ This will fetch the latest verified community markers.<br><br>
                 loadData('', currentCat);
                 refreshTable('', currentCat);
 
-                // ── Re-sync dropdown after community update ──
                 if (categoryFilter) {
                     categoryFilter.value = currentCategoryFilter || '';
                 }
@@ -4573,11 +4548,9 @@ ${cleaned > 0 ? `<strong style="color:#ff4444;">${cleaned}</strong> - deleted co
 ${approvedCount > 0 ? `<strong style="color:#00ff88;">${approvedCount}</strong> - of your submissions approved!<br>` : ''}
 ${updateAvailableCount > 0 ? `<strong style="color:#0066ff;">${updateAvailableCount}</strong> of your kept markers have newer versions available!<br>` : ''}
 <strong style="color:#00ff00;">Total markers on map: ${locations.length}</strong><br><br>
-
 • You kept <strong style="color:#88ccff;">${skipped}</strong> community marker${skipped === 1 ? '' : 's'}<br>
 • You logged <strong style="color:#88ccff;">${userMarkersBefore}</strong> personal marker${userMarkersBefore === 1 ? '' : 's'}<br>
 • You are Level <strong style="color:#00ff88;">${level}</strong> explorer<br><br>
-
 <strong>Community Map v${newVersion} loaded — happy exploring Appalachia!</strong>`,
                     null
                 );
