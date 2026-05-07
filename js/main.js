@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B27"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B28"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -4408,98 +4408,100 @@ This will fetch the latest verified community markers.<br><br>
                     !l.isCommunity &&
                     !l.isPostcard
                 ).length;
+
                 incoming.forEach(imp => {
-    const existing = locations.find(l => l.id === imp.id);
+                    const existing = locations.find(l => l.id === imp.id);
 
-    // ── APPROVAL HANDLING (protected from overwrite) ──
-    let isApprovedSubmission = false;
-    if (existing && hasBeenSubmitted(imp.id)) {
-        let submitted = JSON.parse(localStorage.getItem('submitted_ids') || '[]');
-        const idx = submitted.indexOf(imp.id);
-        if (idx !== -1) {
-            submitted.splice(idx, 1);
-            localStorage.setItem('submitted_ids', JSON.stringify(submitted));
-        }
-        isApprovedSubmission = true;
-    }
+                    // ── APPROVAL HANDLING (must run FIRST) ──
+                    let isApprovedSubmission = false;
+                    if (existing && hasBeenSubmitted(imp.id)) {
+                        let submitted = JSON.parse(localStorage.getItem('submitted_ids') || '[]');
+                        const idx = submitted.indexOf(imp.id);
+                        if (idx !== -1) {
+                            submitted.splice(idx, 1);
+                            localStorage.setItem('submitted_ids', JSON.stringify(submitted));
+                        }
+                        isApprovedSubmission = true;
+                    }
 
-    // ── SKIP ONLY NON-APPROVED USER MARKERS ──
-    if (existing && (existing.userEdited || existing.wasCommunityKept) && !hasBeenSubmitted(imp.id || '')) {
-        skipped++;
-        return;
-    }
+                    // ── SKIP ONLY NON-APPROVED USER MARKERS ──
+                    if (existing && (existing.userEdited || existing.wasCommunityKept) && !isApprovedSubmission) {
+                        skipped++;
+                        return;
+                    }
 
-    // ── AUTO-REGISTER NEW CUSTOM CATEGORIES FROM COMMUNITY ──
-    if (imp.category &&
-        !defaultCategoryIcons[imp.category] &&
-        !customCategories[imp.category]) {
-        customCategories[imp.category] = imp.icon || '📦';
-        categoryIcons[imp.category] = imp.icon || '📦';
-        categoryColors[imp.category] = '#002F00';
-        activeCategories.add(imp.category);
-    }
+                    // ── AUTO-REGISTER NEW CUSTOM CATEGORIES FROM COMMUNITY ──
+                    if (imp.category &&
+                        !defaultCategoryIcons[imp.category] &&
+                        !customCategories[imp.category]) {
+                        customCategories[imp.category] = imp.icon || '📦';
+                        categoryIcons[imp.category] = imp.icon || '📦';
+                        categoryColors[imp.category] = '#002F00';
+                        activeCategories.add(imp.category);
+                    }
 
-    // ── NORMAL IMPORT / UPDATE LOGIC ──
-    let loc;
-    if (existing) {
-        Object.assign(existing, imp);
-        loc = existing;
-        refreshed++;
-    } else {
-        loc = {
-            ...imp,
-            addedTime: Date.now(),
-            locked: true,
-            isCommunity: true,
-            isTemp: false,
-            isPostcard: false,
-            userEdited: false,
-            wasCommunityKept: false
-        };
-        locations.push(loc);
-        added++;
-    }
+                    // ── NORMAL IMPORT / UPDATE LOGIC ──
+                    let loc;
+                    if (existing) {
+                        Object.assign(existing, imp);
+                        loc = existing;
+                        refreshed++;
+                    } else {
+                        loc = {
+                            ...imp,
+                            addedTime: Date.now(),
+                            locked: true,
+                            isCommunity: true,
+                            isTemp: false,
+                            isPostcard: false,
+                            userEdited: false,
+                            wasCommunityKept: false
+                        };
+                        locations.push(loc);
+                        added++;
+                    }
 
-    // ── FINAL CLEANUP AND FLAG PRESERVATION ──
-    loc.isCommunity = true;
-    loc.locked = true;
-    loc.userEdited = false;
-    loc.wasCommunityKept = !!existing?.wasCommunityKept;
+                    // ── FINAL CLEANUP AND FLAG PRESERVATION ──
+                    loc.isCommunity = true;
+                    loc.locked = true;
+                    loc.userEdited = false;
+                    loc.wasCommunityKept = !!existing?.wasCommunityKept;
 
-    // Re-apply approvedSubmission flag AFTER Object.assign (this is the fix)
-    if (isApprovedSubmission) {
-        loc.approvedSubmission = true;
+                    // ── RE-APPLY APPROVED SUBMISSION + BONUS ──
+                    if (isApprovedSubmission) {
+                        loc.approvedSubmission = true;
 
-        // ── EXPLICIT APPROVAL BONUS (+100 XP) ──
-        xp += 100;
-        const oldLevel = level;
-        level = 1 + Math.floor(xp / xpPerLevel);
-        xp = xp % xpPerLevel;
+                        // ── EXPLICIT APPROVAL BONUS (+100 XP) ──
+                        xp += 100;
+                        const oldLevel = level;
+                        level = 1 + Math.floor(xp / xpPerLevel);
+                        xp = xp % xpPerLevel;
 
-        if (level > oldLevel) {
-            playSound('levelUp');
-            triggerConfetti();
-            showTempMessage(`☢️ LEVEL UP! — NOW EXPLORER LEVEL ${level} 🎉`, 10000);
-            const bar = document.getElementById('xpProgress');
-            bar.classList.add('level-up');
-            setTimeout(() => bar.classList.remove('level-up'), 18000);
-            triggerNuke();
-        }
-        updateXPBar();
-        localStorage.setItem('fo76_level', level);
-        localStorage.setItem('fo76_xp', xp);
-        lastLevel = level;
+                        if (level > oldLevel) {
+                            playSound('levelUp');
+                            triggerConfetti();
+                            showTempMessage(`☢️ LEVEL UP! — NOW EXPLORER LEVEL ${level} 🎉`, 10000);
+                            const bar = document.getElementById('xpProgress');
+                            bar.classList.add('level-up');
+                            setTimeout(() => bar.classList.remove('level-up'), 18000);
+                            triggerNuke();
+                        }
+                        updateXPBar();
+                        localStorage.setItem('fo76_level', level);
+                        localStorage.setItem('fo76_xp', xp);
+                        lastLevel = level;
 
-        approvedCount++;
-        showTempMessage(`🤩 Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED! +100 XP`, 10000);
-        playSound('levelUp');
-    }
-});
+                        approvedCount++;
+                        showTempMessage(`🤩 Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED! +100 XP`, 10000);
+                        playSound('levelUp');
+                    }
+                });
 
-// Save new custom categories permanently so they appear in the app
-localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
-                                for (let i = locations.length - 1; i >= 0; i--) {
+                // Save new custom categories permanently so they appear in the app
+                localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+                localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
+
+                for (let i = locations.length - 1; i >= 0; i--) {
                     const loc = locations[i];
                     if (loc.isCommunity && !incomingIds.has(loc.id)) {
                         locations.splice(i, 1);
@@ -4510,12 +4512,9 @@ localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
                 // ── NEW: Community Update Available for KEPT markers ──
                 let updateAvailableCount = 0;
                 const incomingByCid = new Map(incoming.map(m => [m.cid, m]));
-
                 locations.forEach(loc => {
                     if (!loc.wasCommunityKept || loc.isPostcard) return;
-
                     const communityVersion = incomingByCid.get(loc.cid);
-
                     if (!communityVersion) {
                         // Marker was removed from community map
                         loc.communityUpdateAvailable = true;
@@ -4536,11 +4535,13 @@ localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
                         }
                     }
                 });
+
                 if (data.customCategories) {
                     customCategories = { ...customCategories, ...data.customCategories };
                 }
-				rebuildCategoryData();
-				applyCustomCategoryStyling();
+                rebuildCategoryData();
+                applyCustomCategoryStyling();
+
                 const newVersion = String(data.communityVersion || "1.0");
                 localStorage.setItem(MAP_VERSION_KEY, newVersion);
                 communityVersion = newVersion;
@@ -4553,7 +4554,6 @@ localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
                 combinedSearch.value = '';
                 clearBtn.style.display = 'none';
                 const currentCat = categoryFilter.value || '';
-
                 loadData('', currentCat);
                 refreshTable('', currentCat);
 
@@ -4563,9 +4563,9 @@ localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
                 }
                 saveLocations();
 
-showConfirmModal(
-    '☢ COMMUNITY MAP UPDATED ☢',
-`<strong style="color:#00ff88;">${added}</strong> - new markers added<br>
+                showConfirmModal(
+                    '☢ COMMUNITY MAP UPDATED ☢',
+                    `<strong style="color:#00ff88;">${added}</strong> - new markers added<br>
 <strong style="color:#88ccff;">${refreshed}</strong> - community markers refreshed<br>
 <strong style="color:#ffa500;">${skipped}</strong> - kept/edited markers protected<br>
 <strong style="color:#ffcc00;">${userMarkersBefore}</strong> - personal markers untouched<br>
@@ -4579,130 +4579,107 @@ ${updateAvailableCount > 0 ? `<strong style="color:#0066ff;">${updateAvailableCo
 • You are Level <strong style="color:#00ff88;">${level}</strong> explorer<br><br>
 
 <strong>Community Map v${newVersion} loaded — happy exploring Appalachia!</strong>`,
-    null
-);
+                    null
+                );
                 playSound('saving');
 
-// ── COMMUNITY MAP CELEBRATION NUKE ──
-if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
-    localStorage.setItem('seenCommunityNuke', 'true');
-    setTimeout(() => {
-        lockUIDuringAnimation(11000);
-
-        const overlay = document.createElement('div');
-        overlay.style.cssText = `
-            position:fixed;top:0;left:0;width:100vw;height:100vh;
-            background:#000;z-index:9999999;display:flex;
-            align-items:center;justify-content:center;flex-direction:column;
-            gap:30px;font-family:'Courier New',monospace;color:#0f0;
-            pointer-events:none;
-        `;
-        overlay.innerHTML = `
-            <div id="rocketLaunch" style="font-size:clamp(80px,25vw,220px);">🚀</div>
-            <h1 class="wipe-nuke-title">COMMUNITY MAP UPDATED</h1>
-            <p class="nuke-subtitle" style="font-size:clamp(18px,5vw,36px);">New markers incoming...</p>
-        `;
-        document.body.appendChild(overlay);
-
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes rocketLaunch { 0% { transform: translateY(80px) scale(0.8); opacity: 0; } 30% { transform: translateY(-40px) scale(1.1); opacity: 1; } 70% { transform: translateY(-180px) scale(1); } 100% { transform: translateY(-300px) scale(0.6); opacity: 0; } }
-            @keyframes rocketFall { 0% { transform: translateY(-420px) scale(0.5); opacity: 0; } 40% { transform: translateY(-60px) scale(1.2); opacity: 1; } 75% { transform: translateY(160px) scale(1.45); } 100% { transform: translateY(280px) scale(1.65); } }
-            @keyframes groundImpact { 0%,100% { transform: translateY(280px) scale(1.65); } 25% { transform: translateY(305px) scale(1.9); } 55% { transform: translateY(265px) scale(1.5); } }
-            @keyframes explosionPulse { 0% { transform: scale(1); opacity:1; } 40% { transform: scale(4.2); opacity:0.95; } 70% { transform: scale(2.8); opacity:1; } 100% { transform: scale(4.5); opacity:0; } }
-            @keyframes fadeOut { 0% { opacity: 1; } 100% { opacity: 0; } }
-        `;
-        document.head.appendChild(style);
-
-        const rocket = document.getElementById('rocketLaunch');
-        const title = overlay.querySelector('h1');
-        const subtitle = overlay.querySelector('p');
-
-        rocket.style.animation = 'rocketLaunch 1.8s ease-out forwards';
-
-        setTimeout(() => {
-            // Fade out title + subtitle
-            title.style.animation = 'fadeOut 0.8s ease-out forwards';
-            subtitle.style.animation = 'fadeOut 0.8s ease-out forwards';
-
-            setTimeout(() => {
-                title.remove();
-                subtitle.remove();
-            }, 800);
-
-            // Rocket falls and crashes
-            rocket.remove();
-            overlay.innerHTML += `<div id="fallingRocket" style="font-size:clamp(140px,38vw,460px);color:#ff0;text-shadow:0 0 80px #ff0;">🚀</div>`;
-            const fallingRocket = document.getElementById('fallingRocket');
-            fallingRocket.style.animation = 'rocketFall 1.2s cubic-bezier(0.42,0,1,1) forwards';
-
-            setTimeout(() => {
-                fallingRocket.style.animation = 'groundImpact 0.45s ease-out forwards';
-
-                // Rocket turns into nuke
-                setTimeout(() => {
-                    fallingRocket.remove();
-
-                    // Long white flash
-                    const flash = document.createElement('div');
-                    flash.style.cssText = `
-                        position:fixed;top:0;left:0;width:100vw;height:100vh;
-                        background:#fff;z-index:99999999;pointer-events:none;
-                        animation:quickFlash 1.8s ease-out forwards;
-                    `;
-                    document.body.appendChild(flash);
-
-                    // Big centered explosions
+                // ── COMMUNITY MAP CELEBRATION NUKE ──
+                if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
+                    localStorage.setItem('seenCommunityNuke', 'true');
                     setTimeout(() => {
-                        flash.remove();
-
-                        const explosionContainer = document.createElement('div');
-                        explosionContainer.style.cssText = `
-                            position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);
-                            width:100%; height:100%; display:flex; align-items:center; justify-content:center;
-                            pointer-events:none; z-index:99999999;
+                        lockUIDuringAnimation(11000);
+                        const overlay = document.createElement('div');
+                        overlay.style.cssText = `
+                            position:fixed;top:0;left:0;width:100vw;height:100vh;
+                            background:#000;z-index:9999999;display:flex;
+                            align-items:center;justify-content:center;flex-direction:column;
+                            gap:30px;font-family:'Courier New',monospace;color:#0f0;
+                            pointer-events:none;
                         `;
-                        overlay.appendChild(explosionContainer);
-
-                        const explosions = ['💥','💥','💥','💥','💥','💥','💥'];
-                        explosions.forEach((emoji, i) => {
-                            const boom = document.createElement('div');
-                            boom.style.cssText = `
-                                position:absolute; font-size:clamp(160px,42vw,520px);
-                                animation:explosionPulse 1.3s ease-out forwards; opacity:0;
-                                text-shadow:0 0 60px #ffaa00;
-                            `;
-                            boom.textContent = emoji;
-                            explosionContainer.appendChild(boom);
-                            setTimeout(() => { boom.style.opacity = '1'; }, i * 65);
-                        });
-
-                        // Final dramatic screen – original colours restored, text centred and readable
+                        overlay.innerHTML = `
+                            <div id="rocketLaunch" style="font-size:clamp(80px,25vw,220px);">🚀</div>
+                            <h1 class="wipe-nuke-title">COMMUNITY MAP UPDATED</h1>
+                            <p class="nuke-subtitle" style="font-size:clamp(18px,5vw,36px);">New markers incoming...</p>
+                        `;
+                        document.body.appendChild(overlay);
+                        const style = document.createElement('style');
+                        style.textContent = `
+                            @keyframes rocketLaunch { 0% { transform: translateY(80px) scale(0.8); opacity: 0; } 30% { transform: translateY(-40px) scale(1.1); opacity: 1; } 70% { transform: translateY(-180px) scale(1); } 100% { transform: translateY(-300px) scale(0.6); opacity: 0; } }
+                            @keyframes rocketFall { 0% { transform: translateY(-420px) scale(0.5); opacity: 0; } 40% { transform: translateY(-60px) scale(1.2); opacity: 1; } 75% { transform: translateY(160px) scale(1.45); } 100% { transform: translateY(280px) scale(1.65); } }
+                            @keyframes groundImpact { 0%,100% { transform: translateY(280px) scale(1.65); } 25% { transform: translateY(305px) scale(1.9); } 55% { transform: translateY(265px) scale(1.5); } }
+                            @keyframes explosionPulse { 0% { transform: scale(1); opacity:1; } 40% { transform: scale(4.2); opacity:0.95; } 70% { transform: scale(2.8); opacity:1; } 100% { transform: scale(4.5); opacity:0; } }
+                            @keyframes fadeOut { 0% { opacity: 1; } 100% { opacity: 0; } }
+                        `;
+                        document.head.appendChild(style);
+                        const rocket = document.getElementById('rocketLaunch');
+                        const title = overlay.querySelector('h1');
+                        const subtitle = overlay.querySelector('p');
+                        rocket.style.animation = 'rocketLaunch 1.8s ease-out forwards';
                         setTimeout(() => {
-                            explosionContainer.remove();
-
-                            overlay.innerHTML = `
-                                <div style="font-size:clamp(130px,32vw,250px);color:#ff0;text-shadow:0 0 90px #ff0;margin-bottom:15px;">☢️</div>
-<h1 class="wipe-nuke-title" style="font-size:clamp(36px,8vw,72px);text-align:center;margin:8px 0 18px 0;">COMMUNITY MAP NUKED!</h1>
-<p class="nuke-subtitle" style="font-size:clamp(20px,5vw,42px);text-align:center;max-width:94%;line-height:1.35;">
-    <strong>${added}</strong> new markers detonated across Appalachia!
-</p>
-                            `;
-
-                            playSound('levelUp');
-
+                            title.style.animation = 'fadeOut 0.8s ease-out forwards';
+                            subtitle.style.animation = 'fadeOut 0.8s ease-out forwards';
                             setTimeout(() => {
-                                overlay.style.transition = 'opacity 1.4s';
-                                overlay.style.opacity = '0';
-                                setTimeout(() => overlay.remove(), 1400);
-                            }, 2800);
-                        }, 1650);
-                    }, 400);
-                }, 420);
-            }, 1220);
-        }, 1900);
-    }, 800);
-}
+                                title.remove();
+                                subtitle.remove();
+                            }, 800);
+                            rocket.remove();
+                            overlay.innerHTML += `<div id="fallingRocket" style="font-size:clamp(140px,38vw,460px);color:#ff0;text-shadow:0 0 80px #ff0;">🚀</div>`;
+                            const fallingRocket = document.getElementById('fallingRocket');
+                            fallingRocket.style.animation = 'rocketFall 1.2s cubic-bezier(0.42,0,1,1) forwards';
+                            setTimeout(() => {
+                                fallingRocket.style.animation = 'groundImpact 0.45s ease-out forwards';
+                                setTimeout(() => {
+                                    fallingRocket.remove();
+                                    const flash = document.createElement('div');
+                                    flash.style.cssText = `
+                                        position:fixed;top:0;left:0;width:100vw;height:100vh;
+                                        background:#fff;z-index:99999999;pointer-events:none;
+                                        animation:quickFlash 1.8s ease-out forwards;
+                                    `;
+                                    document.body.appendChild(flash);
+                                    setTimeout(() => {
+                                        flash.remove();
+                                        const explosionContainer = document.createElement('div');
+                                        explosionContainer.style.cssText = `
+                                            position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);
+                                            width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+                                            pointer-events:none; z-index:99999999;
+                                        `;
+                                        overlay.appendChild(explosionContainer);
+                                        const explosions = ['💥','💥','💥','💥','💥','💥','💥'];
+                                        explosions.forEach((emoji, i) => {
+                                            const boom = document.createElement('div');
+                                            boom.style.cssText = `
+                                                position:absolute; font-size:clamp(160px,42vw,520px);
+                                                animation:explosionPulse 1.3s ease-out forwards; opacity:0;
+                                                text-shadow:0 0 60px #ffaa00;
+                                            `;
+                                            boom.textContent = emoji;
+                                            explosionContainer.appendChild(boom);
+                                            setTimeout(() => { boom.style.opacity = '1'; }, i * 65);
+                                        });
+                                        setTimeout(() => {
+                                            explosionContainer.remove();
+                                            overlay.innerHTML = `
+                                                <div style="font-size:clamp(130px,32vw,250px);color:#ff0;text-shadow:0 0 90px #ff0;margin-bottom:15px;">☢️</div>
+                                                <h1 class="wipe-nuke-title" style="font-size:clamp(36px,8vw,72px);text-align:center;margin:8px 0 18px 0;">COMMUNITY MAP NUKED!</h1>
+                                                <p class="nuke-subtitle" style="font-size:clamp(20px,5vw,42px);text-align:center;max-width:94%;line-height:1.35;">
+                                                    <strong>${added}</strong> new markers detonated across Appalachia!
+                                                </p>
+                                            `;
+                                            playSound('levelUp');
+                                            setTimeout(() => {
+                                                overlay.style.transition = 'opacity 1.4s';
+                                                overlay.style.opacity = '0';
+                                                setTimeout(() => overlay.remove(), 1400);
+                                            }, 2800);
+                                        }, 1650);
+                                    }, 400);
+                                }, 420);
+                            }, 1220);
+                        }, 1900);
+                    }, 800);
+                }
                 localStorage.setItem(LAST_COMMUNITY_VERSION_KEY, newVersion);
                 downloadCommunityBtn.classList.remove('update-available');
             } catch (err) {
