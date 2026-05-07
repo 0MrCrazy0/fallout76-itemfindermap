@@ -1,0 +1,18 @@
+{
+  "id": "id-cd65f3ff-ab07-45bf-8ae3-4b24ff4f525b",
+  "cid": "misc_test_marker_grid_b1_x_680_y_356_356.00000_680.00000_f425hd6t",
+  "category": "misc",
+  "desc": "test marker\nGrid B1 (X: 680, Y: 356)\nSubmitted By Anonymous Wastelander",
+  "lat": 356,
+  "lng": 680,
+  "icon": "📝",
+  "addedTime": 1778157100125,
+  "locked": true,
+  "isPostcard": false,
+  "isTemp": false,
+  "startTime": null,
+  "keepBtnBound": false,
+  "userEdited": false,
+  "wasCommunityKept": false,
+  "isCommunity": true
+}
