@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B-33"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-7-05-2026-Build-B-34"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -4681,31 +4681,34 @@ ${updateAvailableCount > 0 ? `<strong style="color:#0066ff;">${updateAvailableCo
     // ── REAL-TIME COMMUNITY UPDATE CHECK ──
     // Checks every 3 minutes while the page is visible — no page refresh occurs
     async function checkForCommunityUpdate() {
-        try {
-            const response = await fetch(
-                'https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?v=' + Date.now(),
-                { cache: 'no-store' }
-            );
-            if (!response.ok) return;
+    try {
+        const response = await fetch(
+            'https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?v=' + Date.now(),
+            { cache: 'no-store' }
+        );
+        if (!response.ok) return;
 
-            const data = await response.json();
-            const remoteVersion = String(data.communityVersion || data.version || "1.0");
-            const storedVersion = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
+        const data = await response.json();
+        const remoteVersion = String(data.communityVersion || data.version || "1.0");
+        const storedVersion = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
 
-            if (remoteVersion !== storedVersion) {
-                downloadCommunityBtn.classList.add('available');
-                downloadCommunityBtn.textContent = 'Update Community Map (Available!)';
-				showUpdateNotice();
-            } else {
-                downloadCommunityBtn.classList.remove('available');
-                downloadCommunityBtn.textContent = 'Update Community Map';
-            }
-        } catch (err) {
-            console.warn('Community version check failed:', err);
+        // Update the global latest version so the banner shows correct numbers
+        latestCommunityVersion = remoteVersion;
+
+        if (remoteVersion !== storedVersion) {
+            downloadCommunityBtn.classList.add('available');
+            downloadCommunityBtn.textContent = 'Update Community Map (Available!)';
+            showUpdateNotice();
+        } else {
             downloadCommunityBtn.classList.remove('available');
             downloadCommunityBtn.textContent = 'Update Community Map';
         }
+    } catch (err) {
+        console.warn('Community version check failed:', err);
+        downloadCommunityBtn.classList.remove('available');
+        downloadCommunityBtn.textContent = 'Update Community Map';
     }
+}
 
     // Run immediately and every 3 minutes (balanced interval)
     checkForCommunityUpdate();
@@ -6180,14 +6183,10 @@ window.revertToCommunityMarker = function(markerId) {
                 delete marker.communityUpdateAvailable;
             }
 
-            // Always deduct exactly 100 XP (the keep bonus only)
-            xp = Math.max(0, xp - 100);
-            const oldLevel = level;
-            level = 1 + Math.floor(xp / xpPerLevel);
-            xp = xp % xpPerLevel;
+            // No manual subtraction — recalculateXP() is now the single source of truth
+            recalculateXP();
 
             saveLocations();
-            updateXPBar();
             forceReload();
 
             setTimeout(() => playSound('saving'), 150);
