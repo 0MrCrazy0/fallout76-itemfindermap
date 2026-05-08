@@ -886,7 +886,7 @@ if (mapEl) {
                         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     
     if (isIOSDevice) {
-        mapEl.style.height = '80dvh';
+        mapEl.style.height = '100dvh';
         setTimeout(() => { mapEl.style.height = ''; }, 80);
     }
 }
@@ -1089,7 +1089,7 @@ function enterFullscreen() {
         mapEl.style.top = '0';
         mapEl.style.left = '0';
         mapEl.style.width = '100vw';
-        mapEl.style.height = '80dvh';
+        mapEl.style.height = '100dvh';
         mapEl.style.paddingTop = 'env(safe-area-inset-top)';
         mapEl.style.paddingBottom = 'env(safe-area-inset-bottom)';
         mapEl.style.zIndex = '999999';
@@ -1306,7 +1306,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-47"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-50"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -6783,30 +6783,30 @@ function optimiseMobileLandscape() {
     const width = window.innerWidth;
     const height = window.innerHeight;
     const isLandscape = width > height;
-    const isSmallScreen = width < 900;
 
     const ua = navigator.userAgent || '';
-    const isIOSDevice = /iPad|iPhone|iPod/.test(ua) ||
+    const isIOSDevice = /iPad|iPhone|iPod/.test(ua) || 
                         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
     const isStandalonePWA = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
                             (window.navigator && window.navigator.standalone === true);
+
     const isAndroidPWA = isStandalonePWA && !isIOSDevice;
 
-    if (isIOSDevice && isLandscape && isSmallScreen) {
-        // iOS PWA — your original tuned behaviour (100% untouched)
+    if (isIOSDevice && isLandscape) {
+        // iOS untouched
         mapEl.style.height = '80vh';
         mapEl.style.maxHeight = '80vh';
     } 
-    else if (isAndroidPWA && isLandscape && isSmallScreen) {
-        // Android PWA — force height with !important (overrides everything)
+    else if (isAndroidPWA && isLandscape) {
+        // Android PWA — clean, strong override
         document.body.classList.add('android-pwa-landscape');
         mapEl.style.setProperty('height', '56vh', 'important');
         mapEl.style.setProperty('max-height', '56vh', 'important');
         mapEl.style.setProperty('min-height', '56vh', 'important');
     } 
     else {
-        // Reset on PC, portrait, normal browser, etc.
+        // Reset on all other devices
         document.body.classList.remove('android-pwa-landscape');
         mapEl.style.removeProperty('height');
         mapEl.style.removeProperty('max-height');
@@ -6814,7 +6814,8 @@ function optimiseMobileLandscape() {
     }
 
     if (typeof map !== 'undefined' && map) {
-        setTimeout(() => map.invalidateSize({ animate: false }), 120);
+        setTimeout(() => map.invalidateSize({ animate: false }), 80);
+        setTimeout(() => map.invalidateSize({ animate: false }), 220);
     }
 }
 
