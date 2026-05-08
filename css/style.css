@@ -32,8 +32,8 @@
         margin: 0 !important;
         padding: 0 !important;
         width: 100vw !important;
-        height: 100dvh !important;
-        min-height: 100dvh !important;
+        height: 80dvh !important;
+        min-height: 80dvh !important;
         overflow: hidden !important;
         position: fixed !important;
         top: 0 !important;
@@ -47,8 +47,8 @@
         top: 0 !important;
         left: 0 !important;
         width: 100vw !important;
-        height: 100dvh !important;
-        min-height: 100dvh !important;
+        height: 80dvh !important;
+        min-height: 80dvh !important;
         margin: 0 !important;
         padding: 0 !important;
         max-width: none !important;
@@ -1466,8 +1466,8 @@ body.immersive-mode {
     top: 0 !important;
     left: 0 !important;
     width: 100vw !important;
-    height: 100dvh !important;
-    min-height: 100dvh !important;
+    height: 80dvh !important;
+    min-height: 80dvh !important;
     padding-top: env(safe-area-inset-top) !important;
     padding-bottom: env(safe-area-inset-bottom) !important;
     padding-left: env(safe-area-inset-left) !important;
@@ -1481,8 +1481,8 @@ body.immersive-mode .leaflet-container {
     top: 0 !important;
     left: 0 !important;
     width: 100vw !important;
-    height: 100dvh !important;
-    min-height: 100dvh !important;
+    height: 80dvh !important;
+    min-height: 80dvh !important;
     margin: 0 !important;
     padding: 0 !important;
     border: none !important;
