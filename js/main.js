@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-37"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-38"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -6770,7 +6770,9 @@ window.addEventListener('load', () => {
 // Initial run
 setTimeout(forceUltraWideScaling, 300);
 
-// ── Mobile Landscape Optimisation — iOS ONLY
+// ── Mobile Landscape Optimisation — iOS ONLY + Android balanced height ──
+// iOS behaviour remains 100% unchanged (your tested 80vh)
+// Android now uses a balanced height so buttons stay visible
 function optimiseMobileLandscape() {
     const mapEl = document.getElementById('map');
     if (!mapEl) return;
@@ -6786,6 +6788,7 @@ function optimiseMobileLandscape() {
                         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
     if (isIOSDevice && isLandscape && isSmallScreen) {
+        // ── Your original tuned iOS behaviour (80vh) — unchanged ──
         if (mapEl) {
             mapEl.style.height = '80vh';
             mapEl.style.maxHeight = '80vh';
@@ -6796,7 +6799,20 @@ function optimiseMobileLandscape() {
             buttonGroup.style.gap = '6px';
         }
     } 
-    // ── Android / PC / portrait / larger screens — safe reset only ──
+    else if (isLandscape && isSmallScreen) {
+        // ── Android balanced landscape height (leaves room for search bar + buttons) ──
+        // You can tweak 86vh if you want it slightly taller or shorter
+        if (mapEl) {
+            mapEl.style.height = '86vh';
+            mapEl.style.maxHeight = '86vh';
+        }
+        const buttonGroup = document.getElementById('buttonGroup');
+        if (buttonGroup) {
+            buttonGroup.style.padding = '6px 4px';
+            buttonGroup.style.gap = '6px';
+        }
+    } 
+    // ── Portrait, PC, or larger screens — safe reset only ──
     else {
         if (mapEl) {
             mapEl.style.height = '';
