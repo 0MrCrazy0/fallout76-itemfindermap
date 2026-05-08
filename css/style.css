@@ -1854,3 +1854,26 @@ button[onclick*="pending.html"],
         max-width: 400px !important;
     }
 }
+/* ── Restore smooth map image scaling ── */
+.leaflet-container,
+.leaflet-image-layer {
+    image-rendering: auto !important;           /* best quality */
+    /* Alternative options if you want a specific look: */
+    /* image-rendering: optimizeQuality !important; */
+    /* image-rendering: smooth !important; */
+}
+/* ── Window Controls Overlay support ── */
+@supports (display: window-controls-overlay) {
+    :root {
+        --titlebar-area-height: env(titlebar-area-height, 0px);
+    }
+
+    body {
+        padding-top: var(--titlebar-area-height);
+    }
+
+    #map {
+        height: calc(100dvh - var(--titlebar-area-height)) !important;
+        max-height: calc(100dvh - var(--titlebar-area-height)) !important;
+    }
+}
