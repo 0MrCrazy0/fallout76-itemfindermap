@@ -63,7 +63,11 @@ async function loadLatestCommunityVersion() {
         const data = await response.json();
         latestCommunityVersion = String(data.communityVersion || data.version || "1.0");
         
-        console.log('✅ Banner loaded latest Community Map version:', latestCommunityVersion);
+        // ── Nicer Fallout-themed console message ──
+console.log(
+    '%c✅ COMMUNITY MAP LOADED — v' + latestCommunityVersion,
+    'color:#00ff88; font-family:monospace; font-size:13px; font-weight:bold; background:#001a00; padding:4px 12px; border-left:4px solid #00ff00;'
+);
     } catch (e) {
         console.warn("Could not load latest community map version – using fallback", e);
     }
@@ -1301,11 +1305,11 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-54"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-56"; // must match service-worker.js
     const MAP_IMAGES = [
-        'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
-        'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
-    ];
+    'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
+    'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg?v=' + Date.now()
+];
 
     // Check if both map images are already in cache
     async function areImagesCached() {
@@ -2182,7 +2186,12 @@ postcardModal.innerHTML = `
     <div class="modal-content">
         <span class="close">×</span>
         <h2>📬 Send Postcard</h2>
-        <label>Message: <span id="charCount">0/280</span></label>
+        
+        <!-- Fixed: Proper label association for Lighthouse -->
+        <label for="postcardMessage" style="display:block; margin:12px 0 6px; color:#00ff00; font-weight:bold;">
+            Message: <span id="charCount">0/280</span>
+        </label>
+        
         <textarea
             id="postcardMessage"
             placeholder="Type your note..."
@@ -2201,12 +2210,11 @@ postcardModal.innerHTML = `
                 font-size: 14px;
                 box-sizing: border-box;
                 outline: none;
-                ::placeholder { color: #006644; opacity: 0.7; }
             "
         ></textarea>
+        
         <div style="margin-top:12px; text-align:center;">
-    <button id="createPostcardBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Copy Link</button>
-</div>
+            <button id="createPostcardBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Copy Link</button>
         </div>
     </div>
 `;
@@ -6890,7 +6898,8 @@ if (/iPad/.test(navigator.userAgent)) {
     }, 1200);
 }
 
-        console.log(
+        // ── CONSOLE BANNER ──
+console.log(
     '%c╔═════════════════════════════════════════════════════════════╗\n' +
     '║           FALLOUT 76 ITEM FINDER MAP                        ║\n' +
     '╚═════════════════════════════════════════════════════════════╝',
