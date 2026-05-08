@@ -1854,9 +1854,10 @@ button[onclick*="pending.html"],
         max-width: 400px !important;
     }
 }
-/* ── FINAL ANDROID PWA LANDSCAPE FIX (must be the LAST rule in the file) ── */
+/* ── STRONGEST POSSIBLE ANDROID PWA FIX (absolute last rule) ── */
 body.android-pwa-landscape #map,
-body.android-pwa-landscape .leaflet-container {
+body.android-pwa-landscape .leaflet-container,
+body.android-pwa-landscape .leaflet-container .leaflet-layer {
     height: 56vh !important;
     max-height: 56vh !important;
     min-height: 56vh !important;
