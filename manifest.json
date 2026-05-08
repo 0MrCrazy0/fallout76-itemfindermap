@@ -42,11 +42,5 @@
       "form_factor": "narrow",
       "label": "Fallout 76 Map — Mobile View"
     }
-  ],
-  "protocol_handlers": [
-    {
-      "protocol": "web+fo76map",
-      "url": "/fallout76-itemfindermap/?protocol=%s"
-    }
   ]
 }
