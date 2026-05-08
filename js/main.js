@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-43"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-44"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -6780,47 +6780,33 @@ function optimiseMobileLandscape() {
     const isLandscape = width > height;
     const isSmallScreen = width < 900;
 
-    // Detect iOS (Safari + PWA) — your original 80vh remains 100% unchanged
     const ua = navigator.userAgent || '';
-    const isIOSDevice = /iPad|iPhone|iPod/.test(ua) ||
-                        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isIOSDevice = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-    // Detect Android PWA only
-    const isStandalonePWA = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-                            (window.navigator && window.navigator.standalone === true);
+    const isStandalonePWA = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || (window.navigator && window.navigator.standalone === true);
     const isAndroidPWA = isStandalonePWA && !isIOSDevice;
 
     if (isIOSDevice && isLandscape && isSmallScreen) {
-        // Your original tuned iOS behaviour — completely untouched
+        // iOS untouched
         mapEl.style.height = '80vh';
         mapEl.style.maxHeight = '80vh';
-        const buttonGroup = document.getElementById('buttonGroup');
-        if (buttonGroup) {
-            buttonGroup.style.padding = '6px 4px';
-            buttonGroup.style.gap = '6px';
-        }
     } 
     else if (isAndroidPWA && isLandscape && isSmallScreen) {
-        // Android PWA only — add class so CSS rule can target it
+        // Android PWA — force inline style (strongest possible)
         document.body.classList.add('android-pwa-landscape');
         mapEl.style.height = '56vh';
         mapEl.style.maxHeight = '56vh';
+        mapEl.style.minHeight = '56vh';
     } 
     else {
-        // Reset on PC, portrait, normal browser, etc.
         document.body.classList.remove('android-pwa-landscape');
         mapEl.style.height = '';
         mapEl.style.maxHeight = '';
-        const buttonGroup = document.getElementById('buttonGroup');
-        if (buttonGroup) {
-            buttonGroup.style.padding = '';
-            buttonGroup.style.gap = '';
-        }
+        mapEl.style.minHeight = '';
     }
 
-    // Safe redraw for ALL devices
     if (typeof map !== 'undefined' && map) {
-        setTimeout(() => map.invalidateSize({ animate: false }), 150);
+        setTimeout(() => map.invalidateSize({ animate: false }), 120);
     }
 }
 
