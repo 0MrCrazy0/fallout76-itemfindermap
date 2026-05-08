@@ -879,13 +879,6 @@ map.on('click', function () {
     map.closePopup();
 });
 
-// Force container size calculation early for iOS (Safari + PWA)
-const mapEl = document.getElementById('map');
-if (mapEl) {
-    mapEl.style.height = '100dvh';   // use dynamic viewport height
-    setTimeout(() => { mapEl.style.height = ''; }, 80);
-}
-
 // ── Stronger iOS Render Safeguard (Safari browser + installed PWA) ──
 function forceMapRender() {
     safeInvalidateSize();
@@ -1301,7 +1294,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-51"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-52"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -6889,6 +6882,72 @@ if (/iPad/.test(navigator.userAgent)) {
         unlockAudio();
     }, 1200);
 }
+
+// ── EDGE SCROLL INDICATORS for landscape PWA (green drag handles) ──
+function setupEdgeScrollIndicators() {
+    const leftIndicator = document.createElement('div');
+    leftIndicator.className = 'edge-scroll-indicator left';
+    const rightIndicator = document.createElement('div');
+    rightIndicator.className = 'edge-scroll-indicator right';
+    
+    document.body.appendChild(leftIndicator);
+    document.body.appendChild(rightIndicator);
+
+    let activeIndicator = null;
+    let startY = 0;
+
+    function showIndicator(side) {
+        if (side === 'left') leftIndicator.classList.add('show');
+        else rightIndicator.classList.add('show');
+    }
+
+    function hideIndicators() {
+        leftIndicator.classList.remove('show');
+        rightIndicator.classList.remove('show');
+    }
+
+    document.addEventListener('touchstart', e => {
+        if (!e.touches || e.touches.length !== 1) return;
+        
+        const x = e.touches[0].clientX;
+        const width = window.innerWidth;
+        
+        // Only activate in landscape on small screens
+        if (window.innerWidth <= window.innerHeight || width > 900) return;
+
+        if (x < 40) {
+            activeIndicator = leftIndicator;
+            startY = e.touches[0].clientY;
+            showIndicator('left');
+        } else if (x > width - 40) {
+            activeIndicator = rightIndicator;
+            startY = e.touches[0].clientY;
+            showIndicator('right');
+        }
+    });
+
+    document.addEventListener('touchmove', e => {
+        if (!activeIndicator) return;
+        
+        const currentY = e.touches[0].clientY;
+        const delta = currentY - startY;
+        window.scrollBy(0, delta * 1.8);   // smooth, responsive scrolling
+        startY = currentY;
+    });
+
+    document.addEventListener('touchend', () => {
+        if (activeIndicator) hideIndicators();
+        activeIndicator = null;
+    });
+
+    // Hide indicators when scrolling finishes
+    window.addEventListener('scroll', () => {
+        if (activeIndicator) hideIndicators();
+    });
+}
+
+// Initialise the edge scroll indicators
+setTimeout(setupEdgeScrollIndicators, 1200);
 
         console.log(
     '%c╔═════════════════════════════════════════════════════════════╗\n' +
