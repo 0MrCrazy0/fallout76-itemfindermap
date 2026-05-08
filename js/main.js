@@ -1307,7 +1307,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-OK-9-05-2026-Build-B-62";
+    const CACHE_NAME = "76-Vault-OK-9-05-2026-Build-B-63";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -6780,55 +6780,45 @@ window.addEventListener('load', () => {
 // Initial run
 setTimeout(forceUltraWideScaling, 300);
 
-        // ── Mobile Landscape Optimisation (smaller screens only) ──
-        // Reduces scrolling in landscape while keeping portrait mode 100% unchanged
-        function optimiseMobileLandscape() {
+// ── RELIABLE ANDROID LANDSCAPE FIX (does NOT affect iOS) ──
+function optimiseMobileLandscape() {
+    const mapEl = document.getElementById('map');
+    if (!mapEl) return;
+
     const width = window.innerWidth;
     const height = window.innerHeight;
     const isLandscape = width > height;
-    const isSmallScreen = width < 900; // typical phone in landscape
+    const isSmallScreen = width < 900;
 
-    const mapEl       = document.getElementById('map');
-    const buttonGroup = document.getElementById('buttonGroup');
+    const ua = navigator.userAgent || '';
+    const isIOSDevice = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isStandalonePWA = window.matchMedia('(display-mode: standalone)').matches;
 
-    if (isLandscape && isSmallScreen) {
-        // Make map slightly less tall so UI elements are easier to reach
-        if (mapEl) {
-            mapEl.style.height = '80vh';
-            mapEl.style.maxHeight = '80vh';
-        }
+    // Only apply to Android (never touch iOS)
+    const isAndroidLandscape = isLandscape && isSmallScreen && !isIOSDevice;
 
-        // Slightly tighter tools panel
-        if (buttonGroup) {
-            buttonGroup.style.padding = '6px 4px';
-            buttonGroup.style.gap = '6px';
-        }
+    if (isAndroidLandscape) {
+        document.body.classList.add('android-pwa-landscape');
+        mapEl.style.setProperty('height', '58vh', 'important');
+        mapEl.style.setProperty('max-height', '58vh', 'important');
+        mapEl.style.setProperty('min-height', '58vh', 'important');
     } else {
-        // Reset everything for portrait mode and larger screens
-        if (mapEl) {
-            mapEl.style.height = '';
-            mapEl.style.maxHeight = '';
-        }
-        if (buttonGroup) {
-            buttonGroup.style.padding = '';
-            buttonGroup.style.gap = '';
-        }
+        document.body.classList.remove('android-pwa-landscape');
+        mapEl.style.height = '';
+        mapEl.style.maxHeight = '';
+        mapEl.style.minHeight = '';
     }
 
-    // Force Leaflet to redraw correctly – small delay helps speech bubbles stay open
+    // Force Leaflet redraw
     if (typeof map !== 'undefined' && map) {
-        setTimeout(() => {
-            map.invalidateSize({ animate: false });
-        }, 120);
+        setTimeout(() => map.invalidateSize({ animate: false }), 80);
     }
 }
 
-// Run automatically on orientation change and resize
 window.addEventListener('resize', optimiseMobileLandscape);
 window.addEventListener('orientationchange', () => {
-    setTimeout(optimiseMobileLandscape, 180);
+    setTimeout(optimiseMobileLandscape, 120);
 });
-// Initial run after page loads
 setTimeout(optimiseMobileLandscape, 800);
 
 /* ── CUSTOM IMMERSIVE MODE FOR iPHONE BROWSERS ONLY (Final v7 + iPad Sound Fix) ── */
