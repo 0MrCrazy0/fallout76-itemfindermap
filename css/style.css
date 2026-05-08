@@ -68,14 +68,6 @@
         margin: 0 !important;
         padding: 0 !important;
     }
-	/* ── ANDROID PWA LANDSCAPE FIX — shorter map height ── */
-@media (display-mode: standalone) and (hover: none) and (pointer: coarse) and not (-webkit-touch-callout: none) {
-    #map {
-        height: 68vh !important;
-        max-height: 68vh !important;
-        min-height: 68vh !important;
-    }
-}
 
     h1,
     #titleToggleContainer,
@@ -1860,5 +1852,14 @@ button[onclick*="pending.html"],
 @media (min-width: 1200px) {
     #searchBar {
         max-width: 400px !important;
+    }
+}
+/* ── ULTIMATE ANDROID PWA LANDSCAPE FIX (highest priority) ── */
+@media (display-mode: standalone) and (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    #map,
+    .leaflet-container {
+        height: 62vh !important;
+        max-height: 62vh !important;
+        min-height: 62vh !important;
     }
 }
