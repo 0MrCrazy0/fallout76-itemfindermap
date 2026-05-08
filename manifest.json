@@ -2,9 +2,14 @@
   "name": "Fallout 76 Item Finder Map",
   "short_name": "FO76 Map",
   "description": "The ultimate interactive item & location map for Fallout 76",
+  "id": "/fallout76-itemfindermap/",
   "start_url": "/fallout76-itemfindermap/",
   "display": "fullscreen",
-  "display_override": ["fullscreen", "standalone"],
+  "display_override": [
+    "window-controls-overlay",
+    "fullscreen",
+    "standalone"
+  ],
   "background_color": "#0a2a2a",
   "theme_color": "#00ff00",
   "version": "76.Vault.OK",
@@ -13,13 +18,29 @@
       "src": "/fallout76-itemfindermap/icon-192-v2.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/fallout76-itemfindermap/icon-512-v2.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/fallout76-itemfindermap/map-named.jpg",
+      "sizes": "1920x1080",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "Fallout 76 Map — Desktop View"
+    },
+    {
+      "src": "/fallout76-itemfindermap/map-noname.jpg",
+      "sizes": "1080x1920",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Fallout 76 Map — Mobile View"
     }
   ]
 }
