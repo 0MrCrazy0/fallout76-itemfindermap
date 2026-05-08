@@ -46,9 +46,9 @@
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
-        height: 72vh !important;
-        max-height: 72vh !important;
-        min-height: 72vh !important;
+        width: 100vw !important;
+        height: 100dvh !important;
+        min-height: 100dvh !important;
         margin: 0 !important;
         padding: 0 !important;
         max-width: none !important;
@@ -68,6 +68,14 @@
         margin: 0 !important;
         padding: 0 !important;
     }
+	/* ── ANDROID PWA LANDSCAPE FIX — shorter map height ── */
+@media (display-mode: standalone) and (hover: none) and (pointer: coarse) and not (-webkit-touch-callout: none) {
+    #map {
+        height: 68vh !important;
+        max-height: 68vh !important;
+        min-height: 68vh !important;
+    }
+}
 
     h1,
     #titleToggleContainer,
