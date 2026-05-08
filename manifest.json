@@ -28,19 +28,25 @@
     }
   ],
   "screenshots": [
-  {
-    "src": "/fallout76-itemfindermap/map-named.jpg",
-    "sizes": "4096x4096",
-    "type": "image/jpeg",
-    "form_factor": "wide",
-    "label": "Fallout 76 Map — Desktop View"
-  },
-  {
-    "src": "/fallout76-itemfindermap/map-noname.jpg",
-    "sizes": "4096x4096",
-    "type": "image/jpeg",
-    "form_factor": "narrow",
-    "label": "Fallout 76 Map — Mobile View"
-  }
-]
+    {
+      "src": "/fallout76-itemfindermap/map-named.jpg",
+      "sizes": "4096x4096",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "Fallout 76 Map — Desktop View"
+    },
+    {
+      "src": "/fallout76-itemfindermap/map-noname.jpg",
+      "sizes": "4096x4096",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Fallout 76 Map — Mobile View"
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+fo76map",
+      "url": "/fallout76-itemfindermap/?protocol=%s"
+    }
+  ]
 }
