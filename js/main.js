@@ -886,7 +886,7 @@ if (mapEl) {
                         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     
     if (isIOSDevice) {
-        mapEl.style.height = '100dvh';
+        mapEl.style.height = '80dvh';
         setTimeout(() => { mapEl.style.height = ''; }, 80);
     }
 }
@@ -1089,7 +1089,7 @@ function enterFullscreen() {
         mapEl.style.top = '0';
         mapEl.style.left = '0';
         mapEl.style.width = '100vw';
-        mapEl.style.height = '100dvh';
+        mapEl.style.height = '80dvh';
         mapEl.style.paddingTop = 'env(safe-area-inset-top)';
         mapEl.style.paddingBottom = 'env(safe-area-inset-bottom)';
         mapEl.style.zIndex = '999999';
@@ -1306,7 +1306,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-46"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-47"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
