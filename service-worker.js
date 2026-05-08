@@ -1,7 +1,7 @@
 // ——— SERVICE WORKER ———
 // Cache busting: Update this line on EVERY deployment that changes HTML, JS, CSS, or communitymap.json
 // Format: "fo76-ifm-v{VERSION}-{DDMMYYYY}" or "fo76-ifm-v{VERSION}-{DDMMYYYY}-buildN"
-const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-39";
+const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-40";
 
 // ── Precache the two large map images for instant loading after first visit ──
 const MAP_IMAGES = [
