@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-36"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-37"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -6770,46 +6770,50 @@ window.addEventListener('load', () => {
 // Initial run
 setTimeout(forceUltraWideScaling, 300);
 
-        // ── Mobile Landscape Optimisation (smaller screens only) ──
-        // Reduces scrolling in landscape while keeping portrait mode 100% unchanged
-        function optimiseMobileLandscape() {
+// ── Mobile Landscape Optimisation — iOS ONLY
+function optimiseMobileLandscape() {
+    const mapEl = document.getElementById('map');
+    if (!mapEl) return;
+
     const width = window.innerWidth;
     const height = window.innerHeight;
     const isLandscape = width > height;
-    const isSmallScreen = width < 900; // typical phone in landscape
+    const isSmallScreen = width < 900;
 
-    const mapEl       = document.getElementById('map');
-    const buttonGroup = document.getElementById('buttonGroup');
+    // Detect iOS devices (covers both Safari browser and PWA)
+    const ua = navigator.userAgent || '';
+    const isIOSDevice = /iPad|iPhone|iPod/.test(ua) ||
+                        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-    if (isLandscape && isSmallScreen) {
-        // Make map slightly less tall so UI elements are easier to reach
+    if (isIOSDevice && isLandscape && isSmallScreen) {
         if (mapEl) {
             mapEl.style.height = '80vh';
             mapEl.style.maxHeight = '80vh';
         }
-
-        // Slightly tighter tools panel
+        const buttonGroup = document.getElementById('buttonGroup');
         if (buttonGroup) {
             buttonGroup.style.padding = '6px 4px';
             buttonGroup.style.gap = '6px';
         }
-    } else {
-        // Reset everything for portrait mode and larger screens
+    } 
+    // ── Android / PC / portrait / larger screens — safe reset only ──
+    else {
         if (mapEl) {
             mapEl.style.height = '';
             mapEl.style.maxHeight = '';
         }
+        const buttonGroup = document.getElementById('buttonGroup');
         if (buttonGroup) {
             buttonGroup.style.padding = '';
             buttonGroup.style.gap = '';
         }
     }
 
-    // Force Leaflet to redraw correctly – small delay helps speech bubbles stay open
+    // Safe redraw for ALL devices
     if (typeof map !== 'undefined' && map) {
         setTimeout(() => {
             map.invalidateSize({ animate: false });
-        }, 120);
+        }, 150);
     }
 }
 
