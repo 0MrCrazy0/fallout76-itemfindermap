@@ -882,13 +882,8 @@ map.on('click', function () {
 // Force container size calculation early for iOS (Safari + PWA)
 const mapEl = document.getElementById('map');
 if (mapEl) {
-    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    
-    if (isIOSDevice) {
-        mapEl.style.height = '100dvh';
-        setTimeout(() => { mapEl.style.height = ''; }, 80);
-    }
+    mapEl.style.height = '100dvh';   // use dynamic viewport height
+    setTimeout(() => { mapEl.style.height = ''; }, 80);
 }
 
 // ── Stronger iOS Render Safeguard (Safari browser + installed PWA) ──
@@ -1306,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-50"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-51"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -6775,47 +6770,46 @@ window.addEventListener('load', () => {
 // Initial run
 setTimeout(forceUltraWideScaling, 300);
 
-// ── Mobile Landscape Optimisation — iOS untouched, Android forced with !important ──
-function optimiseMobileLandscape() {
-    const mapEl = document.getElementById('map');
-    if (!mapEl) return;
-
+        // ── Mobile Landscape Optimisation (smaller screens only) ──
+        // Reduces scrolling in landscape while keeping portrait mode 100% unchanged
+        function optimiseMobileLandscape() {
     const width = window.innerWidth;
     const height = window.innerHeight;
     const isLandscape = width > height;
+    const isSmallScreen = width < 900; // typical phone in landscape
 
-    const ua = navigator.userAgent || '';
-    const isIOSDevice = /iPad|iPhone|iPod/.test(ua) || 
-                        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const mapEl       = document.getElementById('map');
+    const buttonGroup = document.getElementById('buttonGroup');
 
-    const isStandalonePWA = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-                            (window.navigator && window.navigator.standalone === true);
+    if (isLandscape && isSmallScreen) {
+        // Make map slightly less tall so UI elements are easier to reach
+        if (mapEl) {
+            mapEl.style.height = '80vh';
+            mapEl.style.maxHeight = '80vh';
+        }
 
-    const isAndroidPWA = isStandalonePWA && !isIOSDevice;
-
-    if (isIOSDevice && isLandscape) {
-        // iOS untouched
-        mapEl.style.height = '80vh';
-        mapEl.style.maxHeight = '80vh';
-    } 
-    else if (isAndroidPWA && isLandscape) {
-        // Android PWA — clean, strong override
-        document.body.classList.add('android-pwa-landscape');
-        mapEl.style.setProperty('height', '56vh', 'important');
-        mapEl.style.setProperty('max-height', '56vh', 'important');
-        mapEl.style.setProperty('min-height', '56vh', 'important');
-    } 
-    else {
-        // Reset on all other devices
-        document.body.classList.remove('android-pwa-landscape');
-        mapEl.style.removeProperty('height');
-        mapEl.style.removeProperty('max-height');
-        mapEl.style.removeProperty('min-height');
+        // Slightly tighter tools panel
+        if (buttonGroup) {
+            buttonGroup.style.padding = '6px 4px';
+            buttonGroup.style.gap = '6px';
+        }
+    } else {
+        // Reset everything for portrait mode and larger screens
+        if (mapEl) {
+            mapEl.style.height = '';
+            mapEl.style.maxHeight = '';
+        }
+        if (buttonGroup) {
+            buttonGroup.style.padding = '';
+            buttonGroup.style.gap = '';
+        }
     }
 
+    // Force Leaflet to redraw correctly – small delay helps speech bubbles stay open
     if (typeof map !== 'undefined' && map) {
-        setTimeout(() => map.invalidateSize({ animate: false }), 80);
-        setTimeout(() => map.invalidateSize({ animate: false }), 220);
+        setTimeout(() => {
+            map.invalidateSize({ animate: false });
+        }, 120);
     }
 }
 
