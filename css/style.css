@@ -32,8 +32,8 @@
         margin: 0 !important;
         padding: 0 !important;
         width: 100vw !important;
-        height: 80dvh !important;
-        min-height: 80dvh !important;
+        height: 100dvh !important;
+        min-height: 100dvh !important;
         overflow: hidden !important;
         position: fixed !important;
         top: 0 !important;
@@ -47,8 +47,8 @@
         top: 0 !important;
         left: 0 !important;
         width: 100vw !important;
-        height: 80dvh !important;
-        min-height: 80dvh !important;
+        height: 100dvh !important;
+        min-height: 100dvh !important;
         margin: 0 !important;
         padding: 0 !important;
         max-width: none !important;
@@ -1466,8 +1466,8 @@ body.immersive-mode {
     top: 0 !important;
     left: 0 !important;
     width: 100vw !important;
-    height: 80dvh !important;
-    min-height: 80dvh !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
     padding-top: env(safe-area-inset-top) !important;
     padding-bottom: env(safe-area-inset-bottom) !important;
     padding-left: env(safe-area-inset-left) !important;
@@ -1481,8 +1481,8 @@ body.immersive-mode .leaflet-container {
     top: 0 !important;
     left: 0 !important;
     width: 100vw !important;
-    height: 80dvh !important;
-    min-height: 80dvh !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
     margin: 0 !important;
     padding: 0 !important;
     border: none !important;
@@ -1853,12 +1853,4 @@ button[onclick*="pending.html"],
     #searchBar {
         max-width: 400px !important;
     }
-}
-/* ── STRONGEST POSSIBLE ANDROID PWA FIX (absolute last rule) ── */
-body.android-pwa-landscape #map,
-body.android-pwa-landscape .leaflet-container,
-body.android-pwa-landscape .leaflet-container .leaflet-layer {
-    height: 56vh !important;
-    max-height: 56vh !important;
-    min-height: 56vh !important;
 }
