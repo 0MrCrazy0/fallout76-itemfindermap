@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-39"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-40"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -6770,9 +6770,9 @@ window.addEventListener('load', () => {
 // Initial run
 setTimeout(forceUltraWideScaling, 300);
 
-// ── Mobile Landscape Optimisation — iOS ONLY + Android balanced height ──
+// ── Mobile Landscape Optimisation — iOS + Android PWA only ──
 // iOS behaviour remains 100% unchanged (your tested 80vh)
-// Android now uses a balanced height so buttons stay visible
+// Android PWA now gets a balanced height so buttons stay visible
 function optimiseMobileLandscape() {
     const mapEl = document.getElementById('map');
     if (!mapEl) return;
@@ -6782,10 +6782,14 @@ function optimiseMobileLandscape() {
     const isLandscape = width > height;
     const isSmallScreen = width < 900;
 
-    // Detect iOS devices (covers both Safari browser and PWA)
+    // Detect iOS devices (Safari browser + PWA)
     const ua = navigator.userAgent || '';
     const isIOSDevice = /iPad|iPhone|iPod/.test(ua) ||
                         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    // Detect Android PWA / standalone mode
+    const isStandalonePWA = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+                            (window.navigator && window.navigator.standalone === true);
 
     if (isIOSDevice && isLandscape && isSmallScreen) {
         // ── Your original tuned iOS behaviour (80vh) — unchanged ──
@@ -6799,12 +6803,12 @@ function optimiseMobileLandscape() {
             buttonGroup.style.gap = '6px';
         }
     } 
-    else if (isLandscape && isSmallScreen) {
-        // ── Android balanced landscape height (leaves room for search bar + buttons) ──
-        // You can tweak 86vh if you want it slightly taller or shorter
+    else if (isStandalonePWA && isLandscape && isSmallScreen) {
+        // ── Android PWA balanced height (leaves room for search bar + buttons) ──
+        // 76vh worked well in testing — you can change to 78vh or 74vh if needed
         if (mapEl) {
-            mapEl.style.height = '66vh';
-            mapEl.style.maxHeight = '66vh';
+            mapEl.style.height = '76vh';
+            mapEl.style.maxHeight = '76vh';
         }
         const buttonGroup = document.getElementById('buttonGroup');
         if (buttonGroup) {
@@ -6812,7 +6816,7 @@ function optimiseMobileLandscape() {
             buttonGroup.style.gap = '6px';
         }
     } 
-    // ── Portrait, PC, or larger screens — safe reset only ──
+    // ── Normal browser mode (Android Chrome, PC, portrait, etc.) — safe reset only ──
     else {
         if (mapEl) {
             mapEl.style.height = '';
