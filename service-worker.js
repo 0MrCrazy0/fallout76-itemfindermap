@@ -1,12 +1,13 @@
 // ——— SERVICE WORKER ———
 // Cache busting: Update this line on EVERY deployment that changes HTML, JS, CSS, or communitymap.json
 // Format: "fo76-ifm-v{VERSION}-{DDMMYYYY}" or "fo76-ifm-v{VERSION}-{DDMMYYYY}-buildN"
-const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-54";
+const CACHE_NAME = "76-Vault-OK-9-05-2026-Build-B-57";
 
 // ── Precache the two large map images for instant loading after first visit ──
+// Added cache-buster so jsDelivr + service worker always get the latest version
 const MAP_IMAGES = [
-    'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
-    'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
+    'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
+    'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg?v=' + Date.now()
 ];
 
 self.addEventListener("install", e => {
