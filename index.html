@@ -86,11 +86,13 @@
     <!-- Combined search, category filter, and category toggle controls -->
     <div style="position:relative; display:block; margin:15px auto; max-width:600px;">
     <div id="searchBar" style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; align-items:center;">
-        <input type="text" id="combinedSearch" placeholder="desc/cate/grid.." style="flex:1; min-width:200px; padding:8px; background:#000; color:#0f0; border:1px solid #0f0; border-radius:4px;">
-        <button id="clearSearchBtn" style="background:none; border:none; color:#00ff00; font-size:18px; cursor:pointer; display:none; padding:0 8px;">X</button>
-        <select id="categoryFilter" style="padding:8px; background:#000; color:#0f0; border:1px solid #0f0; border-radius:4px;"><option value="">All Categories</option></select>
-        <button id="toggleCategoryModalBtn" style="padding:8px 12px; background:#1a3c34; color:#0f0; border:1px solid #0f0; border-radius:4px;">Toggle Categories</button>
-    </div>
+  <label for="combinedSearch" style="display:none;">Search description or category</label>
+  <input type="text" id="combinedSearch" placeholder="desc/cate/grid.." style="flex:1; min-width:200px; padding:8px; background:#000; color:#0f0; border:1px solid #0f0; border-radius:4px;">
+  <button id="clearSearchBtn" style="background:none; border:none; color:#00ff00; font-size:18px; cursor:pointer; display:none; padding:0 8px;">X</button>
+  <label for="categoryFilter" style="display:none;">Filter by category</label>
+  <select id="categoryFilter" style="padding:8px; background:#000; color:#0f0; border:1px solid #0f0; border-radius:4px;"><option value="">All Categories</option></select>
+  <button id="toggleCategoryModalBtn" style="padding:8px 12px; background:#1a3c34; color:#0f0; border:1px solid #0f0; border-radius:4px;">Toggle Categories</button>
+</div>
     <!-- AUTOCOMPLETE DROPDOWN — NOW PERFECTLY UNDER THE BAR -->
     <div id="searchSuggestions"></div>
 </div>
@@ -126,11 +128,12 @@
     <div id="infoPanel" class="info-panel">
         <!-- Player Name -->
         <div style="text-align:center; margin:10px auto 15px; max-width:420px; width:100%;">
-          <input type="text" id="playerNameInput" placeholder="Your In-Game Name (optional)"
-                 style="width:100%; padding:12px; background:#000; color:#0f0; border:2px solid #0f0;
-                        font-family:'Courier New',monospace; font-size:16px; text-align:center;
-                        box-sizing:border-box;">
-        </div>
+  <label for="playerNameInput" style="display:block; margin-bottom:4px; color:#00ff00; font-weight:bold;">Your In-Game Name (optional)</label>
+  <input type="text" id="playerNameInput" placeholder="Your In-Game Name (optional)"
+         style="width:100%; padding:12px; background:#000; color:#0f0; border:2px solid #0f0;
+                font-family:'Courier New',monospace; font-size:16px; text-align:center;
+                box-sizing:border-box;">
+</div>
 
         <!-- XP Status -->
         <div id="xpStatus" style="text-align:center; margin:10px; color:#0f0; font-weight:bold;">
@@ -169,10 +172,10 @@
         <div class="modal-content">
             <span class="close">X</span>
             <h2 id="modalTitle">Log Item <span id="modalLockToggle" style="font-size:22px; cursor:pointer; margin-left:10px;">Unlock</span></h2>
-            <label>Category:</label>
-            <select id="itemCategory"></select>
-            <label>Description:</label>
-            <textarea id="itemDesc" placeholder="Enter item and location details or leave blank auto puts gid location"></textarea>
+            <label for="itemCategory">Category:</label>
+<select id="itemCategory"></select>
+<label for="itemDesc">Description:</label>
+<textarea id="itemDesc" placeholder="Enter item and location details or leave blank auto puts gid location"></textarea>
             <div style="margin-top:12px; text-align:center; display:flex; flex-wrap:wrap; justify-content:center; gap:10px;">
     <button id="saveItemBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:110px; padding:10px 20px; font-weight:bold;">Save</button>
     <button id="shareItemBtn" style="background:#00d4ff !important; color:#000000 !important; border:2px solid #00d4ff; min-width:110px; padding:10px 20px; font-weight:bold;">Share Map View</button>
@@ -308,10 +311,10 @@
         <div class="modal-content">
             <span class="close">X</span>
             <h2>Create New Category</h2>
-            <label style="display:block; margin:10px 0 4px;">Category Name:</label>
-            <input type="text" id="newCategoryName" placeholder="Enter category name" style="width:100%; padding:8px; margin-bottom:10px;">
-            <label style="display:block; margin:10px 0 4px;">Emoji (only one):</label>
-            <input type="text" id="newCategoryEmoji" placeholder="Paste emoji" maxlength="2" inputmode="text" style="width:100%; padding:8px; margin-bottom:10px;">
+            <label for="newCategoryName">Category Name:</label>
+<input type="text" id="newCategoryName" placeholder="Enter category name" style="width:100%; padding:8px; margin-bottom:10px;">
+<label for="newCategoryEmoji">Emoji (only one):</label>
+<input type="text" id="newCategoryEmoji" placeholder="Paste emoji" maxlength="2" inputmode="text" style="width:100%; padding:8px; margin-bottom:10px;">
             <p class="small">Paste one emoji. Only emojis allowed.</p>
             <div style="margin-top:12px; text-align:center;">
     <button id="saveCategoryBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Save Category</button>
@@ -325,10 +328,10 @@
         <div class="modal-content">
             <span class="close">X</span>
             <h2>Delete Category</h2>
-            <label>Select Category to Delete:</label>
-            <select id="deleteCategorySelect">
-                <option value="">Select a custom category</option>
-            </select>
+            <label for="deleteCategorySelect">Select Category to Delete:</label>
+<select id="deleteCategorySelect">
+    <option value="">Select a custom category</option>
+</select>
             <p class="small">Deleting a category will reassign all its markers to "misc".</p>
             <div style="margin-top:12px; text-align:center;">
                 <button id="confirmDeleteCategoryBtn"
