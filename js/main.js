@@ -6780,45 +6780,55 @@ window.addEventListener('load', () => {
 // Initial run
 setTimeout(forceUltraWideScaling, 300);
 
-// ── RELIABLE ANDROID LANDSCAPE FIX (does NOT affect iOS) ──
-function optimiseMobileLandscape() {
-    const mapEl = document.getElementById('map');
-    if (!mapEl) return;
-
+        // ── Mobile Landscape Optimisation (smaller screens only) ──
+        // Reduces scrolling in landscape while keeping portrait mode 100% unchanged
+        function optimiseMobileLandscape() {
     const width = window.innerWidth;
     const height = window.innerHeight;
     const isLandscape = width > height;
-    const isSmallScreen = width < 900;
+    const isSmallScreen = width < 900; // typical phone in landscape
 
-    const ua = navigator.userAgent || '';
-    const isIOSDevice = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    const isStandalonePWA = window.matchMedia('(display-mode: standalone)').matches;
+    const mapEl       = document.getElementById('map');
+    const buttonGroup = document.getElementById('buttonGroup');
 
-    // Only apply to Android (never touch iOS)
-    const isAndroidLandscape = isLandscape && isSmallScreen && !isIOSDevice;
+    if (isLandscape && isSmallScreen) {
+        // Make map slightly less tall so UI elements are easier to reach
+        if (mapEl) {
+            mapEl.style.height = '80vh';
+            mapEl.style.maxHeight = '80vh';
+        }
 
-    if (isAndroidLandscape) {
-        document.body.classList.add('android-pwa-landscape');
-        mapEl.style.setProperty('height', '58vh', 'important');
-        mapEl.style.setProperty('max-height', '58vh', 'important');
-        mapEl.style.setProperty('min-height', '58vh', 'important');
+        // Slightly tighter tools panel
+        if (buttonGroup) {
+            buttonGroup.style.padding = '6px 4px';
+            buttonGroup.style.gap = '6px';
+        }
     } else {
-        document.body.classList.remove('android-pwa-landscape');
-        mapEl.style.height = '';
-        mapEl.style.maxHeight = '';
-        mapEl.style.minHeight = '';
+        // Reset everything for portrait mode and larger screens
+        if (mapEl) {
+            mapEl.style.height = '';
+            mapEl.style.maxHeight = '';
+        }
+        if (buttonGroup) {
+            buttonGroup.style.padding = '';
+            buttonGroup.style.gap = '';
+        }
     }
 
-    // Force Leaflet redraw
+    // Force Leaflet to redraw correctly – small delay helps speech bubbles stay open
     if (typeof map !== 'undefined' && map) {
-        setTimeout(() => map.invalidateSize({ animate: false }), 80);
+        setTimeout(() => {
+            map.invalidateSize({ animate: false });
+        }, 120);
     }
 }
 
+// Run automatically on orientation change and resize
 window.addEventListener('resize', optimiseMobileLandscape);
 window.addEventListener('orientationchange', () => {
-    setTimeout(optimiseMobileLandscape, 120);
+    setTimeout(optimiseMobileLandscape, 180);
 });
+// Initial run after page loads
 setTimeout(optimiseMobileLandscape, 800);
 
 /* ── CUSTOM IMMERSIVE MODE FOR iPHONE BROWSERS ONLY (Final v7 + iPad Sound Fix) ── */
