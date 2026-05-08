@@ -882,8 +882,13 @@ map.on('click', function () {
 // Force container size calculation early for iOS (Safari + PWA)
 const mapEl = document.getElementById('map');
 if (mapEl) {
-    mapEl.style.height = '100dvh';   // use dynamic viewport height
-    setTimeout(() => { mapEl.style.height = ''; }, 80);
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    
+    if (isIOSDevice) {
+        mapEl.style.height = '100dvh';
+        setTimeout(() => { mapEl.style.height = ''; }, 80);
+    }
 }
 
 // ── Stronger iOS Render Safeguard (Safari browser + installed PWA) ──
@@ -1301,7 +1306,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-45"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-46"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
