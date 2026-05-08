@@ -1877,3 +1877,25 @@ button[onclick*="pending.html"],
         max-height: calc(100dvh - var(--titlebar-area-height)) !important;
     }
 }
+/* ── ANDROID LANDSCAPE FIX — highest priority, only Android PWA/browser in landscape ── */
+@media (display-mode: standalone),
+       (hover: none) and (pointer: coarse) and (orientation: landscape) and (max-width: 899px) {
+    body.android-pwa-landscape #map,
+    body.android-pwa-landscape .leaflet-container,
+    #map,
+    .leaflet-container {
+        height: 58vh !important;
+        max-height: 58vh !important;
+        min-height: 58vh !important;
+    }
+}
+
+/* Extra safety for Android Chrome tabs (non-PWA) */
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) and (max-width: 899px) {
+    #map,
+    .leaflet-container {
+        height: 58vh !important;
+        max-height: 58vh !important;
+        min-height: 58vh !important;
+    }
+}
