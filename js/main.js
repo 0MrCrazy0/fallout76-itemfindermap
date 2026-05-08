@@ -1301,7 +1301,7 @@ window.exitFullscreenThenDo = function(callback) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-40"; // must match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-8-05-2026-Build-B-41"; // must match service-worker.js
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg',
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg'
@@ -6772,7 +6772,7 @@ setTimeout(forceUltraWideScaling, 300);
 
 // ── Mobile Landscape Optimisation — iOS + Android PWA only ──
 // iOS behaviour remains 100% unchanged (your tested 80vh)
-// Android PWA now gets a balanced height so buttons stay visible
+// Android PWA now uses a noticeably shorter height
 function optimiseMobileLandscape() {
     const mapEl = document.getElementById('map');
     if (!mapEl) return;
@@ -6804,11 +6804,10 @@ function optimiseMobileLandscape() {
         }
     } 
     else if (isStandalonePWA && isLandscape && isSmallScreen) {
-        // ── Android PWA balanced height (leaves room for search bar + buttons) ──
-        // 76vh worked well in testing — you can change to 78vh or 74vh if needed
+        // ── Android PWA shorter landscape height — try 68vh first ──
         if (mapEl) {
-            mapEl.style.height = '76vh';
-            mapEl.style.maxHeight = '76vh';
+            mapEl.style.height = '68vh';
+            mapEl.style.maxHeight = '68vh';
         }
         const buttonGroup = document.getElementById('buttonGroup');
         if (buttonGroup) {
