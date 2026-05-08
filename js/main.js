@@ -1300,16 +1300,19 @@ window.exitFullscreenThenDo = function(callback) {
         if (typeof callback === 'function') callback();
     }
 };
-// ── MAP RENDER
+
+// ── MAP RENDER + INTELLIGENT LOADING BANNER ──
 (function() {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const CACHE_NAME = "76-Vault-OK-9-05-2026-Build-B-59"; // must match service-worker.js
+    // Must exactly match service-worker.js
+    const CACHE_NAME = "76-Vault-OK-9-05-2026-Build-B-60";
+
     const MAP_IMAGES = [
-    'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
-    'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg?v=' + Date.now()
-];
+        'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
+        'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-noname.jpg?v=' + Date.now()
+    ];
 
     // Check if both map images are already in cache
     async function areImagesCached() {
@@ -1320,7 +1323,7 @@ window.exitFullscreenThenDo = function(callback) {
             );
             return results.every(response => response !== undefined);
         } catch (err) {
-            return false; // if cache check fails, show banner as safety
+            return false;
         }
     }
 
@@ -1368,15 +1371,14 @@ window.exitFullscreenThenDo = function(callback) {
         if (!cached) {
             createAndShowBanner();
         }
-        // If already cached → banner is never shown (instant load)
     });
 
-    // Hide banner when image finishes loading (or safety timeout)
+    // Hide banner when image finishes loading
     const hideOverlay = () => { hideBanner(); };
 
     imageOverlay.on('load', hideOverlay);
     imageOverlay.on('error', hideOverlay);
-    setTimeout(hideOverlay, 12000);
+    setTimeout(hideOverlay, 10000);
 
     // Keep existing iOS force-render logic (unchanged)
     const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) ||
