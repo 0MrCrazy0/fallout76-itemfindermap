@@ -1307,7 +1307,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-OK-10-05-2026-Build-B-70";
+    const CACHE_NAME = "76-Vault-OK-10-05-2026-Build-B-71";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -3397,15 +3397,24 @@ function reopenPopupAfterModalClose() {
 }
 function recalculateXP() {
     const oldLevel = lastLevel;
-    const userMarkers = locations.filter(l =>
-        !l.isPostcard && (
-            l.userEdited === true ||
-            l.approvedSubmission === true ||
-            l.wasCommunityKept === true
-        )
-    );
 
-    xp = userMarkers.length * xpPerMarker;
+    let totalXP = 0;
+
+    locations.forEach(l => {
+        if (l.isPostcard) return;
+
+        // Creator / approved XP = permanent +100
+        if (l.userEdited === true || l.approvedSubmission === true) {
+            totalXP += 100;
+        }
+
+        // Keep bonus = additional +100 (lost on revert)
+        if (l.wasCommunityKept === true) {
+            totalXP += 100;
+        }
+    });
+
+    xp = totalXP;
     level = 1 + Math.floor(xp / xpPerLevel);
     xp = xp % xpPerLevel;
 
