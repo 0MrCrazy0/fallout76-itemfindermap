@@ -1307,7 +1307,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-OK-9-05-2026-Build-B-67";
+    const CACHE_NAME = "76-Vault-OK-9-05-2026-Build-B-68";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -3034,22 +3034,25 @@ function updateCounterDisplay() {
         !l.wasCommunityKept &&
         !l.isPostcard
     ).length;
+
     const created = locations.filter(l =>
         l.userEdited === true &&
         !l.wasCommunityKept &&
         !l.isPostcard
     ).length;
-    
-    // ── Approved counter (your successfully approved submissions) ──
+
+    // Approved counter remains informational (markers waiting to be kept)
     const approved = locations.filter(l =>
-        l.approvedSubmission === true && !l.isPostcard
+        l.approvedSubmission === true && !l.wasCommunityKept && !l.isPostcard
     ).length;
 
     const kept = locations.filter(l =>
         l.wasCommunityKept === true &&
         !l.isPostcard
     ).length;
-    const userLogged = created + approved + kept;   // total personal contribution
+
+    // You Logged now counts each marker only once (no double-counting)
+    const userLogged = created + kept;
 
     counter.innerHTML = `
         <strong>Latest Version</strong><br>
@@ -3394,22 +3397,33 @@ function reopenPopupAfterModalClose() {
 }
 function recalculateXP() {
     const oldLevel = lastLevel;
-    const userMarkers = locations.filter(l => 
-        (l.userEdited === true || l.approvedSubmission === true) && !l.isPostcard
+
+    // Count EVERY marker the user currently "owns" for XP:
+    // - Pure user-created markers (userEdited)
+    // - Approved submissions (permanent creation XP — never lost)
+    // - Currently kept community markers (temporary keep bonus)
+    const userMarkers = locations.filter(l =>
+        !l.isPostcard && (
+            l.userEdited === true ||
+            l.approvedSubmission === true ||
+            l.wasCommunityKept === true
+        )
     );
+
     xp = userMarkers.length * xpPerMarker;
     level = 1 + Math.floor(xp / xpPerLevel);
     xp = xp % xpPerLevel;
+
     if (level > oldLevel) {
         playSound('levelUp');
         triggerConfetti();
         showTempMessage(`☢️ LEVEL UP! — NOW EXPLORER LEVEL ${level} 🎉`, 10000);
         const bar = document.getElementById('xpProgress');
         bar.classList.add('level-up');
-        // Increased from 10 seconds → 18 seconds (stays glowing longer after nuke animation)
         setTimeout(() => bar.classList.remove('level-up'), 18000);
         triggerNuke();
     }
+
     localStorage.setItem('fo76_level', level);
     localStorage.setItem('fo76_xp', xp);
     lastLevel = level;
