@@ -1307,7 +1307,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-OK-10-05-2026-Build-B-71";
+    const CACHE_NAME = "76-Vault-OK-10-05-2026-Build-B-72";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -3397,18 +3397,19 @@ function reopenPopupAfterModalClose() {
 }
 function recalculateXP() {
     const oldLevel = lastLevel;
-
     let totalXP = 0;
 
     locations.forEach(l => {
         if (l.isPostcard) return;
 
-        // Creator / approved XP = permanent +100
-        if (l.userEdited === true || l.approvedSubmission === true) {
-            totalXP += 100;
+        // Permanent creator XP
+        if (l.approvedSubmission === true) {
+            totalXP += 100;                                 // approved markers keep creator XP forever
+        } else if (l.userEdited === true && !l.wasCommunityKept) {
+            totalXP += 100;                                 // pure user-created markers (not kept ones)
         }
 
-        // Keep bonus = additional +100 (lost on revert)
+        // Keep bonus (additional for any kept marker)
         if (l.wasCommunityKept === true) {
             totalXP += 100;
         }
