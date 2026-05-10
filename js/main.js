@@ -1307,7 +1307,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-OK-9-05-2026-Build-B-66";
+    const CACHE_NAME = "76-Vault-OK-9-05-2026-Build-B-67";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -4410,176 +4410,148 @@ This will fetch the latest verified community markers.<br><br>
     async () => {
         downloadCommunityBtn.disabled = true;
         downloadCommunityBtn.textContent = 'Updating...';
-            try {
-                const res = await fetchWithTimeout(
-                    'https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?t=' + Date.now(),
-                    12000
-                );
-                if (!res.ok) throw new Error('Bad response');
-                const data = await res.json();
-                const incoming = data.locations || [];
-                let added = 0, refreshed = 0, skipped = 0, cleaned = 0;
-                let approvedCount = 0;
-                const incomingIds = new Set(incoming.map(m => m.id));
-                const userMarkersBefore = locations.filter(l =>
-                    (l.userEdited === true || l.wasCommunityKept === true) &&
-                    !l.isCommunity &&
-                    !l.isPostcard
-                ).length;
 
-                incoming.forEach(imp => {
-                    const existing = locations.find(l => l.id === imp.id);
+        try {
+            const res = await fetchWithTimeout(
+                'https://0mrcrazy0.github.io/fallout76-itemfindermap/communitymap.json?t=' + Date.now(),
+                12000
+            );
+            if (!res.ok) throw new Error('Bad response');
 
-                    // ── APPROVAL HANDLING (must run FIRST) ──
-                    let isApprovedSubmission = false;
-                    if (existing && hasBeenSubmitted(imp.id)) {
-                        let submitted = JSON.parse(localStorage.getItem('submitted_ids') || '[]');
-                        const idx = submitted.indexOf(imp.id);
-                        if (idx !== -1) {
-                            submitted.splice(idx, 1);
-                            localStorage.setItem('submitted_ids', JSON.stringify(submitted));
-                        }
-                        isApprovedSubmission = true;
+            const data = await res.json();
+            const incoming = data.locations || [];
+
+            let added = 0, refreshed = 0, skipped = 0, cleaned = 0;
+            let approvedCount = 0;
+            let updateAvailableCount = 0;
+
+            const incomingIds = new Set(incoming.map(m => m.id));
+            const userMarkersBefore = locations.filter(l =>
+                (l.userEdited === true || l.wasCommunityKept === true) &&
+                !l.isCommunity && !l.isPostcard
+            ).length;
+
+            incoming.forEach(imp => {
+                const existing = locations.find(l => l.id === imp.id);
+
+                // ── APPROVAL HANDLING ──
+                let isApprovedSubmission = false;
+                if (existing && hasBeenSubmitted(imp.id)) {
+                    let submitted = JSON.parse(localStorage.getItem('submitted_ids') || '[]');
+                    const idx = submitted.indexOf(imp.id);
+                    if (idx !== -1) {
+                        submitted.splice(idx, 1);
+                        localStorage.setItem('submitted_ids', JSON.stringify(submitted));
                     }
-
-                    // ── SKIP ONLY NON-APPROVED USER MARKERS ──
-                    if (existing && (existing.userEdited || existing.wasCommunityKept) && !isApprovedSubmission) {
-                        skipped++;
-                        return;
-                    }
-
-                    // ── AUTO-REGISTER NEW CUSTOM CATEGORIES FROM COMMUNITY ──
-                    if (imp.category &&
-                        !defaultCategoryIcons[imp.category] &&
-                        !customCategories[imp.category]) {
-                        customCategories[imp.category] = imp.icon || '📦';
-                        categoryIcons[imp.category] = imp.icon || '📦';
-                        categoryColors[imp.category] = '#002F00';
-                        activeCategories.add(imp.category);
-                    }
-
-                    // ── NORMAL IMPORT / UPDATE LOGIC ──
-                    let loc;
-                    if (existing) {
-                        Object.assign(existing, imp);
-                        loc = existing;
-                        refreshed++;
-                    } else {
-                        loc = {
-                            ...imp,
-                            addedTime: Date.now(),
-                            locked: true,
-                            isCommunity: true,
-                            isTemp: false,
-                            isPostcard: false,
-                            userEdited: false,
-                            wasCommunityKept: false
-                        };
-                        locations.push(loc);
-                        added++;
-                    }
-
-                    // ── FINAL CLEANUP AND FLAG PRESERVATION ──
-                    loc.isCommunity = true;
-                    loc.locked = true;
-                    loc.userEdited = false;
-                    loc.wasCommunityKept = !!existing?.wasCommunityKept;
-
-                    // ── RE-APPLY APPROVED SUBMISSION (informational only) ──
-                    if (isApprovedSubmission) {
-                        loc.approvedSubmission = true;
-                        approvedCount++;
-
-                        showTempMessage(`🤩 Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED! You Keep The Created 100XP`, 10000);
-                        playSound('levelUp');
-                    }
-                });
-
-                // Save new custom categories permanently so they appear in the app
-                localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-                localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
-
-                for (let i = locations.length - 1; i >= 0; i--) {
-                    const loc = locations[i];
-                    if (loc.isCommunity && !incomingIds.has(loc.id)) {
-                        locations.splice(i, 1);
-                        cleaned++;
-                    }
+                    isApprovedSubmission = true;
+                    approvedCount++;
                 }
 
-                // ── NEW: Community Update Available for KEPT markers ──
-                let updateAvailableCount = 0;
-                const incomingByCid = new Map(incoming.map(m => [m.cid, m]));
-                locations.forEach(loc => {
-                    if (!loc.wasCommunityKept || loc.isPostcard) return;
-                    const communityVersion = incomingByCid.get(loc.cid);
-                    if (!communityVersion) {
-                        // Marker was removed from community map
-                        loc.communityUpdateAvailable = true;
-                        updateAvailableCount++;
-                    } else if (
-                        communityVersion.desc !== loc.desc ||
-                        communityVersion.category !== loc.category ||
-                        Math.abs(communityVersion.lat - loc.lat) > 0.0001 ||
-                        Math.abs(communityVersion.lng - loc.lng) > 0.0001
-                    ) {
-                        // Description, category, or position changed
-                        loc.communityUpdateAvailable = true;
-                        updateAvailableCount++;
-                    } else {
-                        // Clear flag if now up-to-date
-                        if (loc.communityUpdateAvailable) {
-                            delete loc.communityUpdateAvailable;
-                        }
-                    }
-                });
-
-                if (data.customCategories) {
-                    customCategories = { ...customCategories, ...data.customCategories };
+                // ── SKIP NON-APPROVED USER MARKERS ──
+                if (existing && (existing.userEdited || existing.wasCommunityKept) && !isApprovedSubmission) {
+                    skipped++;
+                    return;
                 }
-                rebuildCategoryData();
-                applyCustomCategoryStyling();
 
-                const newVersion = String(data.communityVersion || "1.0");
-                localStorage.setItem(MAP_VERSION_KEY, newVersion);
-                communityVersion = newVersion;
-                localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-                recalculateXP();
-                updateCounterDisplay();
-                forceReload();
-
-                // Clear search bar when updating community map (no flash)
-                combinedSearch.value = '';
-                clearBtn.style.display = 'none';
-                const currentCat = categoryFilter.value || '';
-                loadData('', currentCat);
-                refreshTable('', currentCat);
-
-                // ── Re-sync dropdown after community update ──
-                if (categoryFilter) {
-                    categoryFilter.value = currentCategoryFilter || '';
+                // ── AUTO-REGISTER CUSTOM CATEGORIES ──
+                if (imp.category && !defaultCategoryIcons[imp.category] && !customCategories[imp.category]) {
+                    customCategories[imp.category] = imp.icon || '📦';
+                    categoryIcons[imp.category] = imp.icon || '📦';
+                    categoryColors[imp.category] = '#002F00';
+                    activeCategories.add(imp.category);
                 }
-                saveLocations();
 
-                showConfirmModal(
-                    '☢ COMMUNITY MAP UPDATED ☢',
-                    `<strong style="color:#00ff88;">${added}</strong> - new markers added<br>
+                // ── IMPORT / UPDATE LOGIC ──
+                let loc;
+                if (existing) {
+                    Object.assign(existing, imp);
+                    loc = existing;
+                    refreshed++;
+                } else {
+                    loc = { ...imp, addedTime: Date.now(), locked: true, isCommunity: true, isTemp: false, isPostcard: false, userEdited: false, wasCommunityKept: false };
+                    locations.push(loc);
+                    added++;
+                }
+
+                loc.isCommunity = true;
+                loc.locked = true;
+                loc.userEdited = false;
+                loc.wasCommunityKept = !!existing?.wasCommunityKept;
+
+                if (isApprovedSubmission) {
+                    loc.approvedSubmission = true;
+                    showTempMessage(`🤩 Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED! You Keep The Created 100XP`, 10000);
+                    playSound('levelUp');
+                }
+            });
+
+            // Approved markers now count as new markers
+            added += approvedCount;
+
+            // Cleanup removed community markers
+            for (let i = locations.length - 1; i >= 0; i--) {
+                if (locations[i].isCommunity && !incomingIds.has(locations[i].id)) {
+                    locations.splice(i, 1);
+                    cleaned++;
+                }
+            }
+
+            // Update available for kept markers
+            const incomingByCid = new Map(incoming.map(m => [m.cid, m]));
+            locations.forEach(loc => {
+                if (!loc.wasCommunityKept || loc.isPostcard) return;
+                const communityVersion = incomingByCid.get(loc.cid);
+                if (!communityVersion || 
+                    communityVersion.desc !== loc.desc ||
+                    communityVersion.category !== loc.category ||
+                    Math.abs(communityVersion.lat - loc.lat) > 0.0001 ||
+                    Math.abs(communityVersion.lng - loc.lng) > 0.0001) {
+                    loc.communityUpdateAvailable = true;
+                    updateAvailableCount++;
+                } else if (loc.communityUpdateAvailable) {
+                    delete loc.communityUpdateAvailable;
+                }
+            });
+
+            // Save everything
+            localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+            localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
+            const newVersion = String(data.communityVersion || "1.0");
+            localStorage.setItem(MAP_VERSION_KEY, newVersion);
+            communityVersion = newVersion;
+
+            recalculateXP();
+            updateCounterDisplay();
+            forceReload();
+            saveLocations();
+
+            // Clear search bar
+            combinedSearch.value = '';
+            clearBtn.style.display = 'none';
+            const currentCat = categoryFilter.value || '';
+            loadData('', currentCat);
+            refreshTable('', currentCat);
+            if (categoryFilter) categoryFilter.value = currentCategoryFilter || '';
+
+            // ── SUCCESS MODAL (exactly what you asked for) ──
+            showConfirmModal(
+                '☢ COMMUNITY MAP UPDATED ☢',
+                `<strong style="color:#00ff88;">${added}</strong> - new markers added<br>
 <strong style="color:#88ccff;">${refreshed}</strong> - community markers refreshed<br>
 <strong style="color:#ffa500;">${skipped}</strong> - kept/edited markers protected<br>
-<strong style="color:#ffcc00;">${userMarkersBefore}</strong> - personal markers untouched<br>
+<strong style="color:#ffcc00;">${userMarkersBefore - approvedCount}</strong> - personal markers untouched<br>
 ${cleaned > 0 ? `<strong style="color:#ff4444;">${cleaned}</strong> - deleted community markers removed<br>` : ''}
-${approvedCount > 0 ? `<strong style="color:#00ff88;">${approvedCount}</strong> - of your submissions approved! converting to community marker you can keep it<br>` : ''}
+${approvedCount > 0 ? `<strong style="color:#00ff88;">${approvedCount}</strong> - of your submissions approved & converted to community markers!<br>` : ''}
 ${updateAvailableCount > 0 ? `<strong style="color:#0066ff;">${updateAvailableCount}</strong> of your kept markers have newer versions available!<br>` : ''}
 <strong style="color:#00ff00;">Total markers on map: ${locations.length}</strong><br><br>
-
 • You kept <strong style="color:#88ccff;">${skipped}</strong> community marker${skipped === 1 ? '' : 's'}<br>
-• You logged <strong style="color:#88ccff;">${userMarkersBefore}</strong> personal marker${userMarkersBefore === 1 ? '' : 's'}<br>
+• You logged <strong style="color:#88ccff;">${userMarkersBefore - approvedCount}</strong> personal marker${(userMarkersBefore - approvedCount) === 1 ? '' : 's'}<br>
 • You are Level <strong style="color:#00ff88;">${level}</strong> explorer<br><br>
-
 <strong>Community Map v${newVersion} loaded — happy exploring Appalachia!</strong>`,
-                    null
-                );
-                playSound('saving');
+                null
+            );
+
+            playSound('saving');
 
                 // ── COMMUNITY MAP CELEBRATION NUKE ──
                 if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
