@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": 10.7,
+  "communityVersion": 10.8,
   "customCategories": {},
   "locations": [
     {
@@ -4932,7 +4932,25 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-d9ebb09e-0b05-469d-9678-d22d3ed29c0c",
+      "cid": "bobbleheads_test_marker_removing_soon_grid_b2_x_727_y_4246_424.57813_727.00000_40ubvbz6",
+      "category": "bobbleheads",
+      "desc": "test marker removing soon.\nGrid B2 (X: 727, Y: 424.6)\nSubmitted By Anonymous Wastelander",
+      "lat": 424.578125,
+      "lng": 727,
+      "icon": "🎎",
+      "addedTime": 1778392003901,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ],
-  "lastUpdated": "2026-05-10T05:29:08.616760Z"
+  "lastUpdated": "2026-05-10T05:47:54.338524Z"
 }
