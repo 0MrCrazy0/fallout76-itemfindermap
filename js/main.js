@@ -1307,7 +1307,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-OK-10-05-2026-Build-B-72";
+    const CACHE_NAME = "76-Vault-OK-10-05-2026-Build-B-73";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -6090,7 +6090,9 @@ window.cancelReport = function() {
 window.keepCommunityMarker = function(markerId) {
     const marker = locations.find(l => l.id === markerId);
     if (!marker || !marker.isCommunity) return;
+
     playSound('click');
+
     showConfirmModal(
         '👍 Keep This Community Marker? 💾',
         '<strong>This marker will become yours permanently:</strong><br><br>' +
@@ -6106,35 +6108,23 @@ window.keepCommunityMarker = function(markerId) {
             marker.locked = true;
             marker.addedTime = Date.now();
             window.justKeptMarkerId = markerId;
+
             applyCustomCategoryStyling();
             saveLocations();
-            // ALWAYS award +100 XP keep bonus for ANY community marker
-            xp += 100;
-            const oldLevel = level;
-            level = 1 + Math.floor(xp / xpPerLevel);
-            xp = xp % xpPerLevel;
-            if (level > oldLevel) {
-                playSound('levelUp');
-                triggerConfetti();
-                showTempMessage(`☢️ LEVEL UP! — NOW EXPLORER LEVEL ${level} 🎉`, 10000);
-                const bar = document.getElementById('xpProgress');
-                bar.classList.add('level-up');
-                setTimeout(() => bar.classList.remove('level-up'), 18000);
-                triggerNuke();
-            }
-            updateXPBar();
-            localStorage.setItem('fo76_level', level);
-            localStorage.setItem('fo76_xp', xp);
-            lastLevel = level;
 
-            recalculateXP();
+            // NO manual xp += 100 here anymore
+            recalculateXP();   // ← this now correctly handles everything
 
             forceReload();
+
             if (typeof createCreationBurst === 'function') {
                 createCreationBurst([marker.lat, marker.lng]);
             }
+
             setTimeout(() => playSound('saving'), 150);
+
             showTempMessage(`✅ MARKER KEPT — +100 XP (LEVEL ${level})<br>Won't receive future community updates • Revert anytime`, 5500);
+
             setTimeout(() => {
                 const keptMarker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
                     .find(m => m.options && m.options.id === markerId);
