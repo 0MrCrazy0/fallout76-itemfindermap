@@ -1307,7 +1307,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-OK-9-05-2026-Build-B-69";
+    const CACHE_NAME = "76-Vault-OK-10-05-2026-Build-B-70";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -3397,11 +3397,6 @@ function reopenPopupAfterModalClose() {
 }
 function recalculateXP() {
     const oldLevel = lastLevel;
-
-    // Count EVERY marker the user currently "owns" for XP:
-    // - Pure user-created markers (userEdited)
-    // - Approved submissions (permanent creation XP — never lost)
-    // - Currently kept community markers (temporary keep bonus)
     const userMarkers = locations.filter(l =>
         !l.isPostcard && (
             l.userEdited === true ||
@@ -6085,9 +6080,7 @@ window.cancelReport = function() {
 window.keepCommunityMarker = function(markerId) {
     const marker = locations.find(l => l.id === markerId);
     if (!marker || !marker.isCommunity) return;
-
     playSound('click');
-
     showConfirmModal(
         '👍 Keep This Community Marker? 💾',
         '<strong>This marker will become yours permanently:</strong><br><br>' +
@@ -6102,16 +6095,14 @@ window.keepCommunityMarker = function(markerId) {
             marker.wasCommunityKept = true;
             marker.locked = true;
             marker.addedTime = Date.now();
-
             window.justKeptMarkerId = markerId;
             applyCustomCategoryStyling();
             saveLocations();
-
-            // NO manual xp += 100 here — let recalculateXP handle everything cleanly
-            recalculateXP();
-
-            forceReload();
-
+            // ALWAYS award +100 XP keep bonus for ANY community marker
+            xp += 100;
+            const oldLevel = level;
+            level = 1 + Math.floor(xp / xpPerLevel);
+            xp = xp % xpPerLevel;
             if (level > oldLevel) {
                 playSound('levelUp');
                 triggerConfetti();
@@ -6126,15 +6117,14 @@ window.keepCommunityMarker = function(markerId) {
             localStorage.setItem('fo76_xp', xp);
             lastLevel = level;
 
-            forceReload();
+            recalculateXP();
 
+            forceReload();
             if (typeof createCreationBurst === 'function') {
                 createCreationBurst([marker.lat, marker.lng]);
             }
-
             setTimeout(() => playSound('saving'), 150);
             showTempMessage(`✅ MARKER KEPT — +100 XP (LEVEL ${level})<br>Won't receive future community updates • Revert anytime`, 5500);
-
             setTimeout(() => {
                 const keptMarker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
                     .find(m => m.options && m.options.id === markerId);
