@@ -1307,7 +1307,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-OK-9-05-2026-Build-B-68";
+    const CACHE_NAME = "76-Vault-OK-9-05-2026-Build-B-69";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -6107,11 +6107,10 @@ window.keepCommunityMarker = function(markerId) {
             applyCustomCategoryStyling();
             saveLocations();
 
-            // ALWAYS award +100 XP keep bonus for ANY community marker
-            xp += 100;
-            const oldLevel = level;
-            level = 1 + Math.floor(xp / xpPerLevel);
-            xp = xp % xpPerLevel;
+            // NO manual xp += 100 here — let recalculateXP handle everything cleanly
+            recalculateXP();
+
+            forceReload();
 
             if (level > oldLevel) {
                 playSound('levelUp');
