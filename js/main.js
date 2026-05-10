@@ -1307,7 +1307,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-OK-9-05-2026-Build-B-65";
+    const CACHE_NAME = "76-Vault-OK-9-05-2026-Build-B-66";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -3026,7 +3026,7 @@ function addMarkerToMap(loc) {
 
 function updateCounterDisplay() {
     const communityVer = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
-    
+   
     const totalLogged = locations.filter(l => activeCategories.has(l.category)).length;
     const communityTotal = locations.filter(l =>
         l.isCommunity === true &&
@@ -3039,11 +3039,17 @@ function updateCounterDisplay() {
         !l.wasCommunityKept &&
         !l.isPostcard
     ).length;
+    
+    // ── Approved counter (your successfully approved submissions) ──
+    const approved = locations.filter(l =>
+        l.approvedSubmission === true && !l.isPostcard
+    ).length;
+
     const kept = locations.filter(l =>
         l.wasCommunityKept === true &&
         !l.isPostcard
     ).length;
-    const userLogged = created + kept;
+    const userLogged = created + approved + kept;   // total personal contribution
 
     counter.innerHTML = `
         <strong>Latest Version</strong><br>
@@ -3053,6 +3059,7 @@ function updateCounterDisplay() {
         Total Logged: <strong style="color:#00ff88;">${totalLogged}</strong><br>
         Unexplored: <strong style="color:#88ccff;">${communityTotal}</strong><br>
         You Created: <strong style="color:#00ff88;">${created}</strong><br>
+        Approved: <strong style="color:#00ff88;">${approved}</strong><br>
         You Kept: <strong style="color:#00ff88;">${kept}</strong><br>
         You Logged: <strong style="color:#00ff88;">${userLogged}</strong><br>
         Explorer Level: <strong style="color:#00ff88;">${level}</strong>
