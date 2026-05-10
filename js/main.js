@@ -1307,7 +1307,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-OK-10-05-2026-Build-B-73";
+    const CACHE_NAME = "76-Vault-OK-10-05-2026-Build-B-74";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -2666,6 +2666,100 @@ function createDustParticles(latlng) {
                 }
             }, ms);
         }
+
+// ── MINERVA LIVE COUNTDOWN SYSTEM (100% correct ET time + dynamic next location) ──
+function getNextMondayNoon() {
+    const now = new Date();
+    const utcNow = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+    let target = new Date(utcNow.getUTCFullYear(), utcNow.getUTCMonth(), utcNow.getUTCDate());
+    const day = target.getUTCDay();
+    let daysToAdd = (1 - day + 7) % 7;
+    if (day === 1 && utcNow.getUTCHours() >= 16) { // 12:00 ET = 16:00 UTC
+        daysToAdd = 7;
+    }
+    target.setUTCDate(target.getUTCDate() + daysToAdd);
+    target.setUTCHours(16, 0, 0, 0);
+    target.setUTCMilliseconds(0);
+    return target;
+}
+
+function getCurrentMinervaLocationCycle() {
+    const startDate = new Date('2025-01-06');
+    const now = new Date();
+    const weeksSince = Math.floor((now.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+    return weeksSince % 4;
+}
+
+function getMinervaStatus() {
+    const cycle = getCurrentMinervaLocationCycle();
+    const locationNames = [
+        "Foundation in the southern Savage Divide",
+        "The Crater in the northern Toxic Valley",
+        "Fort Atlas in the center of the Savage Divide",
+        "The Whitespring Resort in the southeast of The Forest"
+    ];
+
+    const now = new Date();
+    const baseDate = new Date('2025-01-06');
+    const weeksSinceBase = Math.floor((now.getTime() - baseDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+
+    const cyclePosition = weeksSinceBase % 5; // 0-4
+
+    let arrivalDate = new Date(now);
+    let isBigSale = false;
+
+    if (cyclePosition === 4) {
+        // Off-week → skip to next Monday
+        arrivalDate.setUTCDate(arrivalDate.getUTCDate() + (7 - arrivalDate.getUTCDay()) % 7 + 1);
+        arrivalDate.setUTCHours(16, 0, 0, 0);
+    } else if (cyclePosition === 3) {
+        // Big Sale week → arrive on Thursday
+        isBigSale = true;
+        const daysToThursday = (4 - arrivalDate.getUTCDay() + 7) % 7;
+        arrivalDate.setUTCDate(arrivalDate.getUTCDate() + daysToThursday);
+        arrivalDate.setUTCHours(16, 0, 0, 0);
+    } else {
+        // Normal week → arrive on Monday
+        arrivalDate = getNextMondayNoon();
+    }
+
+    const timeUntilArrival = arrivalDate.getTime() - Date.now();
+    const isHereNow = timeUntilArrival < 0 && timeUntilArrival > -7 * 24 * 60 * 60 * 1000;
+
+    const currentLocation = locationNames[cycle];
+    const nextLocation = locationNames[(cycle + 1) % 4];
+
+    return {
+        isHereNow: isHereNow,
+        currentLocation: currentLocation,
+        nextLocation: nextLocation,
+        nextArrivalTime: arrivalDate.getTime(),
+        isBigSale: isBigSale
+    };
+}
+
+function startMinervaCountdown(container, targetTime) {
+    const update = () => {
+        const diff = Math.max(0, targetTime - Date.now());
+        if (diff <= 0) {
+            container.innerHTML = `<span style="color:#ffcc00;">Minerva has arrived!</span>`;
+            return;
+        }
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        container.innerHTML = `
+            <div><span class="number">${days.toString().padStart(2, '0')}</span><span class="label"> day${days === 1 ? '' : 's'}</span></div>
+            <div><span class="number">${hours.toString().padStart(2, '0')}</span><span class="label"> hour${hours === 1 ? '' : 's'}</span></div>
+            <div><span class="number">${minutes.toString().padStart(2, '0')}</span><span class="label"> minute${minutes === 1 ? '' : 's'}</span></div>
+            <div><span class="number">${seconds.toString().padStart(2, '0')}</span><span class="label"> second${seconds === 1 ? '' : 's'}</span></div>
+        `;
+    };
+    update();
+    return setInterval(update, 1000);
+}
 		
 		// ── Community Update Glow Indicator ──
 const COMMUNITY_UPDATE_URL = 'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/communitymap.json';
@@ -2707,6 +2801,7 @@ document.addEventListener('DOMContentLoaded', () => {
     checkForCommunityUpdate();
     // Re-check every 10 minutes
     setInterval(checkForCommunityUpdate, 600000);
+	setInterval(updateMinervaGlow, 300000);
 });
 
 function showConfirmModal(title, content, onConfirm, restoreFullscreenOnClose = false) {
@@ -5296,6 +5391,51 @@ if (nukeCodesBtn) {
         nukeCodesModal.style.display = 'block';
         document.body.classList.add('modal-open');
         playSound('click');
+
+        const status = getMinervaStatus();
+
+        const content = nukeCodesModal.querySelector('.modal-content');
+        const oldElements = content.querySelectorAll('#minervaStatusContainer, #minervaCountdown');
+        oldElements.forEach(el => el.remove());
+
+        let minervaHTML = '';
+
+        if (status.isHereNow) {
+            minervaHTML = `
+                <div id="minervaStatusContainer" style="text-align:center; font-size:1.4em; color:#ffcc00; margin:25px 0;">
+                    <strong>✅ MINERVA IS HERE RIGHT NOW!</strong><br>
+                    She is currently at <strong>${status.currentLocation}</strong>.
+                </div>
+            `;
+        } else {
+            const bigSaleText = status.isBigSale ? ' (Big Sale)' : '';
+            minervaHTML = `
+                <div id="minervaStatusContainer" style="text-align:center; font-size:1.25em; margin:25px 0 10px;">
+                    <strong>Minerva is not available today.<br>
+                    Minerva will be at ${status.nextLocation}${bigSaleText} next.<br>
+                    She arrives in:</strong>
+                </div>
+                <div class="minerva-countdown" id="minervaCountdown" style="justify-content:center;gap:22px;"></div>
+            `;
+        }
+
+        content.insertAdjacentHTML('beforeend', minervaHTML);
+
+        let countdownInterval = null;
+        const countdownContainer = document.getElementById('minervaCountdown');
+        if (countdownContainer && !status.isHereNow) {
+            countdownInterval = startMinervaCountdown(countdownContainer, status.nextArrivalTime);
+        }
+
+        const closeBtn = nukeCodesModal.querySelector('.close');
+        if (closeBtn) {
+            closeBtn.onclick = (e) => {
+                if (countdownInterval) clearInterval(countdownInterval);
+                nukeCodesModal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+                playSound('modalClose');
+            };
+        }
     };
 }
 // ── TOGGLE CATEGORIES MODAL — STRICT BEHAVIOR (only closes with Close button / ×) ──
