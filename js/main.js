@@ -1307,7 +1307,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-11-05-2026-Build-B-75-5";
+    const CACHE_NAME = "76-Vault-Stable-11-05-2026-Build-B-75-5-1";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -7021,6 +7021,29 @@ if (/iPad/.test(navigator.userAgent)) {
         unlockAudio();
     }, 1200);
 }
+
+// ── Android PWA Landscape Height Fix ──
+function applyAndroidLandscapeFix() {
+    const isAndroidPWA = /Android/.test(navigator.userAgent) &&
+                         window.matchMedia('(display-mode: standalone)').matches;
+    const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+
+    if (isAndroidPWA && isLandscape) {
+        document.body.classList.add('android-pwa-landscape');
+    } else {
+        document.body.classList.remove('android-pwa-landscape');
+    }
+
+    // Force Leaflet to recalculate size
+    if (typeof map !== 'undefined' && map) {
+        setTimeout(() => map.invalidateSize({ animate: false }), 80);
+    }
+}
+
+// Run on load, resize, and orientation change
+window.addEventListener('resize', applyAndroidLandscapeFix);
+window.addEventListener('orientationchange', () => setTimeout(applyAndroidLandscapeFix, 120));
+setTimeout(applyAndroidLandscapeFix, 600); // initial run
 
         // ── CONSOLE BANNER ──
 console.log(
