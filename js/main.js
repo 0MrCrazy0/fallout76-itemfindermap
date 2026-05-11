@@ -1,4 +1,4 @@
-const CURRENT_APP_VERSION = '76.Vault.OK';
+const CURRENT_APP_VERSION = '76.Vault.Stable';
 
 // ── Core version identifier — change this single value to bump the entire app version ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -1307,7 +1307,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-OK-11-05-2026-Build-B-75";
+    const CACHE_NAME = "76-Vault-Stable-11-05-2026-Build-B-75-5";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
