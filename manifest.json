@@ -1,5 +1,5 @@
 {
-  "name": "Fallout 76 Item Finder Map",
+  "name": "FO76 Item Finder Map",
   "short_name": "FO76 Map",
   "description": "The ultimate interactive item & location map for Fallout 76",
   "id": "/fallout76-itemfindermap/",
@@ -12,7 +12,7 @@
   ],
   "background_color": "#0a2a2a",
   "theme_color": "#00ff00",
-  "version": "76.Vault.OK",
+  "version": "76.Vault.Stable",
   "icons": [
     {
       "src": "/fallout76-itemfindermap/icon-192-v2.png",
