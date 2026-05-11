@@ -1307,7 +1307,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-11-05-2026-Build-B-75-5-3";
+    const CACHE_NAME = "76-Vault-Stable-11-05-2026-Build-B-75-5-4";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -6901,6 +6901,49 @@ window.addEventListener('load', () => {
 
 // Initial run
 setTimeout(forceUltraWideScaling, 300);
+
+        // ── Mobile Landscape Optimisation (smaller screens only) ──
+        // Reduces scrolling in landscape while keeping portrait mode 100% unchanged
+        function optimiseMobileLandscape() {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const isLandscape = width > height;
+    const isSmallScreen = width < 900; // typical phone in landscape
+
+    const mapEl       = document.getElementById('map');
+    const buttonGroup = document.getElementById('buttonGroup');
+
+    if (isLandscape && isSmallScreen) {
+        // Make map slightly less tall so UI elements are easier to reach
+        if (mapEl) {
+            mapEl.style.height = '80vh';
+            mapEl.style.maxHeight = '80vh';
+        }
+
+        // Slightly tighter tools panel
+        if (buttonGroup) {
+            buttonGroup.style.padding = '6px 4px';
+            buttonGroup.style.gap = '6px';
+        }
+    } else {
+        // Reset everything for portrait mode and larger screens
+        if (mapEl) {
+            mapEl.style.height = '';
+            mapEl.style.maxHeight = '';
+        }
+        if (buttonGroup) {
+            buttonGroup.style.padding = '';
+            buttonGroup.style.gap = '';
+        }
+    }
+
+    // Force Leaflet to redraw correctly – small delay helps speech bubbles stay open
+    if (typeof map !== 'undefined' && map) {
+        setTimeout(() => {
+            map.invalidateSize({ animate: false });
+        }, 120);
+    }
+}
 
 // Run automatically on orientation change and resize
 window.addEventListener('resize', optimiseMobileLandscape);
