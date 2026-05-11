@@ -1907,3 +1907,13 @@ button[onclick*="pending.html"],
     opacity: 0.85;
     letter-spacing: 1px;
 }
+/* ── FINAL ANDROID PWA LANDSCAPE FIX (highest priority) ── */
+@media (display-mode: standalone) and (orientation: landscape) and (hover: none) and (pointer: coarse) {
+    body.android-pwa-landscape #map,
+    body.android-pwa-landscape .leaflet-container {
+        height: 64vh !important;
+        max-height: 64vh !important;
+        min-height: 64vh !important;
+        overflow: hidden !important;
+    }
+}
