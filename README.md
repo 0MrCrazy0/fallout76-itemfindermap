@@ -2,6 +2,8 @@
 
 **Live version:** [https://0mrcrazy0.github.io/fallout76-itemfindermap/](https://0mrcrazy0.github.io/fallout76-itemfindermap/)
 
+**This is a free, fan-made tool for the Fallout 76 community. Not affiliated with Bethesda Softworks.**
+
 A free, no-login browser tool for Fallout 76 players to mark and track items, locations, and discoveries across Appalachia.
 
 ## Features
