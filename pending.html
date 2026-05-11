@@ -130,17 +130,25 @@
     </style>
 </head>
 <body>
-    <h1>Pending Community Map Submissions</h1>
+    <h1>PENDING COMMUNITY SUBMISSIONS</h1>
     <div class="instruction">
-        This page shows pending submissions.<br>
+        These markers have been submitted by players and are awaiting moderator review.<br>
+        Once approved they will appear on the Community Map.
     </div>
+
     <button onclick="returnToMap()" class="close-btn">
-        RETURN TO MAP
+        ← RETURN TO MAP
     </button>
-    <div id="list" class="loading">Loading pending markers…</div>
+
+    <div id="list" class="loading">Loading pending submissions…</div>
+
+    <div style="margin:30px auto; max-width:700px; font-size:1.05em; line-height:1.5; color:#88ccff;">
+        <strong>Note:</strong> If your submission does not appear in this list, it was not approved.<br>
+        You must delete the marker from your map and submit a new one.
+    </div>
 
     <!-- Back to Top Button -->
-    <button id="backToTop" onclick="location.reload()">↑ Back to Top</button>
+    <button id="backToTop" onclick="location.reload()">↑ BACK TO TOP</button>
 
     <script>
         function returnToMap() {
