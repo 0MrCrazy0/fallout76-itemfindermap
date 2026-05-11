@@ -60,8 +60,8 @@
     }
 
     .leaflet-container {
-        width: 100% !important;
-        height: 100% !important;
+        width: 96% !important;
+        height: 96% !important;
         position: absolute !important;
         top: 0 !important;
         left: 0 !important;
@@ -104,8 +104,8 @@ h1 {
 #map {
     height: 750px;
 	margin: 0 auto 20px;
-    max-width: 100% !important;
-    width: 100% !important;
+    max-width: 96% !important;
+    width: 96% !important;
     border: 2px solid #00ff00;
     box-shadow: 0 0 10px #00ff00;
     background-color: #000000;
@@ -114,8 +114,8 @@ h1 {
 }
 
 .leaflet-container {
-    max-width: 100% !important;
-    width: 100% !important;
+    max-width: 96% !important;
+    width: 96% !important;
     box-shadow: none !important;
     touch-action: none !important;
 }
@@ -1907,13 +1907,5 @@ button[onclick*="pending.html"],
     opacity: 0.85;
     letter-spacing: 1px;
 }
-/* ── FINAL ANDROID PWA LANDSCAPE FIX (highest priority) ── */
-@media (display-mode: standalone) and (orientation: landscape) and (hover: none) and (pointer: coarse) {
-    body.android-pwa-landscape #map,
-    body.android-pwa-landscape .leaflet-container {
-        height: 64vh !important;
-        max-height: 64vh !important;
-        min-height: 64vh !important;
-        overflow: hidden !important;
-    }
-}
+
+
