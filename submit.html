@@ -67,10 +67,22 @@
         </form>
 
         <div id="success" style="display:none;">
-            <h2 style="color:#00ff88;">Thank you!</h2>
-            <p>Your marker has been submitted successfully.<br>An Administrator will review and merge it soon.</p>
-            <button onclick="closeAndReturn()" class="return-btn">Close Window</button>
-        </div>
+    <h2 style="color:#00ff88;">✅ SUBMISSION RECEIVED</h2>
+    <p>Your marker has been submitted successfully.<br>
+    An Administrator will review and merge it soon (usually within 48 hours).</p>
+    
+    <p style="margin-top:20px; line-height:1.5;">
+        If approved, your marker will be converted into a <strong>Community Map marker</strong> that you can keep permanently.<br>
+        You will still retain your original creation XP.
+    </p>
+    
+    <p style="margin-top:25px; color:#88ccff; font-size:1.05em;">
+        You can check the status of your submission anytime using the<br>
+        <strong>“View Pending Community Submissions”</strong> button in the <strong>How to Use</strong> menu.
+    </p>
+    
+    <button onclick="closeAndReturn()" class="return-btn">Close Window</button>
+</div>
                 <div id="error" style="display:none;">
             <h2 style="color:#ff8888;">Submission failed</h2>
             <p id="errorMsg"></p>
