@@ -1307,7 +1307,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-11-05-2026-Build-B-75-5-4";
+    const CACHE_NAME = "76-Vault-Stable-11-05-2026-Build-B-75-5-5";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -2727,7 +2727,7 @@ function getMinervaStatus() {
     const isHereNow = timeUntilArrival < 0 && timeUntilArrival > -7 * 24 * 60 * 60 * 1000;
 
     const currentLocation = locationNames[cycle];
-    const nextLocation = locationNames[(cycle + 1) % 4];
+    const nextLocation = locationNames[cycle];
 
     return {
         isHereNow: isHereNow,
