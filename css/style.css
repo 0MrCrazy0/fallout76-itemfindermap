@@ -1907,5 +1907,40 @@ button[onclick*="pending.html"],
     opacity: 0.85;
     letter-spacing: 1px;
 }
+/* ── ANDROID PWA NORMAL MODE FIX (prevents huge map – iOS untouched) ── */
+@media (display-mode: standalone) and (pointer: coarse) and not (-webkit-touch-callout: none) {
+    #map {
+        height: 750px !important;
+        max-height: none !important;
+    }
+    .leaflet-container {
+        height: 100% !important;
+        width: 100% !important;
+    }
+}
 
+/* ── INVISIBLE SCROLL GRIP AROUND GREEN BORDER (visible map size unchanged) ── */
+#map {
+    position: relative !important;
+}
+
+#map::before {
+    content: '';
+    position: absolute !important;
+    inset: -24px !important;     /* 24px invisible grip on all sides */
+    z-index: 1 !important;
+    pointer-events: auto !important;
+    background: transparent !important;
+}
+
+#map {
+    z-index: 2 !important;
+}
+
+/* Smaller grip on very narrow screens */
+@media (max-width: 480px) {
+    #map::before {
+        inset: -18px !important;
+    }
+}
 
