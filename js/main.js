@@ -1307,7 +1307,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-12-05-2026-Build-B-75-5-5-5";
+    const CACHE_NAME = "76-Vault-Stable-12-05-2026-Build-B-75-1-2-3-4";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -5372,58 +5372,80 @@ if (nukeCodesBtn) {
         document.body.classList.add('modal-open');
         playSound('click');
 
-        const status = getMinervaStatus();
-
         const content = nukeCodesModal.querySelector('.modal-content');
-        const oldElements = content.querySelectorAll('#minervaStatusContainer, #minervaCountdown, #minervaLeaveCountdown');
-        oldElements.forEach(el => el.remove());
 
-        let minervaHTML = '';
+        // Remove any existing Minerva content (prevents duplication)
+        let minervaContainer = document.getElementById('minervaContainer');
+        if (minervaContainer) minervaContainer.remove();
 
-        if (status.isHereNow) {
-            minervaHTML = `
-                <div id="minervaStatusContainer" style="text-align:center; font-size:1.4em; color:#ffcc00; margin:25px 0;">
-                    <strong>✅ MINERVA IS HERE RIGHT NOW!</strong><br>
-                    She is currently at <strong>${status.currentLocation}</strong>.
-                </div>
-                <div style="text-align:center; font-size:1.25em; margin:15px 0 10px;">
-                    <strong>She leaves in:</strong>
-                </div>
-                <div class="minerva-countdown" id="minervaLeaveCountdown"></div>
-            `;
-        } else {
-            minervaHTML = `
-                <div id="minervaStatusContainer" style="text-align:center; font-size:1.25em; margin:25px 0 10px;">
-                    <strong>Minerva is not available today.<br>
-                    Minerva will be at ${status.nextLocation} next.<br>
-                    She arrives in:</strong>
-                </div>
-                <div class="minerva-countdown" id="minervaCountdown" style="justify-content:center;gap:22px;"></div>
-            `;
-        }
-
-        content.insertAdjacentHTML('beforeend', minervaHTML);
+        // Create a single dedicated container for Minerva
+        minervaContainer = document.createElement('div');
+        minervaContainer.id = 'minervaContainer';
+        content.appendChild(minervaContainer);
 
         let countdownInterval = null;
+        let statusRefreshInterval = null;
 
-        if (status.isHereNow) {
-            // Start leave timer only when she has arrived
-            const leaveContainer = document.getElementById('minervaLeaveCountdown');
-            if (leaveContainer) {
-                countdownInterval = startMinervaCountdown(leaveContainer, status.nextLeaveTime);
+        function refreshMinervaDisplay() {
+            const status = getMinervaStatus();
+
+            // Clear the container completely
+            minervaContainer.innerHTML = '';
+
+            let minervaHTML = '';
+
+            if (status.isHereNow) {
+                minervaHTML = `
+                    <div id="minervaStatusContainer" style="text-align:center; font-size:1.4em; color:#ffcc00; margin:25px 0;">
+                        <strong>✅ MINERVA IS HERE RIGHT NOW!</strong><br>
+                        She is currently at <strong>${status.currentLocation}</strong>.
+                    </div>
+                    <div style="text-align:center; font-size:1.25em; margin:15px 0 10px;">
+                        <strong>She leaves in:</strong>
+                    </div>
+                    <div class="minerva-countdown" id="minervaLeaveCountdown"></div>
+                `;
+            } else {
+                minervaHTML = `
+                    <div id="minervaStatusContainer" style="text-align:center; font-size:1.25em; margin:25px 0 10px;">
+                        <strong>Minerva is not available today.<br>
+                        Minerva will be at ${status.nextLocation} next.<br>
+                        She arrives in:</strong>
+                    </div>
+                    <div class="minerva-countdown" id="minervaCountdown" style="justify-content:center;gap:22px;"></div>
+                `;
             }
-        } else {
-            // Start arrival timer
-            const countdownContainer = document.getElementById('minervaCountdown');
-            if (countdownContainer) {
-                countdownInterval = startMinervaCountdown(countdownContainer, status.nextArrivalTime);
+
+            minervaContainer.innerHTML = minervaHTML;
+
+            // Start the correct countdown
+            if (status.isHereNow) {
+                const leaveContainer = document.getElementById('minervaLeaveCountdown');
+                if (leaveContainer) countdownInterval = startMinervaCountdown(leaveContainer, status.nextLeaveTime);
+            } else {
+                const arrivalContainer = document.getElementById('minervaCountdown');
+                if (arrivalContainer) countdownInterval = startMinervaCountdown(arrivalContainer, status.nextArrivalTime);
             }
         }
 
+        // Initial display
+        refreshMinervaDisplay();
+
+        // Auto-refresh every 30 seconds so it switches automatically when timers expire
+        statusRefreshInterval = setInterval(() => {
+            if (nukeCodesModal.style.display === 'block') {
+                refreshMinervaDisplay();
+            } else {
+                clearInterval(statusRefreshInterval);
+            }
+        }, 30000);
+
+        // Clean up when modal is closed
         const closeBtn = nukeCodesModal.querySelector('.close');
         if (closeBtn) {
-            closeBtn.onclick = (e) => {
+            closeBtn.onclick = () => {
                 if (countdownInterval) clearInterval(countdownInterval);
+                if (statusRefreshInterval) clearInterval(statusRefreshInterval);
                 nukeCodesModal.style.display = 'none';
                 document.body.classList.remove('modal-open');
                 playSound('modalClose');
