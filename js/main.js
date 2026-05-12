@@ -922,7 +922,7 @@ document.addEventListener('visibilitychange', () => {
 document.addEventListener('fullscreenchange', forceMapRender);
 document.addEventListener('webkitfullscreenchange', forceMapRender);
 
-// ── FULLSCREEN TOGGLE (🔭 button) — now uses unified manager
+// ── FULLSCREEN TOGGLE (🔭 button) ──
 const fullscreenControl = L.control({ position: 'topleft' });
 fullscreenControl.onAdd = function(map) {
     const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
@@ -931,37 +931,48 @@ fullscreenControl.onAdd = function(map) {
     link.title = 'Toggle fullscreen';
     link.innerHTML = '🔭';
     link.style.cssText = `display:block;width:34px;height:34px;line-height:34px;text-align:center;font-size:20px;background:#1a3c34;color:#00ff00;border:2px solid #00ff00;border-radius:6px;cursor:pointer;`;
+
     link.onmouseover = () => {
         link.style.background = '#00ff00';
         link.style.color = '#000';
-
     };
     link.onmouseout = () => {
         link.style.background = '#1a3c34';
         link.style.color = '#00ff00';
-
     };
+
     L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
               .on(link, 'click', L.DomEvent.preventDefault)
               .on(link, 'click', () => {
-        playSound('click');
-        if (!isFullscreenActive()) {
-            enterFullscreen();
-            wasInFullscreenBeforeModal = false;
-        } else {
-            exitFullscreen();
-        }
-    });
+                  playSound('click');
+                  if (!isFullscreenActive()) {
+                      enterFullscreen();
+                      wasInFullscreenBeforeModal = false;
+                  } else {
+                      exitFullscreen();
+                  }
+              });
 
+    // ── Robust icon update for Safari ──
     const updateIcon = () => {
-        const isNativeFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+        const isNativeFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
         link.innerHTML = (isFullscreenActive() || isNativeFullscreen) ? '✖' : '🔭';
         link.title = (isFullscreenActive() || isNativeFullscreen) ? 'Exit fullscreen' : 'Toggle fullscreen';
     };
 
     document.addEventListener('fullscreenchange', updateIcon);
     document.addEventListener('webkitfullscreenchange', updateIcon);
-    setTimeout(updateIcon, 50);
+
+    // Immediate update + short safety poll (Safari is flaky)
+    const forceUpdate = () => {
+        updateIcon();
+        setTimeout(updateIcon, 80);
+        setTimeout(updateIcon, 220);
+    };
+
+    // Run immediately and after any fullscreen change
+    setTimeout(forceUpdate, 50);
+
     return container;
 };
 fullscreenControl.addTo(map);
@@ -1318,7 +1329,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-200";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-300";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
