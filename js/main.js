@@ -1322,7 +1322,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-605";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-606";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -3128,13 +3128,14 @@ function updateCounterDisplay() {
 
     const created = locations.filter(l =>
         l.userEdited === true &&
+        !l.approvedSubmission &&
         !l.wasCommunityKept &&
         !l.isPostcard
     ).length;
 
-    // FIXED: Count ALL approved markers (even after they are kept)
     const approved = locations.filter(l =>
         l.approvedSubmission === true &&
+        !l.wasCommunityKept &&
         !l.isPostcard
     ).length;
 
@@ -3143,7 +3144,8 @@ function updateCounterDisplay() {
         !l.isPostcard
     ).length;
 
-    const userLogged = created + kept + approved;
+    // You Logged = Created + Approved + Kept (stable, no double-counting)
+    const userLogged = created + approved + kept;
 
     counter.innerHTML = `
         <strong>Latest Version</strong><br>
