@@ -1322,7 +1322,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-604";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-605";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -3116,8 +3116,9 @@ function addMarkerToMap(loc) {
 
 function updateCounterDisplay() {
     const communityVer = localStorage.getItem(MAP_VERSION_KEY) || "1.0";
-   
+
     const totalLogged = locations.filter(l => activeCategories.has(l.category)).length;
+
     const communityTotal = locations.filter(l =>
         l.isCommunity === true &&
         !l.userEdited &&
@@ -3131,9 +3132,10 @@ function updateCounterDisplay() {
         !l.isPostcard
     ).length;
 
-    // Approved counter remains informational (markers waiting to be kept)
+    // FIXED: Count ALL approved markers (even after they are kept)
     const approved = locations.filter(l =>
-        l.approvedSubmission === true && !l.wasCommunityKept && !l.isPostcard
+        l.approvedSubmission === true &&
+        !l.isPostcard
     ).length;
 
     const kept = locations.filter(l =>
@@ -3141,8 +3143,7 @@ function updateCounterDisplay() {
         !l.isPostcard
     ).length;
 
-    // You Logged now counts each marker only once (no double-counting)
-    const userLogged = created + kept;
+    const userLogged = created + kept + approved;
 
     counter.innerHTML = `
         <strong>Latest Version</strong><br>
@@ -3152,7 +3153,7 @@ function updateCounterDisplay() {
         Total Logged: <strong style="color:#00ff88;">${totalLogged}</strong><br>
         Unexplored: <strong style="color:#88ccff;">${communityTotal}</strong><br>
         You Created: <strong style="color:#00ff88;">${created}</strong><br>
-        Approved: <strong style="color:#00ff88;">${approved}</strong><br>
+        Approved: <strong style="color:#ffcc00;">${approved}</strong><br>
         You Kept: <strong style="color:#00ff88;">${kept}</strong><br>
         You Logged: <strong style="color:#00ff88;">${userLogged}</strong><br>
         Explorer Level: <strong style="color:#00ff88;">${level}</strong>
