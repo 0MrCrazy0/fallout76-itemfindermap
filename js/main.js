@@ -1084,6 +1084,7 @@ function enterFullscreen() {
 
     if (isIOSPWA()) {
         isIOSMaximized = true;
+		document.body.classList.add('immersive-mode');
         mapEl.style.position = 'fixed';
         mapEl.style.top = '0';
         mapEl.style.left = '0';
@@ -1103,13 +1104,24 @@ function enterFullscreen() {
         document.body.style.position = 'fixed';
         document.body.style.width = '100%';
         document.body.style.height = '100%';
+
+        // Stronger force for installed PWA
+        setTimeout(() => {
+            map.invalidateSize({ animate: false });
+            forceMapRender();
+        }, 80);
+		        // Stronger refresh for installed iOS PWA
+        setTimeout(() => { map.invalidateSize({ animate: false }); forceMapRender(); }, 40);
+        setTimeout(() => { map.invalidateSize({ animate: false }); forceMapRender(); }, 120);
+        setTimeout(() => { map.invalidateSize({ animate: false }); forceMapRender(); }, 280);
+        setTimeout(() => { map.invalidateSize({ animate: false }); forceMapRender(); }, 450);
     } else {
         if (mapEl.requestFullscreen) mapEl.requestFullscreen();
         else if (mapEl.webkitRequestFullscreen) mapEl.webkitRequestFullscreen();
     }
 
     map.invalidateSize({ animate: false });
-    updateFullscreenControls();   // ← ensures X + Capture appear instantly
+    updateFullscreenControls();
 }
 
 function exitFullscreen() {
@@ -1118,6 +1130,7 @@ function exitFullscreen() {
 
     if (isIOSPWA() && isIOSMaximized) {
         isIOSMaximized = false;
+		document.body.classList.remove('immersive-mode');
         mapEl.style.position = '';
         mapEl.style.top = '';
         mapEl.style.left = '';
@@ -1143,7 +1156,7 @@ function exitFullscreen() {
     }
 
     map.invalidateSize({ animate: false });
-    updateFullscreenControls();   // ← ensures 🔭 returns and Capture hides
+    updateFullscreenControls();
 }
 
 function isFullscreenActive() {
@@ -1307,7 +1320,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-12-05-2026-Build-B-75-1-2-3-4-5-6";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-100";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
