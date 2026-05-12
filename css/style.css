@@ -1,4 +1,48 @@
 /* ── FALLOUT 76 ITEM FINDER MAP ── */
+/* ── ANDROID PWA NORMAL MODE FIX (prevents huge map – iOS untouched) ── */
+@media (display-mode: standalone) and (pointer: coarse) and not (-webkit-touch-callout: none) {
+    #map {
+        height: 750px !important;
+        max-height: none !important;
+    }
+    .leaflet-container {
+        height: 100% !important;
+        width: 100% !important;
+    }
+}
+@media (max-width: 768px) {
+    #revertAllOutdatedBtn {
+        font-size: 12.5px !important;
+        padding: 9px 10px !important;
+    }
+}
+/* Smaller grip on very narrow screens */
+@media (max-width: 480px) {
+    #map::before {
+        inset: -18px !important;
+    }
+}
+/* ── FINAL ANDROID PWA LANDSCAPE OVERRIDE (strongest possible, iOS untouched) ── */
+@media (display-mode: standalone) and (pointer: coarse) and not (-webkit-touch-callout: none) and (orientation: landscape) {
+    #map,
+    .leaflet-container {
+        height: 68vh !important;
+        max-height: 68vh !important;
+        min-height: 68vh !important;
+        position: relative !important;
+        overflow: hidden !important;
+    }
+}
+
+/* Tighter on very small phones */
+@media (display-mode: standalone) and (pointer: coarse) and not (-webkit-touch-callout: none) and (orientation: landscape) and (max-width: 480px) {
+    #map,
+    .leaflet-container {
+        height: 65vh !important;
+        max-height: 65vh !important;
+        min-height: 65vh !important;
+    }
+}
 /* ── MOBILE GRID + NO-CLUSTER FLICKER (Low-Zoom Focused) ── */
 @media (hover: none) and (pointer: coarse) {
     .grid-line {
@@ -1754,13 +1798,6 @@ button[onclick*="pending.html"],
     line-height: 1.25 !important;
     margin: 5px !important;
 }
-
-@media (max-width: 768px) {
-    #revertAllOutdatedBtn {
-        font-size: 12.5px !important;
-        padding: 9px 10px !important;
-    }
-}
 /* Temporary context-menu PIN indicator */
 .temp-context-pin {
     position: absolute;
@@ -1907,23 +1944,10 @@ button[onclick*="pending.html"],
     opacity: 0.85;
     letter-spacing: 1px;
 }
-/* ── ANDROID PWA NORMAL MODE FIX (prevents huge map – iOS untouched) ── */
-@media (display-mode: standalone) and (pointer: coarse) and not (-webkit-touch-callout: none) {
-    #map {
-        height: 750px !important;
-        max-height: none !important;
-    }
-    .leaflet-container {
-        height: 100% !important;
-        width: 100% !important;
-    }
-}
-
 /* ── INVISIBLE SCROLL GRIP AROUND GREEN BORDER (visible map size unchanged) ── */
 #map {
     position: relative !important;
 }
-
 #map::before {
     content: '';
     position: absolute !important;
@@ -1932,15 +1956,6 @@ button[onclick*="pending.html"],
     pointer-events: auto !important;
     background: transparent !important;
 }
-
 #map {
     z-index: 2 !important;
 }
-
-/* Smaller grip on very narrow screens */
-@media (max-width: 480px) {
-    #map::before {
-        inset: -18px !important;
-    }
-}
-
