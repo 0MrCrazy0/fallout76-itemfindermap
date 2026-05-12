@@ -922,30 +922,6 @@ document.addEventListener('visibilitychange', () => {
 document.addEventListener('fullscreenchange', forceMapRender);
 document.addEventListener('webkitfullscreenchange', forceMapRender);
 
-// ── FORCE ANDROID PWA LANDSCAPE HEIGHT (backup for stubborn Leaflet) ──
-function forceAndroidLandscapeHeight() {
-    if (window.matchMedia('(display-mode: standalone)').matches &&
-        /android/i.test(navigator.userAgent) &&
-        window.innerWidth > window.innerHeight) {
-
-        const mapEl = document.getElementById('map');
-        if (mapEl) {
-            mapEl.style.setProperty('height', '72vh', 'important');
-            mapEl.style.setProperty('max-height', '72vh', 'important');
-            mapEl.style.setProperty('min-height', '72vh', 'important');
-        }
-
-        if (typeof map !== 'undefined' && map) {
-            setTimeout(() => map.invalidateSize({ animate: false }), 120);
-        }
-    }
-}
-
-// Run on load and every time the phone rotates
-window.addEventListener('load', forceAndroidLandscapeHeight);
-window.addEventListener('orientationchange', () => setTimeout(forceAndroidLandscapeHeight, 250));
-window.addEventListener('resize', forceAndroidLandscapeHeight);
-
 // ── FULLSCREEN TOGGLE (🔭 button) — now uses unified manager
 const fullscreenControl = L.control({ position: 'topleft' });
 fullscreenControl.onAdd = function(map) {
@@ -1331,7 +1307,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-12-05-2026-Build-B-75-1-2-3-4-5";
+    const CACHE_NAME = "76-Vault-Stable-12-05-2026-Build-B-75-1-2-3-4-5-6";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -7060,6 +7036,37 @@ if (/iPad/.test(navigator.userAgent)) {
         unlockAudio();
     }, 1200);
 }
+
+// ── STRONGEST ANDROID PWA LANDSCAPE HEIGHT FIX (iOS untouched) ──
+function forceAndroidLandscapeHeight() {
+    // Only run on installed Android PWA in landscape
+    if (window.matchMedia('(display-mode: standalone)').matches &&
+        /android/i.test(navigator.userAgent) &&
+        window.innerWidth > window.innerHeight) {
+
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+            // Force a usable height (adjust this number if needed)
+            mapEl.style.setProperty('height', '68vh', 'important');
+            mapEl.style.setProperty('max-height', '68vh', 'important');
+            mapEl.style.setProperty('min-height', '68vh', 'important');
+        }
+
+        // Force Leaflet to redraw correctly
+        if (typeof map !== 'undefined' && map) {
+            setTimeout(() => map.invalidateSize({ animate: false }), 120);
+        }
+    }
+}
+
+// Run aggressively on every possible trigger
+window.addEventListener('load', forceAndroidLandscapeHeight);
+window.addEventListener('resize', forceAndroidLandscapeHeight);
+window.addEventListener('orientationchange', () => setTimeout(forceAndroidLandscapeHeight, 250));
+
+// Extra safety runs
+setTimeout(forceAndroidLandscapeHeight, 600);
+setTimeout(forceAndroidLandscapeHeight, 1400);
 
         // ── CONSOLE BANNER ──
 console.log(
