@@ -10,10 +10,9 @@ permissions:
   pages: write
   id-token: write
 
-# Force Node.js 24 + suppress the remaining deprecation warning
+# Force Node.js 24 (this is the correct modern setting)
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true   # ← Suppresses the final warning
 
 concurrency:
   group: "pages-deployment"
