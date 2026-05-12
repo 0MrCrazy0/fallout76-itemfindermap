@@ -1943,4 +1943,24 @@ button[onclick*="pending.html"],
         inset: -18px !important;
     }
 }
+/* ── ANDROID PWA LANDSCAPE MAP HEIGHT FIX ── */
+/* Makes the Leaflet map container a reasonable height in landscape */
+/* iOS PWA and desktop remain completely untouched */
+@media (display-mode: standalone) and (pointer: coarse) and not (-webkit-touch-callout: none) and (orientation: landscape) {
+    #map,
+    .leaflet-container {
+        height: 78vh !important;        /* Adjust this number if needed (78vh works well on most phones) */
+        max-height: 78vh !important;
+        min-height: 78vh !important;
+    }
+}
 
+/* Slightly tighter on very small phones */
+@media (display-mode: standalone) and (pointer: coarse) and not (-webkit-touch-callout: none) and (orientation: landscape) and (max-width: 480px) {
+    #map,
+    .leaflet-container {
+        height: 74vh !important;
+        max-height: 74vh !important;
+        min-height: 74vh !important;
+    }
+}
