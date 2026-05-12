@@ -1940,7 +1940,27 @@ button[onclick*="pending.html"],
 /* Smaller grip on very narrow screens */
 @media (max-width: 480px) {
     #map::before {
-        inset: -22px !important;
+        inset: -18px !important;
+    }
+}
+/* ── STRONGEST ANDROID PWA LANDSCAPE MAP HEIGHT FIX ── */
+/* Forces reasonable map height in Android PWA landscape ONLY */
+/* iOS PWA, iOS Safari, and desktop are completely untouched */
+@media (display-mode: standalone) and (pointer: coarse) and not (-webkit-touch-callout: none) and (orientation: landscape) {
+    #map,
+    .leaflet-container {
+        height: 74vh !important;
+        max-height: 74vh !important;
+        min-height: 74vh !important;
     }
 }
 
+/* Extra tight on very small phones */
+@media (display-mode: standalone) and (pointer: coarse) and not (-webkit-touch-callout: none) and (orientation: landscape) and (max-width: 480px) {
+    #map,
+    .leaflet-container {
+        height: 71vh !important;
+        max-height: 71vh !important;
+        min-height: 71vh !important;
+    }
+}
