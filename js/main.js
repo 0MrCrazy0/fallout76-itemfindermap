@@ -1307,7 +1307,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-11-05-2026-Build-B-75-5-5";
+    const CACHE_NAME = "76-Vault-Stable-12-05-2026-Build-B-75-5-5-5";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -2667,7 +2667,7 @@ function createDustParticles(latlng) {
             }, ms);
         }
 
-// ── MINERVA LIVE COUNTDOWN SYSTEM (100% correct ET time + dynamic next location) ──
+// ── MINERVA LIVE COUNTDOWN SYSTEM (Arrival only until she arrives, then Leaves in appears) ──
 function getNextMondayNoon() {
     const now = new Date();
     const utcNow = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
@@ -2699,42 +2699,23 @@ function getMinervaStatus() {
         "The Whitespring Resort in the southeast of The Forest"
     ];
 
-    const now = new Date();
-    const baseDate = new Date('2025-01-06');
-    const weeksSinceBase = Math.floor((now.getTime() - baseDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
-
-    const cyclePosition = weeksSinceBase % 5; // 0-4
-
-    let arrivalDate = new Date(now);
-    let isBigSale = false;
-
-    if (cyclePosition === 4) {
-        // Off-week → skip to next Monday
-        arrivalDate.setUTCDate(arrivalDate.getUTCDate() + (7 - arrivalDate.getUTCDay()) % 7 + 1);
-        arrivalDate.setUTCHours(16, 0, 0, 0);
-    } else if (cyclePosition === 3) {
-        // Big Sale week → arrive on Thursday
-        isBigSale = true;
-        const daysToThursday = (4 - arrivalDate.getUTCDay() + 7) % 7;
-        arrivalDate.setUTCDate(arrivalDate.getUTCDate() + daysToThursday);
-        arrivalDate.setUTCHours(16, 0, 0, 0);
-    } else {
-        // Normal week → arrive on Monday
-        arrivalDate = getNextMondayNoon();
-    }
+    const arrivalDate = getNextMondayNoon();
+    const leaveDate = new Date(arrivalDate.getTime() + (48 * 60 * 60 * 1000)); // 48 hours
 
     const timeUntilArrival = arrivalDate.getTime() - Date.now();
-    const isHereNow = timeUntilArrival < 0 && timeUntilArrival > -7 * 24 * 60 * 60 * 1000;
+    const timeUntilLeave   = leaveDate.getTime() - Date.now();
+
+    const isHereNow = timeUntilArrival < 0 && timeUntilLeave > 0;
 
     const currentLocation = locationNames[cycle];
-    const nextLocation = locationNames[cycle];
+    const nextLocation    = locationNames[(cycle + 1) % 4];
 
     return {
         isHereNow: isHereNow,
         currentLocation: currentLocation,
         nextLocation: nextLocation,
         nextArrivalTime: arrivalDate.getTime(),
-        isBigSale: isBigSale
+        nextLeaveTime: leaveDate.getTime()
     };
 }
 
@@ -2742,14 +2723,13 @@ function startMinervaCountdown(container, targetTime) {
     const update = () => {
         const diff = Math.max(0, targetTime - Date.now());
         if (diff <= 0) {
-            container.innerHTML = `<span style="color:#ffcc00;">Minerva has arrived!</span>`;
+            container.innerHTML = `<span style="color:#ffcc00;">✅ MINERVA HAS ARRIVED!</span>`;
             return;
         }
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
         container.innerHTML = `
             <div><span class="number">${days.toString().padStart(2, '0')}</span><span class="label"> day${days === 1 ? '' : 's'}</span></div>
             <div><span class="number">${hours.toString().padStart(2, '0')}</span><span class="label"> hour${hours === 1 ? '' : 's'}</span></div>
@@ -5395,7 +5375,7 @@ if (nukeCodesBtn) {
         const status = getMinervaStatus();
 
         const content = nukeCodesModal.querySelector('.modal-content');
-        const oldElements = content.querySelectorAll('#minervaStatusContainer, #minervaCountdown');
+        const oldElements = content.querySelectorAll('#minervaStatusContainer, #minervaCountdown, #minervaLeaveCountdown');
         oldElements.forEach(el => el.remove());
 
         let minervaHTML = '';
@@ -5406,13 +5386,16 @@ if (nukeCodesBtn) {
                     <strong>✅ MINERVA IS HERE RIGHT NOW!</strong><br>
                     She is currently at <strong>${status.currentLocation}</strong>.
                 </div>
+                <div style="text-align:center; font-size:1.25em; margin:15px 0 10px;">
+                    <strong>She leaves in:</strong>
+                </div>
+                <div class="minerva-countdown" id="minervaLeaveCountdown"></div>
             `;
         } else {
-            const bigSaleText = status.isBigSale ? ' (Big Sale)' : '';
             minervaHTML = `
                 <div id="minervaStatusContainer" style="text-align:center; font-size:1.25em; margin:25px 0 10px;">
                     <strong>Minerva is not available today.<br>
-                    Minerva will be at ${status.nextLocation}${bigSaleText} next.<br>
+                    Minerva will be at ${status.nextLocation} next.<br>
                     She arrives in:</strong>
                 </div>
                 <div class="minerva-countdown" id="minervaCountdown" style="justify-content:center;gap:22px;"></div>
@@ -5422,9 +5405,19 @@ if (nukeCodesBtn) {
         content.insertAdjacentHTML('beforeend', minervaHTML);
 
         let countdownInterval = null;
-        const countdownContainer = document.getElementById('minervaCountdown');
-        if (countdownContainer && !status.isHereNow) {
-            countdownInterval = startMinervaCountdown(countdownContainer, status.nextArrivalTime);
+
+        if (status.isHereNow) {
+            // Start leave timer only when she has arrived
+            const leaveContainer = document.getElementById('minervaLeaveCountdown');
+            if (leaveContainer) {
+                countdownInterval = startMinervaCountdown(leaveContainer, status.nextLeaveTime);
+            }
+        } else {
+            // Start arrival timer
+            const countdownContainer = document.getElementById('minervaCountdown');
+            if (countdownContainer) {
+                countdownInterval = startMinervaCountdown(countdownContainer, status.nextArrivalTime);
+            }
         }
 
         const closeBtn = nukeCodesModal.querySelector('.close');
