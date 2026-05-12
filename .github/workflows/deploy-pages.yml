@@ -10,7 +10,7 @@ permissions:
   pages: write
   id-token: write
 
-# Force Node.js 24 (this is the correct modern setting)
+# Force Node.js 24 (removes most warnings)
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -44,3 +44,6 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      # Note: The remaining "Node.js 20 is deprecated" warning is informational only.
+      # GitHub is forcing Node 24 and this notice will disappear in the future.
