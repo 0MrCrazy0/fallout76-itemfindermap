@@ -922,6 +922,30 @@ document.addEventListener('visibilitychange', () => {
 document.addEventListener('fullscreenchange', forceMapRender);
 document.addEventListener('webkitfullscreenchange', forceMapRender);
 
+// ── FORCE ANDROID PWA LANDSCAPE HEIGHT (backup for stubborn Leaflet) ──
+function forceAndroidLandscapeHeight() {
+    if (window.matchMedia('(display-mode: standalone)').matches &&
+        /android/i.test(navigator.userAgent) &&
+        window.innerWidth > window.innerHeight) {
+
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+            mapEl.style.setProperty('height', '72vh', 'important');
+            mapEl.style.setProperty('max-height', '72vh', 'important');
+            mapEl.style.setProperty('min-height', '72vh', 'important');
+        }
+
+        if (typeof map !== 'undefined' && map) {
+            setTimeout(() => map.invalidateSize({ animate: false }), 120);
+        }
+    }
+}
+
+// Run on load and every time the phone rotates
+window.addEventListener('load', forceAndroidLandscapeHeight);
+window.addEventListener('orientationchange', () => setTimeout(forceAndroidLandscapeHeight, 250));
+window.addEventListener('resize', forceAndroidLandscapeHeight);
+
 // ── FULLSCREEN TOGGLE (🔭 button) — now uses unified manager
 const fullscreenControl = L.control({ position: 'topleft' });
 fullscreenControl.onAdd = function(map) {
@@ -1307,7 +1331,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-12-05-2026-Build-B-75-1-2-3-4";
+    const CACHE_NAME = "76-Vault-Stable-12-05-2026-Build-B-75-1-2-3-4-5";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
