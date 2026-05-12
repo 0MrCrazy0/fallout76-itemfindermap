@@ -3,14 +3,13 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: ["main"]
-  workflow_dispatch:        # Allows manual trigger from the Actions tab if needed
+  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Critical: Ensures deployments run one after another (fixes your pages-build-deployment issue)
 concurrency:
   group: "pages-deployment"
   cancel-in-progress: false
@@ -33,7 +32,10 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4   # ← Updated to v4 (removes Node 20 warning)
+        uses: actions/upload-pages-artifact@v4
+        with:
+          name: github-pages          # ← Required for v4 (fixes exit code 2)
+          path: '.'                   # Entire repository root is your static site
 
       - name: Deploy to GitHub Pages
         id: deployment
