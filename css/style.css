@@ -1938,24 +1938,25 @@ button[onclick*="pending.html"],
         inset: -18px !important;
     }
 }
-/* ── FINAL ANDROID PWA LANDSCAPE OVERRIDE (strongest possible, iOS untouched) ── */
+/* ── ULTIMATE ANDROID LANDSCAPE FORCE (MUST STAY AT THE VERY BOTTOM) ── */
 @media (display-mode: standalone) and (pointer: coarse) and not (-webkit-touch-callout: none) and (orientation: landscape) {
-    #map,
-    .leaflet-container {
-        height: 68vh !important;
-        max-height: 68vh !important;
-        min-height: 68vh !important;
-        position: relative !important;
-        overflow: hidden !important;
-    }
-}
-
-/* Tighter on very small phones */
-@media (display-mode: standalone) and (pointer: coarse) and not (-webkit-touch-callout: none) and (orientation: landscape) and (max-width: 480px) {
     #map,
     .leaflet-container {
         height: 65vh !important;
         max-height: 65vh !important;
         min-height: 65vh !important;
+        position: relative !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+}
+
+/* Even tighter on very small phones */
+@media (display-mode: standalone) and (pointer: coarse) and not (-webkit-touch-callout: none) and (orientation: landscape) and (max-width: 480px) {
+    #map,
+    .leaflet-container {
+        height: 62vh !important;
+        max-height: 62vh !important;
+        min-height: 62vh !important;
     }
 }
