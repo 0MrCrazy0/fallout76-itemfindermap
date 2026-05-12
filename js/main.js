@@ -992,7 +992,6 @@ screenshotControl.onAdd = function(map) {
     return container;
 };
 screenshotControl.addTo(map);
-screenshotControl.getContainer().style.display = 'none';
 
 // ── FINAL iOS PWA Fix — Screenshot + X button visibility ──
 const updateScreenshotVisibility = () => {
@@ -1176,10 +1175,10 @@ function updateFullscreenControls() {
         }
     }
 
-    // Show Capture button only when maximized (on iOS PWA too)
     const ssContainer = screenshotControl.getContainer();
     if (ssContainer) {
-        ssContainer.style.display = isMax ? 'block' : 'none';
+        const shouldShow = isMax && !isIOSPWA();
+        ssContainer.style.display = shouldShow ? 'block' : 'none';
     }
 
     // Force layout refresh on iOS PWA
@@ -1318,7 +1317,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-400";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-500";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
