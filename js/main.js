@@ -1003,9 +1003,19 @@ document.addEventListener('fullscreenchange', updateScreenshotVisibility);
 document.addEventListener('webkitfullscreenchange', updateScreenshotVisibility);
 setTimeout(updateScreenshotVisibility, 100);
 
-// ── True Fullscreen Capture – forces clean exit on Android Chrome (most stubborn case) ──
+// ── True Fullscreen Capture – FIXED for Chrome Android (exit BEFORE download prompt) ──
 function captureHighResScreenshot() {
     playSound('saving');
+
+    // ── IMMEDIATELY exit fullscreen (critical for Chrome Android) ──
+    wasInFullscreenBeforeModal = false;
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
+    exitFullscreen();                    // our unified exit
+    updateFullscreenControls();
+
     const mapEl = document.getElementById('map');
     const originalHeight = mapEl.style.height;
     const originalMaxWidth = mapEl.style.maxWidth;
@@ -1029,44 +1039,23 @@ function captureHighResScreenshot() {
                 document.body.appendChild(a);
                 a.click();
 
-                // Safari-safe cleanup
+                // Cleanup
                 setTimeout(() => {
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
                 }, 1200);
 
-                // Restore original styles
+                // Restore styles
                 mapEl.style.height = originalHeight;
                 mapEl.style.maxWidth = originalMaxWidth || '95%';
                 map.invalidateSize();
 
                 showTempMessage('📸 FULLSCREEN MAP CAPTURE SAVED TO DOWNLOADS! ✅', 4000);
 
-                // ── AGGRESSIVE CLEAN EXIT FOR ANDROID CHROME ──
+                // Final safety resync (Chrome Android sometimes needs this)
                 setTimeout(() => {
-                    wasInFullscreenBeforeModal = false;
-
-                    // 1. Force native fullscreen exit first (this is what Chrome Android needs)
-                    if (document.fullscreenElement || document.webkitFullscreenElement) {
-                        if (document.exitFullscreen) document.exitFullscreen();
-                        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-                    }
-
-                    // 2. Run our unified exit (updates buttons + handles iOS PWA)
-                    exitFullscreen();
-
-                    // 3. Final safety refresh
                     updateFullscreenControls();
-                }, 420);
-
-                // Extra safety retry (Chrome Android sometimes needs two calls)
-                setTimeout(() => {
-                    if (document.fullscreenElement || document.webkitFullscreenElement) {
-                        if (document.exitFullscreen) document.exitFullscreen();
-                        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-                    }
-                    updateFullscreenControls();
-                }, 1200);
+                }, 800);
 
             }, 'image/jpeg', 0.92);
         }).catch(err => {
@@ -1074,7 +1063,7 @@ function captureHighResScreenshot() {
             showTempMessage('❌ CAPTURE FAILED — TRY AGAIN', 4000);
             playSound('error');
         });
-    }, 300);
+    }, 350);   // small delay after exiting fullscreen
 }
 
 // ── FULLSCREEN RESTORE LOGIC (iOS-safe) ──
@@ -1332,7 +1321,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-601";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-602";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
