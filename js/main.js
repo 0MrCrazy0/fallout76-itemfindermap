@@ -1322,7 +1322,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-603";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-604";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -6262,6 +6262,8 @@ window.keepCommunityMarker = function(markerId) {
     if (!marker || !marker.isCommunity) return;
 
     playSound('click');
+	
+	const wasApprovedSubmission = !!marker.approvedSubmission;
 
     showConfirmModal(
         '👍 Keep This Community Marker? 💾',
@@ -6277,6 +6279,11 @@ window.keepCommunityMarker = function(markerId) {
             marker.wasCommunityKept = true;
             marker.locked = true;
             marker.addedTime = Date.now();
+            // Preserve approvedSubmission flag
+            if (wasApprovedSubmission) {
+                marker.approvedSubmission = true;
+            }
+
             window.justKeptMarkerId = markerId;
 
             applyCustomCategoryStyling();
