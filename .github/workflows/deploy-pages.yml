@@ -10,9 +10,10 @@ permissions:
   pages: write
   id-token: write
 
-# Force GitHub to use Node.js 24 instead of the deprecated Node 20
+# Force Node.js 24 + suppress the remaining deprecation warning
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true   # ← Suppresses the final warning
 
 concurrency:
   group: "pages-deployment"
