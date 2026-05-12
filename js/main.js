@@ -1003,7 +1003,7 @@ document.addEventListener('fullscreenchange', updateScreenshotVisibility);
 document.addEventListener('webkitfullscreenchange', updateScreenshotVisibility);
 setTimeout(updateScreenshotVisibility, 100);
 
-// ── True Fullscreen Capture – forces clean exit on Android/PC (iOS PWA button already hidden) ──
+// ── True Fullscreen Capture – forces clean exit on Android Chrome (most stubborn case) ──
 function captureHighResScreenshot() {
     playSound('saving');
     const mapEl = document.getElementById('map');
@@ -1042,22 +1042,31 @@ function captureHighResScreenshot() {
 
                 showTempMessage('📸 FULLSCREEN MAP CAPTURE SAVED TO DOWNLOADS! ✅', 4000);
 
-                // ── STRONGER CLEAN EXIT FOR ANDROID / PC ──
+                // ── AGGRESSIVE CLEAN EXIT FOR ANDROID CHROME ──
                 setTimeout(() => {
                     wasInFullscreenBeforeModal = false;
 
-                    // Force native fullscreen exit first (most reliable on Android)
+                    // 1. Force native fullscreen exit first (this is what Chrome Android needs)
                     if (document.fullscreenElement || document.webkitFullscreenElement) {
                         if (document.exitFullscreen) document.exitFullscreen();
                         else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
                     }
 
-                    // Then run our unified exit (handles iOS PWA + updates UI)
+                    // 2. Run our unified exit (updates buttons + handles iOS PWA)
                     exitFullscreen();
 
-                    // Final safety call
+                    // 3. Final safety refresh
                     updateFullscreenControls();
-                }, 450);
+                }, 420);
+
+                // Extra safety retry (Chrome Android sometimes needs two calls)
+                setTimeout(() => {
+                    if (document.fullscreenElement || document.webkitFullscreenElement) {
+                        if (document.exitFullscreen) document.exitFullscreen();
+                        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                    }
+                    updateFullscreenControls();
+                }, 1200);
 
             }, 'image/jpeg', 0.92);
         }).catch(err => {
@@ -1323,7 +1332,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-600";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-601";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
