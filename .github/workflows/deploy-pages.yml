@@ -10,6 +10,10 @@ permissions:
   pages: write
   id-token: write
 
+# Force GitHub to use Node.js 24 instead of the deprecated Node 20
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 concurrency:
   group: "pages-deployment"
   cancel-in-progress: false
@@ -34,8 +38,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          name: github-pages          # ← Required for v4 (fixes exit code 2)
-          path: '.'                   # Entire repository root is your static site
+          name: github-pages
+          path: '.'
 
       - name: Deploy to GitHub Pages
         id: deployment
