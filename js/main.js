@@ -1029,7 +1029,8 @@ function captureHighResScreenshot() {
             useCORS: true,
             scale: 2,
             logging: false,
-            backgroundColor: '#000000'
+            backgroundColor: '#000000',
+			willReadFrequently: true
         }).then(canvas => {
             canvas.toBlob((blob) => {
                 const url = URL.createObjectURL(blob);
@@ -1321,7 +1322,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-602";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-603";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
