@@ -1943,25 +1943,4 @@ button[onclick*="pending.html"],
         inset: -18px !important;
     }
 }
-/* ── STRONGEST ANDROID PWA LANDSCAPE HEIGHT FIX ── */
-/* This rule is placed last and has maximum specificity to override everything else */
-/* iOS PWA and desktop are completely untouched */
-@media (display-mode: standalone) and (pointer: coarse) and not (-webkit-touch-callout: none) and (orientation: landscape) {
-    #map,
-    .leaflet-container {
-        height: 72vh !important;
-        max-height: 72vh !important;
-        min-height: 72vh !important;
-        position: relative !important;
-    }
-}
 
-/* Even tighter on very small phones */
-@media (display-mode: standalone) and (pointer: coarse) and not (-webkit-touch-callout: none) and (orientation: landscape) and (max-width: 480px) {
-    #map,
-    .leaflet-container {
-        height: 70vh !important;
-        max-height: 70vh !important;
-        min-height: 70vh !important;
-    }
-}
