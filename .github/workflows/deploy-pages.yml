@@ -13,7 +13,7 @@ permissions:
 # Critical: Ensures deployments run one after another (fixes your pages-build-deployment issue)
 concurrency:
   group: "pages-deployment"
-  cancel-in-progress: false   # New runs WAIT for the previous one to finish
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -33,9 +33,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'                     # Entire repository root is your static site
+        uses: actions/upload-pages-artifact@v4   # ← Updated to v4 (removes Node 20 warning)
 
       - name: Deploy to GitHub Pages
         id: deployment
