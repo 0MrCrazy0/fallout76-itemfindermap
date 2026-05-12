@@ -1004,7 +1004,7 @@ document.addEventListener('fullscreenchange', updateScreenshotVisibility);
 document.addEventListener('webkitfullscreenchange', updateScreenshotVisibility);
 setTimeout(updateScreenshotVisibility, 100);
 
-// ── True Fullscreen Capture – Safari browser + iOS PWA compatible (multi-test safe) ──
+// ── True Fullscreen Capture – Safari browser + iOS PWA compatible (fixed exit) ──
 function captureHighResScreenshot() {
     playSound('saving');
     const mapEl = document.getElementById('map');
@@ -1029,11 +1029,11 @@ function captureHighResScreenshot() {
                 document.body.appendChild(a);
                 a.click();
 
-                // ── Safari-safe cleanup (prevents webkitblobresource error 1) ──
+                // Safari-safe cleanup
                 setTimeout(() => {
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
-                }, 1200);   // longer delay gives Safari time to finish download
+                }, 1200);
 
                 // Restore original styles
                 mapEl.style.height = originalHeight;
@@ -1042,20 +1042,18 @@ function captureHighResScreenshot() {
 
                 showTempMessage('📸 FULLSCREEN MAP CAPTURE SAVED TO DOWNLOADS! ✅', 4000);
 
-                // ── Recovery for ALL iOS environments ──
-                if (isIOSDevice()) {
-                    setTimeout(() => {
-                        forceResetFullscreenLayout();
-                    }, 450);
-                }
-
-                setTimeout(exitFullscreenIfActive, 600);
-
+                // ── CLEAN EXIT AFTER SCREENSHOT ──
                 setTimeout(() => {
-                    if (wasInFullscreenBeforeModal) {
-                        showRestoreFullscreenButton();
-                    }
-                }, 800);
+                    wasInFullscreenBeforeModal = false;           // prevent restore button
+                    exitFullscreen();                             // force clean exit
+                }, 450);
+
+                // Only use forceReset as last resort on iOS PWA
+                if (isIOSPWA()) {
+                    setTimeout(() => {
+                        if (isFullscreenActive()) forceResetFullscreenLayout();
+                    }, 900);
+                }
             }, 'image/jpeg', 0.92);
         }).catch(err => {
             console.error('Capture failed:', err);
@@ -1251,7 +1249,7 @@ function showRestoreFullscreenButton() {
 function forceResetFullscreenLayout() {
     const mapEl = document.getElementById('map');
     if (!mapEl) return;
-
+    document.body.classList.remove('immersive-mode');
     // ── Aggressively REMOVE all fullscreen CSS styles ──
     mapEl.style.position = '';
     mapEl.style.inset = '';
@@ -1320,7 +1318,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-100";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-200";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
