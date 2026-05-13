@@ -687,17 +687,16 @@ function safeInvalidateSize() {
 let tempContextPin = null;
 
 function showTempContextPin(latlng) {
-    removeTempContextPin(); // clear any previous
+    removeTempContextPin();
 
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    // Multiple invalidateSize calls to handle orientation + fullscreen exit
+    // Stronger resize handling for Android fullscreen exit
     if (typeof map !== 'undefined' && map) {
         map.invalidateSize({ animate: false });
     }
 
-    // Longer and staggered delay for Android (especially landscape)
     setTimeout(() => {
         if (typeof map !== 'undefined' && map) {
             map.invalidateSize({ animate: false });
@@ -713,9 +712,10 @@ function showTempContextPin(latlng) {
         tempContextPin.style.zIndex = '999999';
         tempContextPin.style.position = 'absolute';
         tempContextPin.style.pointerEvents = 'none';
+        tempContextPin.style.transition = 'none';   // prevent any animation shift
 
         mapContainer.appendChild(tempContextPin);
-    }, 180); // increased delay for better reliability
+    }, 220); // increased delay for landscape stability
 }
 
 function removeTempContextPin() {
@@ -1331,13 +1331,29 @@ window.exitFullscreenThenDo = function(callback) {
     }
 };
 
+// ── LANDSCAPE MODAL POSITION FIX ──
+function fixLandscapeModalPosition() {
+    const modals = document.querySelectorAll('#mapContextMenu, .modal-content');
+    modals.forEach(modal => {
+        if (modal && modal.style.display === 'block') {
+            modal.style.position = 'fixed';
+            modal.style.top = 'auto';
+            modal.style.bottom = '12%';
+            modal.style.left = '50%';
+            modal.style.transform = 'translateX(-50%)';
+            modal.style.maxHeight = '78vh';
+            modal.style.overflowY = 'auto';
+        }
+    });
+}
+
 // ── MAP RENDER + INTELLIGENT LOADING BANNER ──
 (function() {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-608";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-609";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -6778,22 +6794,25 @@ function showMapContextMenu(latlng) {
 
         // Use browser event to wait for the exit to complete
         const onExitComplete = function () {
-            document.removeEventListener('fullscreenchange', onExitComplete);
-            document.removeEventListener('webkitfullscreenchange', onExitComplete);
+    document.removeEventListener('fullscreenchange', onExitComplete);
+    document.removeEventListener('webkitfullscreenchange', onExitComplete);
 
-            if (map && typeof map.invalidateSize === 'function') {
-                map.invalidateSize(true);
-            }
+    if (map && typeof map.invalidateSize === 'function') {
+        map.invalidateSize({ animate: false });
+    }
 
-            // Now safely show pin + modal
-            showTempContextPin(latlng);
-            contextMenu.style.display = 'block';
-            document.body.classList.add('modal-open');
-            window.lastContextLatLng = latlng;
+    setTimeout(() => {
+        showTempContextPin(latlng);
+        contextMenu.style.display = 'block';
+        document.body.classList.add('modal-open');
+        window.lastContextLatLng = latlng;
 
-            showTempMessage('📍 Choose Action — Create Marker or Postcard', 2200);
-            playSound('click');
-        };
+        fixLandscapeModalPosition();   // ← fixes modal too low in landscape
+
+        showTempMessage('📍 Choose Action — Create Marker or Postcard', 2200);
+        playSound('click');
+    }, 150);
+};
 
         document.addEventListener('fullscreenchange', onExitComplete, { once: true });
         document.addEventListener('webkitfullscreenchange', onExitComplete, { once: true });
