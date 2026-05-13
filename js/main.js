@@ -1383,7 +1383,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-623";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-624";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -4172,12 +4172,17 @@ exportBtn.onclick = () => {
 
     const withKeptCount = purePersonalCount + keptCount;
 
+    // Remove any old modal first
+    const existing = document.getElementById('backupModal');
+    if (existing) existing.remove();
+
     const modal = document.createElement('div');
+    modal.id = 'backupModal';                    // Fixed ID — required for closeModalWithSound
     modal.className = 'modal';
     modal.style.display = 'block';
     modal.innerHTML = `
-        <div class="modal-content" style="max-width:560px;">
-            <span class="close">×</span>
+        <div class="modal-content" style="max-width:560px; width:94vw; padding:24px; box-sizing:border-box;">
+            <span class="close">X</span>
             <h2 style="text-align:center; margin-bottom:18px;">Choose Backup Type</h2>
         
             <div style="max-width:460px; margin:0 auto; padding:0 10px;">
@@ -4197,17 +4202,29 @@ exportBtn.onclick = () => {
                 With Kept = includes markers you decided to keep<br>
                 Missing markers? Download the community map again if needed.
             </p>
+
+            <!-- Bottom Close Button – now built-in and reliable every time -->
+            <button onclick="closeModalWithSound('backupModal')" 
+                    style="background:#1a3c34; color:#00ff00; border:2px solid #00ff00; width:100%; margin-top:25px; padding:12px; font-weight:bold;">
+                Close
+            </button>
         </div>
     `;
+
     document.body.appendChild(modal);
     document.body.classList.add('modal-open');
 
-    modal.querySelector('.close').onclick = () => {
-        modal.remove();
-        document.body.classList.remove('modal-open');
-        playSound('modalClose');
-    };
+    // X button handler
+    const closeBtn = modal.querySelector('.close');
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            modal.remove();
+            document.body.classList.remove('modal-open');
+            playSound('modalClose');
+        };
+    }
 
+    // Your original backup handlers (unchanged)
     document.getElementById('backupPersonalOnly').onclick = () => {
         const playerMarkers = locations.filter(l => l.userEdited === true && !l.wasCommunityKept && !l.isPostcard);
         const data = {
@@ -4514,7 +4531,9 @@ downloadCommunityBtn.onclick = () => {
     modal.innerHTML = `
         <div class="modal-content" style="max-width:520px; width:94vw; padding:24px; box-sizing:border-box;">
             <span class="close">X</span>
-            <h2 style="text-align:center; margin:0 0 20px; font-size:1.8em;">🚀 UPDATE COMMUNITY MAP 🚀</h2>
+            <h2 style="text-align:center; margin:0 0 20px; font-size:1.65em; line-height:1.3;">
+    🚀 UPDATE COMMUNITY MAP
+</h2>
             
             <div style="text-align:left; line-height:1.8; font-size:1.1em;">
                 Your personal markers & edits are <strong>100% SAFE</strong><br><br>
@@ -4663,7 +4682,7 @@ downloadCommunityBtn.onclick = () => {
             if (categoryFilter) categoryFilter.value = currentCategoryFilter || '';
 
             showConfirmModal(
-                '☢ COMMUNITY MAP UPDATED ☢',
+                '📡 COMMUNITY MAP UPDATED',
                 `<strong style="color:#00ff88;">${added}</strong> - new markers added<br>
 <strong style="color:#88ccff;">${refreshed}</strong> - community markers refreshed<br>
 <strong style="color:#ffa500;">${skipped}</strong> - kept/edited markers protected<br>
