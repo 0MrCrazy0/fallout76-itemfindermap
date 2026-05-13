@@ -1383,7 +1383,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-621";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-622";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -2293,7 +2293,12 @@ postcardModal.innerHTML = `
         
         <div style="margin-top:12px; text-align:center;">
             <button id="createPostcardBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Copy Link</button>
-        </div>
+                    <!-- Bottom Close Button -->
+        <button onclick="closeModalWithSound('postcardModal')" 
+                style="background:#1a3c34; color:#00ff00; border:2px solid #00ff00; width:100%; margin-top:20px; padding:12px; font-weight:bold;">
+            Close
+        </button>
+		</div>
     </div>
 `;
 document.body.appendChild(postcardModal);
@@ -5383,6 +5388,11 @@ if (nukeCodesBtn) {
         let minervaContainer = document.getElementById('minervaContainer');
         if (minervaContainer) minervaContainer.remove();
 
+        // Remove any previously added Close button (prevents duplication)
+        const existingCloseBtn = content.querySelector('.modal-close-bottom');
+        if (existingCloseBtn) existingCloseBtn.remove();
+
+        // Create fresh Minerva container
         minervaContainer = document.createElement('div');
         minervaContainer.id = 'minervaContainer';
         content.appendChild(minervaContainer);
@@ -5394,7 +5404,6 @@ if (nukeCodesBtn) {
             minervaContainer.innerHTML = '';
 
             let minervaHTML = '';
-
             if (status.isHereNow) {
                 minervaHTML = `
                     <div id="minervaStatusContainer" style="text-align:center; font-size:1.4em; color:#ffcc00; margin:25px 0;">
@@ -5416,20 +5425,18 @@ if (nukeCodesBtn) {
                     <div class="minerva-countdown" id="minervaCountdown" style="justify-content:center;gap:22px;"></div>
                 `;
             }
-
             minervaContainer.innerHTML = minervaHTML;
 
-            if (status.isHereNow) {
-                const leaveContainer = document.getElementById('minervaLeaveCountdown');
-                if (leaveContainer) countdownInterval = startMinervaCountdown(leaveContainer, status.nextLeaveTime);
-            } else {
-                const arrivalContainer = document.getElementById('minervaCountdown');
-                if (arrivalContainer) countdownInterval = startMinervaCountdown(arrivalContainer, status.nextArrivalTime);
+            const countdownContainer = document.getElementById(status.isHereNow ? 'minervaLeaveCountdown' : 'minervaCountdown');
+            if (countdownContainer) {
+                if (countdownInterval) clearInterval(countdownInterval);
+                countdownInterval = startMinervaCountdown(countdownContainer, status.isHereNow ? status.nextLeaveTime : status.nextArrivalTime);
             }
         }
 
         refreshMinervaDisplay();
 
+        // Refresh every 30 seconds while modal is open
         const statusRefreshInterval = setInterval(() => {
             if (nukeCodesModal.style.display === 'block') {
                 refreshMinervaDisplay();
@@ -5438,9 +5445,20 @@ if (nukeCodesBtn) {
             }
         }, 30000);
 
-        const closeBtn = nukeCodesModal.querySelector('.close');
-        if (closeBtn) {
-            closeBtn.onclick = () => {
+        // ── Bottom Close Button — now placed AFTER the timer (no duplication) ──
+        const closeBtnHTML = `
+            <button onclick="closeModalWithSound('nukeCodesModal')" 
+                    class="modal-close-bottom"
+                    style="background:#1a3c34; color:#00ff00; border:2px solid #00ff00; width:100%; margin-top:30px; padding:12px; font-weight:bold;">
+                Close
+            </button>
+        `;
+        content.insertAdjacentHTML('beforeend', closeBtnHTML);
+
+        // Top X button
+        const closeSpan = nukeCodesModal.querySelector('.close');
+        if (closeSpan) {
+            closeSpan.onclick = () => {
                 if (countdownInterval) clearInterval(countdownInterval);
                 nukeCodesModal.style.display = 'none';
                 document.body.classList.remove('modal-open');
@@ -6886,10 +6904,11 @@ function attachContextButtons() {
         };
     }
 
-    // ── FIXED: Remove pin when user clicks the X close button on the context menu ──
+        // ── FIXED: Remove pin when user clicks the X close button on the context menu ──
     const contextCloseBtn = contextMenu.querySelector('.close');
     if (contextCloseBtn) {
         contextCloseBtn.onclick = () => {
+            if (typeof playSound === 'function') playSound('modalClose');
             removeTempContextPin();
             contextMenu.style.display = 'none';
             document.body.classList.remove('modal-open');
@@ -7153,6 +7172,23 @@ window.addEventListener('resize', () => {
 window.addEventListener('orientationchange', () => {
     setTimeout(fixLandscapeModalPosition, 180);
 });
+
+// ── GLOBAL HELPER FOR BOTTOM CLOSE BUTTONS (sound works on BOTH top X and bottom Close) ──
+window.closeModalWithSound = function(modalId) {
+    if (typeof playSound === 'function') playSound('modalClose');
+    
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+    }
+    
+    // Remove temporary map pin (only for Choose Action)
+    if (modalId === 'mapContextMenu') {
+        const pin = document.querySelector('.temp-context-pin');
+        if (pin) pin.remove();
+    }
+};
 
         // ── CONSOLE BANNER ──
 console.log(
