@@ -1383,7 +1383,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-626";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-627";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -5431,8 +5431,8 @@ if (nukeCodesBtn) {
 
         // Clean single set of buttons
         const minervaHTML = `
-            <div style="text-align:center; margin:30px 0 40px; line-height:1.8;">
-                <div class="nuke-emoji-wrapper">
+            <div style="text-align:center; margin:30px 0 30px; line-height:1.8;">
+                <div class="nuke-emoji-wrapper" style="margin-top:15px;">
                     <a href="https://www.falloutbuilds.com/fo76/nuke-codes/" 
                        target="_blank" rel="noopener noreferrer" 
                        class="nuke-emoji-btn" title="Weekly launch codes">
@@ -5443,11 +5443,11 @@ if (nukeCodesBtn) {
                     <strong>Weekly launch codes — always up to date!</strong>
                 </p>
 
-                <div class="nuke-emoji-wrapper" style="margin-top:45px;">
+                <div class="nuke-emoji-wrapper" style="margin-top:15px;">
                     <a href="https://www.falloutbuilds.com/fo76/minerva/" 
                        target="_blank" rel="noopener noreferrer" 
                        class="nuke-emoji-btn" title="Where is Minerva Today?">
-                        📻
+                        🛒
                     </a>
                 </div>
                 <p style="margin-top:15px;">
@@ -5465,7 +5465,7 @@ if (nukeCodesBtn) {
         const closeBtnHTML = `
             <button onclick="closeModalWithSound('nukeCodesModal')" 
                     class="modal-close-bottom"
-                    style="background:#1a3c34; color:#00ff00; border:2px solid #00ff00; width:100%; margin-top:30px; padding:12px; font-weight:bold;">
+                    style="background:#1a3c34; color:#00ff00; border:2px solid #00ff00; width:100%; margin-top:15px; padding:12px; font-weight:bold;">
                 Close
             </button>
         `;
