@@ -683,24 +683,40 @@ function safeInvalidateSize() {
     }
 }
 
-// ── TEMPORARY CONTEXT MENU PIN (shows at right-click / long-press location) ──
+// ── TEMPORARY CONTEXT MENU PIN (robust version using lat/lng) ──
 let tempContextPin = null;
+let tempContextLatLng = null;   // ← store the real map location
 
 function showTempContextPin(latlng) {
-    removeTempContextPin(); // clear any previous
+    removeTempContextPin();
+    tempContextLatLng = latlng;   // remember exact location
 
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const point = map.latLngToContainerPoint(latlng);
+    // Force map to finish resizing after fullscreen exit / rotation
+    if (typeof map !== 'undefined' && map) {
+        map.invalidateSize({ animate: false });
+    }
 
-    tempContextPin = document.createElement('div');
-    tempContextPin.className = 'temp-context-pin';
-    tempContextPin.textContent = '📍';
-    tempContextPin.style.left = `${point.x}px`;
-    tempContextPin.style.top = `${point.y}px`;
+    // Give the browser time to finish layout changes
+    setTimeout(() => {
+        if (!tempContextLatLng) return;
 
-    mapContainer.appendChild(tempContextPin);
+        const point = map.latLngToContainerPoint(tempContextLatLng);
+
+        tempContextPin = document.createElement('div');
+        tempContextPin.className = 'temp-context-pin';
+        tempContextPin.textContent = '📍';
+        tempContextPin.style.left = `${point.x}px`;
+        tempContextPin.style.top = `${point.y}px`;
+        tempContextPin.style.zIndex = '999999';
+        tempContextPin.style.position = 'absolute';
+        tempContextPin.style.pointerEvents = 'none';
+        tempContextPin.style.transition = 'none';
+
+        mapContainer.appendChild(tempContextPin);
+    }, 220);
 }
 
 function removeTempContextPin() {
@@ -708,6 +724,7 @@ function removeTempContextPin() {
         tempContextPin.parentNode.removeChild(tempContextPin);
     }
     tempContextPin = null;
+    tempContextLatLng = null;
 }
 
 // ── CELEBRATORY CREATION BURST (when new marker or postcard is created) ──
@@ -1322,7 +1339,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-610";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-611";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
