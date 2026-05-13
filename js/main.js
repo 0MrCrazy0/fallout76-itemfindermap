@@ -1383,7 +1383,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-624";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-625";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -5423,68 +5423,45 @@ if (nukeCodesBtn) {
 
         const content = nukeCodesModal.querySelector('.modal-content');
 
-        // Remove any old Minerva content
-        let minervaContainer = document.getElementById('minervaContainer');
-        if (minervaContainer) minervaContainer.remove();
+        // Fully clear any old content first
+        content.innerHTML = `
+            <span class="close">X</span>
+            <h1>Nuke Codes & Minerva</h1>
+        `;
 
-        // Remove any previously added Close button (prevents duplication)
-        const existingCloseBtn = content.querySelector('.modal-close-bottom');
-        if (existingCloseBtn) existingCloseBtn.remove();
+        // Clean single set of buttons
+        const minervaHTML = `
+            <div style="text-align:center; margin:30px 0 40px; line-height:1.8;">
+                <div class="nuke-emoji-wrapper">
+                    <a href="https://www.falloutbuilds.com/fo76/nuke-codes/" 
+                       target="_blank" rel="noopener noreferrer" 
+                       class="nuke-emoji-btn" title="Weekly launch codes">
+                        🚀
+                    </a>
+                </div>
+                <p style="margin-top:15px;">
+                    <strong>Weekly launch codes — always up to date!</strong>
+                </p>
 
-        // Create fresh Minerva container
-        minervaContainer = document.createElement('div');
+                <div class="nuke-emoji-wrapper" style="margin-top:45px;">
+                    <a href="https://www.falloutbuilds.com/fo76/minerva/" 
+                       target="_blank" rel="noopener noreferrer" 
+                       class="nuke-emoji-btn" title="Where is Minerva Today?">
+                        📻
+                    </a>
+                </div>
+                <p style="margin-top:15px;">
+                    <strong>Where is Minerva Today? — always up to date!</strong>
+                </p>
+            </div>
+        `;
+
+        const minervaContainer = document.createElement('div');
         minervaContainer.id = 'minervaContainer';
+        minervaContainer.innerHTML = minervaHTML;
         content.appendChild(minervaContainer);
 
-        let countdownInterval = null;
-
-        function refreshMinervaDisplay() {
-            const status = getMinervaStatus();
-            minervaContainer.innerHTML = '';
-
-            let minervaHTML = '';
-            if (status.isHereNow) {
-                minervaHTML = `
-                    <div id="minervaStatusContainer" style="text-align:center; font-size:1.4em; color:#ffcc00; margin:25px 0;">
-                        <strong>✅ MINERVA IS HERE RIGHT NOW!</strong><br>
-                        She is currently at <strong>${status.currentLocation}</strong>.
-                    </div>
-                    <div style="text-align:center; font-size:1.25em; margin:15px 0 10px;">
-                        <strong>She leaves in:</strong>
-                    </div>
-                    <div class="minerva-countdown" id="minervaLeaveCountdown"></div>
-                `;
-            } else {
-                minervaHTML = `
-                    <div id="minervaStatusContainer" style="text-align:center; font-size:1.25em; margin:25px 0 10px;">
-                        <strong>Minerva is not available today.<br>
-                        Minerva will be at ${status.nextLocation} next.<br>
-                        She arrives in:</strong>
-                    </div>
-                    <div class="minerva-countdown" id="minervaCountdown" style="justify-content:center;gap:22px;"></div>
-                `;
-            }
-            minervaContainer.innerHTML = minervaHTML;
-
-            const countdownContainer = document.getElementById(status.isHereNow ? 'minervaLeaveCountdown' : 'minervaCountdown');
-            if (countdownContainer) {
-                if (countdownInterval) clearInterval(countdownInterval);
-                countdownInterval = startMinervaCountdown(countdownContainer, status.isHereNow ? status.nextLeaveTime : status.nextArrivalTime);
-            }
-        }
-
-        refreshMinervaDisplay();
-
-        // Refresh every 30 seconds while modal is open
-        const statusRefreshInterval = setInterval(() => {
-            if (nukeCodesModal.style.display === 'block') {
-                refreshMinervaDisplay();
-            } else {
-                clearInterval(statusRefreshInterval);
-            }
-        }, 30000);
-
-        // ── Bottom Close Button — now placed AFTER the timer (no duplication) ──
+        // Bottom Close Button
         const closeBtnHTML = `
             <button onclick="closeModalWithSound('nukeCodesModal')" 
                     class="modal-close-bottom"
@@ -5498,7 +5475,6 @@ if (nukeCodesBtn) {
         const closeSpan = nukeCodesModal.querySelector('.close');
         if (closeSpan) {
             closeSpan.onclick = () => {
-                if (countdownInterval) clearInterval(countdownInterval);
                 nukeCodesModal.style.display = 'none';
                 document.body.classList.remove('modal-open');
                 playSound('modalClose');
