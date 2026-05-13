@@ -759,7 +759,7 @@ function fixLandscapeModalPosition() {
 
         // Force everything with !important so CSS cannot override
         modal.style.setProperty('position', 'fixed', 'important');
-        modal.style.setProperty('top', '3vh', 'important');           // very high up
+        modal.style.setProperty('top', '1vh', 'important');           // very high up
         modal.style.setProperty('bottom', 'auto', 'important');
         modal.style.setProperty('left', '50%', 'important');
         modal.style.setProperty('transform', 'translateX(-50%)', 'important');
@@ -1383,7 +1383,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-620";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-621";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
