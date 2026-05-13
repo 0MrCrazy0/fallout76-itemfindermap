@@ -1383,7 +1383,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-625";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-626";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -6103,6 +6103,7 @@ document.getElementById('backupAllBtn')?.addEventListener('click', () => {
     playSound('saving');
 });
 
+// ── Import Markers button — silent automatic restore for ALL backup types ──
 document.getElementById('restoreAllBtn')?.addEventListener('click', () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -6110,113 +6111,71 @@ document.getElementById('restoreAllBtn')?.addEventListener('click', () => {
     input.onchange = e => {
         const file = e.target.files[0];
         if (!file) return;
+
         const reader = new FileReader();
         reader.onload = ev => {
             try {
                 const data = JSON.parse(ev.target.result);
-               
-                // Updated version check — now matches the current Full Backup export
-                if (data.version && (data.version.includes('full-backup') || data.version.includes('full-v76'))) {
-                    showConfirmModal(
-                        'FULL RESTORE FROM BACKUP',
-                        'This will OVERWRITE EVERYTHING:<br><br>• All your markers<br>• XP & Level<br>• Settings<br>• Community map version<br><br>Are you absolutely sure?',
-                        () => {
-                            locations = data.locations || [];
-                            customCategories = data.customCategories || {};
-							registerUnknownCategories();
-							rebuildCategoryData();
-							applyCustomCategoryStyling();
 
-                            // ── Restore colors for ALL custom categories ──
-                            categoryIcons = { ...defaultCategoryIcons, ...customCategories };
-                            categoryColors = { ...defaultCategoryColors };
-                            Object.keys(customCategories).forEach(cat => {
-                                if (!categoryColors[cat]) categoryColors[cat] = '#002F00';
-                            });
+                // Silent restore for ALL backup types (no confirmation dialog)
+                locations = data.locations || [];
+                customCategories = data.customCategories || {};
+                registerUnknownCategories();
+                rebuildCategoryData();
+                applyCustomCategoryStyling();
 
-                            level = data.level || 1;
-                            xp = data.xp || 0;
+                // Restore XP & Level
+                level = data.level || 1;
+                xp = data.xp || 0;
 
-                            // ── RESTORE PLAYER NAME (now guaranteed to run) ──
-                            if (data.playerName !== undefined && data.playerName !== null) {
-                                localStorage.setItem('fo76_playerName', data.playerName);
-                                const nameInput = document.getElementById('playerNameInput');
-                                if (nameInput) nameInput.value = data.playerName;
-                            }
-
-                            // ── RESTORE ACTIVE CATEGORIES (checkbox toggles) ──
-                            const s = data.settings || {};
-                            clusteringEnabled = s.clusteringEnabled !== undefined ? s.clusteringEnabled : true;
-                            gridEnabled = s.gridEnabled || false;
-                            currentMap = s.currentMap || 'named';
-                            darkMode = s.darkMode || false;
-                            soundsEnabled = s.soundsEnabled !== undefined ? s.soundsEnabled : true;
-                            titleVisible = s.titleVisible !== undefined ? s.titleVisible : true;
-                            toolsVisible = s.toolsVisible !== undefined ? s.toolsVisible : true;
-                            if (s.activeCategories) activeCategories = new Set(s.activeCategories);
-
-                            localStorage.setItem('fo76_map_version', data.communityVersion || s.communityVersion || '1.0');
-                            localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
-                            localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-                            localStorage.setItem('fo76_level', level);
-                            localStorage.setItem('fo76_xp', xp);
-                            localStorage.setItem('clusteringEnabled', clusteringEnabled);
-                            localStorage.setItem('gridEnabled', gridEnabled);
-                            localStorage.setItem('currentMap', currentMap);
-                            localStorage.setItem('darkMode', darkMode);
-                            localStorage.setItem('soundsEnabled', soundsEnabled);
-                            localStorage.setItem('titleVisible', titleVisible);
-                            localStorage.setItem('toolsVisible', toolsVisible);
-                            localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
-
-                            // ── IMMEDIATE UI UPDATE (no refresh needed) ──
-                            mainTitle.style.display = titleVisible ? 'block' : 'none';
-                            titleToggleBtn.textContent = titleVisible ? '-' : '+';
-                            buttonGroup.classList.toggle('hidden', !toolsVisible);
-                            toolsToggleBtn.textContent = toolsVisible ? 'Hide Tools' : 'Show Tools';
-                            document.body.classList.toggle('dark-mode', darkMode);
-                            syncToggleButtonStates();
-							syncInfoPanelToggle();
-                            renderCategoryToggles(); // updates category checkboxes instantly
-
-                            // SUCCESS SCREEN + RELOAD
-                            const successOverlay = document.createElement('div');
-                            successOverlay.style.cssText = `
-                                position:fixed;top:0;left:0;width:100vw;height:100vh;
-                                background:#000;z-index:999999;display:flex;
-                                flex-direction:column;align-items:center;justify-content:center;
-                                font-family:'Courier New',monospace;color:#00ff00;
-                                text-align:center;gap:30px;
-                            `;
-                            successOverlay.innerHTML = `
-                                <div style="font-size:clamp(80px,20vw,200px);text-shadow:0 0 60px #00ff00;">🧬</div>
-                                <h1 style="font-size:clamp(32px,9vw,80px);margin:0;text-shadow:0 0 40px #00ff00;">
-                                    FULL RESTORE COMPLETE
-                                </h1>
-                                <p style="font-size:clamp(20px,6vw,48px);margin:0;">
-                                    All data successfully restored!
-                                </p>
-                                <p style="font-size:clamp(18px,5vw,36px);opacity:0.9;">
-                                    Reloading in 3...
-                                </p>
-                            `;
-                            document.body.appendChild(successOverlay);
-                            playSound('levelUp');
-                            let count = 3;
-                            const countdown = setInterval(() => {
-                                count--;
-                                successOverlay.querySelector('p:last-child').textContent = `Reloading in ${count}...`;
-                                if (count <= 0) {
-                                    clearInterval(countdown);
-                                    location.reload();
-                                }
-                            }, 1000);
-                        }
-                    );
-                } else {
-                    showTempMessage('❌ ERROR: NOT A VALID FULL BACKUP FILE!', 5000);
-                    playSound('error');
+                // Restore player name
+                if (data.playerName) {
+                    localStorage.setItem('fo76_playerName', data.playerName);
+                    const nameInput = document.getElementById('playerNameInput');
+                    if (nameInput) nameInput.value = data.playerName;
                 }
+
+                // Restore settings
+                const s = data.settings || {};
+                clusteringEnabled = s.clusteringEnabled !== undefined ? s.clusteringEnabled : true;
+                gridEnabled = s.gridEnabled || false;
+                currentMap = s.currentMap || 'named';
+                darkMode = s.darkMode || false;
+                soundsEnabled = s.soundsEnabled !== undefined ? s.soundsEnabled : true;
+                titleVisible = s.titleVisible !== undefined ? s.titleVisible : true;
+                toolsVisible = s.toolsVisible !== undefined ? s.toolsVisible : true;
+                if (s.activeCategories) activeCategories = new Set(s.activeCategories);
+
+                // Save everything
+                localStorage.setItem('fo76_map_version', data.communityVersion || s.communityVersion || '1.0');
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
+                localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+                localStorage.setItem('fo76_level', level);
+                localStorage.setItem('fo76_xp', xp);
+                localStorage.setItem('clusteringEnabled', clusteringEnabled);
+                localStorage.setItem('gridEnabled', gridEnabled);
+                localStorage.setItem('currentMap', currentMap);
+                localStorage.setItem('darkMode', darkMode);
+                localStorage.setItem('soundsEnabled', soundsEnabled);
+                localStorage.setItem('titleVisible', titleVisible);
+                localStorage.setItem('toolsVisible', toolsVisible);
+                localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
+
+                // Immediate UI refresh
+                mainTitle.style.display = titleVisible ? 'block' : 'none';
+                titleToggleBtn.textContent = titleVisible ? '-' : '+';
+                buttonGroup.classList.toggle('hidden', !toolsVisible);
+                toolsToggleBtn.textContent = toolsVisible ? 'Hide Tools' : 'Show Tools';
+                document.body.classList.toggle('dark-mode', darkMode);
+                syncToggleButtonStates();
+                syncInfoPanelToggle();
+                renderCategoryToggles();
+
+                // Success message + reload
+                showTempMessage('✅ BACKUP RESTORED SUCCESSFULLY', 4000);
+                playSound('levelUp');
+                setTimeout(() => location.reload(), 1200);
+
             } catch (err) {
                 showTempMessage('❌ ERROR: INVALID OR CORRUPTED BACKUP FILE!', 5000);
                 playSound('error');
