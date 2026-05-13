@@ -683,40 +683,60 @@ function safeInvalidateSize() {
     }
 }
 
-// ── TEMPORARY CONTEXT MENU PIN (robust version using lat/lng) ──
+// ── TEMPORARY CONTEXT MENU PIN — robust against rotation & fullscreen ──
 let tempContextPin = null;
-let tempContextLatLng = null;   // ← store the real map location
+let tempContextLatLng = null;
+let tempPinRepositionHandler = null;
 
 function showTempContextPin(latlng) {
     removeTempContextPin();
-    tempContextLatLng = latlng;   // remember exact location
+    tempContextLatLng = latlng;
 
     const mapContainer = document.getElementById('map');
-    if (!mapContainer) return;
+    if (!mapContainer || !map) return;
 
-    // Force map to finish resizing after fullscreen exit / rotation
-    if (typeof map !== 'undefined' && map) {
-        map.invalidateSize({ animate: false });
-    }
+    // Force map to finish resizing
+    map.invalidateSize({ animate: false });
 
-    // Give the browser time to finish layout changes
+    // Initial position
+    repositionTempPin();
+
+    // Re-position automatically on any resize or move
+    tempPinRepositionHandler = () => {
+        if (tempContextLatLng) repositionTempPin();
+    };
+
+    map.on('resize', tempPinRepositionHandler);
+    map.on('moveend', tempPinRepositionHandler);
+    window.addEventListener('resize', tempPinRepositionHandler, { passive: true });
+
+    // Safety cleanup after 10 seconds
     setTimeout(() => {
-        if (!tempContextLatLng) return;
+        if (tempContextPin) removeTempContextPin();
+    }, 10000);
+}
 
-        const point = map.latLngToContainerPoint(tempContextLatLng);
+function repositionTempPin() {
+    if (!tempContextLatLng || !map) return;
+
+    const point = map.latLngToContainerPoint(tempContextLatLng);
+
+    if (!tempContextPin) {
+        const mapContainer = document.getElementById('map');
+        if (!mapContainer) return;
 
         tempContextPin = document.createElement('div');
         tempContextPin.className = 'temp-context-pin';
         tempContextPin.textContent = '📍';
-        tempContextPin.style.left = `${point.x}px`;
-        tempContextPin.style.top = `${point.y}px`;
-        tempContextPin.style.zIndex = '999999';
         tempContextPin.style.position = 'absolute';
+        tempContextPin.style.zIndex = '999999';
         tempContextPin.style.pointerEvents = 'none';
         tempContextPin.style.transition = 'none';
-
         mapContainer.appendChild(tempContextPin);
-    }, 220);
+    }
+
+    tempContextPin.style.left = `${point.x}px`;
+    tempContextPin.style.top = `${point.y}px`;
 }
 
 function removeTempContextPin() {
@@ -724,6 +744,13 @@ function removeTempContextPin() {
         tempContextPin.parentNode.removeChild(tempContextPin);
     }
     tempContextPin = null;
+
+    if (tempPinRepositionHandler && map) {
+        map.off('resize', tempPinRepositionHandler);
+        map.off('moveend', tempPinRepositionHandler);
+    }
+    window.removeEventListener('resize', tempPinRepositionHandler);
+    tempPinRepositionHandler = null;
     tempContextLatLng = null;
 }
 
@@ -1339,7 +1366,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-611";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-612";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
