@@ -79,6 +79,11 @@
         <h2 style="text-align:center; margin:0 0 20px;">📍 Choose Action</h2>
         <button id="contextCreateMarkerBtn" style="width:100%; margin:8px 0; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Create Permanent Marker</button>
         <button id="contextCreatePostcardBtn" style="width:100%; margin:8px 0; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Create Temporary Postcard</button>
+		        <!-- Bottom Close Button – now with sound -->
+        <button onclick="closeModalWithSound('mapContextMenu')" 
+                style="background:#1a3c34; color:#00ff00; border:2px solid #00ff00; width:100%; margin-top:20px; padding:12px; font-weight:bold;">
+            Close
+        </button>
     </div>
 </div>
 
@@ -187,6 +192,11 @@
 <button id="duplicateItemBtn" style="background:#5E99F7 !important; color:#000000 !important; border:2px solid #5E99F7; min-width:110px; padding:10px 20px; font-weight:bold;">Duplicate</button>
 <button id="deleteItemBtn" style="display:none; background:#e74c3c !important; color:#000000 !important; border:2px solid #c0392d; min-width:110px; padding:10px 20px; font-weight:bold;">Delete</button>
 <button id="submitCommunityBtn" style="display:none; background:#00ff88 !important; color:#000000 !important; border:2px solid #00ff88; min-width:110px; padding:10px 20px; font-weight:bold;">Submit to Community Map</button>
+        <!-- Bottom Close Button -->
+        <button onclick="closeModalWithSound('itemModal')" 
+                style="background:#1a3c34; color:#00ff00; border:2px solid #00ff00; width:100%; margin-top:20px; padding:12px; font-weight:bold;">
+            Close
+        </button>
 </div>
         </div>
     </div>
@@ -266,6 +276,11 @@
         
         <div style="text-align:center; margin:15px 0;">
             <button id="resetAppBtn" class="reset-btn">Reset App (deletes everything)</button>
+			        <!-- Bottom Close Button -->
+        <button onclick="closeModalWithSound('instructionsModal')" 
+                style="background:#1a3c34; color:#00ff00; border:2px solid #00ff00; width:100%; margin-top:30px; padding:12px; font-weight:bold;">
+            Close
+        </button>
         </div>
     </div>
 </div>
@@ -318,6 +333,11 @@
             <p class="small">Paste one emoji. Only emojis allowed.</p>
             <div style="margin-top:12px; text-align:center;">
     <button id="saveCategoryBtn" style="background:#00ff00 !important; color:#000000 !important; border:2px solid #00ff00; min-width:140px; padding:10px 20px; font-weight:bold;">Save Category</button>
+            <!-- Bottom Close Button -->
+        <button onclick="closeModalWithSound('createCategoryModal')" 
+                style="background:#1a3c34; color:#00ff00; border:2px solid #00ff00; width:100%; margin-top:20px; padding:12px; font-weight:bold;">
+            Close
+        </button>
 </div>
             </div>
         </div>
@@ -338,6 +358,11 @@
         style="background:#e74c3c !important; color:#000000 !important; border:2px solid #c0392d; min-width:140px; padding:10px 20px; font-weight:bold;">
     Delete Category
 </button>
+        <!-- Bottom Close Button -->
+        <button onclick="closeModalWithSound('deleteCategoryModal')" 
+                style="background:#1a3c34; color:#00ff00; border:2px solid #00ff00; width:100%; margin-top:20px; padding:12px; font-weight:bold;">
+            Close
+        </button>
             </div>
         </div>
     </div>
