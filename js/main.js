@@ -748,7 +748,7 @@ function removeTempContextPin() {
     tempContextLatLng = null;
 }
 
-// ── IMPROVED LANDSCAPE MODAL FIX — moves ALL modals higher up + scrollable ──
+// ── STRONGER LANDSCAPE MODAL FIX — pushes ALL modals higher up + fully scrollable ──
 function fixLandscapeModalPosition() {
     const modals = document.querySelectorAll('#mapContextMenu, .modal-content');
 
@@ -758,16 +758,17 @@ function fixLandscapeModalPosition() {
         const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
 
         modal.style.position = 'fixed';
-        modal.style.top = '8vh';                    // ← moved much higher (top-biased)
+        modal.style.top = '5vh';                    // ← much higher (top-biased)
         modal.style.bottom = 'auto';
         modal.style.left = '50%';
         modal.style.transform = 'translateX(-50%)';
-        modal.style.maxHeight = `${Math.floor(vh * 0.82)}px`;   // generous height
-        modal.style.overflowY = 'auto';             // makes modal scrollable if long
+        modal.style.maxHeight = `${Math.floor(vh * 0.78)}px`;   // leaves safe space at bottom
+        modal.style.overflowY = 'auto';             // allows scrolling if content is long
         modal.style.width = '94%';
         modal.style.maxWidth = '420px';
         modal.style.borderRadius = '8px';
-        modal.style.boxShadow = '0 0 25px rgba(0, 255, 0, 0.6)';
+        modal.style.boxShadow = '0 0 30px rgba(0, 255, 0, 0.7)';
+        modal.style.zIndex = '999999';
     });
 }
 
@@ -1383,7 +1384,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-616";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-617";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
