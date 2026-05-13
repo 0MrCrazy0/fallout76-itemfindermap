@@ -748,6 +748,28 @@ function removeTempContextPin() {
     tempContextLatLng = null;
 }
 
+// ── LANDSCAPE MODAL POSITION FIX — works for Android Chrome browser ──
+function fixLandscapeModalPosition() {
+    const modals = document.querySelectorAll('#mapContextMenu, .modal-content');
+
+    modals.forEach(modal => {
+        if (!modal || modal.style.display !== 'block') return;
+
+        // Use visualViewport for accurate available height on Android Chrome
+        const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        
+        modal.style.position = 'fixed';
+        modal.style.top = 'auto';
+        modal.style.bottom = '8%';           // slightly higher than before
+        modal.style.left = '50%';
+        modal.style.transform = 'translateX(-50%)';
+        modal.style.maxHeight = `${vh * 0.78}px`;   // uses real visible height
+        modal.style.overflowY = 'auto';
+        modal.style.width = '94%';           // consistent width
+        modal.style.maxWidth = '420px';      // prevents it becoming too wide
+    });
+}
+
 // ── CELEBRATORY CREATION BURST (when new marker or postcard is created) ──
 function createCreationBurst(latlng) {
     const mapContainer = document.getElementById('map');
@@ -1360,7 +1382,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-613";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-615";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -2719,80 +2741,6 @@ function createDustParticles(latlng) {
                 }
             }, ms);
         }
-
-// ── MINERVA LIVE COUNTDOWN SYSTEM (Arrival only until she arrives, then Leaves in appears) ──
-function getNextMondayNoon() {
-    const now = new Date();
-    const utcNow = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
-    let target = new Date(utcNow.getUTCFullYear(), utcNow.getUTCMonth(), utcNow.getUTCDate());
-    const day = target.getUTCDay();
-    let daysToAdd = (1 - day + 7) % 7;
-    if (day === 1 && utcNow.getUTCHours() >= 16) { // 12:00 ET = 16:00 UTC
-        daysToAdd = 7;
-    }
-    target.setUTCDate(target.getUTCDate() + daysToAdd);
-    target.setUTCHours(16, 0, 0, 0);
-    target.setUTCMilliseconds(0);
-    return target;
-}
-
-function getCurrentMinervaLocationCycle() {
-    const startDate = new Date('2025-01-06');
-    const now = new Date();
-    const weeksSince = Math.floor((now.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
-    return weeksSince % 4;
-}
-
-function getMinervaStatus() {
-    const cycle = getCurrentMinervaLocationCycle();
-    const locationNames = [
-        "Foundation in the southern Savage Divide",
-        "The Crater in the northern Toxic Valley",
-        "Fort Atlas in the center of the Savage Divide",
-        "The Whitespring Resort in the southeast of The Forest"
-    ];
-
-    const arrivalDate = getNextMondayNoon();
-    const leaveDate = new Date(arrivalDate.getTime() + (48 * 60 * 60 * 1000)); // 48 hours
-
-    const timeUntilArrival = arrivalDate.getTime() - Date.now();
-    const timeUntilLeave   = leaveDate.getTime() - Date.now();
-
-    const isHereNow = timeUntilArrival < 0 && timeUntilLeave > 0;
-
-    const currentLocation = locationNames[cycle];
-    const nextLocation    = locationNames[(cycle + 1) % 4];
-
-    return {
-        isHereNow: isHereNow,
-        currentLocation: currentLocation,
-        nextLocation: nextLocation,
-        nextArrivalTime: arrivalDate.getTime(),
-        nextLeaveTime: leaveDate.getTime()
-    };
-}
-
-function startMinervaCountdown(container, targetTime) {
-    const update = () => {
-        const diff = Math.max(0, targetTime - Date.now());
-        if (diff <= 0) {
-            container.innerHTML = `<span style="color:#ffcc00;">✅ MINERVA HAS ARRIVED!</span>`;
-            return;
-        }
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        container.innerHTML = `
-            <div><span class="number">${days.toString().padStart(2, '0')}</span><span class="label"> day${days === 1 ? '' : 's'}</span></div>
-            <div><span class="number">${hours.toString().padStart(2, '0')}</span><span class="label"> hour${hours === 1 ? '' : 's'}</span></div>
-            <div><span class="number">${minutes.toString().padStart(2, '0')}</span><span class="label"> minute${minutes === 1 ? '' : 's'}</span></div>
-            <div><span class="number">${seconds.toString().padStart(2, '0')}</span><span class="label"> second${seconds === 1 ? '' : 's'}</span></div>
-        `;
-    };
-    update();
-    return setInterval(update, 1000);
-}
 		
 		// ── Community Update Glow Indicator ──
 const COMMUNITY_UPDATE_URL = 'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/communitymap.json';
@@ -5430,22 +5378,18 @@ if (nukeCodesBtn) {
 
         const content = nukeCodesModal.querySelector('.modal-content');
 
-        // Remove any existing Minerva content (prevents duplication)
+        // Remove any old Minerva content
         let minervaContainer = document.getElementById('minervaContainer');
         if (minervaContainer) minervaContainer.remove();
 
-        // Create a single dedicated container for Minerva
         minervaContainer = document.createElement('div');
         minervaContainer.id = 'minervaContainer';
         content.appendChild(minervaContainer);
 
         let countdownInterval = null;
-        let statusRefreshInterval = null;
 
         function refreshMinervaDisplay() {
             const status = getMinervaStatus();
-
-            // Clear the container completely
             minervaContainer.innerHTML = '';
 
             let minervaHTML = '';
@@ -5474,7 +5418,6 @@ if (nukeCodesBtn) {
 
             minervaContainer.innerHTML = minervaHTML;
 
-            // Start the correct countdown
             if (status.isHereNow) {
                 const leaveContainer = document.getElementById('minervaLeaveCountdown');
                 if (leaveContainer) countdownInterval = startMinervaCountdown(leaveContainer, status.nextLeaveTime);
@@ -5484,11 +5427,9 @@ if (nukeCodesBtn) {
             }
         }
 
-        // Initial display
         refreshMinervaDisplay();
 
-        // Auto-refresh every 30 seconds so it switches automatically when timers expire
-        statusRefreshInterval = setInterval(() => {
+        const statusRefreshInterval = setInterval(() => {
             if (nukeCodesModal.style.display === 'block') {
                 refreshMinervaDisplay();
             } else {
@@ -5496,18 +5437,88 @@ if (nukeCodesBtn) {
             }
         }, 30000);
 
-        // Clean up when modal is closed
         const closeBtn = nukeCodesModal.querySelector('.close');
         if (closeBtn) {
             closeBtn.onclick = () => {
                 if (countdownInterval) clearInterval(countdownInterval);
-                if (statusRefreshInterval) clearInterval(statusRefreshInterval);
                 nukeCodesModal.style.display = 'none';
                 document.body.classList.remove('modal-open');
                 playSound('modalClose');
             };
         }
     };
+}
+
+// ── CORRECTED MINERVA SCHEDULE (detects current sale week properly) ──
+function getThisWeeksMondayNoon() {
+    const now = new Date();
+    const utcNow = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+    let monday = new Date(utcNow.getUTCFullYear(), utcNow.getUTCMonth(), utcNow.getUTCDate());
+    const day = monday.getUTCDay();
+    const daysToMonday = (day === 0) ? 6 : (1 - day);   // back to this week's Monday
+    monday.setUTCDate(monday.getUTCDate() - daysToMonday);
+    monday.setUTCHours(16, 0, 0, 0);   // 12:00 PM ET
+    monday.setUTCMilliseconds(0);
+    return monday;
+}
+
+function getCurrentMinervaLocationCycle() {
+    const startDate = new Date('2025-01-06');
+    const now = new Date();
+    const weeksSince = Math.floor((now.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+    return (weeksSince + 2) % 5;   // +2 offset fixes current week to Fort Atlas
+}
+
+function getMinervaStatus() {
+    const cycle = getCurrentMinervaLocationCycle();
+    const locationNames = [
+        "Foundation in the southern Savage Divide",
+        "The Crater in the northern Toxic Valley",
+        "Fort Atlas in the center of the Savage Divide",
+        "The Whitespring Resort in the southeast of The Forest"
+    ];
+
+    const thisWeeksMonday = getThisWeeksMondayNoon();
+    const arrivalDate = thisWeeksMonday;
+    const leaveDate = new Date(arrivalDate.getTime() + (48 * 60 * 60 * 1000)); // 48 hours
+
+    const timeUntilArrival = arrivalDate.getTime() - Date.now();
+    const timeUntilLeave   = leaveDate.getTime() - Date.now();
+
+    const isHereNow = timeUntilArrival < 0 && timeUntilLeave > 0;
+
+    const currentLocation = locationNames[cycle];
+    const nextLocation    = locationNames[(cycle + 1) % 5];
+
+    return {
+        isHereNow: isHereNow,
+        currentLocation: currentLocation,
+        nextLocation: nextLocation,
+        nextArrivalTime: arrivalDate.getTime(),
+        nextLeaveTime: leaveDate.getTime()
+    };
+}
+
+function startMinervaCountdown(container, targetTime) {
+    const update = () => {
+        const diff = Math.max(0, targetTime - Date.now());
+        if (diff <= 0) {
+            container.innerHTML = `<span style="color:#ffcc00;">✅ MINERVA HAS ARRIVED!</span>`;
+            return;
+        }
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        container.innerHTML = `
+            <div><span class="number">${days.toString().padStart(2, '0')}</span><span class="label"> day${days === 1 ? '' : 's'}</span></div>
+            <div><span class="number">${hours.toString().padStart(2, '0')}</span><span class="label"> hour${hours === 1 ? '' : 's'}</span></div>
+            <div><span class="number">${minutes.toString().padStart(2, '0')}</span><span class="label"> minute${minutes === 1 ? '' : 's'}</span></div>
+            <div><span class="number">${seconds.toString().padStart(2, '0')}</span><span class="label"> second${seconds === 1 ? '' : 's'}</span></div>
+        `;
+    };
+    update();
+    return setInterval(update, 1000);
 }
 // ── TOGGLE CATEGORIES MODAL — STRICT BEHAVIOR (only closes with Close button / ×) ──
 if (toggleCategoryModalBtn) {
@@ -7130,6 +7141,17 @@ window.addEventListener('orientationchange', () => setTimeout(forceAndroidLandsc
 // Extra safety runs
 setTimeout(forceAndroidLandscapeHeight, 600);
 setTimeout(forceAndroidLandscapeHeight, 1400);
+
+// Extra safety for Android Chrome browser landscape modals
+window.addEventListener('resize', () => {
+    if (window.innerWidth > window.innerHeight) {   // only in landscape
+        setTimeout(fixLandscapeModalPosition, 80);
+    }
+});
+
+window.addEventListener('orientationchange', () => {
+    setTimeout(fixLandscapeModalPosition, 180);
+});
 
         // ── CONSOLE BANNER ──
 console.log(
