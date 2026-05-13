@@ -748,7 +748,7 @@ function removeTempContextPin() {
     tempContextLatLng = null;
 }
 
-// ── CLEAN LANDSCAPE MODAL FIX — moves ALL modals higher up (no extra styles) ──
+// ── STRONG CLEAN LANDSCAPE MODAL FIX — moves ALL modals much higher up (no extra styles) ──
 function fixLandscapeModalPosition() {
     const modals = document.querySelectorAll('#mapContextMenu, .modal-content');
 
@@ -758,17 +758,14 @@ function fixLandscapeModalPosition() {
         const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
 
         modal.style.position = 'fixed';
-        modal.style.top = '6vh';           // ← moved significantly higher
+        modal.style.top = '2vh';                    // ← pushed very high up
         modal.style.bottom = 'auto';
         modal.style.left = '50%';
         modal.style.transform = 'translateX(-50%)';
-        modal.style.maxHeight = `${Math.floor(vh * 0.75)}px`;   // shorter = buttons visible
-        modal.style.overflowY = 'auto';    // allows scrolling if needed
+        modal.style.maxHeight = `${Math.floor(vh * 0.62)}px`;   // shorter so bottom buttons are visible
+        modal.style.overflowY = 'auto';             // scroll if needed
         modal.style.width = '94%';
         modal.style.maxWidth = '420px';
-
-        // Reset any previous bottom positioning
-        modal.style.bottom = 'auto';
     });
 }
 
@@ -1384,7 +1381,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-618";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-619";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
