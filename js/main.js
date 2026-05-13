@@ -1383,7 +1383,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-622";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-623";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -2262,7 +2262,7 @@ postcardModal.className = 'modal';
 postcardModal.id = 'postcardModal';
 postcardModal.innerHTML = `
     <div class="modal-content">
-        <span class="close">×</span>
+        <span class="close">X</span>
         <h2>📬 Send Postcard</h2>
         
         <!-- Fixed: Proper label association for Lighthouse -->
@@ -4502,16 +4502,60 @@ importBtn.onclick = () => {
 // ── COMMUNITY UPDATE ──
 downloadCommunityBtn.onclick = () => {
     playSound('click');
-    showConfirmModal(
-    '🚀UPDATE COMMUNITY MAP🚀',
-`<strong style="display:block; text-align:left !important;">Your personal markers & edits are 100% SAFE</strong><br><br>
-This will fetch the latest verified community markers.<br><br>
-• Community markers may receive description & category improvements<br>
-• Your created and kept markers will never be changed or deleted<br>
-• Removed community markers will be cleaned up automatically<br>
-• Approved submissions will convert to community markers you can keep<br><br>
-<strong style="display:block; text-align:left !important;">Proceed with the update?</strong>`,
-    async () => {
+
+    // Remove any old modal first (prevents duplication)
+    const existing = document.getElementById('communityUpdateModal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'communityUpdateModal';
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width:520px; width:94vw; padding:24px; box-sizing:border-box;">
+            <span class="close">X</span>
+            <h2 style="text-align:center; margin:0 0 20px; font-size:1.8em;">🚀 UPDATE COMMUNITY MAP 🚀</h2>
+            
+            <div style="text-align:left; line-height:1.8; font-size:1.1em;">
+                Your personal markers & edits are <strong>100% SAFE</strong><br><br>
+                This will fetch the latest verified community markers.<br><br>
+                • Community markers may receive description & category improvements<br>
+                • Your created and kept markers will never be changed or deleted<br>
+                • Removed community markers will be cleaned up automatically<br>
+                • Approved submissions will convert to community markers you can keep
+            </div>
+            
+            <div style="margin-top:28px; text-align:center;">
+                <button id="updateYesBtn" 
+                        style="background:#00ff00; color:#000000 !important; width:100%; padding:14px; font-size:1.3em; font-weight:bold; margin-bottom:12px;">
+                    Yes — Update Now
+                </button>
+                <button onclick="closeModalWithSound('communityUpdateModal')" 
+                        class="modal-close-bottom"
+                        style="background:#1a3c34; color:#00ff00; border:2px solid #00ff00; width:100%; padding:12px; font-weight:bold;">
+                    Close
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    document.body.classList.add('modal-open');
+
+    const closeBtn = modal.querySelector('.close');
+    const yesBtn = modal.querySelector('#updateYesBtn');
+
+    const closeHandler = () => {
+        modal.remove();
+        document.body.classList.remove('modal-open');
+        playSound('modalClose');
+    };
+
+    closeBtn.onclick = closeHandler;
+
+    yesBtn.onclick = async () => {
+        closeHandler();  // close modal first
+
         downloadCommunityBtn.disabled = true;
         downloadCommunityBtn.textContent = 'Updating...';
 
@@ -4521,14 +4565,11 @@ This will fetch the latest verified community markers.<br><br>
                 12000
             );
             if (!res.ok) throw new Error('Bad response');
-
             const data = await res.json();
             const incoming = data.locations || [];
-
             let added = 0, refreshed = 0, skipped = 0, cleaned = 0;
             let approvedCount = 0;
             let updateAvailableCount = 0;
-
             const incomingIds = new Set(incoming.map(m => m.id));
             const userMarkersBefore = locations.filter(l =>
                 (l.userEdited === true || l.wasCommunityKept === true) &&
@@ -4537,8 +4578,6 @@ This will fetch the latest verified community markers.<br><br>
 
             incoming.forEach(imp => {
                 const existing = locations.find(l => l.id === imp.id);
-
-                // ── APPROVAL HANDLING ──
                 let isApprovedSubmission = false;
                 if (existing && hasBeenSubmitted(imp.id)) {
                     let submitted = JSON.parse(localStorage.getItem('submitted_ids') || '[]');
@@ -4550,22 +4589,16 @@ This will fetch the latest verified community markers.<br><br>
                     isApprovedSubmission = true;
                     approvedCount++;
                 }
-
-                // ── SKIP NON-APPROVED USER MARKERS ──
                 if (existing && (existing.userEdited || existing.wasCommunityKept) && !isApprovedSubmission) {
                     skipped++;
                     return;
                 }
-
-                // ── AUTO-REGISTER CUSTOM CATEGORIES ──
                 if (imp.category && !defaultCategoryIcons[imp.category] && !customCategories[imp.category]) {
                     customCategories[imp.category] = imp.icon || '📦';
                     categoryIcons[imp.category] = imp.icon || '📦';
                     categoryColors[imp.category] = '#002F00';
                     activeCategories.add(imp.category);
                 }
-
-                // ── IMPORT / UPDATE LOGIC ──
                 let loc;
                 if (existing) {
                     Object.assign(existing, imp);
@@ -4576,12 +4609,10 @@ This will fetch the latest verified community markers.<br><br>
                     locations.push(loc);
                     added++;
                 }
-
                 loc.isCommunity = true;
                 loc.locked = true;
                 loc.userEdited = false;
                 loc.wasCommunityKept = !!existing?.wasCommunityKept;
-
                 if (isApprovedSubmission) {
                     loc.approvedSubmission = true;
                     showTempMessage(`🤩 Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED! You Keep The Created 100XP`, 10000);
@@ -4589,10 +4620,8 @@ This will fetch the latest verified community markers.<br><br>
                 }
             });
 
-            // Approved markers now count as new markers
             added += approvedCount;
 
-            // Cleanup removed community markers
             for (let i = locations.length - 1; i >= 0; i--) {
                 if (locations[i].isCommunity && !incomingIds.has(locations[i].id)) {
                     locations.splice(i, 1);
@@ -4600,12 +4629,11 @@ This will fetch the latest verified community markers.<br><br>
                 }
             }
 
-            // Update available for kept markers
             const incomingByCid = new Map(incoming.map(m => [m.cid, m]));
             locations.forEach(loc => {
                 if (!loc.wasCommunityKept || loc.isPostcard) return;
                 const communityVersion = incomingByCid.get(loc.cid);
-                if (!communityVersion || 
+                if (!communityVersion ||
                     communityVersion.desc !== loc.desc ||
                     communityVersion.category !== loc.category ||
                     Math.abs(communityVersion.lat - loc.lat) > 0.0001 ||
@@ -4617,7 +4645,6 @@ This will fetch the latest verified community markers.<br><br>
                 }
             });
 
-            // Save everything
             localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
             localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
             const newVersion = String(data.communityVersion || "1.0");
@@ -4628,8 +4655,6 @@ This will fetch the latest verified community markers.<br><br>
             updateCounterDisplay();
             forceReload();
             saveLocations();
-
-            // Clear search bar
             combinedSearch.value = '';
             clearBtn.style.display = 'none';
             const currentCat = categoryFilter.value || '';
@@ -4637,7 +4662,6 @@ This will fetch the latest verified community markers.<br><br>
             refreshTable('', currentCat);
             if (categoryFilter) categoryFilter.value = currentCategoryFilter || '';
 
-            // ── SUCCESS MODAL (exactly what you asked for) ──
             showConfirmModal(
                 '☢ COMMUNITY MAP UPDATED ☢',
                 `<strong style="color:#00ff88;">${added}</strong> - new markers added<br>
@@ -4654,121 +4678,117 @@ ${updateAvailableCount > 0 ? `<strong style="color:#0066ff;">${updateAvailableCo
 <strong>Community Map v${newVersion} loaded — happy exploring Appalachia!</strong>`,
                 null
             );
-
             playSound('saving');
 
-                // ── COMMUNITY MAP CELEBRATION NUKE ──
-                if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
-                    localStorage.setItem('seenCommunityNuke', 'true');
+            // ── COMMUNITY MAP CELEBRATION NUKE ──
+            if (added > 30 && localStorage.getItem('seenCommunityNuke') !== 'true') {
+                localStorage.setItem('seenCommunityNuke', 'true');
+                setTimeout(() => {
+                    lockUIDuringAnimation(11000);
+                    const overlay = document.createElement('div');
+                    overlay.style.cssText = `
+                        position:fixed;top:0;left:0;width:100vw;height:100vh;
+                        background:#000;z-index:9999999;display:flex;
+                        align-items:center;justify-content:center;flex-direction:column;
+                        gap:30px;font-family:'Courier New',monospace;color:#0f0;
+                        pointer-events:none;
+                    `;
+                    overlay.innerHTML = `
+                        <div id="rocketLaunch" style="font-size:clamp(80px,25vw,220px);">🚀</div>
+                        <h1 class="wipe-nuke-title">COMMUNITY MAP UPDATED</h1>
+                        <p class="nuke-subtitle" style="font-size:clamp(18px,5vw,36px);">New markers incoming...</p>
+                    `;
+                    document.body.appendChild(overlay);
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        @keyframes rocketLaunch { 0% { transform: translateY(80px) scale(0.8); opacity: 0; } 30% { transform: translateY(-40px) scale(1.1); opacity: 1; } 70% { transform: translateY(-180px) scale(1); } 100% { transform: translateY(-300px) scale(0.6); opacity: 0; } }
+                        @keyframes rocketFall { 0% { transform: translateY(-420px) scale(0.5); opacity: 0; } 40% { transform: translateY(-60px) scale(1.2); opacity: 1; } 75% { transform: translateY(160px) scale(1.45); } 100% { transform: translateY(280px) scale(1.65); } }
+                        @keyframes groundImpact { 0%,100% { transform: translateY(280px) scale(1.65); } 25% { transform: translateY(305px) scale(1.9); } 55% { transform: translateY(265px) scale(1.5); } }
+                        @keyframes explosionPulse { 0% { transform: scale(1); opacity:1; } 40% { transform: scale(4.2); opacity:0.95; } 70% { transform: scale(2.8); opacity:1; } 100% { transform: scale(4.5); opacity:0; } }
+                        @keyframes fadeOut { 0% { opacity: 1; } 100% { opacity: 0; } }
+                    `;
+                    document.head.appendChild(style);
+                    const rocket = document.getElementById('rocketLaunch');
+                    const title = overlay.querySelector('h1');
+                    const subtitle = overlay.querySelector('p');
+                    rocket.style.animation = 'rocketLaunch 1.8s ease-out forwards';
                     setTimeout(() => {
-                        lockUIDuringAnimation(11000);
-                        const overlay = document.createElement('div');
-                        overlay.style.cssText = `
-                            position:fixed;top:0;left:0;width:100vw;height:100vh;
-                            background:#000;z-index:9999999;display:flex;
-                            align-items:center;justify-content:center;flex-direction:column;
-                            gap:30px;font-family:'Courier New',monospace;color:#0f0;
-                            pointer-events:none;
-                        `;
-                        overlay.innerHTML = `
-                            <div id="rocketLaunch" style="font-size:clamp(80px,25vw,220px);">🚀</div>
-                            <h1 class="wipe-nuke-title">COMMUNITY MAP UPDATED</h1>
-                            <p class="nuke-subtitle" style="font-size:clamp(18px,5vw,36px);">New markers incoming...</p>
-                        `;
-                        document.body.appendChild(overlay);
-                        const style = document.createElement('style');
-                        style.textContent = `
-                            @keyframes rocketLaunch { 0% { transform: translateY(80px) scale(0.8); opacity: 0; } 30% { transform: translateY(-40px) scale(1.1); opacity: 1; } 70% { transform: translateY(-180px) scale(1); } 100% { transform: translateY(-300px) scale(0.6); opacity: 0; } }
-                            @keyframes rocketFall { 0% { transform: translateY(-420px) scale(0.5); opacity: 0; } 40% { transform: translateY(-60px) scale(1.2); opacity: 1; } 75% { transform: translateY(160px) scale(1.45); } 100% { transform: translateY(280px) scale(1.65); } }
-                            @keyframes groundImpact { 0%,100% { transform: translateY(280px) scale(1.65); } 25% { transform: translateY(305px) scale(1.9); } 55% { transform: translateY(265px) scale(1.5); } }
-                            @keyframes explosionPulse { 0% { transform: scale(1); opacity:1; } 40% { transform: scale(4.2); opacity:0.95; } 70% { transform: scale(2.8); opacity:1; } 100% { transform: scale(4.5); opacity:0; } }
-                            @keyframes fadeOut { 0% { opacity: 1; } 100% { opacity: 0; } }
-                        `;
-                        document.head.appendChild(style);
-                        const rocket = document.getElementById('rocketLaunch');
-                        const title = overlay.querySelector('h1');
-                        const subtitle = overlay.querySelector('p');
-                        rocket.style.animation = 'rocketLaunch 1.8s ease-out forwards';
+                        title.style.animation = 'fadeOut 0.8s ease-out forwards';
+                        subtitle.style.animation = 'fadeOut 0.8s ease-out forwards';
                         setTimeout(() => {
-                            title.style.animation = 'fadeOut 0.8s ease-out forwards';
-                            subtitle.style.animation = 'fadeOut 0.8s ease-out forwards';
+                            title.remove();
+                            subtitle.remove();
+                        }, 800);
+                        rocket.remove();
+                        overlay.innerHTML += `<div id="fallingRocket" style="font-size:clamp(140px,38vw,460px);color:#ff0;text-shadow:0 0 80px #ff0;">🚀</div>`;
+                        const fallingRocket = document.getElementById('fallingRocket');
+                        fallingRocket.style.animation = 'rocketFall 1.2s cubic-bezier(0.42,0,1,1) forwards';
+                        setTimeout(() => {
+                            fallingRocket.style.animation = 'groundImpact 0.45s ease-out forwards';
                             setTimeout(() => {
-                                title.remove();
-                                subtitle.remove();
-                            }, 800);
-                            rocket.remove();
-                            overlay.innerHTML += `<div id="fallingRocket" style="font-size:clamp(140px,38vw,460px);color:#ff0;text-shadow:0 0 80px #ff0;">🚀</div>`;
-                            const fallingRocket = document.getElementById('fallingRocket');
-                            fallingRocket.style.animation = 'rocketFall 1.2s cubic-bezier(0.42,0,1,1) forwards';
-                            setTimeout(() => {
-                                fallingRocket.style.animation = 'groundImpact 0.45s ease-out forwards';
+                                fallingRocket.remove();
+                                const flash = document.createElement('div');
+                                flash.style.cssText = `
+                                    position:fixed;top:0;left:0;width:100vw;height:100vh;
+                                    background:#fff;z-index:99999999;pointer-events:none;
+                                    animation:quickFlash 1.8s ease-out forwards;
+                                `;
+                                document.body.appendChild(flash);
                                 setTimeout(() => {
-                                    fallingRocket.remove();
-                                    const flash = document.createElement('div');
-                                    flash.style.cssText = `
-                                        position:fixed;top:0;left:0;width:100vw;height:100vh;
-                                        background:#fff;z-index:99999999;pointer-events:none;
-                                        animation:quickFlash 1.8s ease-out forwards;
+                                    flash.remove();
+                                    const explosionContainer = document.createElement('div');
+                                    explosionContainer.style.cssText = `
+                                        position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);
+                                        width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+                                        pointer-events:none; z-index:99999999;
                                     `;
-                                    document.body.appendChild(flash);
-                                    setTimeout(() => {
-                                        flash.remove();
-                                        const explosionContainer = document.createElement('div');
-                                        explosionContainer.style.cssText = `
-                                            position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);
-                                            width:100%; height:100%; display:flex; align-items:center; justify-content:center;
-                                            pointer-events:none; z-index:99999999;
+                                    overlay.appendChild(explosionContainer);
+                                    const explosions = ['💥','💥','💥','💥','💥','💥','💥'];
+                                    explosions.forEach((emoji, i) => {
+                                        const boom = document.createElement('div');
+                                        boom.style.cssText = `
+                                            position:absolute; font-size:clamp(160px,42vw,520px);
+                                            animation:explosionPulse 1.3s ease-out forwards; opacity:0;
+                                            text-shadow:0 0 60px #ffaa00;
                                         `;
-                                        overlay.appendChild(explosionContainer);
-                                        const explosions = ['💥','💥','💥','💥','💥','💥','💥'];
-                                        explosions.forEach((emoji, i) => {
-                                            const boom = document.createElement('div');
-                                            boom.style.cssText = `
-                                                position:absolute; font-size:clamp(160px,42vw,520px);
-                                                animation:explosionPulse 1.3s ease-out forwards; opacity:0;
-                                                text-shadow:0 0 60px #ffaa00;
-                                            `;
-                                            boom.textContent = emoji;
-                                            explosionContainer.appendChild(boom);
-                                            setTimeout(() => { boom.style.opacity = '1'; }, i * 65);
-                                        });
+                                        boom.textContent = emoji;
+                                        explosionContainer.appendChild(boom);
+                                        setTimeout(() => { boom.style.opacity = '1'; }, i * 65);
+                                    });
+                                    setTimeout(() => {
+                                        explosionContainer.remove();
+                                        overlay.innerHTML = `
+                                            <div style="font-size:clamp(130px,32vw,250px);color:#ff0;text-shadow:0 0 90px #ff0;margin-bottom:15px;">☢️</div>
+                                            <h1 class="wipe-nuke-title" style="font-size:clamp(36px,8vw,72px);text-align:center;margin:8px 0 18px 0;">COMMUNITY MAP NUKED!</h1>
+                                            <p class="nuke-subtitle" style="font-size:clamp(20px,5vw,42px);text-align:center;max-width:94%;line-height:1.35;">
+                                                <strong>${added}</strong> new markers detonated across Appalachia!
+                                            </p>
+                                        `;
+                                        playSound('levelUp');
                                         setTimeout(() => {
-                                            explosionContainer.remove();
-                                            overlay.innerHTML = `
-                                                <div style="font-size:clamp(130px,32vw,250px);color:#ff0;text-shadow:0 0 90px #ff0;margin-bottom:15px;">☢️</div>
-                                                <h1 class="wipe-nuke-title" style="font-size:clamp(36px,8vw,72px);text-align:center;margin:8px 0 18px 0;">COMMUNITY MAP NUKED!</h1>
-                                                <p class="nuke-subtitle" style="font-size:clamp(20px,5vw,42px);text-align:center;max-width:94%;line-height:1.35;">
-                                                    <strong>${added}</strong> new markers detonated across Appalachia!
-                                                </p>
-                                            `;
-                                            playSound('levelUp');
-                                            setTimeout(() => {
-                                                overlay.style.transition = 'opacity 1.4s';
-                                                overlay.style.opacity = '0';
-                                                setTimeout(() => overlay.remove(), 1400);
-                                            }, 2800);
-                                        }, 1650);
-                                    }, 400);
-                                }, 420);
-                            }, 1220);
-                        }, 1900);
-                    }, 800);
-                }
-                localStorage.setItem(LAST_COMMUNITY_VERSION_KEY, newVersion);
-                downloadCommunityBtn.classList.remove('update-available');
-            } catch (err) {
-                console.error('Fetch error:', err);
-                showTempMessage('❌ COMMUNITY UPDATE FAILED — CHECK CONNECTION', 6000);
-                playSound('error');
-            } finally {
-                downloadCommunityBtn.disabled = false;
-                downloadCommunityBtn.textContent = 'Update Community Map';
-                downloadCommunityBtn.classList.remove('available');
+                                            overlay.style.transition = 'opacity 1.4s';
+                                            overlay.style.opacity = '0';
+                                            setTimeout(() => overlay.remove(), 1400);
+                                        }, 2800);
+                                    }, 1650);
+                                }, 400);
+                            }, 420);
+                        }, 1220);
+                    }, 1900);
+                }, 800);
             }
-        },
-        'Yes — Update Now',
-        'Cancel'
-    );
+            localStorage.setItem(LAST_COMMUNITY_VERSION_KEY, newVersion);
+            downloadCommunityBtn.classList.remove('update-available');
+        } catch (err) {
+            console.error('Fetch error:', err);
+            showTempMessage('❌ COMMUNITY UPDATE FAILED — CHECK CONNECTION', 6000);
+            playSound('error');
+        } finally {
+            downloadCommunityBtn.disabled = false;
+            downloadCommunityBtn.textContent = 'Update Community Map';
+            downloadCommunityBtn.classList.remove('available');
+        }
+    };
 };
 
     // ── REAL-TIME COMMUNITY UPDATE CHECK ──
@@ -6234,13 +6254,20 @@ window.startReport = function(markerId) {
         return;
     }
 
+    // ── Remove any existing report modal first (prevents duplicate ID issues) ──
+    const existingModal = document.getElementById('reportModal');
+    if (existingModal) existingModal.remove();
+
     const modal = document.createElement('div');
+    modal.id = 'reportModal';
     modal.className = 'modal';
     modal.style.display = 'block';
     modal.innerHTML = `
         <div class="modal-content" style="max-width:560px; width:94vw; padding:24px; box-sizing:border-box;">
             <span class="close">X</span>
-            <h2 style="text-align:center; margin:0 0 24px; font-size:1.8em;">👎 REPORT BAD MARKER ❌</h2>
+            <h2 style="text-align:center; margin:0 0 24px; font-size:1.65em; line-height:1.3;">
+                👎 REPORT BAD MARKER
+            </h2>
             
             <div style="text-align:left; line-height:1.9; font-size:1.1em; margin-bottom:24px;">
                 Only report if it is:<br>
@@ -6259,10 +6286,16 @@ window.startReport = function(markerId) {
             
             <div style="text-align:center; margin-top:28px;">
                 <button id="sendReportNow"
-                        style="background:#00ff00; color:#000; padding:14px 50px; font-size:1.4em; font-weight:bold;">
-                    SEND REPORT
+                        style="background:#e74c3c; color:#000000 !important; width:100%; padding:14px; font-size:1.3em; font-weight:bold; margin-bottom:12px;">
+                    Send Report
                 </button>
             </div>
+
+            <!-- Bottom Close Button -->
+            <button id="reportCloseBtn"
+                    style="background:#1a3c34; color:#00ff00; border:2px solid #00ff00; width:100%; margin-top:20px; padding:12px; font-weight:bold;">
+                Close
+            </button>
         </div>
     `;
 
@@ -6270,12 +6303,23 @@ window.startReport = function(markerId) {
     document.body.classList.add('modal-open');
 
     const closeBtn = modal.querySelector('.close');
+    const bottomCloseBtn = modal.querySelector('#reportCloseBtn');
     const sendBtn = modal.querySelector('#sendReportNow');
     const reportMessageTxt = modal.querySelector('#reportMessageTxt');
 
-    closeBtn.onclick = () => closeModal(modal);
+    // Reliable close handler that fully removes the modal from DOM
+    const closeHandler = () => {
+        if (modal && modal.parentNode) {
+            modal.parentNode.removeChild(modal);
+        }
+        document.body.classList.remove('modal-open');
+        if (typeof playSound === 'function') playSound('modalClose');
+    };
 
-        sendBtn.onclick = () => {
+    closeBtn.onclick = closeHandler;
+    bottomCloseBtn.onclick = closeHandler;
+
+    sendBtn.onclick = () => {
         const message = reportMessageTxt.value.trim();
         
         if (!message || message.length < 10) {
@@ -6317,7 +6361,7 @@ window.startReport = function(markerId) {
             showTempMessage('❌ REPORT FAILED — TRY AGAIN LATER.', 6000);
         });
 
-        closeModal(modal);
+        closeHandler();   // fully remove modal
     };
 
     playSound('error');
@@ -6333,59 +6377,98 @@ window.keepCommunityMarker = function(markerId) {
     if (!marker || !marker.isCommunity) return;
 
     playSound('click');
-	
-	const wasApprovedSubmission = !!marker.approvedSubmission;
+    const wasApprovedSubmission = !!marker.approvedSubmission;
 
-    showConfirmModal(
-        '👍 Keep This Community Marker? 💾',
-        '<strong>This marker will become yours permanently:</strong><br><br>' +
-        '• You gain +100 XP (keep bonus)<br>' +
-        '• You can edit, move, or delete it<br>' +
-        '• It will <strong>NOT</strong> receive future community updates<br>' +
-        '• You will no longer be able to report it<br><br>' +
-        'You can always revert it back to a community map marker.',
-        () => {
-            marker.isCommunity = false;
-            marker.userEdited = true;
-            marker.wasCommunityKept = true;
-            marker.locked = true;
-            marker.addedTime = Date.now();
-            // Preserve approvedSubmission flag
-            if (wasApprovedSubmission) {
-                marker.approvedSubmission = true;
+    // Remove any leftover keep modal first
+    const existing = document.getElementById('keepModal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'keepModal';
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width:520px; width:94vw; padding:24px; box-sizing:border-box;">
+            <span class="close">X</span>
+            <h2 style="text-align:center; margin:0 0 24px; font-size:1.65em; line-height:1.3;">
+                👍 KEEP THIS COMMUNITY MARKER?
+            </h2>
+            
+            <div style="text-align:left; line-height:1.8; font-size:1.1em; margin-bottom:30px;">
+                <strong>This marker will become yours permanently:</strong><br><br>
+                • You gain +100 XP (keep bonus)<br>
+                • You can edit, move, or delete it<br>
+                • It will <strong>NOT</strong> receive future community updates<br>
+                • You will no longer be able to report it<br><br>
+                You can always revert it back to a community map marker.
+            </div>
+
+            <!-- Yes button with forced black text (visible in dark mode) -->
+            <button id="keepYesBtn" 
+                    style="background:#00ff00; color:#000000 !important; width:100%; padding:14px; font-size:1.3em; font-weight:bold; margin-bottom:12px;">
+                Yes — Keep It
+            </button>
+            <button id="keepCancelBtn" 
+                    style="background:#1a3c34; color:#00ff00; border:2px solid #00ff00; width:100%; padding:14px; font-size:1.3em; font-weight:bold;">
+                Cancel
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    document.body.classList.add('modal-open');
+
+    const closeBtn = modal.querySelector('.close');
+    const yesBtn = modal.querySelector('#keepYesBtn');
+    const cancelBtn = modal.querySelector('#keepCancelBtn');
+
+    const closeHandler = () => {
+        if (modal && modal.parentNode) modal.parentNode.removeChild(modal);
+        document.body.classList.remove('modal-open');
+        if (typeof playSound === 'function') playSound('modalClose');
+    };
+
+    closeBtn.onclick = closeHandler;
+    cancelBtn.onclick = closeHandler;
+
+    yesBtn.onclick = () => {
+        marker.isCommunity = false;
+        marker.userEdited = true;
+        marker.wasCommunityKept = true;
+        marker.locked = true;
+        marker.addedTime = Date.now();
+
+        if (wasApprovedSubmission) {
+            marker.approvedSubmission = true;
+        }
+
+        window.justKeptMarkerId = markerId;
+
+        applyCustomCategoryStyling();
+        saveLocations();
+        recalculateXP();
+        forceReload();
+
+        if (typeof createCreationBurst === 'function') {
+            createCreationBurst([marker.lat, marker.lng]);
+        }
+
+        setTimeout(() => playSound('saving'), 150);
+        showTempMessage(`✅ MARKER KEPT — +100 XP (LEVEL ${level})<br>Won't receive future community updates • Revert anytime`, 5500);
+
+        setTimeout(() => {
+            const keptMarker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
+                .find(m => m.options && m.options.id === markerId);
+            if (keptMarker) {
+                keptMarker.openPopup();
+                window.justKeptMarkerId = null;
             }
+        }, 850);
 
-            window.justKeptMarkerId = markerId;
+        closeHandler();
+    };
 
-            applyCustomCategoryStyling();
-            saveLocations();
-
-            // NO manual xp += 100 here anymore
-            recalculateXP();   // ← this now correctly handles everything
-
-            forceReload();
-
-            if (typeof createCreationBurst === 'function') {
-                createCreationBurst([marker.lat, marker.lng]);
-            }
-
-            setTimeout(() => playSound('saving'), 150);
-
-            showTempMessage(`✅ MARKER KEPT — +100 XP (LEVEL ${level})<br>Won't receive future community updates • Revert anytime`, 5500);
-
-            setTimeout(() => {
-                const keptMarker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
-                    .find(m => m.options && m.options.id === markerId);
-                if (keptMarker) {
-                    keptMarker.openPopup();
-                    window.justKeptMarkerId = null;
-                }
-            }, 850);
-        },
-        'Yes — Keep It',
-        'Cancel',
-        true
-    );
+    playSound('click');
 };
 
 // ── Revert kept community marker back to community status ──
@@ -6398,43 +6481,82 @@ window.revertToCommunityMarker = function(markerId) {
 
     playSound('click');
 
-    showConfirmModal(
-        '↩ REVERT TO COMMUNITY MARKER',
-        'This will turn the marker back into a normal community marker.<br><br>' +
-        '• You will lose the +100 XP from **keeping** it<br>' +
-        (marker.approvedSubmission ? '• You will **keep** the original +100 XP from creation/approval<br>' : '') +
-        '• It will receive future community updates again<br>' +
-        '• The marker will be locked automatically<br><br>' +
-        'Proceed with revert?',
-        () => {
-            const hadApprovedFlag = !!marker.approvedSubmission;
+    const existing = document.getElementById('revertModal');
+    if (existing) existing.remove();
 
-            marker.isCommunity = true;
-            marker.userEdited = false;
-            marker.wasCommunityKept = false;
-            marker.locked = true;
-            marker.addedTime = Date.now();
+    const modal = document.createElement('div');
+    modal.id = 'revertModal';
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width:520px; width:94vw; padding:24px; box-sizing:border-box;">
+            <span class="close">X</span>
+            <h2 style="text-align:center; margin:0 0 20px; font-size:1.8em;">↩ REVERT TO COMMUNITY MARKER</h2>
+            
+            <div style="text-align:left; line-height:1.8; font-size:1.1em; margin-bottom:30px;">
+                This will turn the marker back into a normal community marker.<br><br>
+                • You will lose the +100 XP from <strong>keeping</strong> it<br>
+                ${marker.approvedSubmission ? '• You will <strong>keep</strong> the original +100 XP from creation/approval<br>' : ''}
+                • It will receive future community updates again<br>
+                • The marker will be locked automatically<br><br>
+                Proceed with revert?
+            </div>
 
-            if (hadApprovedFlag) {
-                marker.approvedSubmission = true;
-            }
+            <!-- Yes button with forced black text (works in dark mode) -->
+            <button id="revertYesBtn" 
+                    style="background:#00ff00; color:#000000 !important; width:100%; padding:14px; font-size:1.3em; font-weight:bold; margin-bottom:12px;">
+                Yes — Revert
+            </button>
+            <button id="revertCancelBtn" 
+                    style="background:#1a3c34; color:#00ff00; border:2px solid #00ff00; width:100%; padding:14px; font-size:1.3em; font-weight:bold;">
+                Cancel
+            </button>
+        </div>
+    `;
 
-            if (marker.communityUpdateAvailable !== undefined) {
-                delete marker.communityUpdateAvailable;
-            }
+    document.body.appendChild(modal);
+    document.body.classList.add('modal-open');
 
-            // No manual subtraction — recalculateXP() is now the single source of truth
-            recalculateXP();
+    const closeBtn = modal.querySelector('.close');
+    const yesBtn = modal.querySelector('#revertYesBtn');
+    const cancelBtn = modal.querySelector('#revertCancelBtn');
 
-            saveLocations();
-            forceReload();
+    const closeHandler = () => {
+        if (modal && modal.parentNode) modal.parentNode.removeChild(modal);
+        document.body.classList.remove('modal-open');
+        if (typeof playSound === 'function') playSound('modalClose');
+    };
 
-            setTimeout(() => playSound('saving'), 150);
-            showTempMessage(`🔄 MARKER REVERTED TO COMMUNITY — -100 XP (LEVEL ${level})<br>Will receive future updates`, 5500);
-        },
-        'Yes — Revert',
-        'Cancel'
-    );
+    closeBtn.onclick = closeHandler;
+    cancelBtn.onclick = closeHandler;
+
+    yesBtn.onclick = () => {
+        const hadApprovedFlag = !!marker.approvedSubmission;
+
+        marker.isCommunity = true;
+        marker.userEdited = false;
+        marker.wasCommunityKept = false;
+        marker.locked = true;
+        marker.addedTime = Date.now();
+
+        if (hadApprovedFlag) {
+            marker.approvedSubmission = true;
+        }
+        if (marker.communityUpdateAvailable !== undefined) {
+            delete marker.communityUpdateAvailable;
+        }
+
+        recalculateXP();
+        saveLocations();
+        forceReload();
+
+        setTimeout(() => playSound('saving'), 150);
+        showTempMessage(`🔄 MARKER REVERTED TO COMMUNITY — -100 XP (LEVEL ${level})<br>Will receive future updates`, 5500);
+
+        closeHandler();
+    };
+
+    playSound('click');
 };
 
 // ── Revert ALL outdated kept community markers at once ──
