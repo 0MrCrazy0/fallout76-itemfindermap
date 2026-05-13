@@ -748,7 +748,7 @@ function removeTempContextPin() {
     tempContextLatLng = null;
 }
 
-// ── STRONG CLEAN LANDSCAPE MODAL FIX — moves ALL modals much higher up (no extra styles) ──
+// ── STRONGEST LANDSCAPE MODAL FIX — forces modals high up and kills CSS margin override ──
 function fixLandscapeModalPosition() {
     const modals = document.querySelectorAll('#mapContextMenu, .modal-content');
 
@@ -757,15 +757,17 @@ function fixLandscapeModalPosition() {
 
         const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
 
-        modal.style.position = 'fixed';
-        modal.style.top = '2vh';                    // ← pushed very high up
-        modal.style.bottom = 'auto';
-        modal.style.left = '50%';
-        modal.style.transform = 'translateX(-50%)';
-        modal.style.maxHeight = `${Math.floor(vh * 0.62)}px`;   // shorter so bottom buttons are visible
-        modal.style.overflowY = 'auto';             // scroll if needed
-        modal.style.width = '94%';
-        modal.style.maxWidth = '420px';
+        // Force everything with !important so CSS cannot override
+        modal.style.setProperty('position', 'fixed', 'important');
+        modal.style.setProperty('top', '3vh', 'important');           // very high up
+        modal.style.setProperty('bottom', 'auto', 'important');
+        modal.style.setProperty('left', '50%', 'important');
+        modal.style.setProperty('transform', 'translateX(-50%)', 'important');
+        modal.style.setProperty('margin', '0', 'important');          // kills the 8% margin from CSS
+        modal.style.setProperty('maxHeight', `${Math.floor(vh * 0.55)}px`, 'important'); // shorter = bottom buttons visible
+        modal.style.setProperty('overflowY', 'auto', 'important');
+        modal.style.setProperty('width', '94%', 'important');
+        modal.style.setProperty('maxWidth', '420px', 'important');
     });
 }
 
@@ -1381,7 +1383,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-619";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-620";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
