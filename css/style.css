@@ -517,7 +517,7 @@ body.dark-mode #toggleButtonGroup:hover {
 }
 .modal-content {
     background-color: #1a3c34;
-    margin: 2% auto;
+    margin: 1% auto;
     padding: 16px;
     border: 2px solid #00ff00;
     width: 100%;
@@ -527,7 +527,7 @@ body.dark-mode #toggleButtonGroup:hover {
     color: #00ff00;
     font-family: 'Courier New', monospace;
     overflow-y: auto;
-    max-height: 80vh;
+    max-height: 70vh;
     -webkit-overflow-scrolling: touch;
 }
 
