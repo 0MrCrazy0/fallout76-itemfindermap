@@ -1966,16 +1966,16 @@ button[onclick*="pending.html"],
 }
 .leaflet-popup-close-button {
     color: #00ff00 !important;
-    font-size: 24px !important;
+    font-size: 22px !important;
     font-weight: bold !important;
     line-height: 24px !important;
     width: 32px !important;
     height: 32px !important;
     text-align: center !important;
     cursor: pointer !important;
-    margin-top: -4px !important;
+    margin-top: 2px !important;
     user-select: none !important;
     transition: none !important;
-    top: 8px !important;
-    right: 8px !important;
+    top: 1px !important;
+    right: 1px !important;
 }
