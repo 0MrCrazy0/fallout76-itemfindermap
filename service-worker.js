@@ -1,7 +1,7 @@
 // ——— SERVICE WORKER ———
 // Cache busting: Update this line on EVERY deployment that changes HTML, JS, CSS, or communitymap.json
 // Format: "fo76-ifm-v{VERSION}-{DDMMYYYY}" or "fo76-ifm-v{VERSION}-{DDMMYYYY}-buildN"
-const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-606";
+const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-607";
 
 // ── Precache the two large map images for instant loading after first visit ──
 // Added cache-buster so jsDelivr + service worker always get the latest version
