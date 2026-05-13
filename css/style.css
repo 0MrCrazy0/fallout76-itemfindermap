@@ -565,12 +565,11 @@ body.dark-mode #toggleButtonGroup:hover {
 .close {
     color: #00ff00;
     float: right;
-    font-size: 24px;
+    font-size: 28px;
     font-weight: bold;
     line-height: 1;
     cursor: pointer;
 }
-.close:hover { color: #0a2a2a; }
 
 /* ── MODAL BUTTON LAYOUT ── */
 #itemModal .modal-content > div:last-child {
@@ -1964,4 +1963,19 @@ button[onclick*="pending.html"],
         max-height: 62vh !important;
         min-height: 62vh !important;
     }
+}
+.leaflet-popup-close-button {
+    color: #00ff00 !important;
+    font-size: 24px !important;
+    font-weight: bold !important;
+    line-height: 24px !important;
+    width: 32px !important;
+    height: 32px !important;
+    text-align: center !important;
+    cursor: pointer !important;
+    margin-top: -4px !important;
+    user-select: none !important;
+    transition: none !important;
+    top: 8px !important;
+    right: 8px !important;
 }
