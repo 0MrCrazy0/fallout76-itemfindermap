@@ -748,25 +748,26 @@ function removeTempContextPin() {
     tempContextLatLng = null;
 }
 
-// ── LANDSCAPE MODAL POSITION FIX — works for Android Chrome browser ──
+// ── IMPROVED LANDSCAPE MODAL FIX — moves ALL modals higher up + scrollable ──
 function fixLandscapeModalPosition() {
     const modals = document.querySelectorAll('#mapContextMenu, .modal-content');
 
     modals.forEach(modal => {
         if (!modal || modal.style.display !== 'block') return;
 
-        // Use visualViewport for accurate available height on Android Chrome
         const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-        
+
         modal.style.position = 'fixed';
-        modal.style.top = 'auto';
-        modal.style.bottom = '8%';           // slightly higher than before
+        modal.style.top = '8vh';                    // ← moved much higher (top-biased)
+        modal.style.bottom = 'auto';
         modal.style.left = '50%';
         modal.style.transform = 'translateX(-50%)';
-        modal.style.maxHeight = `${vh * 0.78}px`;   // uses real visible height
-        modal.style.overflowY = 'auto';
-        modal.style.width = '94%';           // consistent width
-        modal.style.maxWidth = '420px';      // prevents it becoming too wide
+        modal.style.maxHeight = `${Math.floor(vh * 0.82)}px`;   // generous height
+        modal.style.overflowY = 'auto';             // makes modal scrollable if long
+        modal.style.width = '94%';
+        modal.style.maxWidth = '420px';
+        modal.style.borderRadius = '8px';
+        modal.style.boxShadow = '0 0 25px rgba(0, 255, 0, 0.6)';
     });
 }
 
@@ -1382,7 +1383,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-615";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-616";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
