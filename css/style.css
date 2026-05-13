@@ -517,7 +517,7 @@ body.dark-mode #toggleButtonGroup:hover {
 }
 .modal-content {
     background-color: #1a3c34;
-    margin: 8% auto;
+    margin: 2% auto;
     padding: 16px;
     border: 2px solid #00ff00;
     width: 100%;
