@@ -692,15 +692,23 @@ function showTempContextPin(latlng) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    const point = map.latLngToContainerPoint(latlng);
+    // Force map to finish resizing after fullscreen exit (critical on Android)
+    if (typeof map !== 'undefined' && map) {
+        map.invalidateSize({ animate: false });
+    }
 
-    tempContextPin = document.createElement('div');
-    tempContextPin.className = 'temp-context-pin';
-    tempContextPin.textContent = '📍';
-    tempContextPin.style.left = `${point.x}px`;
-    tempContextPin.style.top = `${point.y}px`;
+    // Small delay ensures the browser has completed the container resize
+    setTimeout(() => {
+        const point = map.latLngToContainerPoint(latlng);
 
-    mapContainer.appendChild(tempContextPin);
+        tempContextPin = document.createElement('div');
+        tempContextPin.className = 'temp-context-pin';
+        tempContextPin.textContent = '📍';
+        tempContextPin.style.left = `${point.x}px`;
+        tempContextPin.style.top = `${point.y}px`;
+
+        mapContainer.appendChild(tempContextPin);
+    }, 120); // 120ms gives reliable timing on Android after fullscreen exit
 }
 
 function removeTempContextPin() {
@@ -1322,7 +1330,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-606";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-607";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
