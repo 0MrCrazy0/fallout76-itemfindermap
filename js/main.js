@@ -683,7 +683,7 @@ function safeInvalidateSize() {
     }
 }
 
-// ── TEMPORARY CONTEXT MENU PIN — robust against rotation & fullscreen ──
+// ── TEMPORARY CONTEXT MENU PIN — stays visible until modal closes ──
 let tempContextPin = null;
 let tempContextLatLng = null;
 let tempPinRepositionHandler = null;
@@ -695,25 +695,19 @@ function showTempContextPin(latlng) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer || !map) return;
 
-    // Force map to finish resizing
     map.invalidateSize({ animate: false });
-
-    // Initial position
     repositionTempPin();
 
-    // Re-position automatically on any resize or move
+    // Re-position on any resize/rotation/move
     tempPinRepositionHandler = () => {
-        if (tempContextLatLng) repositionTempPin();
+        if (tempContextLatLng && document.getElementById('mapContextMenu').style.display === 'block') {
+            repositionTempPin();
+        }
     };
 
     map.on('resize', tempPinRepositionHandler);
     map.on('moveend', tempPinRepositionHandler);
     window.addEventListener('resize', tempPinRepositionHandler, { passive: true });
-
-    // Safety cleanup after 10 seconds
-    setTimeout(() => {
-        if (tempContextPin) removeTempContextPin();
-    }, 10000);
 }
 
 function repositionTempPin() {
@@ -1366,7 +1360,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-612";
+    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-613";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
