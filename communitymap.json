@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": 11.9,
+  "communityVersion": 12.0,
   "customCategories": {},
   "locations": [
     {
@@ -766,24 +766,6 @@
       "desc": "Weapon located on a shelf in the ranger station at Flatwoods.\nGrid D6 (X: 1307, Y: 2367)",
       "lat": 2367.25,
       "lng": 1306.99909925898,
-      "icon": "🔫",
-      "addedTime": 1764610903998,
-      "locked": true,
-      "isPostcard": false,
-      "isTemp": false,
-      "startTime": null,
-      "keepBtnBound": false,
-      "userEdited": false,
-      "isCommunity": true,
-      "wasCommunityKept": false
-    },
-    {
-      "id": "id-69755b2b-b426-497e-b202-25846ca760b4",
-      "cid": "weapons_weapon_inside_the_overseers_cache_at_vault_76_near_the_entrance_2686_1323",
-      "category": "weapons",
-      "desc": "Weapon located inside the overseers cache at Vault 76 near the entrance.\nGrid D7 (X: 1323, Y: 2686)",
-      "lat": 2685.628400742849,
-      "lng": 1323.1270767084625,
       "icon": "🔫",
       "addedTime": 1764610903998,
       "locked": true,
