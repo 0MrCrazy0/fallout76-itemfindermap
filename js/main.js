@@ -1383,7 +1383,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-13-05-2026-Build-B-75-627";
+    const CACHE_NAME = "76-Vault-Stable-14-05-2026-Build-B-75-628";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -1850,10 +1850,10 @@ if (showOnlyMyMarkers === true) {
             }
         }
     }
-    // === TEXT SEARCH + SUGGESTIONS DROPDOWN (loose/predictive — matches draw window) ===
+// === TEXT SEARCH + SUGGESTIONS DROPDOWN (loose/predictive — matches draw window) ===
     const q = val.toLowerCase();
     suggestionsBox.innerHTML = '';
-   
+  
     if (q.length === 0) {
         suggestionsBox.style.display = 'none';
     } else {
@@ -1863,9 +1863,9 @@ if (showOnlyMyMarkers === true) {
             const text = normalizeString(loc.desc + ' ' + (loc.category || '') + ' ' + grid);
             const queryNorm = normalizeString(q);
             const terms = queryNorm.split(' ').filter(t => t.length > 0);
-            
+           
             const isMatch = terms.every(term => text.includes(term));
-            
+           
             if (isMatch) {
                 const displayText = loc.desc.length > 50 ? loc.desc.substring(0,47) + '...' : loc.desc;
                 matches.push({
@@ -1892,10 +1892,15 @@ if (showOnlyMyMarkers === true) {
                 div.style.cursor = 'pointer';
                 div.style.borderBottom = '1px solid #00ff33';
                 div.onclick = () => {
-                    combinedSearch.value = '';
-clearBtn.style.display = 'none';
+                    // Preserve current search text and category filter
                     suggestionsBox.style.display = 'none';
-                    loadData('', categoryFilter.value);
+
+                    const currentSearchVal = combinedSearch.value || '';
+                    const currentCat = categoryFilter.value || currentCategoryFilter || '';
+
+                    loadData(currentSearchVal, currentCat);
+                    refreshTable(currentSearchVal, currentCat);
+
                     safeFlyTo(item.lat, item.lng, 4);
                     map.once('moveend', () => {
                         setTimeout(() => {
@@ -1912,7 +1917,7 @@ clearBtn.style.display = 'none';
                 suggestionsBox.appendChild(div);
             });
             suggestionsBox.style.display = 'block';
-playSound('selectcategory');
+            playSound('selectcategory');
         } else {
             suggestionsBox.style.display = 'none';
         }
@@ -1930,7 +1935,6 @@ playSound('selectcategory');
     }
     refreshTable(val, categoryFilter.value || currentCategoryFilter);
     loadData(combinedSearch.value, categoryFilter.value);
-
     // ── LOCAL THROTTLE — fixes double sound on PC & Android for search bar only ──
     const now = Date.now();
     if (now - lastTypeSoundTime >= 200) {
@@ -4921,20 +4925,19 @@ document.getElementById('shareOneBtn').onclick = () => {
             playSound('click');
         };
         toggleClusterBtn.onclick = () => {
-            clusteringEnabled = !clusteringEnabled;
-            localStorage.setItem('clusteringEnabled', clusteringEnabled);
-            toggleClusterBtn.textContent = `Clustering: ${clusteringEnabled ? 'On' : 'Off'}`;
+    clusteringEnabled = !clusteringEnabled;
+    localStorage.setItem('clusteringEnabled', clusteringEnabled);
+    toggleClusterBtn.textContent = `Clustering: ${clusteringEnabled ? 'On' : 'Off'}`;
 
-            // Clear search bar when toggling clustering (prevents flash)
-            combinedSearch.value = '';
-            clearBtn.style.display = 'none';
-            const currentCat = categoryFilter.value || '';
+    // Preserve current search text and category filter
+    const currentSearchVal = combinedSearch.value || '';
+    const currentCat = categoryFilter.value || currentCategoryFilter || '';
 
-            forceReload();
-            loadData('', currentCat);
-            refreshTable('', currentCat);
-            playSound('click');
-        };
+    forceReload();
+    loadData(currentSearchVal, currentCat);
+    refreshTable(currentSearchVal, currentCat);
+    playSound('click');
+};
                 toggleMapBtn.onclick = () => {
             currentMap = currentMap === 'named' ? 'noName' : 'named';
             localStorage.setItem('currentMap', currentMap);
@@ -5795,7 +5798,6 @@ searchInput.addEventListener('input', function(e) {
     const matches = [];
 
     // ── LOOSE PREDICTIVE MATCH FOR DROPDOWN ONLY ──
-    // Forgiving for typos, partial typing, and misspellings
     locations.forEach(loc => {
         const grid = (typeof getGridFromLatLng === 'function') ? (getGridFromLatLng(loc.lat, loc.lng) || '') : '';
         const text = normalizeString(loc.desc + ' ' + (loc.category || '') + ' ' + grid);
@@ -5803,7 +5805,6 @@ searchInput.addEventListener('input', function(e) {
 
         const terms = queryNorm.split(' ').filter(t => t.length > 0);
         
-        // Every term must appear anywhere in the text (very forgiving)
         const isMatch = terms.every(term => text.includes(term));
         
         if (isMatch) {
@@ -5814,12 +5815,11 @@ searchInput.addEventListener('input', function(e) {
                 lat: loc.lat,
                 lng: loc.lng,
                 id: loc.id,
-                score: text.indexOf(terms[0])   // simple relevance (earlier = better)
+                score: text.indexOf(terms[0])
             });
         }
     });
 
-    // Sort by relevance (best matches first) then take top 12
     const seen = new Set();
     const unique = matches
         .sort((a, b) => a.score - b.score)
@@ -5840,11 +5840,15 @@ searchInput.addEventListener('input', function(e) {
         div.style.cursor = 'pointer';
         div.style.borderBottom = '1px solid #00ff33';
         div.onclick = () => {
-            combinedSearch.value = '';
-            clearBtn.style.display = 'none';
+            // Preserve current search text — do NOT clear the bar
             suggestionsBox.style.display = 'none';
-            loadData('', categoryFilter.value);
-            
+
+            const currentSearchVal = combinedSearch.value || '';
+            const currentCat = categoryFilter.value || currentCategoryFilter || '';
+
+            loadData(currentSearchVal, currentCat);
+            refreshTable(currentSearchVal, currentCat);
+
             safeFlyTo(item.lat, item.lng, 4);
             map.once('moveend', () => {
                 setTimeout(() => {
@@ -5863,7 +5867,6 @@ searchInput.addEventListener('input', function(e) {
 
     suggestionsBox.style.display = 'block';
 });
-
 document.addEventListener('click', e => {
     if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
         suggestionsBox.style.display = 'none';
@@ -6401,7 +6404,14 @@ window.keepCommunityMarker = function(markerId) {
         applyCustomCategoryStyling();
         saveLocations();
         recalculateXP();
+
+        // ── Preserve current search filter after keeping marker ──
+        const currentSearchVal = combinedSearch.value || '';
+        const currentCat = categoryFilter.value || currentCategoryFilter || '';
+
         forceReload();
+        loadData(currentSearchVal, currentCat);
+        refreshTable(currentSearchVal, currentCat);
 
         if (typeof createCreationBurst === 'function') {
             createCreationBurst([marker.lat, marker.lng]);
@@ -6493,16 +6503,19 @@ window.revertToCommunityMarker = function(markerId) {
         marker.locked = true;
         marker.addedTime = Date.now();
 
-        if (hadApprovedFlag) {
-            marker.approvedSubmission = true;
-        }
-        if (marker.communityUpdateAvailable !== undefined) {
-            delete marker.communityUpdateAvailable;
-        }
+        if (hadApprovedFlag) marker.approvedSubmission = true;
+        if (marker.communityUpdateAvailable !== undefined) delete marker.communityUpdateAvailable;
+
+        // ── Preserve current search filter ──
+        const currentSearchVal = combinedSearch.value || '';
+        const currentCat = categoryFilter.value || currentCategoryFilter || '';
 
         recalculateXP();
         saveLocations();
+
         forceReload();
+        loadData(currentSearchVal, currentCat);
+        refreshTable(currentSearchVal, currentCat);
 
         setTimeout(() => playSound('saving'), 150);
         showTempMessage(`🔄 MARKER REVERTED TO COMMUNITY — -100 XP (LEVEL ${level})<br>Will receive future updates`, 5500);
