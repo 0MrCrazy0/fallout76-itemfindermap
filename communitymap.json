@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": 12.5,
+  "communityVersion": 12.6,
   "customCategories": {},
   "locations": [
     {
@@ -5076,7 +5076,25 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-90335797-1761-4451-9192-258b7b61e72b",
+      "cid": "holotapes_overseers_journal_entry_5_in_welch_located_inside_evans_hous_1067.06371_1033.81250_9f5bz51a",
+      "category": "holotapes",
+      "desc": "Overseers journal - entry 5 in Welch, located inside Evans house, a small, dilapidated brick house in the southeastern part of town.\nGrid C3 (X: 1032.8, Y: 1064.8)\nSubmitted By MrCrazy",
+      "lat": 1064.7513743218806,
+      "lng": 1032.75,
+      "icon": "📀",
+      "addedTime": 1778764315285,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ],
-  "lastUpdated": "2026-05-14T13:13:42.031738Z"
+  "lastUpdated": "2026-05-14T13:16:36.578183Z"
 }
