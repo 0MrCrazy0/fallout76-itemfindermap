@@ -1979,3 +1979,11 @@ button[onclick*="pending.html"],
     top: 1px !important;
     right: 1px !important;
 }
+/* Scrollable suggestions dropdown (supports up to 100 items) */
+#searchSuggestions {
+    max-height: 420px;           /* adjust if needed */
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #00ff88 #1a3c34;
+}
