@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": 13.2,
+  "communityVersion": 13.3,
   "customCategories": {},
   "locations": [
     {
@@ -5104,7 +5104,61 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-12beff20-d445-44ed-ade5-fb59410ddacd",
+      "cid": "holotapes_overseers_log_5_find_this_log_in_front_of_the_elevator_doors_2135.99741_2319.50000_zd5vxw4i",
+      "category": "holotapes",
+      "desc": "Overseers log – #5 Find this log in front of the elevator doors at the Top of the World dome building. The voice of Rose is also coming from here.\nGrid F6 (X: 2319.8, Y: 2146.9)\nSubmitted By MrCrazy",
+      "lat": 2146.855081374322,
+      "lng": 2319.75,
+      "icon": "📀",
+      "addedTime": 1778922710386,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
+    },
+    {
+      "id": "id-1da6983f-683b-447f-8218-57b06a2f62a6",
+      "cid": "holotapes_overseers_log_4_this_log_is_found_in_the_reception_of_the_ch_1555.75012_1303.87500_vrupgsgx",
+      "category": "holotapes",
+      "desc": "Overseers log – #4 This log is found in the reception of the Charleston Fire Department, which is used by the Responders and is on the edge of the Forest region of the map.\nGrid D4 (X: 1296.8, Y: 1558.5)\nSubmitted By MrCrazy",
+      "lat": 1558.4658589511755,
+      "lng": 1296.75,
+      "icon": "📀",
+      "addedTime": 1778922621767,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
+    },
+    {
+      "id": "id-7f29c693-376c-440b-9746-696804c172f5",
+      "cid": "holotapes_overseers_log_3_find_this_log_on_the_second_floor_of_the_mor_2767.49746_1946.75000_i518ct78",
+      "category": "holotapes",
+      "desc": "Overseers log – #3 Find this log on the second floor of the Morgantown Airport. Go to the basement first and collect the keycard from the hand of Responder corpse. This will allow you to go to the second floor. Find the Command Post door.\nGrid E7 (X: 1908, Y: 2747.6)\nSubmitted By MrCrazy",
+      "lat": 2747.6255696202534,
+      "lng": 1908,
+      "icon": "📀",
+      "addedTime": 1778922318385,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ],
-  "lastUpdated": "2026-05-16T09:38:26.200659Z"
+  "lastUpdated": "2026-05-16T09:44:10.908034Z"
 }
