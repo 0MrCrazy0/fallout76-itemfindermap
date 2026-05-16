@@ -1383,7 +1383,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-16-05-2026-Build-B-75-634";
+    const CACHE_NAME = "76-Vault-Stable-16-05-2026-Build-B-75-635";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -4712,6 +4712,7 @@ downloadCommunityBtn.onclick = () => {
                 loc.userEdited = false;
                 loc.wasCommunityKept = !!existing?.wasCommunityKept;
                 if (isApprovedSubmission) {
+					loc.addedTime = Date.now();
                     loc.approvedSubmission = true;
                     showTempMessage(`🤩 Your marker "${(imp.desc || '').substring(0,35)}${(imp.desc || '').length > 35 ? '...' : ''}" was APPROVED! You Keep The Created 100XP`, 10000);
                     playSound('levelUp');
