@@ -1383,7 +1383,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-16-05-2026-Build-B-75-630";
+    const CACHE_NAME = "76-Vault-Stable-16-05-2026-Build-B-75-631";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -1880,7 +1880,11 @@ combinedSearch.addEventListener('input', () => {
             const queryNorm = normalizeString(q);
             const terms = queryNorm.split(' ').filter(t => t.length > 0);
 
-            const isMatch = terms.every(term => text.includes(term));
+            // Improved matching: handle singular/plural (overseer → overseers, etc.)
+            const isMatch = terms.every(term => {
+                const baseTerm = term.replace(/s$/, '');
+                return text.includes(term) || text.includes(baseTerm);
+            });
 
             if (isMatch) {
                 const displayText = loc.desc.length > 50 ? loc.desc.substring(0,47) + '...' : loc.desc;
@@ -1895,12 +1899,24 @@ combinedSearch.addEventListener('input', () => {
         });
 
         const seen = new Set();
-        const unique = matches.filter(item => {
+        let unique = matches.filter(item => {
             const key = item.desc + item.lat + item.lng;
             if (seen.has(key)) return false;
             seen.add(key);
             return true;
-        }).slice(0, 12);
+        });
+
+        // ── NEW: Sort results logically (especially Overseers log #1, #2, #8, etc.)
+        unique.sort((a, b) => {
+            const numA = (a.desc.match(/#(\d+)/) || [Infinity, Infinity])[1];
+            const numB = (b.desc.match(/#(\d+)/) || [Infinity, Infinity])[1];
+            if (numA !== Infinity && numB !== Infinity) {
+                return parseInt(numA) - parseInt(numB);   // numerical order
+            }
+            return a.desc.localeCompare(b.desc);          // alphabetical fallback
+        });
+
+        unique = unique.slice(0, 12);   // keep top 12
 
         if (unique.length > 0) {
             suggestionsBox.innerHTML = '';
@@ -1911,37 +1927,31 @@ combinedSearch.addEventListener('input', () => {
                 div.style.cursor = 'pointer';
                 div.style.borderBottom = '1px solid #00ff33';
                 div.onclick = () => {
-    const wasVisible = suggestionsBox.style.display === 'block';
+                    const wasVisible = suggestionsBox.style.display === 'block';
+                    suggestionsBox.style.display = 'none';
+                    if (wasVisible) playSound('selectcategory');
 
-    suggestionsBox.style.display = 'none';
+                    const currentSearchVal = combinedSearch.value || '';
+                    const currentCat = categoryFilter.value || currentCategoryFilter || '';
+                    loadData(currentSearchVal, currentCat);
+                    refreshTable(currentSearchVal, currentCat);
 
-    // Play selectcategory sound when draw closes after selecting a listing
-    if (wasVisible) {
-        playSound('selectcategory');
-    }
-
-    const currentSearchVal = combinedSearch.value || '';
-    const currentCat = categoryFilter.value || currentCategoryFilter || '';
-    loadData(currentSearchVal, currentCat);
-    refreshTable(currentSearchVal, currentCat);
-
-    safeFlyTo(item.lat, item.lng, 4);
-    map.once('moveend', () => {
-        setTimeout(() => {
-            const m = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
-                .find(m => m.options.id === item.id);
-            if (m) {
-                m.openPopup();
-                playSound('click');
-            }
-        }, 200);
-    });
-    playSound('click');
-};
+                    safeFlyTo(item.lat, item.lng, 4);
+                    map.once('moveend', () => {
+                        setTimeout(() => {
+                            const m = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
+                                .find(m => m.options.id === item.id);
+                            if (m) {
+                                m.openPopup();
+                                playSound('click');
+                            }
+                        }, 200);
+                    });
+                    playSound('click');
+                };
                 suggestionsBox.appendChild(div);
             });
 
-            // Play sound when dropdown opens
             if (!wasVisible) {
                 suggestionsBox.style.display = 'block';
                 playSound('selectcategory');
