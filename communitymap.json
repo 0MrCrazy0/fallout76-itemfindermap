@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": 13.0,
+  "communityVersion": 13.1,
   "customCategories": {},
   "locations": [
     {
@@ -5068,7 +5068,25 @@
       "userEdited": false,
       "wasCommunityKept": false,
       "isCommunity": true
+    },
+    {
+      "id": "id-660789e1-c9c4-43d2-87e1-dac6fb6a1b5e",
+      "cid": "holotapes_overseers_log_1_this_log_is_given_to_you_by_the_duchess_at_t_2376.50152_1471.87500_qb4jzijg",
+      "category": "holotapes",
+      "desc": "Overseers log – #1 This log is given to you by the Duchess at The Wayward shop. It is located across from the Overseer's Camp and at the intersection of Routes 86 and 88.\nGrid D6 (X: 1471.9, Y: 2376.5)\nSubmitted By MrCrazy",
+      "lat": 2376.5015189873416,
+      "lng": 1471.875,
+      "icon": "📀",
+      "addedTime": 1778857777563,
+      "locked": true,
+      "isPostcard": false,
+      "isTemp": false,
+      "startTime": null,
+      "keepBtnBound": false,
+      "userEdited": false,
+      "wasCommunityKept": false,
+      "isCommunity": true
     }
   ],
-  "lastUpdated": "2026-05-14T13:42:50.683527Z"
+  "lastUpdated": "2026-05-16T09:23:40.474121Z"
 }
