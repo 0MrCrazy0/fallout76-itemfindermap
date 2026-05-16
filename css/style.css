@@ -1987,3 +1987,12 @@ button[onclick*="pending.html"],
     scrollbar-width: thin;
     scrollbar-color: #00ff88 #1a3c34;
 }
+/* ── Suggestions Dropdown Close Button ── */
+#searchSuggestions .suggestions-close {
+    color: #ff6666;
+    transition: color 0.2s ease;
+    font-weight: bold;
+}
+#searchSuggestions .suggestions-close:hover {
+    color: #ffaaaa;
+}
