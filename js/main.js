@@ -1383,7 +1383,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-16-05-2026-Build-B-75-631";
+    const CACHE_NAME = "76-Vault-Stable-16-05-2026-Build-B-75-632";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -1916,7 +1916,7 @@ combinedSearch.addEventListener('input', () => {
             return a.desc.localeCompare(b.desc);          // alphabetical fallback
         });
 
-        unique = unique.slice(0, 12);   // keep top 12
+        unique = unique.slice(0, 100);   // keep top 100
 
         if (unique.length > 0) {
             suggestionsBox.innerHTML = '';
