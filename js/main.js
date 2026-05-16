@@ -1383,7 +1383,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-15-05-2026-Build-B-75-629";
+    const CACHE_NAME = "76-Vault-Stable-16-05-2026-Build-B-75-630";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -1818,19 +1818,29 @@ setTimeout(updateRevertAllButton, 1500);
         categoryFilter.style.cssText += 'height:42px;font-size:16px;min-width:160px;';
         toggleCategoryModalBtn.style.cssText += 'height:42px;min-width:150px;padding:0 8px;font 14px;white-space:nowrap;';
 
-        // ── CLEAR BUTTON (×) — clears only the search text, keeps selected category
-        clearBtn.onclick = () => {
-            combinedSearch.value = '';
-            clearBtn.style.display = 'none';
-            combinedSearch.focus();
-            refreshTable(combinedSearch.value, categoryFilter.value || currentCategoryFilter);
-            loadData(combinedSearch.value, categoryFilter.value || currentCategoryFilter);
-            playSound('modalClose');
-        };
+// ── CLEAR BUTTON (×) — clears search text, closes draw, and plays selectcategory sound
+clearBtn.onclick = () => {
+    const wasVisible = suggestionsBox.style.display === 'block';
 
-        combinedSearch.addEventListener('input', () => {
-        const val = combinedSearch.value.trim();
-if (showOnlyMyMarkers === true) {
+    combinedSearch.value = '';
+    clearBtn.style.display = 'none';
+
+    if (wasVisible) {
+        suggestionsBox.style.display = 'none';
+        playSound('selectcategory');
+    }
+
+    combinedSearch.focus();
+
+    refreshTable(combinedSearch.value, categoryFilter.value || currentCategoryFilter);
+    loadData(combinedSearch.value, categoryFilter.value || currentCategoryFilter);
+
+    playSound('modalClose');   // keep your original click sound
+};
+
+combinedSearch.addEventListener('input', () => {
+    const val = combinedSearch.value.trim();
+    if (showOnlyMyMarkers === true) {
         showOnlyMyMarkers = false;
         document.getElementById('toggleMyMarkersBtn').textContent = 'My Markers: All';
     }
@@ -1853,113 +1863,122 @@ if (showOnlyMyMarkers === true) {
             }
         }
     }
-// === TEXT SEARCH + SUGGESTIONS DROPDOWN (loose/predictive — matches draw window) ===
+
+    // === TEXT SEARCH + SUGGESTIONS DROPDOWN ===
     const q = val.toLowerCase();
-suggestionsBox.innerHTML = '';
+    const wasVisible = suggestionsBox.style.display === 'block';
 
-if (q.length === 0) {
-    suggestionsBox.style.display = 'none';
-} else {
-    const matches = [];
-    locations.forEach(loc => {
-        const grid = (typeof getGridFromLatLng === 'function') ? (getGridFromLatLng(loc.lat, loc.lng) || '') : '';
-        const text = normalizeString(loc.desc + ' ' + (loc.category || '') + ' ' + grid);
-        const queryNorm = normalizeString(q);
-        const terms = queryNorm.split(' ').filter(t => t.length > 0);
-       
-        const isMatch = terms.every(term => text.includes(term));
-       
-        if (isMatch) {
-            const displayText = loc.desc.length > 50 ? loc.desc.substring(0,47) + '...' : loc.desc;
-            matches.push({
-                display: displayText,
-                desc: loc.desc,
-                lat: loc.lat,
-                lng: loc.lng,
-                id: loc.id
-            });
-        }
-    });
+    suggestionsBox.innerHTML = '';
 
-    const seen = new Set();
-    const unique = matches.filter(item => {
-        const key = item.desc + item.lat + item.lng;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-    }).slice(0, 12);
-
-    if (unique.length > 0) {
-        suggestionsBox.innerHTML = '';
-        unique.forEach(item => {
-            const div = document.createElement('div');
-            div.textContent = item.display;
-            div.style.padding = '12px';
-            div.style.cursor = 'pointer';
-            div.style.borderBottom = '1px solid #00ff33';
-            div.onclick = () => {
-                suggestionsBox.style.display = 'none';
-                const currentSearchVal = combinedSearch.value || '';
-                const currentCat = categoryFilter.value || currentCategoryFilter || '';
-                loadData(currentSearchVal, currentCat);
-                refreshTable(currentSearchVal, currentCat);
-
-                safeFlyTo(item.lat, item.lng, 4);
-                map.once('moveend', () => {
-                    setTimeout(() => {
-                        const m = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
-                            .find(m => m.options.id === item.id);
-                        if (m) {
-                            m.openPopup();
-                            playSound('click');
-                        }
-                    }, 200);
-                });
-                playSound('click');
-            };
-            suggestionsBox.appendChild(div);
-        });
-        suggestionsBox.style.display = 'block';
-    } else {
+    if (q.length === 0) {
         suggestionsBox.style.display = 'none';
-    }
-}
+    } else {
+        const matches = [];
+        locations.forEach(loc => {
+            const grid = (typeof getGridFromLatLng === 'function') ? (getGridFromLatLng(loc.lat, loc.lng) || '') : '';
+            const text = normalizeString(loc.desc + ' ' + (loc.category || '') + ' ' + grid);
+            const queryNorm = normalizeString(q);
+            const terms = queryNorm.split(' ').filter(t => t.length > 0);
 
-// === ITEM LOCATED MESSAGE + SELECTCATEGORY SOUND (plays ONLY ONCE) ===
-const terms = q.split(/\s+/).filter(t => t.length > 1);
-const found = terms.length > 0 && locations.some(l => {
-    const text = (l.desc + ' ' + l.category).toLowerCase();
-    return terms.every(term => text.includes(term));
-});
+            const isMatch = terms.every(term => text.includes(term));
 
-if (found && val) {
-    if (!lastItemFound) {
-        lastItemFound = true;
+            if (isMatch) {
+                const displayText = loc.desc.length > 50 ? loc.desc.substring(0,47) + '...' : loc.desc;
+                matches.push({
+                    display: displayText,
+                    desc: loc.desc,
+                    lat: loc.lat,
+                    lng: loc.lng,
+                    id: loc.id
+                });
+            }
+        });
+
+        const seen = new Set();
+        const unique = matches.filter(item => {
+            const key = item.desc + item.lat + item.lng;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        }).slice(0, 12);
+
+        if (unique.length > 0) {
+            suggestionsBox.innerHTML = '';
+            unique.forEach(item => {
+                const div = document.createElement('div');
+                div.textContent = item.display;
+                div.style.padding = '12px';
+                div.style.cursor = 'pointer';
+                div.style.borderBottom = '1px solid #00ff33';
+                div.onclick = () => {
+    const wasVisible = suggestionsBox.style.display === 'block';
+
+    suggestionsBox.style.display = 'none';
+
+    // Play selectcategory sound when draw closes after selecting a listing
+    if (wasVisible) {
         playSound('selectcategory');
     }
-    showTempMessage('🔎 ITEM LOCATED — CHECK DROP-DOWN SUGGESTIONS', 3000);
-    combinedSearch.style.boxShadow = '0 0 8px #0f0';
-    setTimeout(() => combinedSearch.style.boxShadow = '', 1500);
-} else {
-    lastItemFound = false;
-}
 
-// Detect when dropdown closes and play sound once
-const currentlyVisible = suggestionsBox.style.display === 'block';
-if (!currentlyVisible && lastSuggestionsVisible) {
-    playSound('selectcategory');
-}
-lastSuggestionsVisible = currentlyVisible;
+    const currentSearchVal = combinedSearch.value || '';
+    const currentCat = categoryFilter.value || currentCategoryFilter || '';
+    loadData(currentSearchVal, currentCat);
+    refreshTable(currentSearchVal, currentCat);
 
-refreshTable(val, categoryFilter.value || currentCategoryFilter);
-loadData(combinedSearch.value, categoryFilter.value);
+    safeFlyTo(item.lat, item.lng, 4);
+    map.once('moveend', () => {
+        setTimeout(() => {
+            const m = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
+                .find(m => m.options.id === item.id);
+            if (m) {
+                m.openPopup();
+                playSound('click');
+            }
+        }, 200);
+    });
+    playSound('click');
+};
+                suggestionsBox.appendChild(div);
+            });
 
-// ── LOCAL THROTTLE — fixes double sound on PC & Android for search bar only ──
-const now = Date.now();
-if (now - lastTypeSoundTime >= 200) {
-    lastTypeSoundTime = now;
-    playSound('type');
-}
+            // Play sound when dropdown opens
+            if (!wasVisible) {
+                suggestionsBox.style.display = 'block';
+                playSound('selectcategory');
+            }
+        } else {
+            suggestionsBox.style.display = 'none';
+        }
+    }
+
+    // Play selectcategory sound when dropdown closes (including clear button)
+    const nowVisible = suggestionsBox.style.display === 'block';
+    if (wasVisible && !nowVisible) {
+        playSound('selectcategory');
+    }
+
+    // === ITEM LOCATED MESSAGE ===
+    const terms = q.split(/\s+/).filter(t => t.length > 1);
+    const found = terms.length > 0 && locations.some(l => {
+        const text = (l.desc + ' ' + l.category).toLowerCase();
+        return terms.every(term => text.includes(term));
+    });
+
+    if (found && val) {
+        showTempMessage('🔎 ITEM LOCATED — CHECK DROP-DOWN SUGGESTIONS', 3000);
+        combinedSearch.style.boxShadow = '0 0 8px #0f0';
+        setTimeout(() => combinedSearch.style.boxShadow = '', 1500);
+    }
+
+    refreshTable(val, categoryFilter.value || currentCategoryFilter);
+    loadData(combinedSearch.value, categoryFilter.value);
+
+    // ── LOCAL THROTTLE for type sound ──
+    const now = Date.now();
+    if (now - lastTypeSoundTime >= 200) {
+        lastTypeSoundTime = now;
+        playSound('type');
+    }
 });
                 // ── FIXED: Category Filter Change Handler (now correctly handles "All Categories") ──
         categoryFilter.addEventListener('change', function() {
@@ -3894,17 +3913,26 @@ overlay.innerHTML = `
         return true;
     });
 
-    let filtered = validLocations.filter(loc => {
+        let filtered = validLocations.filter(loc => {
         if (!activeCategories.has(loc.category)) return false;
         if (catFilter && loc.category !== catFilter) return false;
         if (showOnlyMyMarkers && loc.isCommunity && !loc.wasCommunityKept && !loc.userEdited) return false;
         if (!search) return true;
+
         const normalizedSearch = normalizeString(search);
         const normalizedDesc = normalizeString(loc.desc);
         const normalizedCat = loc.category ? normalizeString(loc.category) : '';
-        return normalizedDesc.includes(normalizedSearch) ||
-               normalizedSearch.includes(normalizedDesc) ||
-               normalizedCat.includes(normalizedSearch);
+
+        // ── NEW: Loose multi-word matching (exactly like the dropdown) ──
+        const grid = (typeof getGridFromLatLng === 'function') ? (getGridFromLatLng(loc.lat, loc.lng) || '') : '';
+        const cleanedText = normalizeString(normalizedDesc + ' ' + normalizedCat + ' ' + grid);
+
+        const terms = normalizedSearch.split(' ').filter(t => t.length > 0);
+
+        return terms.every(term => {
+            const baseTerm = term.replace(/s$/, '');   // handles plural "maps"
+            return cleanedText.includes(baseTerm) || cleanedText.includes(term);
+        });
     });
 
     filtered.forEach(addMarkerToMap);
@@ -5804,93 +5832,6 @@ function checkForUpdate() {
 		
 const searchInput = document.getElementById('combinedSearch');
 const suggestionsBox = document.getElementById('searchSuggestions');
-
-searchInput.addEventListener('input', function(e) {
-    if (e && !e.isTrusted) return;
-
-    const q = searchInput.value.trim().toLowerCase();
-    suggestionsBox.innerHTML = '';
-    suggestionsBox.style.display = 'none';
-
-    if (q.length < 2) return;
-
-    const matches = [];
-
-    // ── LOOSE PREDICTIVE MATCH FOR DROPDOWN ONLY ──
-    locations.forEach(loc => {
-        const grid = (typeof getGridFromLatLng === 'function') ? (getGridFromLatLng(loc.lat, loc.lng) || '') : '';
-        const text = normalizeString(loc.desc + ' ' + (loc.category || '') + ' ' + grid);
-        const queryNorm = normalizeString(q);
-
-        const terms = queryNorm.split(' ').filter(t => t.length > 0);
-        
-        const isMatch = terms.every(term => text.includes(term));
-        
-        if (isMatch) {
-            const displayText = loc.desc.length > 50 ? loc.desc.substring(0,47) + '...' : loc.desc;
-            matches.push({
-                display: displayText,
-                desc: loc.desc,
-                lat: loc.lat,
-                lng: loc.lng,
-                id: loc.id,
-                score: text.indexOf(terms[0])
-            });
-        }
-    });
-
-    const seen = new Set();
-    const unique = matches
-        .sort((a, b) => a.score - b.score)
-        .filter(item => {
-            const key = item.desc + item.lat + item.lng;
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-        })
-        .slice(0, 12);
-
-    if (unique.length === 0) return;
-
-    unique.forEach(item => {
-        const div = document.createElement('div');
-        div.textContent = item.display;
-        div.style.padding = '12px';
-        div.style.cursor = 'pointer';
-        div.style.borderBottom = '1px solid #00ff33';
-        div.onclick = () => {
-            // Preserve current search text — do NOT clear the bar
-            suggestionsBox.style.display = 'none';
-
-            const currentSearchVal = combinedSearch.value || '';
-            const currentCat = categoryFilter.value || currentCategoryFilter || '';
-
-            loadData(currentSearchVal, currentCat);
-            refreshTable(currentSearchVal, currentCat);
-
-            safeFlyTo(item.lat, item.lng, 4);
-            map.once('moveend', () => {
-                setTimeout(() => {
-                    const marker = [...clusteredMarkers.getLayers(), ...nonClusteredMarkers.getLayers()]
-                        .find(m => m.options && m.options.id === item.id);
-                    if (marker) {
-                        marker.openPopup();
-                        playSound('click');
-                    }
-                }, 650);
-            });
-            playSound('selectcategory');
-        };
-        suggestionsBox.appendChild(div);
-    });
-
-    suggestionsBox.style.display = 'block';
-});
-document.addEventListener('click', e => {
-    if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
-        suggestionsBox.style.display = 'none';
-    }
-});
 
 // === PWA INSTALL BANNER — Correct iOS instructions ===
 let deferredPrompt = null;
