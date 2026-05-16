@@ -1383,7 +1383,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-16-05-2026-Build-B-75-632";
+    const CACHE_NAME = "76-Vault-Stable-16-05-2026-Build-B-75-633";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -1920,6 +1920,13 @@ combinedSearch.addEventListener('input', () => {
 
         if (unique.length > 0) {
             suggestionsBox.innerHTML = '';
+			const headerHTML = `
+                <div style="position:relative; padding:8px 12px 6px 12px; background:#132b2b; border-bottom:1px solid #00ff88; color:#00ff88; font-weight:bold; font-size:0.95em; display:flex; justify-content:space-between; align-items:center;">
+                    Found ${unique.length} matching markers
+                    <span class="suggestions-close" title="Close suggestions" style="cursor:pointer; font-size:22px; line-height:1; padding:0 6px;">✕</span>
+                </div>
+            `;
+            suggestionsBox.innerHTML = headerHTML;
             unique.forEach(item => {
                 const div = document.createElement('div');
                 div.textContent = item.display;
@@ -1951,6 +1958,16 @@ combinedSearch.addEventListener('input', () => {
                 };
                 suggestionsBox.appendChild(div);
             });
+
+            // ── Attach Close button handler ──
+            const closeBtn = suggestionsBox.querySelector('.suggestions-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', (e) => {
+                    e.stopImmediatePropagation();
+                    suggestionsBox.style.display = 'none';
+                    playSound('modalClose');
+                });
+            }
 
             if (!wasVisible) {
                 suggestionsBox.style.display = 'block';
