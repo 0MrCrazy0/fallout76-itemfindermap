@@ -1383,7 +1383,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-16-05-2026-Build-B-75-635";
+    const CACHE_NAME = "76-Vault-Stable-18-05-2026-Build-B-75-636";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -4697,16 +4697,31 @@ downloadCommunityBtn.onclick = () => {
                     categoryColors[imp.category] = '#002F00';
                     activeCategories.add(imp.category);
                 }
+
                 let loc;
                 if (existing) {
+                    // ── DETECT ACTUAL CHANGE FOR RE-GLOW ──
+                    const wasChanged = 
+                        existing.desc !== imp.desc ||
+                        existing.category !== imp.category ||
+                        Math.abs(existing.lat - imp.lat) > 0.0001 ||
+                        Math.abs(existing.lng - imp.lng) > 0.0001 ||
+                        existing.icon !== imp.icon;
+
                     Object.assign(existing, imp);
                     loc = existing;
                     refreshed++;
+
+                    // Only glow if the marker was actually updated by a moderator
+                    if (loc.isCommunity && !loc.userEdited && !loc.wasCommunityKept && wasChanged) {
+                        loc.addedTime = Date.now();
+                    }
                 } else {
                     loc = { ...imp, addedTime: Date.now(), locked: true, isCommunity: true, isTemp: false, isPostcard: false, userEdited: false, wasCommunityKept: false };
                     locations.push(loc);
                     added++;
                 }
+
                 loc.isCommunity = true;
                 loc.locked = true;
                 loc.userEdited = false;
