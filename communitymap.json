@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "communityVersion": 15.2,
+  "communityVersion": 15.3,
   "customCategories": {},
   "locations": [
     {
@@ -529,7 +529,7 @@
       "id": "id-3633ddbe-0159-4799-9a04-ba96c9850374",
       "cid": "vendors_vendors_buy_or_sell_1514_1249",
       "category": "vendors",
-      "desc": "Vendors available to buy or sell items.\nGrid D4 (X: 1249, Y: 1514)\nSubmitted By Anonymous Wastelander",
+      "desc": "The Rusty Pick the primary vendor who deals only in legendary items and accepts Legendary Scrip as payment.\nGrid D4 (X: 1249, Y: 1514)\nSubmitted By Anonymous Wastelander",
       "lat": 1514.3108663098078,
       "lng": 1248.9367869133594,
       "icon": "💰",
@@ -3579,7 +3579,7 @@
       "id": "id-052c3622-a47b-4190-93c1-cdad7c9bf6ea",
       "cid": "regions_burning_springs_the_postwar_southeastern_region_of_rural_ohio_grid_b7_x_439_y_2507_submitted_by_mrcrazy_2507_439",
       "category": "regions",
-      "desc": "Burning Springs: the post-war southeastern region of rural Ohio.\nGrid B7 (X: 439, Y: 2507)\nSubmitted By Anonymous Wastelander",
+      "desc": "Burning Springs region: the post-war southeastern region of rural Ohio.\nGrid B7 (X: 439, Y: 2507)\nSubmitted By Anonymous Wastelander",
       "lat": 2507.3040432234975,
       "lng": 438.5887249107405,
       "icon": "📍",
@@ -5448,5 +5448,5 @@
       "isCommunity": true
     }
   ],
-  "lastUpdated": "2026-05-17T13:36:35.449980Z"
+  "lastUpdated": "2026-05-22T13:36:35.449980Z"
 }
