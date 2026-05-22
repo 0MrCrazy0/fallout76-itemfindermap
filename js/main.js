@@ -1,4 +1,4 @@
-const CURRENT_APP_VERSION = '76.Vault.Stable';
+const CURRENT_APP_VERSION = '76.Vault.Live';
 
 // ── Core version identifier — change this single value to bump the entire app version ──
 const CURRENT_UPDATE_VERSION = 'v' + CURRENT_APP_VERSION;
@@ -833,7 +833,7 @@ function createCreationBurst(latlng) {
             'vaults': '⚙️', 'power armor': '👨‍🚀', 'fusion core': '🔋', 'nuke drop zones': '☢️',
             'nuke silos': '🚀', 'magazines': '📚', 'bobbleheads': '🎎', 'safe locations': '🗄️',
             'terminal locations': '🖥️', 'treasure maps': '🗺️', 'resource deposits': '⛏️',
-            'fishing locations': '🎣', 'workshops': '🔧', 'train stations': '🚂', 'town locations': '🏫',
+            'fishing locations': '🎣', 'workshops': '🔧', 'train stations': '🚂',
             'event locations': '🎉', 'named locations': '🚩', 'regions': '📍'
         };
 
@@ -848,7 +848,7 @@ const defaultCategoryColors = {
     'power armor': '#002F00', 'fusion core': '#002F00', 'nuke drop zones': '#002F00',
     'nuke silos': '#002F00', 'magazines': '#002F00', 'bobbleheads': '#002F00',
     'treasure maps': '#002F00', 'resource deposits': '#002F00', 'fishing locations': '#002F00',
-    'workshops': '#002F00', 'train stations': '#002F00', 'town locations': '#002F00',
+    'workshops': '#002F00', 'train stations': '#002F00',
     'event locations': '#002F00', 'named locations': '#002F00', 'regions': '#002F00',
     'terminal locations': '#002F00', 'safe locations': '#002F00'
 };
@@ -1383,7 +1383,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76-Vault-Stable-18-05-2026-Build-B-75-636";
+    const CACHE_NAME = "76.Vault.Live-22-05-2026-IFM-Build-B-76-Live";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -2751,14 +2751,14 @@ function createDustParticles(latlng) {
             return div.innerHTML;
         }
         function createMarkerIcon(loc) {
-            const isTextOnly = ['named locations', 'regions'].includes(loc.category);
+            const isTextOnly = ['regions'].includes(loc.category);
             const isUpdateAvailable = !!loc.communityUpdateAvailable;
 
             if (isTextOnly) {
                 const iconToUse = loc.icon || categoryIcons[loc.category] || '📝';
                 const words = loc.desc.split('\n')[0].trim().split(' ');
-                const shortText = words.slice(0, 3).join(' ') + (words.length > 3 ? '...' : '');
-                const width = Math.min(120, Math.max(60, shortText.length * 9));
+                const shortText = words.slice(0, 3).join(' ') + (words.length > 4 ? '...' : '');
+                const width = Math.min(109, Math.max(60, shortText.length * 9));
                 const glowClass = isGlowing(loc) ? 'glowing' : (isUpdateAvailable ? 'update-available' : '');
                 const html = `<div class="${glowClass}" style="background:#000;color:#fff;padding:3px 6px;border:2px solid #0f0;border-radius:4px;font-weight:bold;font-size:11px;white-space:nowrap;width:${width}px;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(shortText)}</div>`;
                
@@ -5836,8 +5836,9 @@ function checkForUpdate() {
                         Welcome to Version <strong>${CURRENT_APP_VERSION}</strong>
                     </p>
                     <p style="font-size:1.15em; color:#88ff88;">
-                        The Fallout 76 Item Finder Map has been upgraded with the latest fixes and features.
-                    </p>
+                        The Fallout 76 Item Finder Map has been upgraded with the latest fixes and features.<br>
+                <strong>The app is now live and ready to use.</strong>
+            </p>
                     
                     <div style="margin:30px 0;">
                         <div id="updateGotItBtn" style="display:inline-block; padding:14px 50px; background:#000; border:3px solid #00ff00; color:#00ff00; font-size:1.6em; font-weight:bold; text-shadow:0 0 18px #00ff00; box-shadow:0 0 25px #00ff00; cursor:pointer;">
