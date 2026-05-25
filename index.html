@@ -327,7 +327,7 @@
             <span class="close">X</span>
             <h2>Create New Category</h2>
             <label for="newCategoryName">Category Name:</label>
-<input type="text" id="newCategoryName" placeholder="Enter category name" style="width:100%; padding:8px; margin-bottom:10px;">
+<input type="text" id="newCategoryName" placeholder="Enter category name" style="width:100%; padding:8px; margin-bottom:10px;"><br>
 <label for="newCategoryEmoji">Emoji (only one):</label>
 <input type="text" id="newCategoryEmoji" placeholder="Paste emoji" maxlength="2" inputmode="text" style="width:100%; padding:8px; margin-bottom:10px;">
             <p class="small">Paste one emoji. Only emojis allowed.</p>
@@ -344,28 +344,39 @@
     </div>
 
     <!-- ── DELETE CATEGORY MODAL ── -->
-    <div id="deleteCategoryModal" class="modal">
-        <div class="modal-content">
-            <span class="close">X</span>
-            <h2>Delete Category</h2>
-            <label for="deleteCategorySelect">Select Category to Delete:</label>
-<select id="deleteCategorySelect">
-    <option value="">Select a custom category</option>
-</select>
-            <p class="small">Deleting a category will reassign all its markers to "misc".</p>
-            <div style="margin-top:12px; text-align:center;">
-                <button id="confirmDeleteCategoryBtn"
-        style="background:#e74c3c !important; color:#000000 !important; border:2px solid #c0392d; min-width:140px; padding:10px 20px; font-weight:bold;">
-    Delete Category
-</button>
-        <!-- Bottom Close Button -->
-        <button onclick="closeModalWithSound('deleteCategoryModal')" 
-                style="background:#1a3c34; color:#00ff00; border:2px solid #00ff00; width:100%; margin-top:20px; padding:12px; font-weight:bold;">
-            Close
-        </button>
-            </div>
+<div id="deleteCategoryModal" class="modal">
+    <div class="modal-content">
+        <span class="close">X</span>
+        <h2>Delete Custom Category</h2>
+        
+        <label for="deleteCategorySelect" style="display:block; margin:16px 0 8px 0; font-weight:bold;">
+            Select Category to Delete:
+        </label>
+        
+        <select id="deleteCategorySelect" 
+                style="width:100%; padding:12px; font-size:16px; margin-bottom:20px;">
+            <option value="">Select category...</option>
+        </select>
+        
+        <p class="small" style="margin-bottom:24px; line-height:1.5;">
+            Warning: Deleting a category will reassign all its markers to "misc".
+        </p>
+        
+        <div style="text-align:center;">
+            <button id="confirmDeleteCategoryBtn"
+                    style="background:#e74c3c !important; color:#000000 !important; border:2px solid #c0392d; 
+                           min-width:160px; padding:12px 24px; font-weight:bold;">
+                Delete Category
+            </button>
+            
+            <button onclick="closeModalWithSound('deleteCategoryModal')"
+                    style="background:#1a3c34; color:#00ff00; border:2px solid #00ff00; width:100%; 
+                           margin-top:20px; padding:12px; font-weight:bold;">
+                Close
+            </button>
         </div>
     </div>
+</div>
 	
     <!-- iOS PWA rotation fix -->
 <!-- iOS PWA rotation fix — SAFE VERSION -->
