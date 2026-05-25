@@ -853,6 +853,12 @@ const defaultCategoryColors = {
     'terminal locations': '#002F00', 'safe locations': '#002F00'
 };
 
+// ── PROTECTED CATEGORIES — All official/community categories (users cannot delete these) ──
+const PROTECTED_CATEGORIES = new Set([
+    ...Object.keys(defaultCategoryIcons),
+    'minerva'
+]);
+
 let categoryColors = { ...defaultCategoryColors };
 
 // ── ROBUST REBUILD FOR ALL CUSTOM CATEGORIES (safe & future-proof) ──
@@ -1383,7 +1389,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76.Vault.Live-22-05-2026-IFM-Build-B-76-Live";
+    const CACHE_NAME = "76.Vault.Live-26-05-2026-IFM-Build-B-76-Live";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -5088,16 +5094,17 @@ document.getElementById('shareOneBtn').onclick = () => {
         document.getElementById('deleteCategoryBtn').onclick = () => {
     const sel = document.getElementById('deleteCategorySelect');
 
-    const userOnlyCategories = Object.keys(customCategories).filter(cat => {
-        const hasCommunityMarker = locations.some(l => 
-            l.category === cat && l.isCommunity === true
-        );
-        return !hasCommunityMarker && !defaultCategoryIcons[cat];
-    }).sort();
+    // Only show categories that are truly user-created and NOT protected
+    const deletableCategories = Object.keys(customCategories)
+        .filter(cat => 
+            !PROTECTED_CATEGORIES.has(cat) && 
+            !defaultCategoryIcons[cat]     // not a built-in default
+        )
+        .sort();
 
-    sel.innerHTML = '<option value="">Select custom</option>' +
-        userOnlyCategories.map(n => 
-            `<option value="${n}">${n} ${customCategories[n]}</option>`
+    sel.innerHTML = '<option value="">Select category...</option>' +
+        deletableCategories.map(cat => 
+            `<option value="${cat}">${cat} ${customCategories[cat]}</option>`
         ).join('');
 
     document.getElementById('deleteCategoryModal').style.display = 'block';
@@ -5125,29 +5132,40 @@ document.getElementById('shareOneBtn').onclick = () => {
         document.getElementById('confirmDeleteCategoryBtn').onclick = () => {
     const name = document.getElementById('deleteCategorySelect').value;
     if (!name || !customCategories[name]) return;
+
+    // Strong protection for official categories
+    if (PROTECTED_CATEGORIES.has(name)) {
+        showTempMessage('❌ This is an official Community Map category and cannot be deleted.', 5000);
+        playSound('error');
+        return;
+    }
+
     showConfirmModal(
         `DELETE CATEGORY "${name.toUpperCase()}"`,
         `All markers will be moved to "misc".<br><br>This cannot be undone.<br><br>Proceed with deletion?`,
         () => {
-    locations.forEach(l => { 
-        if (l.category === name) {
-            l.category = 'misc';
-            l.icon = '📝';                    // ← Reset to default misc icon
-        }
-    });
-    delete customCategories[name];
-    delete categoryIcons[name];
-    delete categoryColors[name];
-    activeCategories.delete(name);
+            locations.forEach(l => { 
+                if (l.category === name) {
+                    l.category = 'misc';
+                    l.icon = '📝';
+                }
+            });
 
-    localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-    localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
-    saveLocations();
-    forceReload();
-    closeModal(document.getElementById('deleteCategoryModal'));
-    showTempMessage(`🚨 CATEGORY "${name}" DELETED → MARKERS REASSIGNED TO MISC! 📝`, 5000);
-    playSound('delete');
-}
+            delete customCategories[name];
+            delete categoryIcons[name];
+            delete categoryColors[name];
+            activeCategories.delete(name);
+
+            localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+            localStorage.setItem('activeCategories', JSON.stringify([...activeCategories]));
+            
+            saveLocations();
+            forceReload();
+            
+            closeModal(document.getElementById('deleteCategoryModal'));
+            showTempMessage(`🚨 CATEGORY "${name}" DELETED → MARKERS REASSIGNED TO MISC! 📝`, 5000);
+            playSound('delete');
+        }
     );
 };
 saveItemBtn.onclick = () => {
