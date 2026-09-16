@@ -167,19 +167,51 @@
                 data.forEach(pr => {
                     const div = document.createElement('div');
                     div.className = 'pr';
-                    div.innerHTML = `
-                        <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
-                            <strong>PR #${pr.number}</strong>
-                            <span>${new Date(pr.created_at).toLocaleString()}</span>
-                        </div>
-                        <div>Submitted by: ${pr.user}</div>
-                        <div style="margin:12px 0;"><strong>Title:</strong> ${pr.title}</div>
-                        <div style="margin-bottom:12px;">
-                            <strong>Preview:</strong>
-                            <div class="preview-box">${pr.preview || '(no preview available)'}</div>
-                        </div>
-                        <a href="${pr.url}" target="_blank">View Pull Request on GitHub →</a>
-                    `;
+
+                    const header = document.createElement('div');
+                    header.style.cssText = 'display:flex;justify-content:space-between;margin-bottom:12px;';
+                    const numStrong = document.createElement('strong');
+                    numStrong.textContent = 'PR #' + String(pr.number ?? '');
+                    const dateSpan = document.createElement('span');
+                    dateSpan.textContent = pr.created_at ? new Date(pr.created_at).toLocaleString() : '';
+                    header.appendChild(numStrong);
+                    header.appendChild(dateSpan);
+                    div.appendChild(header);
+
+                    const by = document.createElement('div');
+                    by.textContent = 'Submitted by: ' + String(pr.user ?? '');
+                    div.appendChild(by);
+
+                    const titleRow = document.createElement('div');
+                    titleRow.style.margin = '12px 0';
+                    const titleLabel = document.createElement('strong');
+                    titleLabel.textContent = 'Title:';
+                    titleRow.appendChild(titleLabel);
+                    titleRow.appendChild(document.createTextNode(' ' + String(pr.title ?? '')));
+                    div.appendChild(titleRow);
+
+                    const previewWrap = document.createElement('div');
+                    previewWrap.style.marginBottom = '12px';
+                    const previewLabel = document.createElement('strong');
+                    previewLabel.textContent = 'Preview:';
+                    previewWrap.appendChild(previewLabel);
+                    const previewBox = document.createElement('div');
+                    previewBox.className = 'preview-box';
+                    previewBox.textContent = pr.preview || '(no preview available)';
+                    previewWrap.appendChild(previewBox);
+                    div.appendChild(previewWrap);
+
+                    const link = document.createElement('a');
+                    link.target = '_blank';
+                    link.textContent = 'View Pull Request on GitHub →';
+                    const url = String(pr.url || '');
+                    if (url.startsWith('https://github.com/')) {
+                        link.href = url;
+                    } else {
+                        link.removeAttribute('href');
+                    }
+                    div.appendChild(link);
+
                     container.appendChild(div);
                 });
             })
