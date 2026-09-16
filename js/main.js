@@ -1389,7 +1389,7 @@ window.exitFullscreenThenDo = function(callback) {
     if (!mapContainer) return;
 
     // Must exactly match service-worker.js
-    const CACHE_NAME = "76.Vault.Live-26-05-2026-IFM-Build-B-76-Live";
+    const CACHE_NAME = "76.Vault.Live-19-09-2026-IFM-Build-C-76-Live";
 
     const MAP_IMAGES = [
         'https://cdn.jsdelivr.net/gh/0MrCrazy0/fallout76-itemfindermap@main/map-named.jpg?v=' + Date.now(),
@@ -2776,7 +2776,7 @@ function createDustParticles(latlng) {
                     zIndexOffset: 1000
                 });
             } else {
-                const base = `<div class="marker-background" style="background-color:${categoryColors[loc.category] || '#808080'};"><span style="font-size:18px;">${ loc.icon || categoryIcons[loc.category] || '📝' }</span></div>`;
+                const base = `<div class="marker-background" style="background-color:${categoryColors[loc.category] || '#808080'};"><span style="font-size:18px;">${escapeHtml(loc.icon || categoryIcons[loc.category] || '📝')}</span></div>`;
                 const glowClass = isGlowing(loc) ? 'glowing' : (isUpdateAvailable ? 'update-available' : '');
                 return L.divIcon({
                     className: `custom-icon ${glowClass}`,
@@ -2946,7 +2946,7 @@ function showConfirmModal(title, content, onConfirm, restoreFullscreenOnClose = 
             loc.locked = true;
             lastMovedMarker = marker;
             saveLocations();
-            showTempMessage(`📍 MARKER MOVED — SAVED & RE-LOCKED ${loc.icon}`, 4000);
+            showTempMessage(`📍 MARKER MOVED — SAVED & RE-LOCKED ${escapeHtml(loc.icon || '')}`, 4000);
             setTimeout(() => {
                 playSound('saving');
             }, 150);
@@ -3003,7 +3003,7 @@ marker.bindPopup(`
     <div style="font-family:monospace; max-width:300px; line-height:1.5; color:#00ff00;">
         <!-- Static title – minimal spacing -->
         <strong style="font-size:1.35em; display:block; margin-bottom:8px;">
-            ${loc.icon || categoryIcons[loc.category] || 'Position'} ${loc.category.toUpperCase()}
+            ${escapeHtml(loc.icon || categoryIcons[loc.category] || 'Position')} ${escapeHtml(String(loc.category||'').toUpperCase())}
         </strong>
        
         <!-- Scrollable description only -->
@@ -3292,8 +3292,8 @@ function refreshTable(search = '', cat = '') {
 
         tr.innerHTML = `
             <td>${lockCell}</td>
-            <td>${['named locations','regions'].includes(loc.category) ? `<div class="text-location">${escapeHtml(short)}</div>` : `<div class="icon-circle" style="background:${categoryColors[loc.category]||'#808080'}">${loc.icon}</div>`}</td>
-            <td>${escapeHtml(loc.category)} ${loc.icon}</td>
+            <td>${['named locations','regions'].includes(loc.category) ? `<div class="text-location">${escapeHtml(short)}</div>` : `<div class="icon-circle" style="background:${categoryColors[loc.category]||'#808080'}">${escapeHtml(loc.icon || '')}</div>`}</td>
+            <td>${escapeHtml(loc.category)} ${escapeHtml(loc.icon || '')}</td>
             <td>${escapeHtml(short)}</td>
         `;
 
@@ -3381,7 +3381,7 @@ function refreshTable(search = '', cat = '') {
         }
                 function updateCategoryDropdowns() {
             const cats = [...Object.keys(defaultCategoryIcons), ...Object.keys(customCategories)].sort();
-            const opt = c => `<option value="${c}">${c} ${categoryIcons[c]||''}</option>`;
+            const opt = c => `<option value="${escapeHtml(c)}">${escapeHtml(c)} ${categoryIcons[c]||''}</option>`;
             
             // Remember what the user currently had selected
             const currentSelected = categoryFilter.value;
@@ -3433,7 +3433,7 @@ function openModal(title, idx = -1) {
             noteHTML = '<p style="color:#00ff88; text-align:center; margin:12px 0 8px;">This marker is now part of the official community map — no resubmission needed.</p>';
             if (submitBtn) submitBtn.style.display = 'none';
         }
-        else if (hasBeenSubmitted(cid)) {
+        else if (hasBeenSubmitted(loc.id)) {
             noteHTML = '<p style="color:#ffcc00; text-align:center; margin:12px 0 8px;">This marker was previously submitted.<br>If it does not appear in the Pending Submissions list, it was either merged or removed.<br>Delete this marker and create a new one if you wish to resubmit.</p>';
             if (submitBtn) submitBtn.style.display = 'none';
         }
@@ -6312,8 +6312,6 @@ window.startReport = function(markerId) {
             return;
         }
 
-        localStorage.setItem(reportKey, "true");
-
         fetch("https://itemfinder-submit.crzymn05.workers.dev/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -6321,6 +6319,7 @@ window.startReport = function(markerId) {
                 type: "report",
                 markerId: markerId,
                 message: message,
+                name: localStorage.getItem('fo76_playerName') || '',
                 marker: {
                     id: markerId,
                     cid: marker.cid || generateCid(marker),
@@ -6334,8 +6333,18 @@ window.startReport = function(markerId) {
                 }
             })
         })
-        .then(r => r.ok ? r.text() : Promise.reject('Server rejected'))
-        .then(() => showTempMessage('🚩 REPORT SENT — THANK YOU IT WILL BE REVIEWED.', 6000))
+        .then(async r => {
+            if (!r.ok) throw new Error('Server rejected');
+            const ct = (r.headers.get('Content-Type') || '').toLowerCase();
+            if (ct.includes('application/json')) {
+                const data = await r.json();
+                if (data && data.error) throw new Error(data.message || data.error);
+            } else {
+                await r.text(); // legacy Worker HTML thank-you — HTTP ok = success
+            }
+            localStorage.setItem(reportKey, "true");
+            showTempMessage('🚩 REPORT SENT — THANK YOU IT WILL BE REVIEWED.', 6000);
+        })
         .catch(err => {
             console.error("Report failed:", err);
             showTempMessage('❌ REPORT FAILED — TRY AGAIN LATER.', 6000);
