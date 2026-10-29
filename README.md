@@ -1,5 +1,7 @@
 # Fallout 76 Item Finder Map
 
+[![Fallout 76 Item Finder Map](social-preview.jpg)](https://0mrcrazy0.github.io/fallout76-itemfindermap/)
+
 **Live version:** [https://0mrcrazy0.github.io/fallout76-itemfindermap/](https://0mrcrazy0.github.io/fallout76-itemfindermap/)
 
 [![Version](https://img.shields.io/badge/version-76.Vault.Live-00ff00?style=flat-square&logo=github)](https://github.com/0MrCrazy0/fallout76-itemfindermap)
